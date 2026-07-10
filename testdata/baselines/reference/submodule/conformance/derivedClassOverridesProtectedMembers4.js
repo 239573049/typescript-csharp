@@ -1,0 +1,28 @@
+//// [tests/cases/conformance/classes/members/inheritanceAndOverriding/derivedClassOverridesProtectedMembers4.ts] ////
+
+//// [derivedClassOverridesProtectedMembers4.ts]
+var x: { foo: string; }
+var y: { foo: string; bar: string; }
+
+class Base {
+    protected a: typeof x;
+}
+
+class Derived1 extends Base {
+    public a: typeof x;
+}
+
+class Derived2 extends Derived1 {
+    protected a: typeof x; // Error, parent was public
+}
+
+//// [derivedClassOverridesProtectedMembers4.js]
+"use strict";
+var x;
+var y;
+class Base {
+}
+class Derived1 extends Base {
+}
+class Derived2 extends Derived1 {
+}

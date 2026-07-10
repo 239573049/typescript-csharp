@@ -1,0 +1,10 @@
+--- old.moduleAugmentationInAmbientModule2.js
++++ new.moduleAugmentationInAmbientModule2.js
+@@= skipped -33, +33 lines =@@
+ require("Map");
+ let x;
+ x.foo().x;
++
++
++//// [main.d.ts]
++import "Map";

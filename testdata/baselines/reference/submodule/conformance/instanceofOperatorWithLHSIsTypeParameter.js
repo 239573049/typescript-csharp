@@ -1,0 +1,14 @@
+//// [tests/cases/conformance/expressions/binaryOperators/instanceofOperator/instanceofOperatorWithLHSIsTypeParameter.ts] ////
+
+//// [instanceofOperatorWithLHSIsTypeParameter.ts]
+function foo<T>(t: T) {
+    var x: any;
+    var r = t instanceof x;
+}
+
+//// [instanceofOperatorWithLHSIsTypeParameter.js]
+"use strict";
+function foo(t) {
+    var x;
+    var r = t instanceof x;
+}

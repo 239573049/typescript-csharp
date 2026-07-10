@@ -1,0 +1,16 @@
+//// [tests/cases/compiler/invalidConstraint1.ts] ////
+
+//// [invalidConstraint1.ts]
+function f<T, U extends { a: T }>() {
+    return undefined;
+}
+f<string, { a: number }>(); // should error
+
+
+
+//// [invalidConstraint1.js]
+"use strict";
+function f() {
+    return undefined;
+}
+f(); // should error

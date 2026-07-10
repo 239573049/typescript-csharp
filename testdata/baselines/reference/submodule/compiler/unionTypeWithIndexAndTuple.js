@@ -1,0 +1,14 @@
+//// [tests/cases/compiler/unionTypeWithIndexAndTuple.ts] ////
+
+//// [unionTypeWithIndexAndTuple.ts]
+interface I {
+    [index: number]: any;
+    someOtherProperty: number;
+}
+function f(args: ["a"] | I) { }
+f(["a"]);
+
+//// [unionTypeWithIndexAndTuple.js]
+"use strict";
+function f(args) { }
+f(["a"]);

@@ -1,0 +1,8 @@
+//// [tests/cases/conformance/parser/ecmascript5/ModuleDeclarations/parserModuleDeclaration9.ts] ////
+
+//// [parserModuleDeclaration9.ts]
+namespace a.number.b {
+}
+
+//// [parserModuleDeclaration9.js]
+"use strict";

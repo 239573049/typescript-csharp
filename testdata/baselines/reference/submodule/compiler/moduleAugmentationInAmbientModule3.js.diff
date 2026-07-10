@@ -1,0 +1,10 @@
+--- old.moduleAugmentationInAmbientModule3.js
++++ new.moduleAugmentationInAmbientModule3.js
+@@= skipped -44, +44 lines =@@
+ let x;
+ x.foo().x;
+ x.foo2().x2;
++
++
++//// [main.d.ts]
++import "Map";

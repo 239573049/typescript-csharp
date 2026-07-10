@@ -1,0 +1,13 @@
+//// [tests/cases/compiler/resolveTypeAliasWithSameLetDeclarationName1.ts] ////
+
+//// [resolveTypeAliasWithSameLetDeclarationName1.ts]
+class C { }
+type baz = C;
+let baz: baz;
+
+
+//// [resolveTypeAliasWithSameLetDeclarationName1.js]
+"use strict";
+class C {
+}
+let baz;

@@ -1,0 +1,8 @@
+--- old.enumTagUseBeforeDefCrash.types
++++ new.enumTagUseBeforeDefCrash.types
+@@= skipped -11, +11 lines =@@
+  * @type {foo}
+  */
+ var s;
+->s : number
++>s : foo

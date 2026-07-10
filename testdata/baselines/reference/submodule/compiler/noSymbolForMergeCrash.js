@@ -1,0 +1,14 @@
+//// [tests/cases/compiler/noSymbolForMergeCrash.ts] ////
+
+//// [initial.ts]
+interface A { }
+namespace A {}
+
+//// [final.ts]
+type A = {}
+
+
+//// [initial.js]
+"use strict";
+//// [final.js]
+"use strict";

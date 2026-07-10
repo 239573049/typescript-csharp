@@ -1,0 +1,19 @@
+//// [tests/cases/compiler/raiseErrorOnParameterProperty.ts] ////
+
+//// [raiseErrorOnParameterProperty.ts]
+class C1 {
+  constructor(public x: X) {
+  }
+}
+var c1 = new C1(0);
+ 
+
+
+//// [raiseErrorOnParameterProperty.js]
+"use strict";
+class C1 {
+    constructor(x) {
+        this.x = x;
+    }
+}
+var c1 = new C1(0);
