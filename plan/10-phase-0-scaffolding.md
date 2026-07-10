@@ -2,7 +2,7 @@
 
 | 元信息 | |
 |---|---|
-| 版本 | v1.0 |
+| 版本 | v1.1 |
 | 日期 | 2026-07-11 |
 | 状态 | Draft |
 | 主计划 | `~/.claude/plans/precious-riding-hoare.md`（已批准；本文档是其 §三 文档集中的 10 号） |
@@ -22,7 +22,7 @@
 - ⚠️ 已存在但需收敛（与权威文档有差异，动作 = 按差异表修改）
 - ☐ 待建
 
-**当前实况快照**：目标仓库**尚不是 git 仓库**（`git rev-parse` 失败）；已有 TypeScript.slnx、三级 Directory.Build.props、Directory.Packages.props、8 个 csproj、Program.cs、LargeStackExecutor.cs（+测试）、Version.cs、plan/ 下 00/01/07 三份文档。`src/*/obj/`、`tests/*/obj/` 里已产生 NuGet 中间物——**git init 前必须先落 .gitignore**（§1.7）。
+**当前实况快照（2026-07-11 实施校准）**：目标仓库已在 `main` 建立初始提交；W0-01～04、06～14、21 已落地。TypeScript 子模块钉在 `4d4f005c…`，`UPSTREAM.lock` 钉 tsgo `168e7015…`；testdata 的 49,642 个 Git 跟踪文件语义镜像已入库并由 `.gitattributes` 禁止换行归一化；AOT/Trim/SingleFile/globalization/Banned API 约束已全仓启用。当前主线转入 W0-15～18 生成器自举，W0-05/19/20/22 仍待完成或验收。
 
 ---
 
@@ -32,18 +32,18 @@
 
 | # | 交付物 | 路径 | 状态 | 验收方式 |
 |---|---|---|---|---|
-| W0-01 | git init + 首次提交 | 仓库根 | ☐ | `git log` 有初始提交；`git status` 无 obj/bin 噪声 |
-| W0-02 | .gitignore | `/.gitignore` | ☐ | §1.7 全文落库 |
-| W0-03 | TypeScript 子模块钉扎 | `/_submodules/TypeScript` | ☐（被坐标 A 阻塞，见 §4-1） | `git submodule status` 无 `+`/`-` 前缀；SHA == UPSTREAM.lock |
-| W0-04 | UPSTREAM.lock | `/UPSTREAM.lock` | ☐ | 五项指纹齐全（00-overview.md §4.3） |
+| W0-01 | git init + 首次提交 | 仓库根 | ✅ | `git log` 有初始提交；`git status` 无 obj/bin 噪声 |
+| W0-02 | .gitignore | `/.gitignore` | ✅ | §1.7 全文落库 |
+| W0-03 | TypeScript 子模块钉扎 | `/_submodules/TypeScript` | ✅ | `git submodule status` 无 `+`/`-` 前缀；SHA == UPSTREAM.lock |
+| W0-04 | UPSTREAM.lock | `/UPSTREAM.lock` | ✅ | 五项指纹齐全（00-overview.md §4.3） |
 | W0-05 | tools/check-upstream-pin.sh | `/tools/check-upstream-pin.sh` | ☐ | 本地跑通；CI 首步接入 |
-| W0-06 | tools/sync-testdata.sh + testdata 初次同步 | `/tools/sync-testdata.sh`、`/testdata/` | ☐ | baselines/reference 文件数 49,323 + 镜像总计数两字段入 lock（R14；00-overview.md §5.1 实测值） |
+| W0-06 | tools/sync-testdata.sh + testdata 初次同步 | `/tools/sync-testdata.sh`、`/testdata/` | ✅ | baselines/reference Git 跟踪文件数 49,321 + 镜像总计数/逻辑字节入 lock（R14；00-overview.md §5.1） |
 | W0-07 | TypeScript.slnx | `/TypeScript.slnx` | ✅ | `dotnet build TypeScript.slnx` 绿 |
-| W0-08 | Directory.Build.props ×3 | 根 / src/ / tests/ | ⚠️ | 收敛到 07-aot-constraints.md §3 全文（差异表 §1.4） |
-| W0-09 | Directory.Packages.props | 根 | ⚠️ | §1.5 逐包表；补 BannedApiAnalyzers |
-| W0-10 | BannedSymbols.txt | 根 | ☐ | 07-aot-constraints.md §1 的机器可读镜像 |
-| W0-11 | .editorconfig | 根 | ☐ | §1.6 要点齐全；`dotnet build` 后 analyzer severity 生效 |
-| W0-12 | 8 个 csproj | src/ ×3、tests/ ×5 | ⚠️ | §1.8 关键内容 + 收敛项 |
+| W0-08 | Directory.Build.props ×3 | 根 / src/ / tests/ | ✅ | 收敛到 07-aot-constraints.md §3 全文（差异表 §1.4） |
+| W0-09 | Directory.Packages.props | 根 | ✅ | §1.5 逐包表；补 BannedApiAnalyzers |
+| W0-10 | BannedSymbols.txt | 根 | ✅ | 07-aot-constraints.md §1 的机器可读镜像 |
+| W0-11 | .editorconfig | 根 | ✅ | §1.6 要点齐全；`dotnet build` 后 analyzer severity 生效 |
+| W0-12 | 8 个 csproj | src/ ×3、tests/ ×5 | ✅ | §1.8 关键内容 + 收敛项 |
 | W0-13 | Program.cs 最小实现 | `src/Ts.Cli/Program.cs` | ✅ | `tscs --version` 输出 `Version 7.1.0-dev` |
 | W0-14 | LargeStackExecutor.cs + 单测 | `src/Ts.Compiler/Core/LargeStackExecutor.cs`、`tests/Ts.Compiler.Tests/Core/LargeStackExecutorTests.cs` | ✅ | §1.10 API 核对；单测绿 |
 | W0-15 | tools/generator（AST/诊断/libs 自举） | `/tools/generator/` | ☐ | §1.11；drift 校验（生成后 `git diff --exit-code`） |
@@ -52,7 +52,7 @@
 | W0-18 | Bundled/libs ×108 EmbeddedResource | `src/Ts.Compiler/Bundled/` | ☐ | 单测断言资源计数 == 108 |
 | W0-19 | Tracing 接口占位 | `src/Ts.Compiler/Tracing/` | ☐ | 空接口/空实现编译过（01-architecture.md §2.3：接口占位在阶段 0） |
 | W0-20 | CI 工作流 | `/.github/workflows/ci.yml` | ☐ | §1.13 草案；三平台矩阵全绿 |
-| W0-21 | plan/ 13 份文档 | `/plan/` | 进行中 | 00–12 齐全（本文即 10 号） |
+| W0-21 | plan/ 13 份文档 | `/plan/` | ✅ | 00–12 齐全（本文即 10 号） |
 | W0-22 | tools/dumptool 骨架 + fixtures.lock.json 初版 | `/tools/dumptool/patches/`、`/tools/dumptool/regen.sh`、`/fixtures/fixtures.lock.json` | ☐ | R16：阶段 0 交付物；规格 = 08-testing-strategy.md §2；patches/README.md + regen.sh 骨架落库，fixtures.lock.json 的 tsgoCommit == 坐标 A；夹具存储通道决策进 §1.14 出口 checklist |
 
 ### 1.2 git init 与上游钉扎步骤（W0-01/03/04/05）
@@ -99,9 +99,9 @@ git add UPSTREAM.lock && git commit -m "phase 0: pin upstream"
 tsgo.commit        = <坐标A-SHA>
 tsgo.source        = https://github.com/microsoft/typescript-go （clone 归档：<路径>）
 typescript.commit  = <坐标B-SHA>
-testdata.files.reference = 49323          # testdata/baselines/reference/ 单列（验收货币，00-overview.md §5.1）
+testdata.files.reference = 49321          # testdata/baselines/reference/ Git 跟踪文件（验收货币，00-overview.md §5.1）
 testdata.files.total     = <find 实测>     # testdata/ 镜像全目录（R14 双字段；自有夹具在仓库根 fixtures/，由 fixtures.lock.json 另行管理）
-testdata.bytes     = <du -sb 实测>
+testdata.bytes     = <普通文件 wc -c 逻辑长度之和>  # 禁用 du：其报告文件系统块占用且平台选项不一致
 sha256.ast.json            = <...>
 sha256.schema.ts           = <...>
 sha256.diagnosticMessages.json      = <...>   # 取自 _submodules/TypeScript/src/compiler/
@@ -341,18 +341,18 @@ DEST="$(cd "$(dirname "$0")/.." && pwd)/testdata"
 # 整目录镜像（含删除）。testdata/ 是 tsgo 纯镜像（R14：自有夹具一律在仓库根 fixtures/，
 # 无需 exclude fixtures）；baselines/local/ 是我方跑批瞬态输出（上游同名目录同样 gitignore），
 # 排除以免被 --delete 清掉
-rsync -a --delete --exclude 'baselines/local/' "$TSGO/testdata/" "$DEST/"
+rsync -a --delete --exclude 'baselines/local/' --exclude '.DS_Store' "$TSGO/testdata/" "$DEST/"
 
 # 指纹（写入/核对 UPSTREAM.lock；R14 双字段）
 total=$(find "$DEST" -type f | wc -l | tr -d ' ')
 refs=$(find "$DEST/baselines/reference" -type f | wc -l | tr -d ' ')
-bytes=$(du -sk "$DEST" | cut -f1)
+bytes=$(find "$DEST" -type f -exec sh -c 'for file do wc -c < "$file"; done' sh {} + | awk '{ total += $1 } END { printf "%.0f\n", total }')
 echo "testdata.files.total = $total"
 echo "testdata.files.reference = $refs"
-echo "testdata.bytes(KB) = $bytes"
+echo "testdata.bytes = $bytes"
 ```
 
-验收：初次同步后 `testdata/baselines/reference/` 文件数 49,323（00-overview.md §5.1 实测）、镜像总计数实测——两字段分别写入 UPSTREAM.lock（R14：`testdata.files.reference` / `testdata.files.total`）；`baselines/local/` 在 .gitignore（§1.7）。差分夹具与 jsnum 夹具不在本目录（仓库根 `fixtures/`，R14）。
+验收：初次同步后 `testdata/baselines/reference/` Git 跟踪文件数 49,321、镜像总文件数 49,642、普通文件逻辑字节和 147,111,511——三字段分别写入 UPSTREAM.lock（R14）；`baselines/local/` 在 .gitignore（§1.7），Finder `.DS_Store` 必须排除。差分夹具与 jsnum 夹具不在本目录（仓库根 `fixtures/`，R14）。
 
 ### 1.13 CI 工作流草案（W0-20，☐）——`.github/workflows/ci.yml`
 
@@ -435,7 +435,7 @@ jobs:
 - [ ] Directory.Packages.props 含 §1.5 全部包（BannedApiAnalyzers 已补）
 - [ ] `_submodules/TypeScript` 钉扎到坐标 B；UPSTREAM.lock 落库（**被待澄清 1 阻塞**）
 - [ ] `tools/check-upstream-pin.sh` 五项校验本地过、接入 CI 门 1
-- [ ] `tools/sync-testdata.sh` 跑通，baselines/reference 49,323 文件入库、镜像总计数与字节数入 lock（R14 双字段）
+- [ ] `tools/sync-testdata.sh` 跑通，baselines/reference 49,321 个 Git 跟踪文件入库、镜像总计数与逻辑字节数入 lock（R14）
 - [ ] `tools/dumptool/patches/` 骨架 + `regen.sh` + `fixtures.lock.json` 初版落库（W0-22，R16）
 - [ ] 夹具存储通道已定案（Git LFS / 独立 fixtures 仓库 / CI artifact 三选一，08-testing-strategy.md §11 待澄清第 1 条；R16 列为阶段 0 出口项）
 - [ ] `Bundled/libs` 108 个 EmbeddedResource（xUnit 资源计数断言过）
@@ -644,10 +644,11 @@ Go 用构建标签分平台文件；C# 无构建标签，组织为**单入口 + 
 
 ## 4. 待澄清（不改设计，列给主计划裁决）
 
-1. **坐标 A 未知（阻塞 W0-03/04）**：`/Users/token/Desktop/code/typescript-go-main` 是无 .git 的 zip 快照，无法自证对应的 typescript-go commit，进而无法权威确认子模块 pin。与 00-overview.md §10-1 同源。建议裁决：阶段 0 内以 `git clone` 固定 commit 替换快照，并把 clone 归档路径写入 UPSTREAM.lock 注释。
+1. ~~**坐标 A 未知（阻塞 W0-03/04）**~~——**已关闭（2026-07-11）**：排除 5 个 Finder `.DS_Store` 后，本地 55,019 个文件重建的根树精确等于 `23c5ee2aa33485d7d55e38edc60eb740a47ac562`，故坐标 A=`168e7015edf98244febc8f4ae450b673b5d195d7`；其 gitlink 给出坐标 B=`4d4f005c8541e0255a9d8791205fdce326e462bc`。保持现有 zip 蓝本只读，在目标仓直接钉子模块。
 2. **阶段 0 生成器自举需要最小手写 AST 支撑面**（Node 基类五字段、NodeList、NodeFlags 等枚举壳）才能让 Ast/*.g.cs 过编译与 analyzer；主计划把 ast 手写半区划在阶段 3。本文按「最小占位股」处理（§1.11），请 02-ast-design.md 确认占位面清单与形状。
 3. **LargeStackExecutor 两形态**：仓库现状是 static 简版（thread-per-call），01-architecture.md §4.6 是池化实例设计（Default/Schedule/RunAsync/帮工循环）。本文把演进排在阶段 1 workgroup.go 移植同一 PR；若架构要求阶段 0 即池化，请裁决。
 4. **System.Threading.Channels**：主计划 §一.3 将其列入 Directory.Packages.props 示例，但 net10.0 下它是框架内置程序集，无需包版本行。本文按内置处理（§1.5），请主计划下次修订时更正示例。
 5. **vfsmock（moq 生成 601 行）**：本文暂定不移植生成物、以手写 fake 替代，终裁归 08-testing-strategy.md。
 6. **根 Directory.Build.props 的 `TsVersion` 属性**：仓库现状有、07-aot-constraints.md §3.2 全文没有。本文选择保留并提请 07 修订并入（版本字符串三点一致性校验依赖它）。
 7. **`.g.cs` 与 analyzer 的交互**：门禁要求 Ast/*.g.cs 过 AOT+Trim analyzer，而部分 CA 规则默认跳过 `generated_code=true` 文件。本文的 .editorconfig 只豁免 IDE 风格诊断（§1.6-4）；若实测发现 IL 族诊断也被 generated_code 抑制，需在 07-aot-constraints.md 增补对策（如对 .g.cs 关闭 generated_code 标记、改用文件头注释豁免风格）。
+8. ~~**testdata 指纹计数与字节单位冲突**~~——**已关闭（2026-07-11）**：坐标 A 的 Git 树证明 reference=49,321、testdata 总文件=49,642；本地旧计数多出的 2/4 个文件均为 `.DS_Store`。原模板 `du -sb` 在 macOS 不存在，原脚本 `du -sk` 又是 KiB 块占用。§1.2/§1.12 已统一为排除 `.DS_Store`，并以逐普通文件 `wc -c` 求和定义跨平台稳定的逻辑字节指纹。

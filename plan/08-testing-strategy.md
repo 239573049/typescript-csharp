@@ -1,6 +1,6 @@
 # 08 — 测试策略（Testing Strategy）
 
-> 版本：v1.0 ｜ 日期：2026-07-11 ｜ 状态：Draft
+> 版本：v1.1 ｜ 日期：2026-07-11 ｜ 状态：Draft
 >
 > 本文是移植工程的**验收机器说明书**：定义六类测试的职责边界、dumptool 夹具规格、差分测试框架、conformance 跑批器移植、两处 UTF 兼容垫片、tsc/tsbuild 基线、fourslash 策略、AOT 双轨 CI 与性能基准。
 >
@@ -28,7 +28,7 @@
 |---|------|----------------|---------|---------|---------|
 | A | **移植单测** | Go `*_test.go` 中的断言，逐用例直译 | 1 起贯穿 | `tests/Ts.Compiler.Tests`、`tests/Ts.LanguageService.Tests` | 阶段 1 出口（core/collections/tspath/vfs/jsnum/stringutil 单测全绿，主计划 §二） |
 | B | **差分夹具测试** | dumptool（tsgo 补丁分支）导出的 token 流 / AST 结构 / 解析诊断 / symbol / flow 夹具 | 2–4（阶段 5 后降级为回归护栏） | `tests/Ts.Compiler.Tests`（`Differential` 命名空间） | 阶段 2 出口（token 流 100%）、阶段 3 出口（AST + 解析诊断 100%）、阶段 4 出口（symbol/flow 100%） |
-| C | **conformance 基线** | `testdata/baselines/reference/` 下从 tsgo 同步的 49,323 个基线文件（本机实测计数） | 5–7 | `tests/Ts.Conformance.Tests` | 阶段 5（errors→types/symbols 分级至 100% 字节匹配）、阶段 6（js/d.ts/map 100%）、阶段 7（tsc/tsbuild/tsbuildinfo） |
+| C | **conformance 基线** | `testdata/baselines/reference/` 下从 tsgo 坐标 A 同步的 49,321 个 Git 跟踪文件 | 5–7 | `tests/Ts.Conformance.Tests` | 阶段 5（errors→types/symbols 分级至 100% 字节匹配）、阶段 6（js/d.ts/map 100%）、阶段 7（tsc/tsbuild/tsbuildinfo） |
 | D | **fourslash** | convertFourslash 生成的用例断言 + `testdata/baselines/reference/fourslash/` 基线 | 8 | `tests/Ts.Fourslash.Tests` | 阶段 8 分级 50%→90%→99%+ |
 | E | **AOT 复跑** | 与 C 类相同的基线，但被测对象是 `dotnet publish /p:PublishAot=true` 产物 | 各阶段门禁 + main/nightly | `tests/Ts.Conformance.AotHost`（见 §8.4） | 主计划 §四.2：日常 JIT、门禁 AOT 复跑 |
 | F | **性能基准** | 无判定 oracle；对照 tsgo 本机构建，只做趋势 | 10（基础设施阶段 7 起可用） | `tests/Ts.Benchmarks` | 不设硬门禁（阶段 7 的 ≤2× tsgo 是独立 e2e 脚本测的门禁，不属本类，见 §9.5） |
@@ -787,4 +787,4 @@ Ts.Conformance.AotHost run --suites conformance,compiler --mode local,submodule 
 3. **Ts.TestUtil 的 AOT 兼容要求**：主计划 §一.3「测试项目不 AOT」，但 §8.4 要求 AotHost（引用 Ts.TestUtil）可 AOT 发布 ⇒ Ts.TestUtil 须开 `IsAotCompatible` 且受 analyzer 约束（readable 写出器等本就按手写 writer 政策实现，无实质冲突）。建议 [07-aot-constraints.md] 的政策表将「测试基架」行细分为「xUnit 壳（不 AOT）/ TestUtil+AotHost（AOT 兼容）」。
 4. ~~**fourslash 分级门禁的分母**~~——已关闭（裁决 R10，[09-phases.md] 已裁决）：分母取三段口径 289（顶层手写）+ 210（tests/manual/）+ 3,796（gen/）= 4,295；§7.5 第 4 条已同步该口径。
 5. ~~**B 类夹具中 `value` 字段（TokenValue）**~~——已关闭（[09-phases.md] 已裁决）：TokenValue 计入阶段 2 门禁四元组，value 字段强制 100%（本文 §2.3.2 的建议被采纳；门禁编号见 [09-phases.md]，补写中）。
-6. **语料计数的时点性**：本文所有计数（基线 49,323、testdata/tests 297、fourslash gen 3,796 / failing 459 / manual 177 / unparsed 2,570、submoduleAccepted 1,426 / Triaged 87）为当前工作区实测；`_submodules/TypeScript` 在当前 tsgo 工作区未检出，conformance 子模块语料总数待 pin 检出后由 [11-progress.md] 首次登记为准。
+6. **语料计数的时点性**：本文所有计数（基线 49,321、testdata/tests 297、fourslash gen 3,796 / failing 459 / manual 177 / unparsed 2,570、submoduleAccepted 1,426 / Triaged 87）钉在 tsgo 坐标 A `168e7015…`；基线计数只含 Git 跟踪文件，不含本地 Finder `.DS_Store`。conformance 子模块语料总数在 `_submodules/TypeScript` 检出坐标 B 后由 [11-progress.md] 首次登记。

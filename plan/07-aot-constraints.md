@@ -1,6 +1,6 @@
 # 07 — Native AOT 约束全文
 
-> **版本** v1.0 | **日期** 2026-07-11 | **状态** Draft
+> **版本** v1.1 | **日期** 2026-07-11 | **状态** Draft
 > 所属计划：typescript-go → C#/.NET 10 Native AOT 全量移植（主计划 §一.5「AOT 铁律」的展开文档）
 > 交叉引用：[01-architecture.md]（AOT 发布管线/JSON 字节保真策略）、[04-codegen.md]（生成器族）、[05-conventions.md]（Go→C# 惯用法）、[08-testing-strategy.md]（AOT 二进制 CI）、[09-phases.md]（各阶段门禁）、[12-risks.md]（风险册）
 
@@ -531,4 +531,4 @@ ls -l $BIN && shasum -a 256 $BIN        # 尺寸入 11-progress.md
 3. **测试项目是否强制 InvariantGlobalization**：本文档裁定「是」（§3.1 理由：JIT 双轨与 AOT 行为一致），主计划未明示。若评审认为测试需要 culture 场景（预期没有——tsgo 亦无），需回改 §3.2。
 4. **64MB 栈的环境变量覆盖**：tsgo 有 `TS_GO_DEBUG_STACK_LIMIT`（core/core.go:24-34，收紧方向的调试开关）。建议 C# 侧对称提供 `TS_CS_DEBUG_STACK_LIMIT`（仅调试用途，默认 64MB 不变）；变量名与是否入正式文档待定。
 5. **Ts.Cli 的 GC 模式初值**：主计划阶段 10 才做「ServerGC 调优」，阶段 0 脚手架需要一个初值。本文档建议初值保持默认（Workstation GC），把 `ServerGarbageCollection` 留作阶段 10 基准驱动的决策，避免过早锁定；若希望从第 0 天就模拟最终形态，请评审改判。
-6. **`RegexOptions.Compiled` 的机器强制**：BannedApi 无法禁枚举值，目前靠 SYSLIB1045（建议改 GeneratedRegex 的提示）+ 评审清单。若需要硬门禁，可写一个 ~50 行的自定义 analyzer，列为可选工作项。
+6. ~~**`RegexOptions.Compiled` 的机器强制**~~——**已关闭（2026-07-11）**：当前钉住的 `Microsoft.CodeAnalysis.BannedApiAnalyzers` 5.6.0 接受字段文档 ID；`F:System.Text.RegularExpressions.RegexOptions.Compiled` 已用隔离探针实测产生 RS0030。因此阶段 0 直接在 BannedSymbols.txt 硬禁，无需自定义 analyzer；SYSLIB1045 仍作为建议改用 GeneratedRegex 的第二道提示。

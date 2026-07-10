@@ -2,7 +2,7 @@
 
 | 元信息 | |
 |---|---|
-| 版本 | v1.0 |
+| 版本 | v1.1 |
 | 日期 | 2026-07-11 |
 | 状态 | Draft |
 | 主计划 | `~/.claude/plans/precious-riding-hoare.md`（已批准；本文档是其 §三 文档集中的 09 号，内容 = 主计划 §二「分阶段实施与验证门禁」表的全文展开） |
@@ -132,11 +132,11 @@ graph TD
 | 工作簇 | 内容 |
 |---|---|
 | 解决方案骨架 | TypeScript.slnx、Directory.Build.props（net10.0 / Nullable / ImplicitUsings off / InvariantGlobalization / IsAotCompatible+analyzer 全开）、Directory.Packages.props、8 个 csproj、.gitignore、git init（10 号 §0 实况：仓库尚非 git 仓库，须先落 .gitignore） |
-| 子模块与 testdata | `_submodules/TypeScript` 钉到与 tsgo 相同 commit；`testdata/baselines/reference/` 49,323 个基线文件同步（本机 tsgo 侧实测顶层 15 个子目录：api/astnav/compiler/config/conformance/fourslash/lsp/submodule/submoduleAccepted/submoduleTriaged/tsbuild/tsbuildWatch/tsc/tscWatch/tsoptions）；`testdata/tests/cases/{compiler,conformance}` 本地语料 297 个 .ts（tsgo 侧实测）；submoduleAccepted.txt（1,426 行）与 submoduleTriaged.txt（87 行）同步 |
-| 生成器自举 | tools/generator：generate-csharp-ast.ts（ast.json 副本入仓）→ Ast/*.g.cs ×5；generate-diagnostics.ts → Messages.g.cs（2,154 条）；lib 拷贝脚本 → 108 个 lib.*.d.ts EmbeddedResource |
+| 子模块与 testdata | `_submodules/TypeScript` 钉到与 tsgo 相同 commit；`testdata/baselines/reference/` 同步坐标 A 的 49,321 个 Git 跟踪文件（顶层 15 个子目录：api/astnav/compiler/config/conformance/fourslash/lsp/submodule/submoduleAccepted/submoduleTriaged/tsbuild/tsbuildWatch/tsc/tscWatch/tsoptions）；`testdata/tests/cases/{compiler,conformance}` 本地语料 297 个 .ts；submoduleAccepted.txt（1,426 行）与 submoduleTriaged.txt（87 行）同步 |
+| 生成器自举 | tools/generator：generate-csharp-ast.ts（ast.json 副本入仓）→ Ast/*.g.cs ×7；generate-diagnostics.ts → Messages.g.cs（2,154 条）；generate-libs.ts → 108 个 lib.*.d.ts EmbeddedResource |
 | 运行时基建 | `Ts.Core.LargeStackExecutor`（64MB 大栈线程，主计划 §一.5「0 号风险」对策）+ 单测 |
 | CI | 三平台矩阵：build + analyzer + AOT publish 冒烟 + 测试骨架 |
-| 差分测试通道预备 | dumptool 补丁分支骨架（tsgo fork + 补丁集目录 + 再生成脚本入口，08 §2.1）；`testdata/fixtures/fixtures.lock.json` 初版（08 §2.5） |
+| 差分测试通道预备 | dumptool 补丁分支骨架（tsgo fork + 补丁集目录 + 再生成脚本入口，08 §2.1）；仓库根 `fixtures/fixtures.lock.json` 初版（08 §2.5） |
 
 ### 3.2 进入条件
 
@@ -149,15 +149,15 @@ graph TD
 | ID | 门禁 | 量化判据 | 测量命令 |
 |---|---|---|---|
 | G0.0 | 构建与 analyzer 门 | §2.1 共通 | §2.1 |
-| G0.1 | AOT hello-CLI | 三平台 `dotnet publish /p:PublishAot=true` 成功，产物可执行并打印版本串 `7.1.0-dev`（与 tsgo/internal/core/version.go 精确相等） | `dotnet publish src/Ts.Cli -c Release /p:PublishAot=true -r <rid> && ./artifacts/.../tsgo --version` |
-| G0.2 | AST 生成物 | Ast/*.g.cs ×5 生成、入库、编译，AOT/Trim analyzer 0 warning；生成器幂等（重跑无 diff） | `npm run generate:ast && git diff --exit-code src/Ts.Compiler/Ast` |
+| G0.1 | AOT hello-CLI | 三平台 `dotnet publish /p:PublishAot=true` 成功，产物可执行并打印版本串 `7.1.0-dev`（与 tsgo/internal/core/version.go 精确相等） | `dotnet publish src/Ts.Cli -c Release /p:PublishAot=true -r <rid> && ./src/Ts.Cli/bin/Release/net10.0/<rid>/publish/tscs --version` |
+| G0.2 | AST 生成物 | Ast/*.g.cs ×7 生成、入库、编译，AOT/Trim analyzer 0 warning；生成器幂等（重跑无 diff） | `npm run --prefix tools/generator gen:ast && git diff --exit-code src/Ts.Compiler/Ast` |
 | G0.3 | 诊断表 | Messages.g.cs 条目数 = 2,154，与子模块 diagnosticMessages.json 逐条 code/text 相等（单测断言） | `dotnet test tests/Ts.Compiler.Tests --filter "FullyQualifiedName~DiagnosticsTable"` |
 | G0.4 | lib 资源 | 程序集内嵌 lib.*.d.ts 计数 = 108，逐文件与子模块字节相等（单测断言） | `dotnet test tests/Ts.Compiler.Tests --filter "FullyQualifiedName~BundledLibs"` |
-| G0.5 | 子模块与 testdata 钉扎 | submodule commit == tsgo pin；`testdata/baselines/reference` 文件计数 = 49,323 且抽样 hash 相等（同步脚本自检报告） | `git submodule status` + `node tools/sync-testdata/verify.mjs` |
+| G0.5 | 子模块与 testdata 钉扎 | submodule commit == tsgo pin；`testdata/baselines/reference` Git 跟踪文件计数 = 49,321，镜像总计数/逻辑字节与 UPSTREAM.lock 相等，且同步脚本逐文件校验无漂移 | `git submodule status` + `bash tools/sync-testdata.sh --verify` |
 | G0.6 | LargeStackExecutor | 单测绿：64MB 栈上深递归（≥1e6 帧的人工递归）不炸、串行/并行两实现语义等价 | `dotnet test tests/Ts.Compiler.Tests --filter "FullyQualifiedName~LargeStackExecutor"` |
-| G0.7 | dumptool 骨架 + fixtures.lock.json（评审员增补） | dumptool 补丁分支能在 tsgo 上编译并对单文件产出 tokens 族夹具样例；`testdata/fixtures/fixtures.lock.json` 初版入库（记录夹具族版本/分片 hash 字段骨架，08 §2.5） | tsgo 侧 `go build ./tools/dumptool` + 样例文件 diff 自检 |
+| G0.7 | dumptool 骨架 + fixtures.lock.json（评审员增补） | dumptool 补丁分支能在 tsgo 上编译并对单文件产出 tokens 族夹具样例；仓库根 `fixtures/fixtures.lock.json` 初版入库（记录夹具族版本/分片 hash 字段骨架，08 §2.5） | tsgo 侧 `go build ./tools/dumptool` + 样例文件 diff 自检 |
 | G0.8 | 夹具存储通道定案（评审员增补） | 「Git LFS vs 独立目录直存」二选一已定案并写入 08 §2.5 修订与 00-overview.md；仓库配置（.gitattributes 或同步脚本）落地 | 决议记录 + `git check-attr` 抽查 |
-| G0.9 | CI 管线 | 三平台 CI 全绿（build/analyzer/publish/测试骨架四个 job） | CI run 链接登记 11 号 §6 |
+| G0.9 | CI 管线 | 三平台 CI 全绿（pin-and-drift、build-test、aot-smoke 三类 job；后两类为平台矩阵） | CI run 链接登记 11 号 §6 |
 | G0.A | AOT 复跑门 | §2.1 共通（本阶段即 G0.1 本身 + AotHost 空壳跑通） | §2.1 |
 
 ### 3.4 依赖与并行
@@ -166,7 +166,7 @@ graph TD
 
 ### 3.5 专属风险（→12 号风险册）
 
-巨型生成文件拖垮 IDE（主计划 §一.1 已用「拆 5 个 .g.cs + 不用源生成器」缓解）；testdata 5 万文件的仓库体积与 clone 时间（G0.8 的存储通道定案就是缓解动作）。
+巨型生成文件拖垮 IDE（主计划 §一.1 已用「拆 7 个 .g.cs + 不用源生成器」缓解）；testdata 5 万文件的仓库体积与 clone 时间（G0.8 的存储通道定案就是缓解动作）。
 
 ### 3.6 回退 / 重规划触发条件
 
@@ -665,4 +665,5 @@ G10.1 出现 AOT 特有分歧（JIT 绿 AOT 红）→ 按 07 号禁令清单归�
 
 | 版本 | 日期 | 变更 |
 |---|---|---|
+| v1.1 | 2026-07-11 | 阶段 0 实施校准：AST 生成物统一为 7 个、libs 脚本统一为 generate-libs.ts、fixture lock 统一到仓库根；钉死 tsgo/TypeScript 坐标后剔除 Finder `.DS_Store`，reference 门禁分母更正为 49,321；修正 AOT/生成器/同步脚本命令与 CI job 口径。 |
 | v1.0 | 2026-07-11 | 首版：主计划 §二全文展开；并入评审员六项裁定（门禁 ID 体系 G\<阶段\>.\<序号\>、重叠 DAG 三项登记 O1–O3、fourslash 分母 289+210+3,796=4,295 与 scanner TokenValue 裁决、G8.2 LSP 线程预算落位、阶段 7 性能语料引用 08 口径、阶段 0 增补 G0.7/G0.8） |

@@ -2,7 +2,7 @@
 
 | 元信息 | |
 |---|---|
-| 版本 | v1.0 |
+| 版本 | v1.1 |
 | 日期 | 2026-07-11 |
 | 状态 | Draft |
 | 主计划 | `~/.claude/plans/precious-riding-hoare.md`（已批准；本文档是其 §三 文档集中的 00 号） |
@@ -19,7 +19,7 @@
 
 1. **范围**：全量复刻，编译器优先——里程碑 1 = tsc CLI；里程碑 2 = LSP / 语言服务 / 项目系统 / API。
 2. **风格**：结构 1:1（Go 包 → C# 命名空间、Go 文件 → C# 文件、逐函数直译）+ C# 惯例命名。惯用法映射细则见 05-conventions.md。
-3. **验证**：复用官方 conformance 基线——移植 testrunner，对 `testdata/baselines/reference/` 下 49,323 个基线文件做**逐字节 diff**。「与 tsgo 输出逐字节相等」是本项目唯一的验收货币。
+3. **验证**：复用官方 conformance 基线——移植 testrunner，对 `testdata/baselines/reference/` 下 49,321 个上游跟踪文件做**逐字节 diff**。「与 tsgo 输出逐字节相等」是本项目唯一的验收货币。
 
 一句话判据：**任何一个移植决策，若无法回答“它在哪个门禁里被逐字节验证”，就还不算完成设计。**
 
@@ -180,7 +180,7 @@ tsgo 的 `.gitmodules`（/Users/token/Desktop/code/typescript-go-main/.gitmodule
 
 注意 `branch = tsgo-port` **不是钉扎**——它只影响 `git submodule update --remote` 追踪哪个分支（该分支是上游为 tsgo 维护的测试适配线）。**权威钉扎是父仓树对象中的 gitlink（mode 160000）记录的那枚 SHA**。
 
-Go 代码在运行时按路径约定找子模块：internal/repo/paths.go:46-52 (`TypeScriptSubmodulePath()` = `<repo根>/_submodules/TypeScript`)，并以 `package.json` 是否存在判断子模块是否检出（paths.go:62-75，`SkipIfNoTypeScriptSubmodule` 用于测试跳过）。testrunner 直接从 `../_submodules/TypeScript/tests/cases/<suite>` 读 conformance 用例（internal/testrunner/compiler_runner.go:63）。**基线是对这些用例文件生成的：用例内容漂移 ⇒ 49,323 个基线的 diff 立即变成噪声。这就是「必须与 tsgo 的 pin 同 commit」的原因。**
+Go 代码在运行时按路径约定找子模块：internal/repo/paths.go:46-52 (`TypeScriptSubmodulePath()` = `<repo根>/_submodules/TypeScript`)，并以 `package.json` 是否存在判断子模块是否检出（paths.go:62-75，`SkipIfNoTypeScriptSubmodule` 用于测试跳过）。testrunner 直接从 `../_submodules/TypeScript/tests/cases/<suite>` 读 conformance 用例（internal/testrunner/compiler_runner.go:63）。**基线是对这些用例文件生成的：用例内容漂移 ⇒ 49,321 个基线的 diff 立即变成噪声。这就是「必须与 tsgo 的 pin 同 commit」的原因。**
 
 **本仓库的铁律**：`typescript-csharp/_submodules/TypeScript` 是真 git submodule，检出的 commit 必须 == tsgo 快照（坐标 A）中 gitlink 记录的 commit（坐标 B）。任何时候二者不等，一致性测试结果一律视为无效。
 
@@ -267,7 +267,7 @@ git add .gitmodules _submodules/TypeScript
 
 | 路径（tsgo 快照内） | 实测 | 用途 |
 |---|---|---|
-| `testdata/baselines/reference/` | **49,323 个文件、282 MB**（`find … -type f | wc -l`、`du -sh`；testdata 全目录 283 MB） | 验收货币：conformance 期望输出（.errors.txt/.types/.symbols/.js/.d.ts/.js.map 等族） |
+| `testdata/baselines/reference/` | **49,321 个上游跟踪文件、146,667,625 逻辑字节**（坐标 A `168e7015…` 的 Git 树；本地 49,323 是混入 2 个 `.DS_Store` 后的污染计数） | 验收货币：conformance 期望输出（.errors.txt/.types/.symbols/.js/.d.ts/.js.map 等族） |
 | `testdata/fixtures/` | 若干 | Go 单测数据（随各包测试移植） |
 | `testdata/tests/cases/` | 319 个文件 | tsgo 自增测试用例（testrunner 的第二来源，compiler_runner.go:65） |
 | `testdata/submoduleAccepted.txt` | 1,426 行 | tsgo 相对 strada 基线的**已接受**差异清单（文件头注释：“Diff files to instead write to submoduleAccepted as ‘accepted’ changes.”） |
@@ -280,12 +280,12 @@ conformance 用例**源文件**不在 testdata 里——在 `_submodules/TypeScr
 - **方式**：本地 rsync，整目录镜像（含删除）：
 
   ```bash
-  rsync -a --delete /Users/token/Desktop/code/typescript-go-main/testdata/ \
+  rsync -a --delete --exclude '.DS_Store' /Users/token/Desktop/code/typescript-go-main/testdata/ \
                     /Users/token/Desktop/code/typescript-csharp/testdata/
   ```
 
-  `testdata/` 保持 tsgo **纯镜像**——我方自有夹具（dumptool 差分夹具、jsnum 向量等）一律放仓库根 `fixtures/`（`fixtures/*.tar.zst`、`fixtures/jsnum/`、`fixtures.lock.json` 均在 `fixtures/` 下），因此 rsync 无需任何 exclude（裁决 R14）。同步后更新 `UPSTREAM.lock` 中的 testdata 指纹——**分开记录两个字段**：`baselines/reference` 文件数（49,323）与 testdata 镜像总文件数/总字节（校验脚本分别核对；同为 R14）。建议把这两步包成 `tools/sync-testdata.sh`（阶段 0 交付，归 10-phase-0-scaffolding.md 排 WBS）。
-- **入库**：同步结果**提交进 git**——与主计划 §一.3 仓库结构一致（`testdata/baselines/reference/` 是仓库的一部分），也与上游做法一致（tsgo 自己就提交全部基线）。49,323 个小文本文件对 git 完全可行。
+  `testdata/` 保持 tsgo **Git 跟踪内容的纯镜像**——仅排除 Finder 生成且不属于坐标 A 树的 `.DS_Store`；我方自有夹具（dumptool 差分夹具、jsnum 向量等）一律放仓库根 `fixtures/`（`fixtures/*.tar.zst`、`fixtures/jsnum/`、`fixtures.lock.json` 均在 `fixtures/` 下）。同步后更新 `UPSTREAM.lock` 中的 testdata 指纹——**分开记录三个字段**：`baselines/reference` 文件数（49,321）、testdata 镜像总文件数（49,642）与普通文件逻辑字节和（147,111,511）；不得以文件系统占用块数代替逻辑字节。建议把这两步包成 `tools/sync-testdata.sh`（阶段 0 交付，归 10-phase-0-scaffolding.md 排 WBS）。
+- **入库**：同步结果**提交进 git**——与主计划 §一.3 仓库结构一致（`testdata/baselines/reference/` 是仓库的一部分），也与上游做法一致（tsgo 自己就提交全部基线）。49,321 个小文本文件对 git 完全可行。
 - **时机**（仅三种，其余时间只读）：
   1. 阶段 0 初次同步；
   2. §4.3 上游升级原子 PR 内全量重同步；
@@ -338,7 +338,7 @@ typescript-csharp/
   src/Ts.LanguageService/      Ls/ Format/ Lsp/ Project/ Api/ FsWatch/ JsonRpc/   → 引用 Ts.Compiler
   src/Ts.Cli/                  tsgo 等价二进制，PublishAot=true（默认 tsc / --lsp / --api 三路复用）
   tests/Ts.TestUtil/ Ts.Compiler.Tests/ Ts.Conformance.Tests/ Ts.Fourslash.Tests/ Ts.LanguageService.Tests/
-  testdata/baselines/reference/  从 tsgo 同步的 49,323 个基线文件（正确性的「货币」，§5）
+  testdata/baselines/reference/  从 tsgo 同步的 49,321 个基线文件（正确性的「货币」，§5）
   testdata/…                     fixtures / tests/cases / submoduleAccepted.txt / submoduleTriaged.txt（§5.1）
 ```
 
@@ -447,9 +447,10 @@ typescript-csharp/
 
 以下事项不改设计、只登记，请主计划维护者裁定：
 
-1. **本地 tsgo 快照的 commit 身份未知（阶段 0 阻塞项）**。`/Users/token/Desktop/code/typescript-go-main` 无 `.git`（zip 快照），无法执行 §4.2 方法 1，坐标 A 不可自证；其 `_submodules/TypeScript/` 为空目录，坐标 B 也只能对上游 GitHub 查询（2026-07-11 对 `ref=main` 查得 `4d4f005c8541e0255a9d8791205fdce326e462bc`，但无法确认与本快照对应）。**建议**：用 `git clone` + checkout 固定 commit 替换 zip 快照（或经 CHANGES.md/文件指纹比对锁定快照 commit），随后立刻落 `UPSTREAM.lock`。
+1. ~~**本地 tsgo 快照的 commit 身份未知（阶段 0 阻塞项）**~~——**已关闭（2026-07-11）**。对排除 5 个 Finder `.DS_Store` 后的 55,019 个文件重建 Git index，根树精确等于 `23c5ee2aa33485d7d55e38edc60eb740a47ac562`；全部文件 mtime 又与唯一候选提交时间逐秒一致，故坐标 A 定为 `168e7015edf98244febc8f4ae450b673b5d195d7`，其 `_submodules/TypeScript` gitlink（坐标 B）为 `4d4f005c8541e0255a9d8791205fdce326e462bc`。现有 zip 继续只读，不以 clone 替换。
 2. **fswatch 的阶段归属张力**。主计划 §二把 fswatch 归阶段 8，但 `internal/execute/watcher.go:17` import fswatch——阶段 7 的 watch 编排编译期就需要它的类型（`fswatch.EventKind`、`fswatch.WatchCallback` 出现在 watchmanager 接口签名，watchbackend.go:13）。本文档 §2.4.1 的处置（阶段 7 移植接口 + mock，真实后端阶段 8）满足阶段 7 门禁，但意味着 M1 二进制的 `--watch` 端到端不可用。是否把最小 FileSystemWatcher 后端前移进阶段 7，请裁定。
 3. **主计划内部计数不一致：「21 类型表」vs「24 个 type struct」**。§三 03-checker-design.md 条目写“21 类型表”，而 §一.2 说“24 个 type struct（20 具体 + 4 纯抽象中间层）”。疑为笔误（20+4=24；“21”或为“Type 本身 + 20 具体”的口径）。03 撰写时需统一口径。
 4. **「41 包」口径**。主计划 §三 06 条目称“41 包逐一”，但 `internal/` 顶层实有 48 个目录（api ast astnav binder bundled checker collections compiler core debug diagnostics diagnosticwriter evaluator execute format fourslash fswatch glob jsnum json jsonrpc locale ls lsp module modulespecifiers nativepath nodebuilder outputpaths packagejson parser pprof printer project pseudochecker repo scanner semver sourcemap stringutil symlinks testrunner testutil tracing transformers tsoptions tspath vfs）。若 41 = 剔除测试/辅助类包（fourslash/testrunner/testutil/repo/debug/pprof/json 恰 7 个）则口径吻合，请 06 给出精确清单并注明剔除项的处置（移植/替代/不移植）。
 5. **`internal/pprof` 与 `GOMEMLIMIT` 的对应物未在主计划出现**。建议：pprof 归 06 裁定（倾向不移植，以 EventPipe/dotnet-trace 替代观测能力）；`GOMEMLIMIT`（官方扩展会设置它，_extension/src/client.ts:170-176）的读取/忽略行为归 01 裁定。
 6. **`UPSTREAM.lock` 与校验/同步脚本是本文档为落实 §4/§5 新增的操作性机制**（主计划仅要求“钉扎策略”本身）。文件名、格式与脚本归属（04 还是 10）请在相应文档定稿时确认，如与其安排冲突以彼为准。
+7. ~~**testdata 计数与字节指纹受 Finder/平台污染**~~——**已关闭（2026-07-11）**。证据：坐标 A 的 `testdata/baselines/reference` Git blob 数为 49,321，本地 `find -type f` 的 49,323 额外包含 `reference/.DS_Store` 与 `reference/submodule/.DS_Store`；macOS 不支持 `du -sb`，而 `du -sk` 是磁盘块数不是字节。本文 §5 已统一为 Git 跟踪内容镜像、排除 `.DS_Store`，字节字段定义为所有普通文件 `wc -c` 逻辑长度之和。

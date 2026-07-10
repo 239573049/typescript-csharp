@@ -468,7 +468,7 @@
 
 - **类别** INFRA ｜ **影响** 低 ｜ **概率** 高 ｜ **状态** 开放
 
-**描述**。实测 tsgo `testdata/` = **283MB**（含 `baselines/reference` 的 49,323 个基线文件——正确性「货币」，必须进 typescript-csharp 仓库）；`_submodules/TypeScript` 是完整 TS 官方仓库（clone 数百 MB，生成器输入 + fourslash 用例源）。风险：仓库膨胀导致 clone/CI checkout 变慢；万级小文件让 git status/IDE 索引变慢；conformance「accept」工作流一次可能改动数千基线文件，PR 审阅与合并冲突管理变难；若有人为省体积把基线挪出 git（LFS/外部存储），diff 可审性（主计划把「diff 可审」作为核心哲学）受损。
+**描述**。坐标 A 的 Git 树中，tsgo `testdata/` 含 49,642 个普通文件、逻辑长度合计 147,111,511 字节（本地 `du -sh` 约 283MB 是文件系统块占用），其中 `baselines/reference` 的 49,321 个 Git 跟踪文件是正确性「货币」，必须进 typescript-csharp 仓库；旧的 49,323 计数混入了两个 Finder `.DS_Store`。`_submodules/TypeScript` 是完整 TS 官方仓库（clone 数百 MB，生成器输入 + fourslash 用例源）。风险：仓库膨胀导致 clone/CI checkout 变慢；万级小文件让 git status/IDE 索引变慢；conformance「accept」工作流一次可能改动数千基线文件，PR 审阅与合并冲突管理变难；若有人为省体积把基线挪出 git（LFS/外部存储），diff 可审性（主计划把「diff 可审」作为核心哲学）受损。
 
 **缓解措施**：
 
@@ -477,6 +477,7 @@
 3. `.gitattributes`：`testdata/** linguist-vendored`、基线目录 `-diff` 可选标记（大 PR 中折叠，需要时仍可显式查看）。
 4. accept 工作流规范（[08-testing-strategy.md]）：基线变更独立成 commit、附带触发变更的代码 commit 引用、按目录分批提交，禁止与手写代码混在同一 commit。
 5. 与 R12 联动：testdata 只在 rebase 窗口整体同步，避免碎片化更新制造历史膨胀。
+6. 同步脚本只镜像坐标 A 的 Git 跟踪内容语义：排除 `.DS_Store`，以普通文件逻辑长度和而非 `du` 块占用作为 lock 字节指纹，CI 同时核对 49,321/49,642/147,111,511 三值。
 
 **检测手段**：无硬门禁；CI clone/checkout 时长与仓库 pack 体积趋势监控（[11-progress.md]）；git 仓库超过阈值（建议 2GB pack）时触发维护任务（gc/重打包/历史审计）。
 
