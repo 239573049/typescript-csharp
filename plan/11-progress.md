@@ -78,7 +78,7 @@
 | _submodules/TypeScript 钉扎（与 tsgo 同 commit） | 未开始 | 目录尚不存在；钉扎策略见 00-overview.md |
 | tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 未开始 | tools/generator/ 目前为空 |
 | tools/generator/ 生成器自举：generate-diagnostics.ts | 未开始 | 门禁：Messages.g.cs 计数=2,154 |
-| tools/generator/ 生成器自举：copy-libs.ts + EmbeddedResource glob（108 个 lib.*.d.ts） | 未开始 | 依赖 submodule 钉扎先行 |
+| tools/generator/ 生成器自举：generate-libs.ts + EmbeddedResource glob（108 个 lib.*.d.ts） | 未开始 | 依赖 submodule 钉扎先行 |
 | CI 管线（三平台构建 + AOT publish + analyzer 门禁） | 未开始 | 仓库无 .github/ |
 | 阶段 0 出口门禁签核 | 未达 | 通过后记入 §6 |
 
@@ -90,7 +90,7 @@
 
 | 包 | 阶段 | LOC | 状态 | 差分/基线通过率 | 备注 |
 |---|---:|---:|---|---:|---|
-| bundled | 0 | 1,110 | 移植中 | — | 阶段 0 进行中（任务指令口径）；copy-libs.ts/EmbeddedResource 未起步，见 §3 |
+| bundled | 0 | 1,110 | 移植中 | — | 阶段 0 进行中（任务指令口径）；generate-libs.ts/EmbeddedResource 未起步，见 §3 |
 | diagnostics | 0 | 9,423 | 移植中 | — | 阶段 0 进行中（同上）；generate-diagnostics.ts 未起步；门禁=2,154 条计数 |
 | core | 1 | 2,669 | 未开始 | — | LargeStackExecutor/Version 已作阶段 0 交付物预移（§3）；arena.go 不移植 |
 | collections | 1 | 840 | 未开始 | — | OrderedMap = map 序审计白名单容器 |
@@ -164,7 +164,7 @@
 
 ## 5. conformance 通过率历史表
 
-**追加式**，每次全量 conformance 跑批后追加一行（分级门禁的阶段性跑批也记）。百分比口径：字节全等基线文件数 / 适用基线文件数（分母基数 = testdata/baselines/reference 的 49,323 文件中该类别适用者；跑批器口径细则见 08-testing-strategy.md）。js % 列合并计 .js/.d.ts/.js.map 三类 emit 基线（拆列问题见 §11 第 4 条）。
+**追加式**，每次全量 conformance 跑批后追加一行（分级门禁的阶段性跑批也记）。百分比口径：字节全等基线文件数 / 适用基线文件数（分母基数 = testdata/baselines/reference 的 49,321 个 Git 跟踪文件中该类别适用者；跑批器口径细则见 08-testing-strategy.md）。js % 列合并计 .js/.d.ts/.js.map 三类 emit 基线（拆列问题见 §11 第 4 条）。
 
 | 日期 | errors.txt % | types % | symbols % | js % | 备注（commit / 跑批范围 / 档位） |
 |---|---:|---:|---:|---:|---|
@@ -186,7 +186,7 @@
 
 ## 6. 门禁签核日志表
 
-**追加式**，仅在阶段出口门禁（或阶段 5/8 的分级子门禁）**通过**时追加；门禁内容以 09-phases.md 定义为准（09 补写中——独立 agent，裁决 R20；定稿前暂用主计划 §二 门禁名）。证据链接 = commit hash（短 7 位）+ CI run URL 或仓库内日志相对路径；签核规则见 §9.4。
+**追加式**，仅在阶段出口门禁（或阶段 5/8 的分级子门禁）**通过**时追加；门禁内容以 09-phases.md 定义为准（09 已落库 v1.1，含稳定门禁 ID `G<阶段>.<序号>` 体系；本表「门禁」列一律用该 ID）。证据链接 = commit hash（短 7 位）+ CI run URL 或仓库内日志相对路径；签核规则见 §9.4。
 
 | 阶段 | 门禁 | 日期 | 证据链接 | 签核 |
 |---|---|---|---|---|
@@ -249,7 +249,7 @@
 ### 9.3 格式约定
 
 - **日期**：`YYYY-MM-DD`。
-- **百分比**：保留 1 位小数并括注绝对数，如 `99.5%（49,076/49,323）`；未跑批用 `—`，不用 0%（0% 表示跑了且全挂）。
+- **百分比**：保留 1 位小数并括注绝对数，如 `99.5%（49,074/49,321）`；未跑批用 `—`，不用 0%（0% 表示跑了且全挂）。
 - **状态值**：只能取 §1 七值或 `N/A`，不得自创（「进行中」只用于阶段级/交付物级三态，不用于包）。
 - **备注列**：格式 `YYYY-MM-DD：内容`；最新在前，最多保留 3 条，挤出的旧条目移入 §10 变更日志。设计期固定备注（如「非 1:1 重写」）不带日期、常驻。
 - **证据链接**：优先 `commit 短 hash（7 位）`；CI 建成后附 run URL；本地跑批日志放仓库 `artifacts/`（或 09-phases.md 指定位置）并用相对路径引用。
@@ -283,7 +283,7 @@
 
 1. **「41 包」计数口径**：任务与主计划口径为 41 包，06-module-inventory.md §13.1 实测为 45 个列名包 + 3 个微包 = 48 个 internal 目录（另有 cmd/tsgo）。本表按 49 行全覆盖（含 json 的 N/A 行），待主计划统一计数后仅改措辞、不改行集。
 2. **门禁签核权责未定义**：主计划 §二 只定义门禁内容，未定义谁有权签核。本文档 §9.4 暂行「会话出证据 + 用户确认」，需主计划确认或指定替代机制（如 CI 绿即自动签核）。
-3. **门禁命名依赖 09-phases.md**（裁决 R20 部分关闭）：09-phases.md 由独立 agent 补写中，将含门禁稳定 ID `G<阶段>.<序号>` 体系；定稿前签核表「门禁」列暂引用主计划 §二 的门禁描述文字，定稿后本表与 §4.1 口径映射统一改用 ID。
+3. **门禁命名依赖 09-phases.md**（已关闭）：09-phases.md 已落库（v1.1），含稳定门禁 ID `G<阶段>.<序号>` 体系；签核表「门禁」列与 §4.1 口径映射统一使用该 ID。
 4. **conformance 历史表 js % 列口径**：主计划阶段 6 门禁为 `.js`/`.d.ts`/`.js.map` 三类 100%，任务给定的历史表列仅「js %」。本文档暂以合并口径计（三类合并的字节匹配率）；若 08/09 号文档要求分列跟踪，v1.1 加列。
 5. **fourslash 通过率分母**：manualTests.txt / unparsedTests.txt / crashingTests.txt 清单内用例是否计入分母（tsgo 自身也不跑其中部分），需 08-testing-strategy.md 定稿口径；定稿前 §5.2 按「全部用例」为分母、清单跳过计为不通过的保守口径。用例总数三段口径已按裁决 R10 关闭（289+210+3,796=4,295，§5.2 已增列 manual 段），本条仅余分母扣减问题。
 6. **阶段 0 包条目的状态字面**：任务指令要求阶段 0 条目状态=进行中，本表以图例值「移植中」承载（bundled/diagnostics 两行），但其包本体尚无产物，与 §1 图例的严格进入条件有出入——首个生成器落地后自然吻合；若主计划希望包状态与阶段状态分离表达，可在 v1.1 为 §4 增加「阶段状态」视图。
