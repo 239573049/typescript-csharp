@@ -92,7 +92,7 @@
 |---|---:|---:|---|---:|---|
 | bundled | 0 | 1,110 | 移植中 | — | 阶段 0 进行中（任务指令口径）；generate-libs.ts/EmbeddedResource 未起步，见 §3 |
 | diagnostics | 0 | 9,423 | 移植中 | — | 阶段 0 进行中（同上）；generate-diagnostics.ts 未起步；门禁=2,154 条计数 |
-| core | 1 | 2,669 | 未开始 | — | LargeStackExecutor/Version 已作阶段 0 交付物预移（§3）；arena.go 不移植 |
+| core | 1 | 2,669 | 移植中 | — | LargeStackExecutor/Version 已作阶段 0 交付物预移（§3）；text.go→Text.cs、tristate.go→Tristate.cs 已移植（含单测 22 项全绿）；arena.go 不移植 |
 | collections | 1 | 840 | 未开始 | — | OrderedMap = map 序审计白名单容器 |
 | tspath | 1 | 1,435 | 未开始 | — | 测试 1,189 行全移植（Windows 路径主防线） |
 | vfs | 1 | 3,131 | 未开始 | — | vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
