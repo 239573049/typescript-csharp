@@ -75,10 +75,10 @@
 | 3 源项目 + 5 测试项目脚手架 | 已完成 | Ts.Compiler / Ts.LanguageService / Ts.Cli（含 hello Program.cs）；TestUtil / Compiler.Tests / Conformance.Tests / Fourslash.Tests / LanguageService.Tests |
 | LargeStackExecutor（64MB 大栈线程，0 号风险对策） | 已完成 | src/Ts.Compiler/Core/LargeStackExecutor.cs + Version.cs 预移；tests/Ts.Compiler.Tests/Core/LargeStackExecutorTests.cs |
 | plan/ 文档集 13 份 | 已完成 | 00–12 全部落库；09 已包含稳定门禁 ID `G<阶段>.<序号>` 体系；各文档中的待澄清项仍按既定流程跟踪 |
-| _submodules/TypeScript 钉扎（与 tsgo 同 commit） | 未开始 | 目录尚不存在；钉扎策略见 00-overview.md |
-| tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 未开始 | tools/generator/ 目前为空 |
-| tools/generator/ 生成器自举：generate-diagnostics.ts | 未开始 | 门禁：Messages.g.cs 计数=2,154 |
-| tools/generator/ 生成器自举：generate-libs.ts + EmbeddedResource glob（108 个 lib.*.d.ts） | 未开始 | 依赖 submodule 钉扎先行 |
+| _submodules/TypeScript 钉扎（与 tsgo 同 commit） | 已完成 | UPSTREAM.lock 双坐标 + testdata 指纹已提交（commit 9b728b8） |
+| tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 进行中 | 工作区/输入副本/csharp-emit.ts 已落库；七文件发射运行中（Ast/ 产出未定稿） |
+| tools/generator/ 生成器自举：generate-diagnostics.ts | 已完成 | Messages.g.cs 计数=2,154 断言通过（commit 377c270） |
+| tools/generator/ 生成器自举：generate-libs.ts + EmbeddedResource glob（108 个 lib.*.d.ts） | 已完成 | 108 个生成 + 内嵌（commit 377c270） |
 | CI 管线（三平台构建 + AOT publish + analyzer 门禁） | 未开始 | 仓库无 .github/ |
 | 阶段 0 出口门禁签核 | 未达 | 通过后记入 §6 |
 
@@ -90,16 +90,16 @@
 
 | 包 | 阶段 | LOC | 状态 | 差分/基线通过率 | 备注 |
 |---|---:|---:|---|---:|---|
-| bundled | 0 | 1,110 | 移植中 | — | 阶段 0 进行中（任务指令口径）；generate-libs.ts/EmbeddedResource 未起步，见 §3 |
-| diagnostics | 0 | 9,423 | 移植中 | — | 阶段 0 进行中（同上）；generate-diagnostics.ts 未起步；门禁=2,154 条计数 |
-| core | 1 | 2,669 | 移植中 | — | LargeStackExecutor/Version 已作阶段 0 交付物预移（§3）；text.go→Text.cs、tristate.go→Tristate.cs 已移植（含单测 22 项全绿）；arena.go 不移植 |
-| collections | 1 | 840 | 未开始 | — | OrderedMap = map 序审计白名单容器 |
+| bundled | 0 | 1,110 | 移植中 | — | generate-libs.ts 已落地：108 个 lib.*.d.ts 生成并以 bundled/libs/* 逻辑名内嵌（07 §5.2）；bundled:/// 覆盖 VFS 待 vfs 包（阶段 1） |
+| diagnostics | 0 | 9,423 | 移植中 | — | generate-diagnostics.ts 已落地：Messages.g.cs 2,154 条计数断言通过（G0.3 实质达成，签核待 §6）；本地化面（Localize/Format/loc）后续阶段 |
+| core | 1 | 2,669 | 移植中 | — | 已移植：text/tristate/stack/binarysearch/pattern/textchange/languagevariant/scriptkind/nodemodules/semaphore/workgroup（WorkGroup 并行实现走 LargeStackExecutor）+ LargeStackExecutor/Version 预移；单测全绿；待：core.go 大杂烩/bfs/compileroptions 族/context/linkstore 等；arena.go 不移植 |
+| collections | 1 | 840 | 单测绿 | — | 全包 7 文件移植完（OrderedMap 流式 JSON 面按 10 §2.3 波次推迟）；7 个测试文件全绿；OrderedMap = map 序审计白名单容器 |
 | tspath | 1 | 1,435 | 未开始 | — | 测试 1,189 行全移植（Windows 路径主防线） |
 | vfs | 1 | 3,131 | 未开始 | — | vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
 | nativepath | 1 | 298 | 未开始 | — | 接口保形、实现换体（BCL ResolveLinkTarget），非逐行直译 |
 | jsnum | 1 | 584 | 未开始 | — | 独立门禁：100 万随机 double 格式化逐位相等 |
 | stringutil | 1 | 5,573 | 未开始 | — | 含 Unicode 生成表 4,887 行 → ReadOnlySpan RVA 数据 |
-| glob | 1 | 349 | 未开始 | — | 无单测；由 tsoptions 基线间接覆盖 |
+| glob | 1 | 349 | 单测绿 | — | Glob.cs 移植完，28 项单测（上游无单测，自建）；两处已登记偏差见 §8；由 tsoptions 基线间接再覆盖 |
 | semver | 1 | 712 | 未开始 | — | 测试 1,106 行全移植 |
 | debug | 1 | 61 | 未开始 | — | 微包（06 §11.1），地基最早一批 |
 | repo | 1 | 87 | 未开始 | — | 测试/生成器专用 → Ts.TestUtil/RepoPaths.cs，绝不进产品程序集 |
