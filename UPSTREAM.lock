@@ -1,0 +1,12 @@
+# UPSTREAM.lock — 单一事实源；只能由升级原子 PR（00-overview.md §4.3）修改
+tsgo.commit        = 168e7015edf98244febc8f4ae450b673b5d195d7
+tsgo.source        = https://github.com/microsoft/typescript-go (tree-verified snapshot: /Users/token/Desktop/code/typescript-go-main; root-tree: 23c5ee2aa33485d7d55e38edc60eb740a47ac562; no local Git metadata)
+typescript.commit  = 4d4f005c8541e0255a9d8791205fdce326e462bc
+testdata.files.reference = 49321
+testdata.files.total     = 49642
+testdata.bytes           = 147111511
+sha256.ast.json                     = 8f9117acd1ba332beb8222e4f958346a6846dc0acbcb75d1c20a7bb0eef68689
+sha256.schema.ts                    = 830923831b4bf50b6c1214052289ba9d7403963f0e3d680118ab9f1388101a51
+sha256.diagnosticMessages.json      = 21a229f8ce2636dda83a3579e26b8621c8767521dde2e9a67384cca2f4855905
+sha256.extraDiagnosticMessages.json = 403d549f4a612c3a634e4bcd076441823ac683c7732e10182daedbba5f295248
+sha256.metaModel.json               = cbc9ac05fc7fcdf7e3d83845a5dcff8cf94cbf71fee99f5a8e25a790b6f6fd12
