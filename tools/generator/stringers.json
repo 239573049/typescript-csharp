@@ -1,0 +1,8 @@
+[
+  {
+    "enum": "Ts.Ast.SyntaxKind",
+    "source": "ast.json",
+    "goTypeName": "Kind",
+    "output": "src/Ts.Compiler/Ast/SyntaxKindStringers.g.cs"
+  }
+]

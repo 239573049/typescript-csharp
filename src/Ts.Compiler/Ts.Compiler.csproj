@@ -12,6 +12,16 @@
     <Compile Remove="Tracing/**/*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- 07-aot-constraints.md §5.2: explicit, stable logical names. Runtime reads
+         via Assembly.GetManifestResourceStream("bundled/libs/<name>"); lib
+         discovery goes through the generated Bundled.LibNames, never through
+         GetManifestResourceNames scanning. Bundled/libs/ is entirely a generated
+         product of tools/generator/generate-libs.ts (plan/04-codegen.md §4). -->
+    <EmbeddedResource Include="Bundled/libs/**/*.d.ts"
+                      LogicalName="bundled/libs/%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <!--
     Compiler recursion must never escape to the default thread pool: its workers
     have an approximately 1 MB stack. Keep these restrictions project-local so
