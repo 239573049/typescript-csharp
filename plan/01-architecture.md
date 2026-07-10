@@ -675,3 +675,4 @@ type_symbol_baseline.go:236 的下划线按字节 pad，但该代码路径当前
 4. **RequestContext 显式传参**（§4.4）是本文为 context.Context 三值（取消/requestID/CheckerLifetime）提出的映射草案，主计划未规定。需 05-conventions.md 将其固化为全仓 context 映射总则（或裁决改用 AsyncLocal——本文不推荐，理由见 §4.4）。
 5. **project 池的时间源**：本文选 `Environment.TickCount64`（单调）映射 `time.Now`/`time.Since` 的空闲计时用法（§4.3）。若 05-conventions.md 对 time.Time 另有全局映射（如 DateTime.UtcNow），空闲回收这一用点仍应豁免为单调时钟。
 6. **LSP `--lsp` 与 `--api` 对 LargeStackExecutor 的线程预算**：E5 要求 handler 主体跑大栈线程；LSP 高并发小查询下大栈线程池的软上限（本文建议 ProcessorCount + 防饥饿增长）是否需要独立配置项（对应 tsgo 无此概念），建议阶段 8 进入前由 09-phases.md 的阶段 8 子门禁定量确认。【裁定：定量确认挂阶段 8 子门禁；09-phases.md 补写中（R20），此处引用保留。】
+7. **§9.2 表格的 `IVfs` 字样**：本文 §9.2 bundled 装饰器行写作 `sealed class BundledWrapFs : IVfs`，与 05-conventions.md §1.3/§4.2 钦定的 `vfs.FS → IFileSystem` 不一致。vfs 包落地（2026-07-11 会话）已按 05 执行（AGENTS §2 权威表：Go→C# 惯用法归 05），实际接口名为 `Ts.Vfs.IFileSystem`；本文该处字样待下次修订时同步为 `IFileSystem`。

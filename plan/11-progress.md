@@ -6,7 +6,7 @@
 | 日期 | 2026-07-11 |
 | 状态 | Draft |
 | 性质 | **活文档**——plan/ 中唯一被持续编辑的文件；其余 00–10、12 号文档为设计基线，仅在设计变更时修订 |
-| 最近更新 | 2026-07-11（Codex 会话：阶段 0 初始脚手架基线提交，见变更日志） |
+| 最近更新 | 2026-07-11（Claude Code 会话：vfs 核心分层落地 + 55 项单测，见变更日志） |
 | 交叉引用 | 00-overview.md（范围/钉扎）· 06-module-inventory.md（包档案，本表各行的事实来源）· 08-testing-strategy.md（差分夹具/conformance 跑批器口径）· 09-phases.md（门禁定义，签核表的依据）· 12-risks.md（风险册，偏差登记的下游） |
 
 ---
@@ -55,11 +55,11 @@
 |---|---|---|
 | 当前阶段 | **阶段 0 · 脚手架（进行中）** | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
-| 包状态达「编译通过」及以上 | 0 / 49 行（**0.0%** LOC 加权） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
+| 包状态达「编译通过」及以上 | 2 / 49 行（1,189 LOC = **0.4%** LOC 加权：collections、glob） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
 | 最近 conformance 通过率 | —（尚未有跑批） | §5 历史表最新行 |
 | 最近 fourslash 通过率 | —（尚未有跑批） | §5.2 历史表最新行 |
 | 已签核门禁 | 0 | §6 行数 |
-| 已登记偏差 | 0（另有 6 项设计期偏差待落地登记，§8.2） | §8.1 行数 |
+| 已登记偏差 | 6（另有 6 项设计期偏差待落地登记，§8.2） | §8.1 行数 |
 
 > 注意：LOC 加权进度 ≠ 工期进度。主计划 §二的占比列是**工作量**估算（checker 33% 工作量但仅 21.3% LOC）；本表只报 LOC 口径，不做工期折算。
 
@@ -95,7 +95,7 @@
 | core | 1 | 2,669 | 移植中 | — | 已移植：text/tristate/stack/binarysearch/pattern/textchange/languagevariant/scriptkind/nodemodules/semaphore/workgroup（WorkGroup 并行实现走 LargeStackExecutor）+ LargeStackExecutor/Version 预移；单测全绿；待：core.go 大杂烩/bfs/compileroptions 族/context/linkstore 等；arena.go 不移植 |
 | collections | 1 | 840 | 单测绿 | — | 全包 7 文件移植完（OrderedMap 流式 JSON 面按 10 §2.3 波次推迟）；7 个测试文件全绿；OrderedMap = map 序审计白名单容器 |
 | tspath | 1 | 1,435 | 未开始 | — | 测试 1,189 行全移植（Windows 路径主防线） |
-| vfs | 1 | 3,131 | 未开始 | — | vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
+| vfs | 1 | 3,131 | 移植中 | — | 2026-07-11：核心分层落地（vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → Ts.Vfs.\*；`FS→IFileSystem` 依 05 §1.3，ReadFile→Try、写族→IOException、WalkDir→`Exception?` 值 + SkipDir/SkipAll 身份哨兵；io/fs → 自定义 IFileProvider 最小抽象；tspath 依赖以 internal TsPathShim 权宜内联，tspath 落地后删）；单测 55 项绿（含 decodeBytes BOM/UTF-16LE/BE 表驱动 21 例；vfs_test.go 仅基准→按 05 §16.1 归阶段 10）；待：osvfs/vfsmatch/vfstest/vfsmock；vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
 | nativepath | 1 | 298 | 未开始 | — | 接口保形、实现换体（BCL ResolveLinkTarget），非逐行直译 |
 | jsnum | 1 | 584 | 未开始 | — | 独立门禁：100 万随机 double 格式化逐位相等 |
 | stringutil | 1 | 5,573 | 未开始 | — | 含 Unicode 生成表 4,887 行 → ReadOnlySpan RVA 数据 |
@@ -212,6 +212,8 @@
 | D-002 | 2026-07-11 | glob/Glob.cs | 尾斜杠模式耗尽输入时 Go 会越界 panic（glob.go:233），C# 加守卫返回 true | 行为（Go 崩溃路径→合法匹配；非基线） | 上游潜在 bug，AGENTS §6 保守处置 | 生效 |
 | D-003 | 2026-07-11 | ast 生成器 | 可空性按 04 §2.2 横切规则（Go 指针→全可空），不采纳 02 §8.1/8.3 示例的 optional 非空推断 | 类型签名（编译期；非基线） | 实证三处 member/base optional 不一致会迫使 `!` 扩散 | 生效 |
 | D-004 | 2026-07-11 | tools/generator | 输入副本置于 `_scripts/` 子目录而非 04 §1.1 平铺——schema.ts 以相对路径定位 ast.json，平铺须打补丁破坏 sha256 钉扎 | 工作区布局（非基线） | 保逐字节副本优先；README 已注记 | 生效 |
+| D-005 | 2026-07-11 | vfs/Internal/Common.cs | DecodeBytes 无 BOM 路径对**无效 UTF-8** 的替换粒度：Go 按 rune 迭代逐无效字节产一个 U+FFFD，.NET Encoding.UTF8 按最大无效子序列产一个 U+FFFD；有效 UTF-8 双方逐字符等价 | 行为（仅无效 UTF-8 源文件；conformance 语料待核） | C# string=UTF-16 边界（plan/01），BCL 解码器语义；AGENTS §6 登记备查 | 生效 |
+| D-006 | 2026-07-11 | vfs/FileProvider.cs | IFileProvider 失败以 null 表达、不携错误明细；WalkDir 算法在 stat/ReadDir 失败时给回调传 `VfsUtil.ErrNotExist` 哨兵而非 Go 的 \*PathError | 行为（walkFn 的 err 身份；tsgo 生产 walkFn 均只判空/吞掉，唯 fourslash 基架 errors.Is(fs.ErrNotExist)——阶段 9 前重估） | plan/05 §4 就地消费判据；survey 证据见 vfs 移植会话 | 生效 |
 
 <!-- 行模板：| D-001 | 2026-MM-DD | pprof | profile 输出为 .nettrace 而非 .pb.gz | CLI 产物格式（非基线） | 06-module-inventory.md §7.2；主计划 §一.4 精神 | 生效 | -->
 <!-- 编号规则：D-XXX 递增，不复用；状态 ∈ {生效, 已消除（回归 1:1）, 已升级为风险（转 12-risks.md）} -->
@@ -276,6 +278,7 @@
 
 | 日期 | 版本 | 会话/作者 | 摘要 |
 |---|---|---|---|
+| 2026-07-11 | v1.1 | Claude Code 会话（vfs 核心分层） | port(vfs)：vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → src/Ts.Compiler/Vfs/\*（IFileSystem/Entries/IFileInfo/IDirEntry/FileMode、IFileProvider 垫片、TsPathShim 权宜内联）+ tests/Vfs 6 文件 55 测试绿（decodeBytes 表驱动 21 例）；偏差 D-005/D-006 登记；vfs 状态→移植中；快照两指标依 §9.2 重算修正（编译通过≥ 2 行、已登记偏差 6——前会话漏更）；待澄清 +1（01 §9.2 IVfs 字样）；验证时共享构建暂被并行 tspath/stringutil 在途文件阻塞，Vfs 文件本身 0 警告 0 错误（隔离工程全绿），未提交 commit（任务指令） |
 | 2026-07-11 | v1.1 | Codex 会话（阶段 0 脚手架） | 完成 W0-02/W0-01：收敛 `.gitignore`，修正 xUnit v3 空测试壳与 Ts.TestUtil 类库边界，建立初始提交 7e7e449；Release build/test、osx-arm64 Native AOT publish 及原生 `tscs --version` 冒烟全绿；plan/ 00–12 文件集齐全 |
 | 2026-07-11 | v1.1 | Claude Code 会话（评审修复） | 评审修复：06 交叉引用随其重编号修正（§14.x→§13.x；§12.1/§12.4→§11.1/§11.4）；checker 拆分表权威改指 03 §4.2 的 22 partial（裁决 R1）；ast 生成物 ×5→×7（裁决 R2）；fourslash 三段计数统一 289+210+3,796=4,295 并为 §5.2 增列 manual 列（裁决 R10，结构变更故 bump v1.1）；§3 文档状态重算——00–08、10–12 已落库，09 标补写中（裁决 R20） |
 | 2026-07-11 | v1.0 | Claude Code 会话 | 骨架建立：图例/49 行包总表/历史表/签核表/偏差登记/更新规程；阶段 0 交付物按仓库实况盘点（slnx+项目脚手架+LargeStackExecutor 已完成，生成器/submodule/CI 未起步） |
@@ -290,3 +293,4 @@
 4. **conformance 历史表 js % 列口径**：主计划阶段 6 门禁为 `.js`/`.d.ts`/`.js.map` 三类 100%，任务给定的历史表列仅「js %」。本文档暂以合并口径计（三类合并的字节匹配率）；若 08/09 号文档要求分列跟踪，v1.1 加列。
 5. **fourslash 通过率分母**：manualTests.txt / unparsedTests.txt / crashingTests.txt 清单内用例是否计入分母（tsgo 自身也不跑其中部分），需 08-testing-strategy.md 定稿口径；定稿前 §5.2 按「全部用例」为分母、清单跳过计为不通过的保守口径。用例总数三段口径已按裁决 R10 关闭（289+210+3,796=4,295，§5.2 已增列 manual 段），本条仅余分母扣减问题。
 6. **阶段 0 包条目的状态字面**：任务指令要求阶段 0 条目状态=进行中，本表以图例值「移植中」承载（bundled/diagnostics 两行），但其包本体尚无产物，与 §1 图例的严格进入条件有出入——首个生成器落地后自然吻合；若主计划希望包状态与阶段状态分离表达，可在 v1.1 为 §4 增加「阶段状态」视图。
+7. **vfs.FS 接口定名 `IFileSystem` 的文档同步**：05 §1.3/§4.2 钦定 `IFileSystem`（05:1197 自注留待落型确认），vfs 落地已采用；plan/01 §9.2 表格残留 `IVfs` 字样，已在 01 §10 待澄清第 7 条登记，请 01 下次修订同步。相关命名连带裁决（本会话既成事实，供追认）：包级函数/变量宿主循 CoreUtil 先例（`VfsUtil`/`IoVfsUtil`/`WrapVfsUtil`），具体 FS 类循 01 §9.2 BundledWrapFs 先例（`CachedFs`/`TrackingFs`/`WrappedFs`/`IoFs`）；C# 保留元组名致 `SplitPath` 元素 `Rest→RestPath`。
