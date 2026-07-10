@@ -6,6 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Go tests live inside the package and exercise unexported functions
+         (e.g. tspath.reducePathComponents). Ported tests keep that access via
+         internal + InternalsVisibleTo (05-conventions.md §16). -->
+    <InternalsVisibleTo Include="Ts.Compiler.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- In-flight ahead-of-order port: Tracing.cs references Ts.Ast.Node/Symbol,
          which land in phase 3/4. Excluded so the tree stays green (AGENTS.md §4-10);
          remove this line when the Ast types exist and Tracing compiles. -->
