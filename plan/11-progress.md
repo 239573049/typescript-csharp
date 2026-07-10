@@ -6,7 +6,7 @@
 | 日期 | 2026-07-11 |
 | 状态 | Draft |
 | 性质 | **活文档**——plan/ 中唯一被持续编辑的文件；其余 00–10、12 号文档为设计基线，仅在设计变更时修订 |
-| 最近更新 | 2026-07-11（Claude Code 会话：评审修复，见变更日志） |
+| 最近更新 | 2026-07-11（Codex 会话：阶段 0 初始脚手架基线提交，见变更日志） |
 | 交叉引用 | 00-overview.md（范围/钉扎）· 06-module-inventory.md（包档案，本表各行的事实来源）· 08-testing-strategy.md（差分夹具/conformance 跑批器口径）· 09-phases.md（门禁定义，签核表的依据）· 12-risks.md（风险册，偏差登记的下游） |
 
 ---
@@ -71,10 +71,10 @@
 
 | 交付物 | 状态 | 备注（2026-07-11 实况） |
 |---|---|---|
-| TypeScript.slnx + Directory.Build.props + Directory.Packages.props | 已完成 | 仓库根已存在；src/、tests/ 各有层级 Directory.Build.props |
+| TypeScript.slnx + Directory.Build.props + Directory.Packages.props | 已完成 | 7e7e449 初始提交；W0-02 忽略规则已收敛；Release build/test 与 osx-arm64 Native AOT publish + 原生 `--version` 冒烟全绿 |
 | 3 源项目 + 5 测试项目脚手架 | 已完成 | Ts.Compiler / Ts.LanguageService / Ts.Cli（含 hello Program.cs）；TestUtil / Compiler.Tests / Conformance.Tests / Fourslash.Tests / LanguageService.Tests |
 | LargeStackExecutor（64MB 大栈线程，0 号风险对策） | 已完成 | src/Ts.Compiler/Core/LargeStackExecutor.cs + Version.cs 预移；tests/Ts.Compiler.Tests/Core/LargeStackExecutorTests.cs |
-| plan/ 文档集 13 份 | 进行中 | 已落：00–08、10、11、12（完成/Draft）；09 补写中（独立 agent，含门禁稳定 ID `G<阶段>.<序号>` 体系，裁决 R20） |
+| plan/ 文档集 13 份 | 已完成 | 00–12 全部落库；09 已包含稳定门禁 ID `G<阶段>.<序号>` 体系；各文档中的待澄清项仍按既定流程跟踪 |
 | _submodules/TypeScript 钉扎（与 tsgo 同 commit） | 未开始 | 目录尚不存在；钉扎策略见 00-overview.md |
 | tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 未开始 | tools/generator/ 目前为空 |
 | tools/generator/ 生成器自举：generate-diagnostics.ts | 未开始 | 门禁：Messages.g.cs 计数=2,154 |
@@ -273,6 +273,7 @@
 
 | 日期 | 版本 | 会话/作者 | 摘要 |
 |---|---|---|---|
+| 2026-07-11 | v1.1 | Codex 会话（阶段 0 脚手架） | 完成 W0-02/W0-01：收敛 `.gitignore`，修正 xUnit v3 空测试壳与 Ts.TestUtil 类库边界，建立初始提交 7e7e449；Release build/test、osx-arm64 Native AOT publish 及原生 `tscs --version` 冒烟全绿；plan/ 00–12 文件集齐全 |
 | 2026-07-11 | v1.1 | Claude Code 会话（评审修复） | 评审修复：06 交叉引用随其重编号修正（§14.x→§13.x；§12.1/§12.4→§11.1/§11.4）；checker 拆分表权威改指 03 §4.2 的 22 partial（裁决 R1）；ast 生成物 ×5→×7（裁决 R2）；fourslash 三段计数统一 289+210+3,796=4,295 并为 §5.2 增列 manual 列（裁决 R10，结构变更故 bump v1.1）；§3 文档状态重算——00–08、10–12 已落库，09 标补写中（裁决 R20） |
 | 2026-07-11 | v1.0 | Claude Code 会话 | 骨架建立：图例/49 行包总表/历史表/签核表/偏差登记/更新规程；阶段 0 交付物按仓库实况盘点（slnx+项目脚手架+LargeStackExecutor 已完成，生成器/submodule/CI 未起步） |
 
