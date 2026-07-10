@@ -5,6 +5,13 @@
     <Description>TypeScript compiler core (1:1 port of typescript-go internal packages: core…transformers)</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- In-flight ahead-of-order port: Tracing.cs references Ts.Ast.Node/Symbol,
+         which land in phase 3/4. Excluded so the tree stays green (AGENTS.md §4-10);
+         remove this line when the Ast types exist and Tracing compiles. -->
+    <Compile Remove="Tracing/**/*.cs" />
+  </ItemGroup>
+
   <!--
     Compiler recursion must never escape to the default thread pool: its workers
     have an approximately 1 MB stack. Keep these restrictions project-local so
