@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ts.Compiler/Ts.Compiler.csproj" />
+    <Project Path="src/Ts.LanguageService/Ts.LanguageService.csproj" />
+    <Project Path="src/Ts.Cli/Ts.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ts.TestUtil/Ts.TestUtil.csproj" />
+    <Project Path="tests/Ts.Compiler.Tests/Ts.Compiler.Tests.csproj" />
+    <Project Path="tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj" />
+    <Project Path="tests/Ts.LanguageService.Tests/Ts.LanguageService.Tests.csproj" />
+    <Project Path="tests/Ts.Fourslash.Tests/Ts.Fourslash.Tests.csproj" />
+  </Folder>
+</Solution>

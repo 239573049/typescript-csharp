@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Ts</RootNamespace>
+    <Description>TypeScript language service, LSP server, project system, and API layer (port of typescript-go ls/lsp/project/api/format/fswatch/jsonrpc)</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ts.Compiler/Ts.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>

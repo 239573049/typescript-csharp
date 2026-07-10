@@ -1,0 +1,27 @@
+<Project>
+
+  <!--
+    Repo-wide build settings for the typescript-go → C# port.
+    AOT/trim analyzer settings for shipping code live in src/Directory.Build.props;
+    test projects deliberately do not get them (tests run on the JIT; phase gates
+    additionally re-run conformance against the published AOT binary).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Mirrors tsgo core.Version() ("7.1.0-dev", ldflags-overridable). Keep in sync. -->
+    <TsVersion>7.1.0-dev</TsVersion>
+  </PropertyGroup>
+
+</Project>

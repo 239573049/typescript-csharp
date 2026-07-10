@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Ts.Cli</RootNamespace>
+    <!-- The tsgo-equivalent single binary: default tsc CLI plus the lsp and api modes. -->
+    <AssemblyName>tscs</AssemblyName>
+    <PublishAot>true</PublishAot>
+    <!-- OptimizationPreference / ServerGC / StripSymbols are phase-10 tuning knobs; deliberately unset here (plan/07-aot-constraints.md §3.5). -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ts.Compiler/Ts.Compiler.csproj" />
+    <ProjectReference Include="../Ts.LanguageService/Ts.LanguageService.csproj" />
+  </ItemGroup>
+
+</Project>

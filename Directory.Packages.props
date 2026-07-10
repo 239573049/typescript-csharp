@@ -1,0 +1,12 @@
+<Project>
+  <ItemGroup>
+    <!-- Shipping dependencies (all AOT-safe) -->
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Test-only dependencies -->
+    <PackageVersion Include="xunit.v3" Version="3.1.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+  </ItemGroup>
+</Project>

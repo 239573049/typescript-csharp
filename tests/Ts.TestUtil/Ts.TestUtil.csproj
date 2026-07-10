@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Ts.TestUtil</RootNamespace>
+    <!-- Shared harness library (port of internal/testutil): baseline diff+accept, fixture loaders. -->
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Ts.Compiler/Ts.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>

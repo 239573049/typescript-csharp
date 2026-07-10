@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+artifacts/
+*.binlog
+*.user
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.DotSettings
+
+# Node（生成器）
+node_modules/
+
+# 一致性跑批器的本地输出（reference/ 必须入库，local/ 绝不入库）
+testdata/baselines/local/
+
+# 系统
+.DS_Store

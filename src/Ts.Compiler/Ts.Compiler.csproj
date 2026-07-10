@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Ts</RootNamespace>
+    <Description>TypeScript compiler core (1:1 port of typescript-go internal packages: core…transformers)</Description>
+  </PropertyGroup>
+
+</Project>
