@@ -10,4 +10,10 @@
     <ProjectReference Include="../../src/Ts.Compiler/Ts.Compiler.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Assert.SkipUnless etc. for harness helpers (RepoPaths.SkipIfNoTypeScriptSubmodule).
+         Library projects must use the assert package, not the executable test metapackage. -->
+    <PackageReference Include="xunit.v3.assert" />
+  </ItemGroup>
+
 </Project>
