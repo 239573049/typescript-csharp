@@ -97,7 +97,7 @@
 | tspath | 1 | 1,435 | 单测绿 | — | 全包移植完（65 函数 Go 序；Path 品牌 record struct）；1,189 行测试全移植 88/88 绿；连带 stringutil Compare/Runes 前置（与 Go 逐码点对齐的大小写折叠）；SplitVolumePath 因元组保留名 Rest 改 bool+out（PORT-NOTE） |
 | vfs | 1 | 3,131 | 移植中 | — | 2026-07-11：核心分层落地（vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → Ts.Vfs.\*；`FS→IFileSystem` 依 05 §1.3，ReadFile→Try、写族→IOException、WalkDir→`Exception?` 值 + SkipDir/SkipAll 身份哨兵；io/fs → 自定义 IFileProvider 最小抽象；tspath 依赖以 internal TsPathShim 权宜内联，tspath 落地后删）；单测 55 项绿（含 decodeBytes BOM/UTF-16LE/BE 表驱动 21 例；vfs_test.go 仅基准→按 05 §16.1 归阶段 10）；待：osvfs/vfsmatch/vfstest/vfsmock；vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
 | nativepath | 1 | 298 | 未开始 | — | 接口保形、实现换体（BCL ResolveLinkTarget），非逐行直译 |
-| jsnum | 1 | 584 | 未开始 | — | 独立门禁：100 万随机 double 格式化逐位相等 |
+| jsnum | 1 | 584 | 单测绿 | — | 全包移植完，686 用例绿；52.6 万例对 Go 直接对拍零失配（发现并修复 .NET 最短往返幂次二缺陷，证据入 R05）；G1.2 夹具生成可复用其差分脚本；遗留：NumberString.cs 内私有 stringutil 谓词镜像待并回 Ts.StringUtil |
 | stringutil | 1 | 5,573 | 单测绿 | — | 全包移植完；两张表经 transcribe-unicode.ts 转写为 RVA .g.cs（11,364 行，fixtures/stringutil oracle 逐项校验）；全码点 SimpleFold/casing 对 Go 1.26.4 零分歧；WTF-8 哨兵机制在原生 UTF-16 下蒸发（签名保形）；50 测试绿 |
 | glob | 1 | 349 | 单测绿 | — | Glob.cs 移植完，28 项单测（上游无单测，自建）；两处已登记偏差见 §8；由 tsoptions 基线间接再覆盖 |
 | semver | 1 | 712 | 单测绿 | — | 全包移植完；1,106 行测试全移植（733 用例绿）；11 个正则 GeneratedRegex + RE2→.NET 四条翻译规则留档 |
