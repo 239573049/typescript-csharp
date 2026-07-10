@@ -76,7 +76,7 @@
 | LargeStackExecutor（64MB 大栈线程，0 号风险对策） | 已完成 | src/Ts.Compiler/Core/LargeStackExecutor.cs + Version.cs 预移；tests/Ts.Compiler.Tests/Core/LargeStackExecutorTests.cs |
 | plan/ 文档集 13 份 | 已完成 | 00–12 全部落库；09 已包含稳定门禁 ID `G<阶段>.<序号>` 体系；各文档中的待澄清项仍按既定流程跟踪 |
 | _submodules/TypeScript 钉扎（与 tsgo 同 commit） | 已完成 | UPSTREAM.lock 双坐标 + testdata 指纹已提交（commit 9b728b8） |
-| tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 进行中 | 工作区/输入副本/csharp-emit.ts 已落库；七文件发射运行中（Ast/ 产出未定稿） |
+| tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 已完成 | 七文件+stringers 发射落库并幂等（commit cc149c8）；计数断言 192/35/351 过；G0.2 实质达成（签核待 §6） |
 | tools/generator/ 生成器自举：generate-diagnostics.ts | 已完成 | Messages.g.cs 计数=2,154 断言通过（commit 377c270） |
 | tools/generator/ 生成器自举：generate-libs.ts + EmbeddedResource glob（108 个 lib.*.d.ts） | 已完成 | 108 个生成 + 内嵌（commit 377c270） |
 | CI 管线（三平台构建 + AOT publish + analyzer 门禁） | 未开始 | 仓库无 .github/ |
@@ -105,7 +105,7 @@
 | repo | 1 | 87 | 未开始 | — | 测试/生成器专用 → Ts.TestUtil/RepoPaths.cs，绝不进产品程序集 |
 | json | 1 | 100 | N/A | — | 不移植：薄封装消失，调用点直用 STJ（06 §10.1） |
 | scanner | 2 | 4,256 | 未开始 | — | 门禁：全语料 token 流 diff 100%；UTF-16 code unit 步进系统性改写 |
-| ast | 3 | 20,847 | 未开始 | — | ast_generated 10,047 行重新生成为 Ast/*.g.cs ×7（02 §16，裁决 R2）；positionmap.go 不移植 |
+| ast | 3 | 20,847 | 移植中 | — | 生成面已落地（Ast/*.g.cs ×7 + stringers，11,924 行，计数与 Go 对齐，幂等，commit cc149c8）+13 个手写配套（Node 虚表/NodeList/Factory/Visitor/flags/Flow/Symbol·SourceFile 最小骨架）；待：ast.go 手写面全量与 jsdoc 桥；阶段 3 注意——BinaryExpression.setModifiers 已生成勿重复（ast.go:2056）、便捷访问器与 mixin 属性同名需遮蔽决策；positionmap.go 不移植 |
 | parser | 3 | 9,071 | 未开始 | — | 深递归 0 号风险主现场；门禁：AST 转储 + 诊断(code,pos,len)三元组 100% |
 | astnav | 3 | 783 | 未开始 | — | |
 | testrunner | 3 | 889 | 未开始 | — | conformance 跑批器 = 阶段 5/6 门禁货币制造机 |
@@ -208,7 +208,10 @@
 
 | 编号 | 登记日期 | 包/文件 | 偏差描述 | 影响面（基线/行为/格式） | 理由与批准链接 | 状态 |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| D-001 | 2026-07-11 | glob/Glob.cs | `[!…]` 的 negate 解析后匹配中不使用——保 Go 上游原样（glob.go:294-301） | 行为（与 Go 逐位一致；非基线） | 1:1 铁律；上游自注 testing-only | 生效 |
+| D-002 | 2026-07-11 | glob/Glob.cs | 尾斜杠模式耗尽输入时 Go 会越界 panic（glob.go:233），C# 加守卫返回 true | 行为（Go 崩溃路径→合法匹配；非基线） | 上游潜在 bug，AGENTS §6 保守处置 | 生效 |
+| D-003 | 2026-07-11 | ast 生成器 | 可空性按 04 §2.2 横切规则（Go 指针→全可空），不采纳 02 §8.1/8.3 示例的 optional 非空推断 | 类型签名（编译期；非基线） | 实证三处 member/base optional 不一致会迫使 `!` 扩散 | 生效 |
+| D-004 | 2026-07-11 | tools/generator | 输入副本置于 `_scripts/` 子目录而非 04 §1.1 平铺——schema.ts 以相对路径定位 ast.json，平铺须打补丁破坏 sha256 钉扎 | 工作区布局（非基线） | 保逐字节副本优先；README 已注记 | 生效 |
 
 <!-- 行模板：| D-001 | 2026-MM-DD | pprof | profile 输出为 .nettrace 而非 .pb.gz | CLI 产物格式（非基线） | 06-module-inventory.md §7.2；主计划 §一.4 精神 | 生效 | -->
 <!-- 编号规则：D-XXX 递增，不复用；状态 ∈ {生效, 已消除（回归 1:1）, 已升级为风险（转 12-risks.md）} -->
