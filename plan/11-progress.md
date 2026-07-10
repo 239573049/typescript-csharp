@@ -94,7 +94,7 @@
 | diagnostics | 0 | 9,423 | 移植中 | — | generate-diagnostics.ts 已落地：Messages.g.cs 2,154 条计数断言通过（G0.3 实质达成，签核待 §6）；本地化面（Localize/Format/loc）后续阶段 |
 | core | 1 | 2,669 | 移植中 | — | 已移植：text/tristate/stack/binarysearch/pattern/textchange/languagevariant/scriptkind/nodemodules/semaphore/workgroup（WorkGroup 并行实现走 LargeStackExecutor）+ LargeStackExecutor/Version 预移；单测全绿；待：core.go 大杂烩/bfs/compileroptions 族/context/linkstore 等；arena.go 不移植 |
 | collections | 1 | 840 | 单测绿 | — | 全包 7 文件移植完（OrderedMap 流式 JSON 面按 10 §2.3 波次推迟）；7 个测试文件全绿；OrderedMap = map 序审计白名单容器 |
-| tspath | 1 | 1,435 | 未开始 | — | 测试 1,189 行全移植（Windows 路径主防线） |
+| tspath | 1 | 1,435 | 单测绿 | — | 全包移植完（65 函数 Go 序；Path 品牌 record struct）；1,189 行测试全移植 88/88 绿；连带 stringutil Compare/Runes 前置（与 Go 逐码点对齐的大小写折叠）；SplitVolumePath 因元组保留名 Rest 改 bool+out（PORT-NOTE） |
 | vfs | 1 | 3,131 | 移植中 | — | 2026-07-11：核心分层落地（vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → Ts.Vfs.\*；`FS→IFileSystem` 依 05 §1.3，ReadFile→Try、写族→IOException、WalkDir→`Exception?` 值 + SkipDir/SkipAll 身份哨兵；io/fs → 自定义 IFileProvider 最小抽象；tspath 依赖以 internal TsPathShim 权宜内联，tspath 落地后删）；单测 55 项绿（含 decodeBytes BOM/UTF-16LE/BE 表驱动 21 例；vfs_test.go 仅基准→按 05 §16.1 归阶段 10）；待：osvfs/vfsmatch/vfstest/vfsmock；vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
 | nativepath | 1 | 298 | 未开始 | — | 接口保形、实现换体（BCL ResolveLinkTarget），非逐行直译 |
 | jsnum | 1 | 584 | 未开始 | — | 独立门禁：100 万随机 double 格式化逐位相等 |
