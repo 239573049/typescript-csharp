@@ -1,27 +1,45 @@
 <Project>
-
-  <!--
-    Repo-wide build settings for the typescript-go → C# port.
-    AOT/trim analyzer settings for shipping code live in src/Directory.Build.props;
-    test projects deliberately do not get them (tests run on the JIT; phase gates
-    additionally re-run conformance against the published AOT binary).
-  -->
-
   <PropertyGroup>
+    <!-- Language and target framework -->
     <TargetFramework>net10.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+
+    <!-- All projects, including JIT tests, use invariant globalization. -->
     <InvariantGlobalization>true</InvariantGlobalization>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <!-- Reject reflection-based System.Text.Json serialization at runtime. -->
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+
+    <!-- Analyze product and test code for trim, AOT, and single-file hazards. -->
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+
+    <!-- Analyzer violations are build failures from phase 0 onward. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisModeGlobalization>All</AnalysisModeGlobalization>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+
+    <!-- Deterministic builds and central package versioning. -->
     <Deterministic>true</Deterministic>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <PropertyGroup>
     <!-- Mirrors tsgo core.Version() ("7.1.0-dev", ldflags-overridable). Keep in sync. -->
     <TsVersion>7.1.0-dev</TsVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
+  </ItemGroup>
 
 </Project>

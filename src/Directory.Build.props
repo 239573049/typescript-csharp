@@ -1,19 +1,9 @@
 <Project>
-
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props" />
 
   <!-- AOT iron rules: every shipping assembly must be AOT- and trim-clean from day one. -->
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <EnableAotAnalyzer>true</EnableAotAnalyzer>
-    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <RootNamespace>Ts</RootNamespace>
   </PropertyGroup>
-
-  <!-- InvariantGlobalization companions: culture-sensitive string APIs are banned;
-       JS-exact casing/comparison comes from the ported stringutil tables only. -->
-  <PropertyGroup>
-    <WarningsAsErrors>$(WarningsAsErrors);CA1304;CA1305;CA1307;CA1309;CA1310;CA1311</WarningsAsErrors>
-  </PropertyGroup>
-
 </Project>

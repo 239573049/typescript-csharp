@@ -1,0 +1,183 @@
+// Reflection and runtime code generation (plan/07-aot-constraints.md §1.1)
+N:System.Reflection.Emit;Runtime IL generation is unavailable under Native AOT; use offline code generation.
+N:System.Linq.Expressions;Expression trees can silently fall back to interpretation; use static methods or strongly typed delegates.
+N:Microsoft.CSharp.RuntimeBinder;Dynamic binding depends on runtime metadata and is not part of the tsgo architecture.
+T:System.Activator;Runtime activation is forbidden; construct statically known types with new T().
+M:System.Type.GetType(System.String);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Type.GetType(System.String,System.Boolean);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Type.GetType(System.String,System.Boolean,System.Boolean);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Type.GetType(System.String,System.Func{System.Reflection.AssemblyName,System.Reflection.Assembly},System.Func{System.Reflection.Assembly,System.String,System.Boolean,System.Type});Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Type.GetType(System.String,System.Func{System.Reflection.AssemblyName,System.Reflection.Assembly},System.Func{System.Reflection.Assembly,System.String,System.Boolean,System.Type},System.Boolean);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Type.GetType(System.String,System.Func{System.Reflection.AssemblyName,System.Reflection.Assembly},System.Func{System.Reflection.Assembly,System.String,System.Boolean,System.Type},System.Boolean,System.Boolean);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Reflection.Assembly.GetType(System.String);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Reflection.Assembly.GetType(System.String,System.Boolean);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Reflection.Assembly.GetType(System.String,System.Boolean,System.Boolean);Runtime string-based type lookup is not trim safe; use typeof(T).
+M:System.Type.MakeGenericType(System.Type[]);Runtime generic construction is unavailable under Native AOT; close generic types at compile time.
+M:System.Reflection.MethodInfo.MakeGenericMethod(System.Type[]);Runtime generic construction is unavailable under Native AOT; close generic methods at compile time.
+M:System.Delegate.DynamicInvoke(System.Object[]);Reflection-based delegate invocation is forbidden; invoke a strongly typed delegate.
+M:System.Reflection.MethodBase.Invoke(System.Object,System.Object[]);Reflection invocation is forbidden; use generated static dispatch.
+M:System.Reflection.MethodBase.Invoke(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo);Reflection invocation is forbidden; use generated static dispatch.
+M:System.Reflection.PropertyInfo.GetValue(System.Object);Reflection property access is forbidden; use generated static dispatch.
+M:System.Reflection.PropertyInfo.GetValue(System.Object,System.Object[]);Reflection property access is forbidden; use generated static dispatch.
+M:System.Reflection.PropertyInfo.GetValue(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo);Reflection property access is forbidden; use generated static dispatch.
+M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object);Reflection property access is forbidden; use generated static dispatch.
+M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object,System.Object[]);Reflection property access is forbidden; use generated static dispatch.
+M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo);Reflection property access is forbidden; use generated static dispatch.
+M:System.Reflection.FieldInfo.GetValue(System.Object);Reflection field access is forbidden; use generated static dispatch.
+M:System.Reflection.FieldInfo.SetValue(System.Object,System.Object);Reflection field access is forbidden; use generated static dispatch.
+M:System.Reflection.FieldInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Globalization.CultureInfo);Reflection field access is forbidden; use generated static dispatch.
+
+// Metadata enumeration is not trim safe. typeof(T), GetType() equality, and constant-name
+// manifest-resource access remain allowed as listed in plan/07 §2.
+M:System.Type.GetConstructors;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetConstructors(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetConstructor(System.Reflection.BindingFlags,System.Reflection.Binder,System.Reflection.CallingConventions,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetConstructor(System.Reflection.BindingFlags,System.Reflection.Binder,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetConstructor(System.Reflection.BindingFlags,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetConstructor(System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetEvents;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetEvents(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetEvent(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetEvent(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetFields;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetFields(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetField(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetField(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetInterfaces;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetInterface(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetInterface(System.String,System.Boolean);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMembers;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetMembers(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetMember(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMember(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMember(System.String,System.Reflection.MemberTypes,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethods;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetMethods(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Int32,System.Reflection.BindingFlags,System.Reflection.Binder,System.Reflection.CallingConventions,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Int32,System.Reflection.BindingFlags,System.Reflection.Binder,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Int32,System.Reflection.BindingFlags,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Int32,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Int32,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Reflection.CallingConventions,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Reflection.BindingFlags,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetMethod(System.String,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetNestedTypes;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetNestedTypes(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetNestedType(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetNestedType(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperties;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetProperties(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Type,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String,System.Type);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String,System.Type,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String,System.Type,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Type.GetProperty(System.String,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
+M:System.Reflection.MemberInfo.GetCustomAttributes(System.Boolean);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Reflection.MemberInfo.GetCustomAttributes(System.Type,System.Boolean);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Reflection.MemberInfo.GetCustomAttributesData;Metadata enumeration is forbidden; generate the required dispatch table.
+T:System.Reflection.CustomAttributeExtensions;Reflection attribute lookup is forbidden; generate the required dispatch table.
+M:System.Reflection.Assembly.GetCustomAttributes(System.Boolean);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Reflection.Assembly.GetCustomAttributes(System.Type,System.Boolean);Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Reflection.Assembly.GetCustomAttributesData;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Reflection.Assembly.GetExportedTypes;Metadata enumeration is forbidden; generate the required dispatch table.
+M:System.Reflection.Assembly.GetTypes;Metadata enumeration is forbidden; generate the required dispatch table.
+
+// Dynamic assembly loading and single-file hazards (plan/07 §1.2)
+T:System.Runtime.Loader.AssemblyLoadContext;The compiler has no plugin model; dynamic assembly loading is forbidden.
+M:System.Reflection.Assembly.Load(System.Byte[]);Dynamic assembly loading is forbidden in the Native AOT binary.
+M:System.Reflection.Assembly.Load(System.Byte[],System.Byte[]);Dynamic assembly loading is forbidden in the Native AOT binary.
+M:System.Reflection.Assembly.Load(System.Reflection.AssemblyName);Dynamic assembly loading is forbidden in the Native AOT binary.
+M:System.Reflection.Assembly.Load(System.String);Dynamic assembly loading is forbidden in the Native AOT binary.
+M:System.Reflection.Assembly.LoadFile(System.String);Dynamic assembly loading is forbidden in the Native AOT binary.
+M:System.Reflection.Assembly.LoadFrom(System.String);Dynamic assembly loading is forbidden in the Native AOT binary.
+M:System.Reflection.Assembly.LoadFrom(System.String,System.Byte[],System.Configuration.Assemblies.AssemblyHashAlgorithm);Dynamic assembly loading is forbidden in the Native AOT binary.
+P:System.Reflection.Assembly.Location;Assembly.Location is unreliable in single-file Native AOT; use AppContext.BaseDirectory or Environment.ProcessPath.
+P:System.Reflection.Assembly.CodeBase;Assembly.CodeBase is unreliable in single-file Native AOT; use AppContext.BaseDirectory or Environment.ProcessPath.
+
+// RegexOptions.Compiled is a field symbol and is directly enforceable by the current
+// Banned API analyzer. GeneratedRegex is the only permitted compiled-regex mechanism.
+F:System.Text.RegularExpressions.RegexOptions.Compiled;Use GeneratedRegex instead of runtime regex compilation.
+
+// Reflection-based serializers (plan/07 §1.2 and §4). JsonSerializer overloads that
+// receive JsonTypeInfo or JsonSerializerContext remain allowed.
+T:System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver;Reflection-based JSON contracts are forbidden; use a source-generated context.
+M:System.Text.Json.JsonSerializer.Deserialize(System.IO.Stream,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.ReadOnlySpan{System.Byte},System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.ReadOnlySpan{System.Char},System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.String,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.Text.Json.JsonDocument,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.Text.Json.JsonElement,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.Text.Json.Nodes.JsonNode,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Deserialize(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsync(System.IO.Pipelines.PipeReader,System.Type,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsync(System.IO.Stream,System.Type,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable``1(System.IO.Pipelines.PipeReader,System.Boolean,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable``1(System.IO.Pipelines.PipeReader,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable``1(System.IO.Stream,System.Boolean,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable``1(System.IO.Stream,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsync``1(System.IO.Pipelines.PipeReader,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.DeserializeAsync``1(System.IO.Stream,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.IO.Stream,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.ReadOnlySpan{System.Byte},System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.ReadOnlySpan{System.Char},System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.String,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.Text.Json.JsonDocument,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.Text.Json.JsonElement,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.Text.Json.Nodes.JsonNode,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Deserialize``1(System.Text.Json.Utf8JsonReader@,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Serialize(System.IO.Stream,System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Serialize(System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.Serialize(System.Text.Json.Utf8JsonWriter,System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeAsync(System.IO.Pipelines.PipeWriter,System.Object,System.Type,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeAsync(System.IO.Stream,System.Object,System.Type,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeAsync``1(System.IO.Pipelines.PipeWriter,``0,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.SerializeAsync``1(System.IO.Stream,``0,System.Text.Json.JsonSerializerOptions,System.Threading.CancellationToken);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.SerializeToDocument(System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeToDocument``1(``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.SerializeToElement(System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeToElement``1(``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.SerializeToNode(System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeToNode``1(``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(System.Object,System.Type,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo or JsonSerializerContext overload.
+M:System.Text.Json.JsonSerializer.SerializeToUtf8Bytes``1(``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Serialize``1(System.IO.Stream,``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Serialize``1(System.Text.Json.Utf8JsonWriter,``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+M:System.Text.Json.JsonSerializer.Serialize``1(``0,System.Text.Json.JsonSerializerOptions);Use a JsonTypeInfo overload.
+T:System.Runtime.Serialization.Formatters.Binary.BinaryFormatter;Reflection-based serialization is forbidden under Native AOT.
+T:System.Xml.Serialization.XmlSerializer;Reflection-based serialization is forbidden under Native AOT.
+T:System.Runtime.Serialization.DataContractSerializer;Reflection-based serialization is forbidden under Native AOT.
+T:System.Runtime.Serialization.Json.DataContractJsonSerializer;Reflection-based serialization is forbidden under Native AOT.
+
+// Runtime marshalling that depends on type metadata (plan/07 §1.3)
+M:System.Runtime.InteropServices.Marshal.PtrToStructure(System.IntPtr,System.Object);Use a blittable struct and source-generated LibraryImport marshalling.
+M:System.Runtime.InteropServices.Marshal.PtrToStructure(System.IntPtr,System.Type);Use a blittable struct and source-generated LibraryImport marshalling.
+M:System.Runtime.InteropServices.Marshal.StructureToPtr(System.Object,System.IntPtr,System.Boolean);Use a blittable struct and source-generated LibraryImport marshalling.
+M:System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(System.IntPtr,System.Type);Use a statically typed function pointer or source-generated interop.
+
+// Globalization APIs whose tables or implicit culture do not match pinned JS/tsgo semantics.
+M:System.String.ToLower;Use StringUtil.ToLowerJS or a documented ASCII-only path.
+M:System.String.ToLower(System.Globalization.CultureInfo);Use StringUtil.ToLowerJS or a documented ASCII-only path.
+M:System.String.ToLowerInvariant;Use StringUtil.ToLowerJS or a documented ASCII-only path.
+M:System.String.ToUpper;Use StringUtil.ToUpperJS or a documented ASCII-only path.
+M:System.String.ToUpper(System.Globalization.CultureInfo);Use StringUtil.ToUpperJS or a documented ASCII-only path.
+M:System.String.ToUpperInvariant;Use StringUtil.ToUpperJS or a documented ASCII-only path.
+M:System.Char.ToLower(System.Char);Use char.ToLowerInvariant only for a proven ASCII range, otherwise use StringUtil.
+M:System.Char.ToLower(System.Char,System.Globalization.CultureInfo);Use char.ToLowerInvariant only for a proven ASCII range, otherwise use StringUtil.
+M:System.Char.ToUpper(System.Char);Use char.ToUpperInvariant only for a proven ASCII range, otherwise use StringUtil.
+M:System.Char.ToUpper(System.Char,System.Globalization.CultureInfo);Use char.ToUpperInvariant only for a proven ASCII range, otherwise use StringUtil.
+P:System.Globalization.CultureInfo.CurrentCulture;Compiler logic must not depend on the process culture.
+P:System.Globalization.CultureInfo.CurrentUICulture;Compiler logic must not depend on the process UI culture.
+P:System.Globalization.CultureInfo.CompareInfo;Use ordinal comparison or the ported pinned-Unicode comparer.
+P:System.Globalization.CultureInfo.TextInfo;Use StringUtil case conversion backed by the pinned Unicode tables.
+T:System.Globalization.CompareInfo;Use ordinal comparison or the ported pinned-Unicode comparer.
+T:System.Globalization.TextInfo;Use StringUtil case conversion backed by the pinned Unicode tables.
+P:System.StringComparer.CurrentCulture;Use StringComparer.Ordinal or a ported comparer.
+P:System.StringComparer.CurrentCultureIgnoreCase;Use a ported pinned-Unicode comparer.
+P:System.StringComparer.InvariantCulture;Use StringComparer.Ordinal or a ported comparer.
+P:System.StringComparer.InvariantCultureIgnoreCase;Use a ported pinned-Unicode comparer.

@@ -5,4 +5,44 @@
     <Description>TypeScript compiler core (1:1 port of typescript-go internal packages: core…transformers)</Description>
   </PropertyGroup>
 
+  <!--
+    Compiler recursion must never escape to the default thread pool: its workers
+    have an approximately 1 MB stack. Keep these restrictions project-local so
+    Ts.LanguageService may still use Task.Run at a pure IO/scheduling boundary.
+    The Banned API analyzer officially consumes BannedSymbols.*.txt files.
+  -->
+  <ItemGroup>
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run(System.Action)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run(System.Action,System.Threading.CancellationToken)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run(System.Func{System.Threading.Tasks.Task})" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run(System.Func{System.Threading.Tasks.Task},System.Threading.CancellationToken)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run``1(System.Func{System.Threading.Tasks.Task{``0}})" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run``1(System.Func{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run``1(System.Func{``0})" />
+    <_CompilerBannedSymbol Include="M:System.Threading.Tasks.Task.Run``1(System.Func{``0},System.Threading.CancellationToken)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.ThreadPool.QueueUserWorkItem(System.Threading.WaitCallback)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.ThreadPool.QueueUserWorkItem(System.Threading.WaitCallback,System.Object)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.ThreadPool.QueueUserWorkItem``1(System.Action{``0},``0,System.Boolean)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.ThreadPool.UnsafeQueueUserWorkItem(System.Threading.IThreadPoolWorkItem,System.Boolean)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.ThreadPool.UnsafeQueueUserWorkItem(System.Threading.WaitCallback,System.Object)" />
+    <_CompilerBannedSymbol Include="M:System.Threading.ThreadPool.UnsafeQueueUserWorkItem``1(System.Action{``0},``0,System.Boolean)" />
+  </ItemGroup>
+
+  <Target Name="GenerateCompilerBannedSymbols" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <!-- IntermediateOutputPath is finalized only after project evaluation. -->
+      <CompilerBannedSymbolsFile>$(IntermediateOutputPath)BannedSymbols.Compiler.txt</CompilerBannedSymbolsFile>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile
+      File="$(CompilerBannedSymbolsFile)"
+      Lines="@(_CompilerBannedSymbol)"
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true"
+      Encoding="UTF-8" />
+    <ItemGroup>
+      <AdditionalFiles Include="$(CompilerBannedSymbolsFile)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

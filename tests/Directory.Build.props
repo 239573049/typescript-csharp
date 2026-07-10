@@ -1,6 +1,5 @@
 <Project>
-
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props" />
 
   <!-- xUnit projects run on the JIT; the shared Ts.TestUtil project remains a
        normal class library. Phase gates additionally re-run the conformance
@@ -9,5 +8,4 @@
     <IsPackable>false</IsPackable>
     <IsAotCompatible>false</IsAotCompatible>
   </PropertyGroup>
-
 </Project>
