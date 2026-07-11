@@ -53,9 +53,9 @@
 
 | 指标 | 当前值 | 口径 |
 |---|---|---|
-| 当前阶段 | **阶段 0 · 脚手架（进行中）** | 首个未签核阶段 |
+| 当前阶段 | **阶段 0（待签核，交付物齐备）+ 阶段 1（地基，进行中）并行** | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
-| 包状态达「编译通过」及以上 | 2 / 49 行（1,189 LOC = **0.4%** LOC 加权：collections、glob） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
+| 包状态达「编译通过」及以上 | 8 / 49 行（9,641 LOC = **3.2%** LOC 加权：collections、tspath、jsnum、stringutil、glob、semver、debug、repo） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
 | 最近 conformance 通过率 | —（尚未有跑批） | §5 历史表最新行 |
 | 最近 fourslash 通过率 | —（尚未有跑批） | §5.2 历史表最新行 |
 | 已签核门禁 | 0 | §6 行数 |
@@ -102,8 +102,8 @@
 | stringutil | 1 | 5,573 | 单测绿 | — | 全包移植完；两张表经 transcribe-unicode.ts 转写为 RVA .g.cs（11,364 行，fixtures/stringutil oracle 逐项校验）；全码点 SimpleFold/casing 对 Go 1.26.4 零分歧；WTF-8 哨兵机制在原生 UTF-16 下蒸发（签名保形）；50 测试绿 |
 | glob | 1 | 349 | 单测绿 | — | Glob.cs 移植完，28 项单测（上游无单测，自建）；两处已登记偏差见 §8；由 tsoptions 基线间接再覆盖 |
 | semver | 1 | 712 | 单测绿 | — | 全包移植完；1,106 行测试全移植（733 用例绿）；11 个正则 GeneratedRegex + RE2→.NET 四条翻译规则留档 |
-| debug | 1 | 61 | 未开始 | — | 微包（06 §11.1），地基最早一批 |
-| repo | 1 | 87 | 未开始 | — | 测试/生成器专用 → Ts.TestUtil/RepoPaths.cs，绝不进产品程序集 |
+| debug | 1 | 61 | 单测绿 | — | 吸收为 Ts.Core.Debug 静态类（DebugFailureException←panic）；4 项单测绿（commit 286d047） |
+| repo | 1 | 87 | 单测绿 | — | Ts.TestUtil/RepoPaths.cs（slnx 标记根遍历 + xunit v3 动态 skip）；无产品程序集引用；无单测视同达成（commit 286d047） |
 | json | 1 | 100 | N/A | — | 不移植：薄封装消失，调用点直用 STJ（06 §10.1） |
 | scanner | 2 | 4,256 | 未开始 | — | 门禁：全语料 token 流 diff 100%；UTF-16 code unit 步进系统性改写 |
 | ast | 3 | 20,847 | 移植中 | — | 生成面已落地（Ast/*.g.cs ×7 + stringers，11,924 行，计数与 Go 对齐，幂等，commit cc149c8）+13 个手写配套（Node 虚表/NodeList/Factory/Visitor/flags/Flow/Symbol·SourceFile 最小骨架）；待：ast.go 手写面全量与 jsdoc 桥；阶段 3 注意——BinaryExpression.setModifiers 已生成勿重复（ast.go:2056）、便捷访问器与 mixin 属性同名需遮蔽决策；positionmap.go 不移植 |
