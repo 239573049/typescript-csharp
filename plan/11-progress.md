@@ -123,11 +123,11 @@
 | outputpaths | 4 | 307 | 单测绿 | — | emit 路径组合（GetOutputPathsFor/GetOutputExtension/GetCommonSourceDirectory）；经真实 SourceFile 的新单测；§1.5 复用 TsPath 类==命名空间尾 先例 |
 | diagnosticwriter | 4 | 506 | 未开始 | — | **阻塞：需 diagnostic.Localize/Format(阶段9 locale) + scanner.GetECMALineAndUTF16CharacterOfPosition**；errors.txt 字节承重面，不宜留桩；随阶段 9 locale 落地（或补最小 Localize 提前） |
 | compiler | 4–6 | 5,658 | 未开始 | — | **阻塞：program/fileloader/checkerpool/emitter 焊死具体 checker.Checker(阶段5)/printer(阶段6) 类型，无法接口占位**；清晰落地序=先起阶段 5 checker 骨架提供具体类型→再本包 + fileloader→module→binder smoke；symlinks/outputpaths 已先行拆出 |
-| checker | 5 | 59,822 | 未开始 | — | 22 个 partial 拆分表以 03-checker-design.md §4.2 为唯一权威（裁决 R1）；分级门禁 25→60→90→99.5→100%（errors.txt） |
-| evaluator | 5 | 168 | 未开始 | — | 数字格式承重（const enum 内联） |
-| nodebuilder | 5 | 78 | 未开始 | — | 微包；printer 生产依赖，须前置 |
+| checker | 5 | 59,822 | 移植中 | — | **骨架落地**（17 文件）：types.go 24 类严格单继承树（真实）+ ~320 字段 Checker + Keys(CacheHashKey/XxHash128/KeyBuilder/哨兵) + NewChecker 逐行真实构造 + newType/newObjectType/驻留原语真实 + CheckerPool(N×index%N×Lock) + Program/Host 接口（解锁 compiler.Program）；~55 check* 桩锚定 plan/03 §4.2 的 22 partial 待分簇填充；5 smoke 测试 |
+| evaluator | 5 | 168 | 单测绿 | — | 常量折叠全量（前缀一元/二元数值全运算含 ** 右结合/字符串拼接/模板/字面量/实体委托）+ AnyToString/IsTruthy；17 测试经真实 parser+jsnum 验证 |
+| nodebuilder | 5 | 78 | 单测绿 | — | ISymbolTracker 接口 + Flags/InternalFlags 枚举（printer emit resolver 用，阶段 6）；无单测视同达成 |
 | pseudochecker | 5 | 1,126 | 未开始 | — | 由 .d.ts 基线间接验收 |
-| modulespecifiers | 5 | 2,280 | 未开始 | — | 候选说明符排序确定性承重 |
+| modulespecifiers | 5 | 2,280 | 移植中 | — | 仅 ModuleSpecifierGenerationHost 接口 shell（checker 骨架最小建）；主体待阶段 5 后续 |
 | printer | 6 | 11,442 | 未开始 | — | 只依赖 AST，可与阶段 5 部分并行 |
 | transformers | 6 | 24,323 | 未开始 | — | 7 个子命名空间；变换链顺序逐项保真 |
 | sourcemap | 6 | 1,013 | 未开始 | — | .js.map 字节门禁；列偏移 = UTF-16 |
