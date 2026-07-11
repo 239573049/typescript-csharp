@@ -108,7 +108,7 @@ public static class OsVfsUtil
 
         string orig = path;
         path = FromSlash(path); // Go: filepath.FromSlash
-        string? resolved = NativeRealpath(path); // Go: nativepath.Realpath
+        string? resolved = Ts.NativePath.NativePath.Realpath(path); // Go: nativepath.Realpath
         if (resolved == null)
         {
             return orig;
@@ -130,15 +130,7 @@ public static class OsVfsUtil
     internal static bool IsReparsePoint(string path)
     {
         string native = FromSlash(path);
-        try
-        {
-            var attrs = File.GetAttributes(native);
-            return (attrs & FileAttributes.ReparsePoint) != 0;
-        }
-        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException)
-        {
-            return false;
-        }
+        return Ts.NativePath.NativePath.IsSymlinkOrReparsePoint(native);
     }
 
     // os.go:229-242 — GetGlobalTypingsCacheLocation.
@@ -166,134 +158,6 @@ public static class OsVfsUtil
             return path;
         }
         return path.Replace('/', Path.DirectorySeparatorChar);
-    }
-
-    // Go: nativepath.Realpath — a filepath.EvalSymlinks-style resolver built from BCL link
-    // resolution. Returns a fully symlink-free absolute native path, or null on failure.
-    private static string? NativeRealpath(string path)
-    {
-        string full;
-        try
-        {
-            full = Path.GetFullPath(path);
-        }
-        catch (Exception e) when (e is ArgumentException or IOException or NotSupportedException)
-        {
-            return null;
-        }
-        return EvalSymlinks(full);
-    }
-
-    // Go stdlib path/filepath.EvalSymlinks, expressed with BCL readlink (LinkTarget). `full`
-    // must already be absolute and native-separated (Path.GetFullPath output). Bounded by an
-    // ELOOP-style link counter.
-    private static string? EvalSymlinks(string full)
-    {
-        char sep = Path.DirectorySeparatorChar;
-        string root = Path.GetPathRoot(full) ?? "";
-        if (root.Length == 0)
-        {
-            return null; // must be absolute
-        }
-
-        var comps = new List<string>(full[root.Length..].Split(sep, StringSplitOptions.RemoveEmptyEntries));
-        string resolved = root;
-        int links = 0;
-        int i = 0;
-        while (i < comps.Count)
-        {
-            string comp = comps[i];
-            i++;
-            if (comp == ".")
-            {
-                continue;
-            }
-            if (comp == "..")
-            {
-                resolved = ParentDir(resolved, root, sep);
-                continue;
-            }
-
-            string cand = AppendComp(resolved, comp, sep);
-            string? target = ReadLink(cand);
-            if (target == null)
-            {
-                resolved = cand;
-                continue;
-            }
-
-            // It's a symlink.
-            if (++links > 255)
-            {
-                return null; // too many links (ELOOP)
-            }
-
-            string linkFull;
-            try
-            {
-                linkFull = Path.IsPathRooted(target)
-                    ? Path.GetFullPath(target)
-                    : Path.GetFullPath(AppendComp(resolved, target, sep));
-            }
-            catch (Exception e) when (e is ArgumentException or IOException or NotSupportedException)
-            {
-                return null;
-            }
-
-            string tRoot = Path.GetPathRoot(linkFull) ?? "";
-            if (tRoot.Length == 0)
-            {
-                return null;
-            }
-            var rest = comps.GetRange(i, comps.Count - i);
-            comps = new List<string>(linkFull[tRoot.Length..].Split(sep, StringSplitOptions.RemoveEmptyEntries));
-            comps.AddRange(rest);
-            resolved = tRoot;
-            i = 0;
-        }
-        return resolved;
-    }
-
-    private static string AppendComp(string dir, string comp, char sep)
-    {
-        if (dir.Length > 0 && (dir[^1] == '/' || dir[^1] == '\\'))
-        {
-            return dir + comp;
-        }
-        return dir + sep + comp;
-    }
-
-    private static string ParentDir(string resolved, string root, char sep)
-    {
-        if (resolved.Length <= root.Length)
-        {
-            return root;
-        }
-        int idx = resolved.LastIndexOf(sep);
-        if (idx < root.Length)
-        {
-            return root;
-        }
-        return resolved[..idx];
-    }
-
-    // Returns the immediate symlink target of `path` (readlink semantics), or null if `path`
-    // is not a link / does not exist.
-    private static string? ReadLink(string path)
-    {
-        try
-        {
-            string? t = new FileInfo(path).LinkTarget;
-            if (t != null)
-            {
-                return t;
-            }
-            return new DirectoryInfo(path).LinkTarget;
-        }
-        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException)
-        {
-            return null;
-        }
     }
 
     // Go: os.UserCacheDir — the OS user cache directory, or null on failure.
