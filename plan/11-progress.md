@@ -110,11 +110,11 @@
 | repo | 1 | 87 | 单测绿 | — | Ts.TestUtil/RepoPaths.cs（slnx 标记根遍历 + xunit v3 动态 skip）；无产品程序集引用；无单测视同达成（commit 286d047） |
 | json | 1 | 100 | N/A | — | 不移植：薄封装消失，调用点直用 STJ（06 §10.1） |
 | scanner | 2 | 4,256 | 单测绿 | — | 全包移植完（scanner/regexp/unicodeproperties/utilities，UTF-16 世界观：char→text[pos]、DecodeRuneAt、PositionMap 删除）；65 单测绿；十六/二/八进制 TokenValue 经 jsnum 归一十进制（tsgo 行为）；两处 UTF-16 规格差异 PORT-NOTE（正则裸 LS/PS、pendingLowSurrogate 蒸发，09 §5.6 授权取移植口径）；AST 依赖函数（行图/注释范围）顺延阶段 3；**G2.1 全语料 token 流差分待 dumptool tokens 导出器就绪后另跑签核** |
-| ast | 3 | 20,847 | 移植中 | — | 生成面已落地（Ast/*.g.cs ×7 + stringers，11,924 行，计数与 Go 对齐，幂等，commit cc149c8）+13 个手写配套（Node 虚表/NodeList/Factory/Visitor/flags/Flow/Symbol·SourceFile 最小骨架）；待：ast.go 手写面全量与 jsdoc 桥；阶段 3 注意——BinaryExpression.setModifiers 已生成勿重复（ast.go:2056）、便捷访问器与 mixin 属性同名需遮蔽决策；positionmap.go 不移植 |
+| ast | 3 | 20,847 | 移植中 | — | 生成面（7 .g.cs）+ 手写面已落地：utilities.go ~113 谓词/导航、30 个 §4.4 switch 访问器 + 便捷访问器（53 扩展方法，解 CS0108 遮蔽）、diagnostic/precedence/deepclone、checkflags/symbolflags/functionflags、SourceFile 全体 + UTF-16 行图；补全 scanner 顺延的 text-of-node 函数；**待阶段 4**：Symbol 依赖的 utilities 后半（Symbol 仍骨架）+ LS/parser 钩子；positionmap.go 不移植 |
 | parser | 3 | 9,071 | 未开始 | — | 深递归 0 号风险主现场；门禁：AST 转储 + 诊断(code,pos,len)三元组 100% |
 | astnav | 3 | 783 | 未开始 | — | |
-| testrunner | 3 | 889 | 未开始 | — | conformance 跑批器 = 阶段 5/6 门禁货币制造机 |
-| testutil | 3–8 | 5,730 | 未开始 | — | 滚动移植（子包到位阶段见 06 §4.4）；race/ 不移植；含两个基架垫片 |
+| testrunner | 3 | 889 | 移植中 | — | test_case_parser 已移植（Ts.TestUtil/TestCaseParser.cs）；compiler_runner 驱动待阶段 4 Program |
+| testutil | 3–8 | 5,730 | 移植中 | — | baseline（逐字节比对 + patience diff + accept 流）+ test_case_parser（// @filename 多文件拆分）已落地（Ts.TestUtil/Baseline·Diff·TestCaseParser）；compiler_runner/tsbaseline/harnessutil 编译驱动待阶段 4 Program；race/ 不移植 |
 | binder | 4 | 3,555 | 未开始 | — | 门禁：symbol/flow 转储 100% |
 | tsoptions | 4 | 6,144 | 未开始 | — | 全仓反射最密集：per-field switch 生成器统一供给 |
 | module | 4 | 2,780 | 未开始 | — | 门禁：模块解析 trace 夹具匹配（日志逐字保真） |
