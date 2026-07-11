@@ -116,7 +116,7 @@
 | testrunner | 3 | 889 | 移植中 | — | test_case_parser 已移植（Ts.TestUtil/TestCaseParser.cs）；compiler_runner 驱动待阶段 4 Program |
 | testutil | 3–8 | 5,730 | 移植中 | — | baseline（逐字节比对 + patience diff + accept 流）+ test_case_parser（// @filename 多文件拆分）已落地（Ts.TestUtil/Baseline·Diff·TestCaseParser）；compiler_runner/tsbaseline/harnessutil 编译驱动待阶段 4 Program；race/ 不移植 |
 | binder | 4 | 3,555 | 单测绿 | — | binder.go/nameresolver/referenceresolver 全量 + Symbol 完整体（SymbolTable=Dictionary ordinal）+ 补全 ast/scanner binder 前置；CFG 流图构造；BindSourceFile 经 LargeStackExecutor；28 测试；G4.1 symbol/flow 转储待 R24 |
-| tsoptions | 4 | 6,144 | 单测绿 | — | CommandLineOption/声明表/enummaps/namemap/parseCompilerOptions 150 键 switch/tsconfigparsing(extends/通配)/ParsedCommandLine，反射消除；集成方修正 672 处外层命名空间遮蔽（§1.5 强化规则）；G4.2 基线待跑批器 |
+| tsoptions | 4 | 6,144 | 移植中 | — | 主体移植 + 44 测试绿：CommandLineOption/声明表/enummaps/namemap/parseCompilerOptions 130 字段 switch/mergeCompilerOptions 反射→手写 per-field 表；集成方修正 672 处外层命名空间遮蔽（§1.5 强化规则）；**余 12 桩**：tsconfig JSON-source 走查/ParseJsonConfigFileContent/extends 链（依赖 ast.TryGetTextOfPropertyName + module.ResolveConfig + locale）、CommonSourceDirectory/GetOutputFileNames（依赖 outputpaths+glob）；G4.2 基线待跑批器 |
 | module | 4 | 2,780 | 单测绿 | — | resolver node16/nodenext/bundler 全算法 + exports/imports/typesVersions/symlink realpath；33 测试；G4.3 trace 夹具待 R24 |
 | packagejson | 4 | 662 | 单测绿 | — | Fields/Expected<T>/JSONValue/ExportsOrImports/Cache，STJ 流式容重复键；随 module |
 | symlinks | 4 | 134 | 未开始 | — | |
