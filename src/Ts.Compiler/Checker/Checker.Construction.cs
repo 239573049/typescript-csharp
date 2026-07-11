@@ -371,8 +371,39 @@ public partial class Checker
     // type creation) requires symbol-resolution machinery that is stubbed here; it lands in the
     // Checker.Construction / SymbolResolution waves. Leaving global* types null is safe for the
     // skeleton (no checking is performed).
+    // checker.go:1300-1384 (initializeChecker). Only the "Initialize special types" block is ported so
+    // far — it resolves the global intrinsic-wrapper/array types the apparent-type machinery reads. The
+    // surrounding steps (undefined-globals registration, IArguments/globalThis value types, ambient
+    // module-augmentation merges) belong to the module/binder-merge subsystem and remain deferred; they
+    // are not needed for intrinsic-type checking. With no lib present, each getGlobalType returns
+    // emptyObjectType/emptyGenericType (and reports a location-less "Cannot find global type" global
+    // diagnostic), matching tsgo's NoLib behavior.
     internal void InitializeChecker()
     {
+        // Initialize special types
+        globalArrayType = GetGlobalType("Array", 1 /*arity*/, true /*reportErrors*/);
+        globalObjectType = GetGlobalType("Object", 0 /*arity*/, true /*reportErrors*/);
+        globalFunctionType = GetGlobalType("Function", 0 /*arity*/, true /*reportErrors*/);
+        globalCallableFunctionType = GetGlobalStrictFunctionType("CallableFunction");
+        globalNewableFunctionType = GetGlobalStrictFunctionType("NewableFunction");
+        globalStringType = GetGlobalType("String", 0 /*arity*/, true /*reportErrors*/);
+        globalNumberType = GetGlobalType("Number", 0 /*arity*/, true /*reportErrors*/);
+        globalBooleanType = GetGlobalType("Boolean", 0 /*arity*/, true /*reportErrors*/);
+        globalRegExpType = GetGlobalType("RegExp", 0 /*arity*/, true /*reportErrors*/);
+        anyArrayType = CreateArrayType(anyType!);
+        autoArrayType = CreateArrayType(autoType!);
+        if (autoArrayType == emptyObjectType)
+        {
+            // autoArrayType is used as a marker, so even if global Array type is not defined, it needs to be a unique type
+            autoArrayType = NewAnonymousType(null, null, null, null, null);
+        }
+        globalReadonlyArrayType = GetGlobalType("ReadonlyArray", 1 /*arity*/, false /*reportErrors*/);
+        if (globalReadonlyArrayType == emptyGenericType)
+        {
+            globalReadonlyArrayType = globalArrayType;
+        }
+        anyReadonlyArrayType = CreateTypeFromGenericGlobalType(globalReadonlyArrayType!, [anyType!]);
+        globalThisType = GetGlobalType("ThisType", 1 /*arity*/, false /*reportErrors*/);
     }
 
     // checker.go:1466-1482

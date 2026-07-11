@@ -40,9 +40,9 @@ internal struct AllAccessorDeclarations
 public partial class Checker
 {
     // ---- AST-layer gaps (ast.* utilities, not yet in Ts.Ast) ----
-    internal static bool NodeCanBeDecorated(bool useLegacyDecorators, Node node, Node parent, Node grandparent) => throw new NotImplementedException("ast.NodeCanBeDecorated");
+    // NodeCanBeDecorated / HasDecorators are now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs);
+    // call sites use AstUtilities.NodeCanBeDecorated / AstUtilities.HasDecorators directly.
     internal static AllAccessorDeclarations GetAllAccessorDeclarationsForDeclaration(Node accessor, Node[] declarationsOfSymbol) => throw new NotImplementedException("ast.GetAllAccessorDeclarationsForDeclaration");
-    internal static bool HasDecorators(Node node) => throw new NotImplementedException("ast.HasDecorators");
     internal static bool CanHaveModifiers(Node node) => throw new NotImplementedException("ast.CanHaveModifiers");
     internal static bool CanHaveIllegalModifiers(Node node) => throw new NotImplementedException("ast.CanHaveIllegalModifiers");
     internal static bool IsEffectiveExternalModule(SourceFile node, CompilerOptions compilerOptions) => throw new NotImplementedException("ast.IsEffectiveExternalModule");

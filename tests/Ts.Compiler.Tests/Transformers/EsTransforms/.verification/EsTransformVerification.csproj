@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <BaseIntermediateOutputPath>/tmp/tscs-estransform-verification/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>/tmp/tscs-estransform-verification/bin/</BaseOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../../src/Ts.Compiler/Ts.Compiler.csproj" />
+  </ItemGroup>
+</Project>

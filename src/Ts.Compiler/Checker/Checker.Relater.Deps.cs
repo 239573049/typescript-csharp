@@ -21,7 +21,24 @@ public partial class Checker
     internal string ValueToString(object? value) => throw new NotImplementedException("valueToString");
 
     // ---- union / property helpers (checker.go / members) ----
-    internal bool IsUnknownLikeUnionType(Type type) => throw new NotImplementedException("isUnknownLikeUnionType");
+    // checker.go:27669-27681
+    internal bool IsUnknownLikeUnionType(Type t)
+    {
+        if (strictNullChecks && (t.flags & TypeFlags.Union) != 0)
+        {
+            if ((t.objectFlags & ObjectFlags.IsUnknownLikeUnionComputed) == 0)
+            {
+                t.objectFlags |= ObjectFlags.IsUnknownLikeUnionComputed;
+                var types = t.Types();
+                if (types.Length >= 3 && (types[0].flags & TypeFlags.Undefined) != 0 && (types[1].flags & TypeFlags.Null) != 0 && global::Ts.Core.CoreUtil.Some(types, IsEmptyAnonymousObjectType))
+                {
+                    t.objectFlags |= ObjectFlags.IsUnknownLikeUnion;
+                }
+            }
+            return (t.objectFlags & ObjectFlags.IsUnknownLikeUnion) != 0;
+        }
+        return false;
+    }
     internal Symbol? GetUnionOrIntersectionProperty(Type type, string name, bool skipObjectFunctionPropertyAugment) => throw new NotImplementedException("getUnionOrIntersectionProperty");
     internal Type? GetTypeOfPropertyOrIndexSignatureOfType(Type type, string name) => throw new NotImplementedException("getTypeOfPropertyOrIndexSignatureOfType");
     internal Type GetRegularTypeOfObjectLiteral(Type type) => throw new NotImplementedException("getRegularTypeOfObjectLiteral");

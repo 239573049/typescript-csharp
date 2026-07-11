@@ -119,7 +119,8 @@ public partial class Checker
     // ---- ast helpers with no C# home yet ----
     internal static Node? GetClassLikeDeclarationOfSymbol(Symbol symbol) => throw new NotImplementedException("ast.GetClassLikeDeclarationOfSymbol");
     internal static Node? GetExtendsHeritageClauseElement(Node node) => throw new NotImplementedException("ast.GetExtendsHeritageClauseElement");
-    internal static Node? GetThisParameter(Node signature) => throw new NotImplementedException("ast.GetThisParameter");
+    // GetThisParameter is now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs); call sites use
+    // AstUtilities.GetThisParameter directly.
     internal static Node? GetSetAccessorValueParameter(Node accessor) => throw new NotImplementedException("GetSetAccessorValueParameter");
     internal static string GetPropertyNameForPropertyNameNode(Node name) => throw new NotImplementedException("ast.GetPropertyNameForPropertyNameNode");
     internal static bool IsImportCall(Node node) => throw new NotImplementedException("ast.IsImportCall");

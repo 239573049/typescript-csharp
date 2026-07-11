@@ -25,11 +25,22 @@ public partial class Checker
     // a sibling (mapped-type) wave — not duplicated here.
 
     // ---- symbol / global helpers ----
-    internal Symbol GetLateBoundSymbol(Symbol symbol) => throw new NotImplementedException("getLateBoundSymbol");
+    // GetLateBoundSymbol is now REAL in Checker.SymbolResolution.cs (checker.go:14334).
     internal Symbol? GetGlobalExtractSymbol() => throw new NotImplementedException("getGlobalExtractSymbol");
 
     // ---- diagnostics ----
-    internal Diagnostic NewDiagnosticForNode(Node? node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("NewDiagnosticForNode");
+    // utilities.go:22-30
+    internal Diagnostic NewDiagnosticForNode(Node? node, global::Ts.Diagnostics.Message message, params object?[] args)
+    {
+        SourceFile? file = null;
+        var loc = default(global::Ts.Core.TextRange);
+        if (node != null)
+        {
+            file = AstUtilities.GetSourceFileOfNode(node);
+            loc = global::Ts.Scanner.Scanner.GetErrorRangeForNode(file!, node);
+        }
+        return Diagnostic.NewDiagnostic(file, loc, message, args);
+    }
 
     // ---- ast free-function helper ----
     internal static bool IsDeleteTarget(Node node) => throw new NotImplementedException("isDeleteTarget");

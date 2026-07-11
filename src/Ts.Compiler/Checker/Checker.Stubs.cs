@@ -21,19 +21,118 @@ public partial class Checker
     // clearCachedInferences (inference.go:1609) implemented in Checker.Inference.cs (inference wave).
 
     // NameResolver closures (createNameResolver / createNameResolverForSuggestion).
-    internal Symbol? GetSymbolOfDeclaration(Node node) => throw new NotImplementedException("getSymbolOfDeclaration");
+    // GetSymbolOfDeclaration is now REAL in Checker.SymbolResolution.cs (checker.go:14316).
 
-    internal Diagnostic? Error(Node? location, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("error");
+    // checker.go:13925-13929
+    internal Diagnostic Error(Node? location, global::Ts.Diagnostics.Message message, params object?[] args)
+    {
+        var diagnostic = NewDiagnosticForNode(location, message, args);
+        AddDiagnostic(diagnostic);
+        return diagnostic;
+    }
 
-    internal Symbol? GetSymbol(SymbolTable? symbols, string name, SymbolFlags meaning) => throw new NotImplementedException("getSymbol");
+    // checker.go:2162-2180
+    internal Symbol? GetSymbol(SymbolTable? symbols, string name, SymbolFlags meaning)
+    {
+        if ((meaning & SymbolFlags.All) != 0)
+        {
+            var symbol = GetMergedSymbol(symbols!.GetValueOrDefault(name));
+            if (symbol != null)
+            {
+                if ((symbol.Flags & meaning) != 0)
+                {
+                    return symbol;
+                }
+                if ((symbol.Flags & SymbolFlags.Alias) != 0)
+                {
+                    var targetFlags = GetSymbolFlags(symbol);
+                    // `targetFlags` will be `SymbolFlags.All` if an error occurred in alias resolution; this avoids cascading errors
+                    if ((targetFlags & meaning) != 0)
+                    {
+                        return symbol;
+                    }
+                }
+            }
+        }
+        // return nil if we can't find a symbol
+        return null;
+    }
 
     internal Symbol? GetSuggestionForSymbolNameLookup(SymbolTable? symbols, string name, SymbolFlags meaning) => throw new NotImplementedException("getSuggestionForSymbolNameLookup");
 
     internal bool CheckAndReportErrorForInvalidInitializer(Node? errorLocation, string name, Node? propertyWithInvalidInitializer, Symbol? result) => throw new NotImplementedException("checkAndReportErrorForInvalidInitializer");
 
-    internal void OnFailedToResolveSymbol(Node? errorLocation, string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? nameNotFoundMessage) => throw new NotImplementedException("onFailedToResolveSymbol");
+    // checker.go:1564-1601
+    internal void OnFailedToResolveSymbol(Node? errorLocation, string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? nameNotFoundMessage)
+    {
+        if (errorLocation != null && (errorLocation.Parent!.Kind == SyntaxKind.JSDocLink ||
+            CheckAndReportErrorForMissingPrefix(errorLocation, name) ||
+            CheckAndReportErrorForExtendingInterface(errorLocation) ||
+            CheckAndReportErrorForUsingTypeAsNamespace(errorLocation, name, meaning) ||
+            CheckAndReportErrorForExportingPrimitiveType(errorLocation, name) ||
+            CheckAndReportErrorForUsingNamespaceAsTypeOrValue(errorLocation, name, meaning) ||
+            CheckAndReportErrorForUsingTypeAsValue(errorLocation, name, meaning) ||
+            CheckAndReportErrorForUsingValueAsType(errorLocation, name, meaning)))
+        {
+            return;
+        }
+        var declarationName = name;
+        if (errorLocation != null && NodeTests.IsIdentifier(errorLocation) && errorLocation.Text() == name)
+        {
+            declarationName = global::Ts.Scanner.Scanner.DeclarationNameToString(errorLocation); // use escape sequences from original file
+        }
+        // Report missing lib first
+        var suggestedLib = GetSuggestedLibForNonExistentName(name);
+        if (suggestedLib != "")
+        {
+            Error(errorLocation, nameNotFoundMessage!, declarationName, suggestedLib);
+            return;
+        }
+        // Then spelling suggestions
+        var suggestion = GetSuggestedSymbolForNonexistentSymbol(errorLocation, name, meaning);
+        if (suggestion != null && !(suggestion.ValueDeclaration != null && AstUtilities.IsAmbientModule(suggestion.ValueDeclaration) && AstUtilities.IsGlobalScopeAugmentation(suggestion.ValueDeclaration)))
+        {
+            var suggestionName = SymbolToString(suggestion);
+            var isUncheckedJS = IsUncheckedJSSuggestion(errorLocation, suggestion, false /*excludeClasses*/);
+            var message = meaning == SymbolFlags.Namespace ? global::Ts.Diagnostics.Diagnostics.Cannot_find_namespace_0_Did_you_mean_1 :
+                isUncheckedJS ? global::Ts.Diagnostics.Diagnostics.Could_not_find_name_0_Did_you_mean_1 : global::Ts.Diagnostics.Diagnostics.Cannot_find_name_0_Did_you_mean_1;
+            var diagnostic = NewDiagnosticForNode(errorLocation, message, declarationName, suggestionName);
+            if (suggestion.ValueDeclaration != null)
+            {
+                diagnostic.AddRelatedInfo(NewDiagnosticForNode(suggestion.ValueDeclaration, global::Ts.Diagnostics.Diagnostics.X_0_is_declared_here, suggestionName));
+            }
+            AddErrorOrSuggestion(!isUncheckedJS, diagnostic);
+            return;
+        }
+        // And then fall back to unspecified "not found"
+        Error(errorLocation, nameNotFoundMessage!, declarationName);
+    }
 
     internal void OnSuccessfullyResolvedSymbol(Node? errorLocation, Symbol symbol, SymbolFlags meaning, Node? lastLocation, Node? associatedDeclarationForContainingInitializerOrBindingName, bool withinDeferredContext) => throw new NotImplementedException("onSuccessfullyResolvedSymbol");
+
+    // onFailedToResolveSymbol's diagnostic-refinement helpers (checker.go:1532-1719). These are the
+    // errorLocation != null branches (JSDoc-link, missing-prefix, type-as-namespace, etc.) — NOT reached
+    // when resolution fails for a location-less lookup (e.g. the global-type bootstrap), which is the
+    // only failure path exercised so far. They short-circuit out of the `errorLocation != null && (...)`
+    // guard. Single stubs; port with the identifier-resolution diagnostics wave.
+    internal bool CheckAndReportErrorForMissingPrefix(Node errorLocation, string name) => throw new NotImplementedException("checkAndReportErrorForMissingPrefix");
+    internal bool CheckAndReportErrorForExtendingInterface(Node errorLocation) => throw new NotImplementedException("checkAndReportErrorForExtendingInterface");
+    internal bool CheckAndReportErrorForUsingTypeAsNamespace(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingTypeAsNamespace");
+    internal bool CheckAndReportErrorForExportingPrimitiveType(Node errorLocation, string name) => throw new NotImplementedException("checkAndReportErrorForExportingPrimitiveType");
+    internal bool CheckAndReportErrorForUsingNamespaceAsTypeOrValue(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingNamespaceAsTypeOrValue");
+    internal bool CheckAndReportErrorForUsingTypeAsValue(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingTypeAsValue");
+    internal bool CheckAndReportErrorForUsingValueAsType(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingValueAsType");
+
+    // checker.go:1719-1725 — lib-feature suggestion for a non-existent name. The getFeatureMap() table
+    // (a large static es-lib feature index) is deferred; for the currently-exercised NoLib global-type
+    // bootstrap there is genuinely no suggested lib, so returning "" is behaviorally faithful.
+    // PORT-NOTE: port getFeatureMap + full lookup with the identifier-resolution diagnostics wave.
+    internal string GetSuggestedLibForNonExistentName(string name) => "";
+
+    // checker.go:1727-1729 — spelling suggestion via resolveNameForSymbolSuggestion. Deferred (the
+    // suggestion name-resolver pass is unported); with NoLib there is no suggestion, so null is faithful.
+    // PORT-NOTE: port resolveNameForSymbolSuggestion with the identifier-resolution diagnostics wave.
+    internal Symbol? GetSuggestedSymbolForNonexistentSymbol(Node? location, string outerName, SymbolFlags meaning) => null;
 
     // Constructor closures.
     // compareSymbolsWorker (utilities.go:343) implemented in Checker.TypeOps.Support.cs (needed by CompareTypes).
@@ -57,9 +156,74 @@ public partial class Checker
 
     // ===== #3 construction (deep global resolution, reached only via memoized resolvers) =====
 
-    internal Type GetGlobalType(string name, int arity, bool reportErrors) => throw new NotImplementedException("getGlobalType");
+    // checker.go:1210-1229
+    internal Type GetGlobalType(string name, int arity, bool reportErrors)
+    {
+        var symbol = GetGlobalSymbol(name, SymbolFlags.Type, reportErrors ? global::Ts.Diagnostics.Diagnostics.Cannot_find_global_type_0 : null);
+        if (symbol != null)
+        {
+            if ((symbol.Flags & (SymbolFlags.Class | SymbolFlags.Interface)) != 0)
+            {
+                var t = GetDeclaredTypeOfSymbol(symbol);
+                if (t.AsInterfaceType()!.TypeParameters().Len() == arity)
+                {
+                    return t;
+                }
+                if (reportErrors)
+                {
+                    Error(GetGlobalTypeDeclaration(symbol), global::Ts.Diagnostics.Diagnostics.Global_type_0_must_have_1_type_parameter_s, AstUtilities.SymbolName(symbol), arity);
+                }
+            }
+            else if (reportErrors)
+            {
+                Error(GetGlobalTypeDeclaration(symbol), global::Ts.Diagnostics.Diagnostics.Global_type_0_must_be_a_class_or_interface_type, AstUtilities.SymbolName(symbol));
+            }
+        }
+        if (arity != 0)
+        {
+            return emptyGenericType!;
+        }
+        return emptyObjectType!;
+    }
 
-    internal Symbol? GetGlobalTypeAliasSymbol(string name, int arity, bool reportErrors) => throw new NotImplementedException("getGlobalTypeAliasSymbol");
+    // checker.go:1231-1239
+    private static Node? GetGlobalTypeDeclaration(Symbol symbol)
+    {
+        foreach (var declaration in symbol.Declarations!)
+        {
+            switch (declaration.Kind)
+            {
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.TypeAliasDeclaration:
+                    return declaration;
+            }
+        }
+        return null;
+    }
+
+    // checker.go:1185-1200
+    internal Symbol? GetGlobalTypeAliasSymbol(string name, int arity, bool reportErrors)
+    {
+        var symbol = GetGlobalSymbol(name, SymbolFlags.TypeAlias, reportErrors ? global::Ts.Diagnostics.Diagnostics.Cannot_find_global_type_0 : null);
+        if (symbol == null)
+        {
+            return null;
+        }
+        // Resolve the declared type of the symbol. This resolves type parameters for the type alias so that we can check arity.
+        GetDeclaredTypeOfSymbol(symbol);
+        if (typeAliasLinks.Get(symbol).typeParameters.Len() != arity)
+        {
+            if (reportErrors)
+            {
+                var decl = global::Ts.Core.CoreUtil.Find(symbol.Declarations, NodeTests.IsTypeAliasDeclaration);
+                Error(decl, global::Ts.Diagnostics.Diagnostics.Global_type_0_must_have_1_type_parameter_s, AstUtilities.SymbolName(symbol), arity);
+            }
+            return null;
+        }
+        return symbol;
+    }
 
     // ===== #5 statements / source elements =====
     // CheckSourceFile / CheckSourceElement implemented in Checker.Statements.cs (#5).

@@ -149,7 +149,7 @@ public partial class Checker
     {
         if (accessor.Parameters().Length == CoreUtil.IfElse(NodeTests.IsGetAccessorDeclaration(accessor), 1, 2))
         {
-            return GetThisParameter(accessor);
+            return AstUtilities.GetThisParameter(accessor);
         }
         return null;
     }

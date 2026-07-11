@@ -115,8 +115,19 @@ public partial class Checker
     // checker.go:11006
     internal Type CheckSyntheticExpression(Node node) => throw new NotImplementedException("checkSyntheticExpression");
 
-    // checker.go:7576 — deferred single-generic-call-signature instantiation (needs inference context).
-    internal Type InstantiateTypeWithSingleGenericCallSignature(Node node, Type t, CheckMode checkMode) => throw new NotImplementedException("instantiateTypeWithSingleGenericCallSignature");
+    // checker.go:7576 — instantiate an expression's single generic call signature against its
+    // contextual type. The guard early-return (non-inferential, non-skip-generic check modes) is REAL;
+    // the deep inference-context body (getSingleSignature / getApparentTypeOfContextualType /
+    // getInferenceContext / applyToParameterTypes / …) is a large inference-engine surface reached only
+    // during type-argument inference and remains deferred (single stub below).
+    internal Type InstantiateTypeWithSingleGenericCallSignature(Node node, Type t, CheckMode checkMode)
+    {
+        if ((checkMode & (CheckMode.Inferential | CheckMode.SkipGenericFunctions)) == 0)
+        {
+            return t;
+        }
+        throw new NotImplementedException("instantiateTypeWithSingleGenericCallSignature (inferential body)");
+    }
 
     // checker.go:7550 — const-enum access-site validation (needs program/verbatim-module wiring).
     internal void CheckConstEnumAccess(Node node, Type t) => throw new NotImplementedException("checkConstEnumAccess");

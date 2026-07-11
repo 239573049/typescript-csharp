@@ -310,7 +310,7 @@ public partial class Checker
         {
             if (NodeTests.IsDecorator(modifier))
             {
-                if (!NodeCanBeDecorated(legacyDecorators, node, node.Parent!, node.Parent!.Parent!))
+                if (!AstUtilities.NodeCanBeDecorated(legacyDecorators, node, node.Parent!, node.Parent!.Parent!))
                 {
                     if (node.Kind == SyntaxKind.MethodDeclaration && !AstUtilities.NodeIsPresent(node.Body()))
                     {
@@ -324,7 +324,7 @@ public partial class Checker
                 else if (legacyDecorators && (node.Kind == SyntaxKind.GetAccessor || node.Kind == SyntaxKind.SetAccessor))
                 {
                     var accessors = GetAllAccessorDeclarationsForDeclaration(node, GetSymbolOfDeclaration(node)!.Declarations!);
-                    if (HasDecorators(accessors.FirstAccessor!) && node == accessors.SecondAccessor)
+                    if (AstUtilities.HasDecorators(accessors.FirstAccessor!) && node == accessors.SecondAccessor)
                     {
                         return GrammarErrorOnFirstToken(node, Diag.Decorators_cannot_be_applied_to_multiple_get_Slashset_accessors_of_the_same_name);
                     }

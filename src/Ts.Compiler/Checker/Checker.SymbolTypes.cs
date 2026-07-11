@@ -790,11 +790,202 @@ public partial class Checker
 
     internal Type RemoveMissingType(Type type, bool isOptional) => throw new NotImplementedException("removeMissingType");
 
-    // The variable-typing deep worker + widening helpers (#11 tail, very large surface) — remaining.
-    internal Type GetTypeForVariableLikeDeclaration(Node declaration, bool includeOptionality, CheckMode checkMode) => throw new NotImplementedException("getTypeForVariableLikeDeclaration");
+    // Return the inferred type for a variable, parameter, or property declaration
+    // checker.go:16565
+    internal Type? GetTypeForVariableLikeDeclaration(Node declaration, bool includeOptionality, CheckMode checkMode)
+    {
+        // A variable declared in a for..in statement is of type string, or of type keyof T when the
+        // right hand expression is of a type parameter type.
+        if (NodeTests.IsVariableDeclaration(declaration))
+        {
+            var grandParent = declaration.Parent!.Parent!;
+            switch (grandParent.Kind)
+            {
+                case SyntaxKind.ForInStatement:
+                    var indexType = GetIndexType(GetNonNullableTypeIfNeeded(CheckExpressionEx(grandParent.Expression()!, checkMode /*checkMode*/)));
+                    if ((indexType.flags & (TypeFlags.TypeParameter | TypeFlags.Index)) != 0)
+                    {
+                        return GetExtractStringType(indexType);
+                    }
+                    return stringType;
+                case SyntaxKind.ForOfStatement:
+                    // checkRightHandSideOfForOf will return undefined if the for-of expression type was
+                    // missing properties/signatures required to get its iteratedType (like
+                    // [Symbol.iterator] or next). This may be because we accessed properties from anyType,
+                    // or it may have led to an error inside getElementTypeOfIterable.
+                    return CheckRightHandSideOfForOf(grandParent);
+            }
+        }
+        else if (NodeTests.IsBindingElement(declaration))
+        {
+            return GetTypeForBindingElement(declaration);
+        }
+        var isProperty = NodeTests.IsPropertyDeclaration(declaration) && !HasAccessorModifier(declaration) || NodeTests.IsPropertySignatureDeclaration(declaration);
+        var isOptional = includeOptionality && IsOptionalDeclaration(declaration);
+        // Use type from type annotation if one is present
+        var declaredType = TryGetTypeFromTypeNode(declaration);
+        if (AstUtilities.IsCatchClauseVariableDeclarationOrBindingElement(declaration))
+        {
+            if (declaredType != null)
+            {
+                // If the catch clause is explicitly annotated with any or unknown, accept it, otherwise error.
+                if ((declaredType.flags & TypeFlags.AnyOrUnknown) != 0)
+                {
+                    return declaredType;
+                }
+                return errorType;
+            }
+            // If the catch clause is not explicitly annotated, treat it as though it were explicitly
+            // annotated with unknown or any, depending on useUnknownInCatchVariables.
+            if (useUnknownInCatchVariables)
+            {
+                return unknownType;
+            }
+            else
+            {
+                return anyType;
+            }
+        }
+        if (declaredType != null)
+        {
+            return AddOptionalityEx(declaredType, isProperty, isOptional);
+        }
+        if (noImplicitAny && NodeTests.IsVariableDeclaration(declaration) && !AstUtilities.IsBindingPattern(declaration.Name()) &&
+            (GetCombinedModifierFlagsCached(declaration) & ModifierFlags.Export) == 0 && (declaration.Flags & NodeFlags.Ambient) == 0)
+        {
+            // If --noImplicitAny is on or the declaration is in a Javascript file,
+            // use control flow tracked 'any' type for non-ambient, non-exported var or let variables with no
+            // initializer or a 'null' or 'undefined' initializer.
+            var initializer = declaration.Initializer();
+            if ((GetCombinedNodeFlagsCached(declaration) & NodeFlags.Constant) == 0 && (initializer == null || IsNullOrUndefined(initializer)))
+            {
+                return autoType;
+            }
+            // Use control flow tracked 'any[]' type for non-ambient, non-exported variables with an empty array
+            // literal initializer.
+            if (initializer != null && AstUtilities.IsEmptyArrayLiteral(initializer))
+            {
+                return autoArrayType;
+            }
+        }
+        if (NodeTests.IsParameterDeclaration(declaration))
+        {
+            if (declaration.Symbol() == null)
+            {
+                // parameters of function types defined in JSDoc in TS files don't have symbols
+                return null;
+            }
+            var fn = declaration.Parent!;
+            // For a parameter of a set accessor, use the type of the get accessor if one is present
+            if (NodeTests.IsSetAccessorDeclaration(fn) && HasBindableName(fn))
+            {
+                var getter = AstUtilities.GetDeclarationOfKind(GetSymbolOfDeclaration(declaration.Parent!)!, SyntaxKind.GetAccessor);
+                if (getter != null)
+                {
+                    var getterSignature = GetSignatureFromDeclaration(getter);
+                    var thisParameter = GetAccessorThisParameter(fn);
+                    if (thisParameter != null && declaration == thisParameter)
+                    {
+                        // Use the type from the *getter*
+                        global::Ts.Core.Debug.Assert(thisParameter.Type() == null);
+                        return GetTypeOfSymbol(getterSignature.thisParameter!);
+                    }
+                    return GetReturnTypeOfSignature(getterSignature);
+                }
+            }
+            {
+                var t0 = GetParameterTypeOfFullSignature(fn, declaration);
+                if (t0 != null)
+                {
+                    return t0;
+                }
+            }
+            // Use contextual parameter type if one is available
+            Type? t;
+            if (declaration.Symbol()!.Name == InternalSymbolName.This)
+            {
+                t = GetContextualThisParameterType(fn);
+            }
+            else
+            {
+                t = GetContextuallyTypedParameterType(declaration);
+            }
+            if (t != null)
+            {
+                return AddOptionalityEx(t, false /*isProperty*/, isOptional);
+            }
+        }
+        // Use the type of the initializer expression if one is present and the declaration is
+        // not a parameter of a contextually typed function
+        if (declaration.Initializer() != null)
+        {
+            var t = WidenTypeInferredFromInitializer(declaration, CheckDeclarationInitializer(declaration, checkMode, null /*contextualType*/));
+            return AddOptionalityEx(t, isProperty, isOptional);
+        }
+        if (noImplicitAny && NodeTests.IsPropertyDeclaration(declaration))
+        {
+            // We have a property declaration with no type annotation or initializer, in noImplicitAny mode or a .js file.
+            // Use control flow analysis of this.xxx assignments in the constructor or static block to determine the type of the property.
+            if (!HasStaticModifier(declaration))
+            {
+                var constructor = AstUtilities.FindConstructorDeclaration(declaration.Parent!);
+                Type? t = null;
+                if (constructor != null)
+                {
+                    t = GetFlowTypeInConstructor(declaration.Symbol()!, constructor);
+                }
+                else if ((declaration.ModifierFlags() & ModifierFlags.Ambient) != 0)
+                {
+                    t = GetTypeOfPropertyInBaseClass(declaration.Symbol()!);
+                }
+                if (t == null)
+                {
+                    return null;
+                }
+                return AddOptionalityEx(t, true /*isProperty*/, isOptional);
+            }
+            else
+            {
+                var staticBlocks = global::Ts.Core.CoreUtil.Filter(declaration.Parent!.Members(), NodeTests.IsClassStaticBlockDeclaration);
+                Type? t = null;
+                if (staticBlocks.Len() != 0)
+                {
+                    t = GetFlowTypeInStaticBlocks(declaration.Symbol()!, staticBlocks!);
+                }
+                else if ((declaration.ModifierFlags() & ModifierFlags.Ambient) != 0)
+                {
+                    t = GetTypeOfPropertyInBaseClass(declaration.Symbol()!);
+                }
+                if (t == null)
+                {
+                    return null;
+                }
+                return AddOptionalityEx(t, true /*isProperty*/, isOptional);
+            }
+        }
+        if (NodeTests.IsJsxAttribute(declaration))
+        {
+            // if JSX attribute doesn't have initializer, by default the attribute will have boolean value of true.
+            // I.e <Elem attr /> is sugar for <Elem attr={true} />
+            return trueType;
+        }
+        // If the declaration specifies a binding pattern and is not a parameter of a contextually
+        // typed function, use the type implied by the binding pattern
+        if (AstUtilities.IsBindingPattern(declaration.Name()))
+        {
+            return GetTypeFromBindingPattern(declaration.Name()!, false /*includePatternInType*/, true /*reportErrors*/);
+        }
+        // No type specified and nothing can be inferred
+        return null;
+    }
 
 
 
+
+    // Contextual parameter typing (#21 contextual-types cluster) — reached only by the KindParameter
+    // branch of getTypeForVariableLikeDeclaration, not by intrinsic-typed variable declarations.
+    internal Type? GetContextualThisParameterType(Node fn) => throw new NotImplementedException("getContextualThisParameterType");
+    internal Type? GetContextuallyTypedParameterType(Node parameter) => throw new NotImplementedException("getContextuallyTypedParameterType");
 
     internal Type GetWidenedLiteralType(Type type) => throw new NotImplementedException("getWidenedLiteralType");
 
@@ -811,7 +1002,37 @@ public partial class Checker
 
 
 
-    internal string TypeToString(Type type) => throw new NotImplementedException("TypeToString");
+    // checker.go:173 (TypeToString) / printer.go typeToStringEx.
+    // The faithful implementation routes through the NodeBuilder + Printer (phase-6 type serialization),
+    // which is not yet ported. For the primitive/intrinsic/literal cases the NodeBuilder emits a
+    // keyword- or literal-type node whose printed text is exactly the intrinsic name (for intrinsics) or
+    // the escaped literal (matching Ts.Printer's literal emit). Those cases — the ones reachable from
+    // intrinsic-type assignability diagnostics — are handled directly here so the diagnostic can be
+    // produced; all other type kinds defer to TypeToStringEx (still the NodeBuilder-backed stub).
+    // PORT-NOTE: replace with the real typeToStringEx once the NodeBuilder/Printer type-serialization
+    // surface (phase 6) lands.
+    internal string TypeToString(Type type)
+    {
+        if ((type.flags & TypeFlags.StringLiteral) != 0)
+        {
+            // The Printer wraps string-literal type nodes in double quotes; EscapeString yields the
+            // escaped inner text for that quote char.
+            return "\"" + global::Ts.Printer.PrinterUtilities.EscapeString((string)type.AsLiteralType().value!, global::Ts.Printer.QuoteChar.DoubleQuote) + "\"";
+        }
+        if ((type.flags & TypeFlags.NumberLiteral) != 0)
+        {
+            return ((global::Ts.JsNum.Number)type.AsLiteralType().value!).ToString();
+        }
+        if ((type.flags & TypeFlags.BooleanLiteral) != 0)
+        {
+            return (bool)type.AsLiteralType().value! ? "true" : "false";
+        }
+        if ((type.flags & TypeFlags.Intrinsic) != 0)
+        {
+            return type.AsIntrinsicType().intrinsicName;
+        }
+        return TypeToStringEx(type, null, TypeFormatFlags.AllowUniqueESSymbolType | TypeFormatFlags.UseAliasDefinedOutsideCurrentScope, null);
+    }
 
     // checker.go:28889
     internal Node? GetConstraintDeclaration(Type t)
@@ -883,7 +1104,8 @@ public partial class Checker
 
     private static bool IsTypeAny(Type? t) => throw new NotImplementedException("IsTypeAny");
 
-    private static bool IsOptionalDeclaration(Node declaration) => throw new NotImplementedException("isOptionalDeclaration");
+    // utilities.go:276-278
+    private static bool IsOptionalDeclaration(Node declaration) => AstUtilities.HasQuestionToken(declaration);
 
     // Missing ast helpers (absent from Ts.Ast) — minimal local stubs (report to add to ast).
     private static Node WalkUpBindingElementsAndPatterns(Node binding) => throw new NotImplementedException("ast.WalkUpBindingElementsAndPatterns");

@@ -122,7 +122,12 @@ public partial class Checker
     internal void CheckNamedTupleMember(Node node) => throw new NotImplementedException("checkNamedTupleMember");
     internal void CheckIndexedAccessType(Node node) => throw new NotImplementedException("checkIndexedAccessType");
     internal void CheckMappedType(Node node) => throw new NotImplementedException("checkMappedType");
-    internal void CheckDecorators(Node node) => throw new NotImplementedException("checkDecorators");
+    // CheckDecorators is now REAL in Checker.Statements.cs (checker.go:6001). Its deep decorator-emit
+    // branches (checkDecorator / markLinkedReferences / getFirstTransformableStaticClassElement) remain
+    // stubbed below — unreached for decorator-free inputs, which early-return at the guard.
+    internal void CheckDecorator(Node node) => throw new NotImplementedException("checkDecorator");
+    internal void MarkLinkedReferences(Node location, ReferenceHint hint, Symbol? propSymbol, Type? parentType) => throw new NotImplementedException("markLinkedReferences");
+    internal Node? GetFirstTransformableStaticClassElement(Node node) => throw new NotImplementedException("getFirstTransformableStaticClassElement");
     internal void CheckTypeParameters(Node[] typeParameterDeclarations) => throw new NotImplementedException("checkTypeParameters");
 
     // ---- complex declaration validators (class/interface/enum/module/import/export), deferred ----

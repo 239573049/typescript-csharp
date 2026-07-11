@@ -1263,6 +1263,61 @@ public partial class Checker
         CheckVariableLikeDeclaration(node);
     }
 
+    // checker.go:6001
+    internal void CheckDecorators(Node node)
+    {
+        // skip this check for nodes that cannot have decorators. These should have already had an error reported by
+        // checkGrammarModifiers.
+        if (!AstUtilities.CanHaveDecorators(node) || !AstUtilities.HasDecorators(node) || !AstUtilities.NodeCanBeDecorated(legacyDecorators, node, node.Parent, node.Parent!.Parent))
+        {
+            return;
+        }
+        var firstDecorator = CoreUtil.Find(node.ModifierNodes(), NodeTests.IsDecorator);
+        if (firstDecorator == null)
+        {
+            return;
+        }
+        if (legacyDecorators)
+        {
+            CheckExternalEmitHelpers(firstDecorator, ExternalEmitHelpers.Decorate);
+            if (NodeTests.IsParameterDeclaration(node))
+            {
+                CheckExternalEmitHelpers(firstDecorator, ExternalEmitHelpers.Param);
+            }
+        }
+        else if (languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.ClassAndClassElementDecorators)
+        {
+            CheckExternalEmitHelpers(firstDecorator, ExternalEmitHelpers.ESDecorateAndRunInitializers);
+            if (NodeTests.IsClassDeclaration(node))
+            {
+                if (node.Name() == null || GetFirstTransformableStaticClassElement(node) != null)
+                {
+                    CheckExternalEmitHelpers(firstDecorator, ExternalEmitHelpers.SetFunctionName);
+                }
+            }
+            else if (!NodeTests.IsClassExpression(node))
+            {
+                var name = node.Name();
+                if (NodeTests.IsPrivateIdentifier(name!) && (NodeTests.IsMethodDeclaration(node) || AstUtilities.IsAccessor(node) || AstUtilities.IsAutoAccessorPropertyDeclaration(node)))
+                {
+                    CheckExternalEmitHelpers(firstDecorator, ExternalEmitHelpers.SetFunctionName);
+                }
+                if (NodeTests.IsComputedPropertyName(name!))
+                {
+                    CheckExternalEmitHelpers(firstDecorator, ExternalEmitHelpers.PropKey);
+                }
+            }
+        }
+        MarkLinkedReferences(node, ReferenceHint.Decorator, null, null);
+        foreach (var modifier in node.ModifierNodes().OrEmpty())
+        {
+            if (NodeTests.IsDecorator(modifier))
+            {
+                CheckDecorator(modifier);
+            }
+        }
+    }
+
     // Check variable, parameter, or property declaration
     // checker.go:5769
     internal void CheckVariableLikeDeclaration(Node node)

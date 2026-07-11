@@ -24,6 +24,32 @@ public interface CompilerHost : global::Ts.Module.ResolutionHost
     global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path);
 }
 
+// In Go, NewCompilerHost / NewCachedFSCompilerHost are package-level public functions
+// (compiler.NewCompilerHost). The C# factory methods live on the internal CompilerHostImpl (so the
+// in-assembly tests reach them), which leaves them unreachable from Ts.Cli. This public facade restores
+// the package-level entry point for cross-assembly callers (the tsc CLI). Named CompilerHosts (plural)
+// to avoid the §1.5 namespace-shadowing trap.
+public static class CompilerHosts
+{
+    // host.go:33-41
+    public static CompilerHost NewCachedFSCompilerHost(
+        string currentDirectory,
+        IFileSystem fs,
+        string defaultLibraryPath,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache,
+        Action<global::Ts.Diagnostics.Message, object?[]>? trace) =>
+        CompilerHostImpl.NewCachedFSCompilerHost(currentDirectory, fs, defaultLibraryPath, extendedConfigCache, trace);
+
+    // host.go:43-60
+    public static CompilerHost NewCompilerHost(
+        string currentDirectory,
+        IFileSystem fs,
+        string defaultLibraryPath,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache,
+        Action<global::Ts.Diagnostics.Message, object?[]>? trace) =>
+        CompilerHostImpl.NewCompilerHost(currentDirectory, fs, defaultLibraryPath, extendedConfigCache, trace);
+}
+
 // host.go:25-31
 internal sealed class CompilerHostImpl : CompilerHost
 {

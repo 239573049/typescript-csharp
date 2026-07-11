@@ -1194,7 +1194,58 @@ public partial class Checker
     internal bool IsCommonJSRequire(Node node) => throw new NotImplementedException("isCommonJSRequire");
 
     // Cross-cluster helpers used by both #10 and #11 (shared; single declaration here).
-    internal Symbol? GetMergedSymbol(Symbol? symbol) => throw new NotImplementedException("getMergedSymbol");
+    // checker.go:14281
+    internal Symbol? GetMergedSymbol(Symbol? symbol)
+    {
+        if (symbol != null)
+        {
+            var merged = mergedSymbols.GetValueOrDefault(symbol);
+            if (merged != null)
+            {
+                return merged;
+            }
+        }
+        return symbol;
+    }
+
+    // checker.go:14316
+    internal Symbol? GetSymbolOfDeclaration(Node node)
+    {
+        var symbol = node.Symbol();
+        if (symbol != null)
+        {
+            return GetMergedSymbol(GetLateBoundSymbol(symbol));
+        }
+        return null;
+    }
+
+    // checker.go:14334
+    internal Symbol GetLateBoundSymbol(Symbol symbol)
+    {
+        if ((symbol.Flags & SymbolFlags.ClassMember) == 0 || symbol.Name != InternalSymbolName.Computed)
+        {
+            return symbol;
+        }
+        var links = lateBoundLinks.Get(symbol);
+        if (links.lateSymbol == null && global::Ts.Core.CoreUtil.Some(symbol.Declarations, HasLateBindableName))
+        {
+            // force late binding of members/exports. This will set the late-bound symbol
+            var parent = GetMergedSymbol(symbol.Parent)!;
+            if (global::Ts.Core.CoreUtil.Some(symbol.Declarations, HasStaticModifier))
+            {
+                GetExportsOfSymbol(parent);
+            }
+            else
+            {
+                GetMembersOfSymbol(parent);
+            }
+        }
+        if (links.lateSymbol == null)
+        {
+            links.lateSymbol = symbol;
+        }
+        return links.lateSymbol;
+    }
 
 
 
@@ -1224,7 +1275,15 @@ public partial class Checker
 
     // checkComputedPropertyName (26667) implemented in Checker.IndexedAccess.cs (#18).
 
-    internal void AddDiagnostic(Diagnostic diagnostic) => throw new NotImplementedException("addDiagnostic");
+    // checker.go:13911-13916
+    internal void AddDiagnostic(Diagnostic diagnostic)
+    {
+        // Discard diagnostics created while at the maximum number of recursive TypeToString invocations.
+        if (serializationLevel < MaxSerializationLevel)
+        {
+            diagnostics.Add(diagnostic);
+        }
+    }
 
     // ===================================================================================
     // Free-function helpers (Go package-level, not Checker methods). In-range ones are real;
@@ -1247,7 +1306,8 @@ public partial class Checker
 
     private static SymbolFlags GetExcludedSymbolFlags(SymbolFlags flags) => throw new NotImplementedException("getExcludedSymbolFlags");
 
-    private static Diagnostic CreateDiagnosticForNode(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("createDiagnosticForNode");
+    // checker.go:14184-14186
+    private Diagnostic CreateDiagnosticForNode(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => NewDiagnosticForNode(node, message, args);
 
     // ===================================================================================
     // Missing ast helpers (absent from Ts.Ast). Minimal local stubs (report to add to ast).

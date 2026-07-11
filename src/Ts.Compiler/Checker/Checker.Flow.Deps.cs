@@ -35,7 +35,19 @@ public partial class Checker
     internal Symbol? GetGlobalESSymbolConstructorSymbolOrNil() => throw new NotImplementedException("getGlobalESSymbolConstructorSymbolOrNil");
 
     // ---- type creation / operations / facts ----
-    internal Type ConvertAutoToAny(Type t) => throw new NotImplementedException("convertAutoToAny");
+    // checker.go:30973-30981
+    internal Type ConvertAutoToAny(Type t)
+    {
+        if (t == autoType)
+        {
+            return anyType!;
+        }
+        if (t == autoArrayType)
+        {
+            return anyArrayType!;
+        }
+        return t;
+    }
     internal Type RecombineUnknownType(Type t) => throw new NotImplementedException("recombineUnknownType");
     internal Type ExtractUnitType(Type t) => throw new NotImplementedException("extractUnitType");
     // getFreshTypeOfLiteralType is real in Checker.TypeCreation.cs.

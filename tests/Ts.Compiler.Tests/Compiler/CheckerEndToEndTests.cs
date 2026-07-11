@@ -25,18 +25,14 @@ public sealed class CheckerEndToEndTests
         return new Program(new ProgramOptions { Host = host, Config = config, SingleThreaded = Tristate.True });
     }
 
-    // Pipeline probe: CheckGrammarSourceFile (the first thing CheckSourceFile calls) is now REAL
-    // (grammar-checks wave landed), so the probe advances past grammar and blocks on the next
-    // downstream stub: IsCanceled() (checker.go isCanceled), thrown from CheckSourceFile before the
-    // const-assignment not-assignable diagnostic can be produced. Un-skip once IsCanceled and the
-    // remaining check* path (checkVariableDeclaration → resolveName → assignability) are real; if a
-    // further stub is then hit, re-note the next blocker.
-    // Pipeline probe: advances through grammar + isCanceled + the variable-statement check path
-    // (CheckVariableStatement → …Declaration → …LikeDeclaration) and now blocks on CheckDecorators
-    // (runs even with no decorators; its guard needs the still-stubbed ast decorator predicates
-    // HasDecorators/NodeCanBeDecorated). Un-skip once the const-assignment check path (checkDecorators
-    // early-return + type-annotation + initializer assignability elaboration) is real.
-    [Fact(Skip = "e2e check blocked on checkDecorators stub (variable-decl check path; needs ast decorator predicates)")]
+    // Pipeline probe — huge advancement: the checker now runs the FULL check on `const x: number =
+    // "hello"` — grammar → isCanceled → variable-statement check → checkDecorators (early-return) →
+    // type-annotation + initializer assignability → the relation FAILS (string ⊄ number) and enters
+    // error REPORTING (checkTypeRelatedTo → reportRelationError). It blocks only on typeToStringEx
+    // (the type-display serializer that renders the type names in "Type 'string' is not assignable to
+    // type 'number'") — the deferred TypeToString/nodebuilder wave. Un-skip once typeToStringEx renders
+    // intrinsic type names; the probe then produces the diagnostic and Assert.NotEmpty passes.
+    [Fact(Skip = "e2e check reaches assignability error reporting; blocked on typeToStringEx (type-display / TypeToString wave)")]
     public void ChecksSimpleAssignmentError_ProducesTypeDiagnostic()
     {
         var files = new Dictionary<string, string>

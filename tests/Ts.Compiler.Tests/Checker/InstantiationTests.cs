@@ -85,10 +85,10 @@ public class InstantiationTests
         var target = c.NewTypeParameter(null);
         var mapper = TypeMapper.NewSimpleTypeMapper(tp, target);
 
-        // instantiationDepth == 100 (checker.go:22016) takes the guard branch, which calls
-        // error(...) — still a stub that throws. Reaching it confirms the guard fired.
+        // instantiationDepth == 100 (checker.go:22016) takes the guard branch: reports the
+        // "excessively deep" diagnostic and returns errorType (error() is now real).
         c.instantiationDepth = 100;
-        Assert.Throws<NotImplementedException>(() => c.InstantiateType(tp, mapper));
+        Assert.Same(c.errorType, c.InstantiateType(tp, mapper));
     }
 
     [Fact]
@@ -99,9 +99,10 @@ public class InstantiationTests
         var target = c.NewTypeParameter(null);
         var mapper = TypeMapper.NewSimpleTypeMapper(tp, target);
 
-        // instantiationCount >= 5,000,000 (checker.go:22016) takes the same guard branch.
+        // instantiationCount >= 5,000,000 (checker.go:22016) takes the same guard branch:
+        // reports the diagnostic and returns errorType.
         c.instantiationCount = 5_000_000;
-        Assert.Throws<NotImplementedException>(() => c.InstantiateType(tp, mapper));
+        Assert.Same(c.errorType, c.InstantiateType(tp, mapper));
     }
 
     [Fact]

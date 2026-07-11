@@ -97,15 +97,15 @@ public class TypeNodesTests
         Assert.Same(c.booleanType, c.GetTypeFromTypeNode(predicate));
     }
 
-    // Union routes through getAliasForTypeNode → getSymbolOfDeclaration and getUnionTypeEx, which are
-    // filled by parallel waves (#10 / #17). Until then the reachable dispatch lands on a not-yet-
-    // implemented dependency. This asserts the #15 dispatch reaches the union handler (deferred).
+    // Union type node now resolves via getTypeFromUnionTypeNode → getUnionType (#17 landed):
+    // `string | number` → a Union type carrying both constituents.
     [Fact]
-    public void UnionType_Dispatch_ReachesDeferredMachinery()
+    public void UnionType_ResolvesToUnionOfConstituents()
     {
         var c = NewChecker();
         var node = ParseTypeAnnotation("string | number");
         Assert.Equal(SyntaxKind.UnionType, node.Kind);
-        Assert.Throws<System.NotImplementedException>(() => c.GetTypeFromTypeNode(node));
+        var t = c.GetTypeFromTypeNode(node);
+        Assert.True((t.Flags & TypeFlags.Union) != 0, $"expected a Union type, was {t.Flags}");
     }
 }

@@ -31,7 +31,40 @@ public partial class Checker
 
     // ---- misc type predicates / literal base (checker.go, later waves) ----
     internal bool IsNonGenericObjectType(Type t) => throw new NotImplementedException("isNonGenericObjectType");
-    internal Type GetBaseTypeOfLiteralType(Type t) => throw new NotImplementedException("getBaseTypeOfLiteralType");
+
+    // getBaseTypeOfLiteralType (checker.go): widen a literal/enum type to its base intrinsic type.
+    internal Type GetBaseTypeOfLiteralType(Type t)
+    {
+        if ((t.Flags & TypeFlags.EnumLike) != 0)
+        {
+            return GetBaseTypeOfEnumLikeType(t);
+        }
+        if ((t.Flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping)) != 0)
+        {
+            return stringType!;
+        }
+        if ((t.Flags & TypeFlags.NumberLiteral) != 0)
+        {
+            return numberType!;
+        }
+        if ((t.Flags & TypeFlags.BigIntLiteral) != 0)
+        {
+            return bigintType!;
+        }
+        if ((t.Flags & TypeFlags.BooleanLiteral) != 0)
+        {
+            return booleanType!;
+        }
+        if ((t.Flags & TypeFlags.Union) != 0)
+        {
+            return GetBaseTypeOfLiteralTypeUnion(t);
+        }
+        return t;
+    }
+
+    // getBaseTypeOfLiteralTypeUnion (checker.go) — deferred; not reached by the intrinsic-literal path.
+    internal Type GetBaseTypeOfLiteralTypeUnion(Type t) => throw new NotImplementedException("getBaseTypeOfLiteralTypeUnion");
+
     internal Type RemoveMissingOrUndefinedType(Type type) => throw new NotImplementedException("removeMissingOrUndefinedType");
 
     // ---- const type variables / readonly symbols ----

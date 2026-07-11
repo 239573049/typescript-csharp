@@ -42,7 +42,7 @@ public sealed class ProgramOptions
 }
 
 // program.go:79-119
-public sealed class Program : global::Ts.Checker.Program
+public sealed partial class Program : global::Ts.Checker.Program
 {
     private readonly ProgramOptions opts;
     private global::Ts.Checker.ICheckerPool checkerPool = null!; // always set; fallback for project-system pools
@@ -403,7 +403,6 @@ public sealed class Program : global::Ts.Checker.Program
     public EmitResult Emit(CancellationToken ctx, EmitOptions options) =>
         throw new NotImplementedException("Program.Emit is a phase 6 deliverable (printer/transformers not yet ported)");
 
-    // program.go:1436-1440 — deferred diagnostics surface.
-    public static Diagnostic[] SortAndDeduplicateDiagnostics(Diagnostic[] diagnostics) =>
-        throw new NotImplementedException("SortAndDeduplicateDiagnostics is deferred with the diagnostics collection surface (phase 4/5)");
+    // program.go:1436-1440 — the diagnostics aggregation surface lands with the CLI type-check-and-report wave.
+    // SortAndDeduplicateDiagnostics and the Get*Diagnostics methods are ported in Program.Diagnostics.cs.
 }

@@ -7,6 +7,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Ts.TestUtil/Ts.TestUtil.csproj" />
     <Project Path="tests/Ts.Compiler.Tests/Ts.Compiler.Tests.csproj" />
+    <Project Path="tests/Ts.Cli.Tests/Ts.Cli.Tests.csproj" />
     <Project Path="tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj" />
     <Project Path="tests/Ts.LanguageService.Tests/Ts.LanguageService.Tests.csproj" />
     <Project Path="tests/Ts.Fourslash.Tests/Ts.Fourslash.Tests.csproj" />
