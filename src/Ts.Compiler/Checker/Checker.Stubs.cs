@@ -15,8 +15,7 @@ public partial class Checker
     // ===== Referenced by the real skeleton (must exist to compile) =====
 
     // Free functions used by Types.cs / TypeMapper.cs / Keys.cs.
-    internal static bool IsTupleType(Type t) => throw new NotImplementedException("isTupleType");
-
+    // isTupleType (checker.go:23397) implemented in Checker.TypeNodes.cs (#15).
     internal static bool IsThisTypeParameter(Type type) => throw new NotImplementedException("isThisTypeParameter");
 
     internal static void ClearCachedInferences(InferenceInfo[] inferences) => throw new NotImplementedException("clearCachedInferences");
@@ -41,14 +40,8 @@ public partial class Checker
 
     internal int CompareSymbolChainsWorker(Symbol[] a, Symbol[] b) => throw new NotImplementedException("compareSymbolChainsWorker");
 
-    internal Ts.Evaluator.Result EvaluateEntity(Node expr, Node? location) => throw new NotImplementedException("evaluateEntity");
-
-    internal Type GetUniqueLiteralTypeForTypeParameter(Type t) => throw new NotImplementedException("getUniqueLiteralTypeForTypeParameter");
-
-    internal Type RestrictiveMapperWorker(Type t) => throw new NotImplementedException("restrictiveMapperWorker");
-
-    internal Type PermissiveMapperWorker(Type t) => throw new NotImplementedException("permissiveMapperWorker");
-
+    // evaluateEntity (23932), getUniqueLiteralTypeForTypeParameter (24853), restrictiveMapperWorker
+    // (24433), permissiveMapperWorker (24440) implemented in Checker.TypeNodes.cs (#15).
     internal bool IsEmptyAnonymousObjectType(Type t) => throw new NotImplementedException("IsEmptyAnonymousObjectType");
 
     internal bool CouldContainTypeVariablesWorker(Type t) => throw new NotImplementedException("couldContainTypeVariablesWorker");
@@ -109,27 +102,13 @@ public partial class Checker
 
     internal Symbol? ResolveSymbol(Symbol? symbol) => throw new NotImplementedException("resolveSymbol");
 
-    internal SymbolTable GetExportsOfSymbol(Symbol symbol) => throw new NotImplementedException("getExportsOfSymbol");
-
     // ===== #11 symbol types =====
+    // getDeclaredTypeOfSymbol (checker.go:23578) is in the #15 line-range (22713-24910), implemented
+    // in Checker.TypeNodes.cs despite the #11 label above (§4.2 is authoritative).
 
-    internal Type GetTypeOfSymbol(Symbol symbol) => throw new NotImplementedException("getTypeOfSymbol");
-
-    internal Type GetDeclaredTypeOfSymbol(Symbol symbol) => throw new NotImplementedException("getDeclaredTypeOfSymbol");
-
-    // ===== #12 members =====
-
-    internal Symbol[] GetPropertiesOfType(Type type) => throw new NotImplementedException("getPropertiesOfType");
-
-    internal Symbol? GetPropertyOfType(Type type, string name) => throw new NotImplementedException("getPropertyOfType");
-
-    internal Signature[] GetSignaturesOfType(Type type, SignatureKind kind) => throw new NotImplementedException("getSignaturesOfType");
-
-    // ===== #13 signatures =====
-
-    internal Signature GetSignatureFromDeclaration(Node declaration) => throw new NotImplementedException("getSignatureFromDeclaration");
-
-    internal Type GetReturnTypeOfSignature(Signature signature) => throw new NotImplementedException("getReturnTypeOfSignature");
+    // ===== #12 members + #13 signatures =====
+    // Implemented in Checker.Members.cs / Checker.Signatures.cs (getPropertiesOfType,
+    // getPropertyOfType, getSignaturesOfType, getSignatureFromDeclaration, getReturnTypeOfSignature).
 
     // ===== #14 instantiation =====
 
@@ -138,8 +117,7 @@ public partial class Checker
     internal Type GetApparentType(Type type) => throw new NotImplementedException("getApparentType");
 
     // ===== #15 type nodes =====
-
-    internal Type GetTypeFromTypeNode(Node node) => throw new NotImplementedException("getTypeFromTypeNode");
+    // getTypeFromTypeNode and family implemented in Checker.TypeNodes.cs.
 
     // ===== #17 union / intersection =====
 
@@ -154,8 +132,6 @@ public partial class Checker
     // ===== #19 constraints =====
 
     internal Type? GetBaseConstraintOfType(Type type) => throw new NotImplementedException("getBaseConstraintOfType");
-
-    internal Type? GetConstraintOfTypeParameter(Type typeParameter) => throw new NotImplementedException("getConstraintOfTypeParameter");
 
     // ===== #21 contextual types =====
 
