@@ -780,7 +780,7 @@ public partial class Checker
     // #11 dispatch targets in other type-of clusters.
     internal Type GetTypeOfMappedSymbol(Symbol symbol) => throw new NotImplementedException("getTypeOfMappedSymbol");
 
-    internal Type GetTypeOfReverseMappedSymbol(Symbol symbol) => throw new NotImplementedException("getTypeOfReverseMappedSymbol");
+    // getTypeOfReverseMappedSymbol (inference.go:1111) implemented in Checker.Inference.cs (inference wave).
 
 
 
@@ -813,9 +813,52 @@ public partial class Checker
 
     internal string TypeToString(Type type) => throw new NotImplementedException("TypeToString");
 
-    internal Node? GetConstraintDeclaration(Type t) => throw new NotImplementedException("getConstraintDeclaration");
+    // checker.go:28889
+    internal Node? GetConstraintDeclaration(Type t)
+    {
+        if (t.symbol != null)
+        {
+            foreach (var d in t.symbol.Declarations ?? [])
+            {
+                if (NodeTests.IsTypeParameterDeclaration(d))
+                {
+                    var constraint = d.AsTypeParameterDeclaration().Constraint;
+                    if (constraint != null)
+                    {
+                        return constraint;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-    internal Type? GetInferredTypeParameterConstraint(Type t, bool omitTypeReferences) => throw new NotImplementedException("getInferredTypeParameterConstraint");
+    // checker.go:17027
+    // PORT-NOTE: Partial implementation — handles the common case where t.symbol is null
+    // (synthetic type parameters created by NewTypeParameter(null)) which returns null.
+    // Full inference from 'infer T' declarations requires later wave.
+    internal Type? GetInferredTypeParameterConstraint(Type t, bool omitTypeReferences)
+    {
+        if (t.symbol == null || (t.symbol.Declarations?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+        var inferences = new System.Collections.Generic.List<Type>();
+        foreach (var declaration in t.symbol.Declarations!)
+        {
+            if (declaration.Parent != null && NodeTests.IsInferTypeNode(declaration.Parent))
+            {
+                // Full infer-type constraint logic is in the later checker.go wave.
+                // For now, these declarations yield no constraint.
+                _ = declaration;
+            }
+        }
+        if (inferences.Count != 0)
+        {
+            return GetIntersectionType(inferences.ToArray());
+        }
+        return null;
+    }
 
     // getEffectiveTypeArguments / isMappedTypeGenericIndexedAccess / getConditionalTypeInstantiation
     // implemented by the #14 Instantiation wave (Checker.Instantiation.cs).

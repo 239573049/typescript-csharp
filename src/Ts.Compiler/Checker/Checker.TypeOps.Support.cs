@@ -692,8 +692,9 @@ public partial class Checker
     }
 
     // slices.Insert(s, i, v)
-    internal static Type[] SlicesInsert(Type[] s, int i, Type v)
+    internal static Type[] SlicesInsert(Type[]? s, int i, Type v)
     {
+        if (s == null) return [v];
         var result = new Type[s.Length + 1];
         Array.Copy(s, 0, result, 0, i);
         result[i] = v;
@@ -702,8 +703,9 @@ public partial class Checker
     }
 
     // slices.Index by reference identity.
-    internal static int SlicesIndex(Type[] s, Type v)
+    internal static int SlicesIndex(Type[]? s, Type v)
     {
+        if (s == null) return -1;
         for (int i = 0; i < s.Length; i++)
         {
             if (ReferenceEquals(s[i], v))
@@ -715,11 +717,12 @@ public partial class Checker
     }
 
     // slices.Contains by reference identity.
-    internal static bool SlicesContains(Type[] s, Type v) => SlicesIndex(s, v) >= 0;
+    internal static bool SlicesContains(Type[]? s, Type v) => SlicesIndex(s, v) >= 0;
 
     // slices.IndexFunc
-    internal static int SlicesIndexFunc(Type[] s, Func<Type, bool> f)
+    internal static int SlicesIndexFunc(Type[]? s, Func<Type, bool> f)
     {
+        if (s == null) return -1;
         for (int i = 0; i < s.Length; i++)
         {
             if (f(s[i]))

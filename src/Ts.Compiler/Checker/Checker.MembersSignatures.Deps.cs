@@ -51,12 +51,8 @@ public partial class Checker
     // instantiateTypes / cloneTypeParameter / fillMissingTypeArguments / getMinTypeArgumentCount
     // implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     // getBaseConstraintOrType (27294) implemented in Checker.IndexedAccess.cs (#18).
-    internal InferenceContext NewInferenceContext(Type[]? typeParameters, Signature? signature, InferenceFlags flags, TypeComparer? compareTypes) => throw new NotImplementedException("newInferenceContext");
-    internal Type? GetEffectiveRestType(Signature signature) => throw new NotImplementedException("getEffectiveRestType");
-    internal void ApplyToParameterTypes(Signature source, Signature target, Action<Type, Type> callback) => throw new NotImplementedException("applyToParameterTypes");
-    internal void ApplyToReturnTypes(Signature source, Signature target, Action<Type, Type> callback) => throw new NotImplementedException("applyToReturnTypes");
-    internal void InferTypes(InferenceInfo[] inferences, Type source, Type target, InferencePriority priority, bool contravariant) => throw new NotImplementedException("inferTypes");
-    internal Type[] GetInferredTypes(InferenceContext context) => throw new NotImplementedException("getInferredTypes");
+    // newInferenceContext / applyToParameterTypes / applyToReturnTypes / inferTypes / getInferredTypes
+    // implemented in Checker.Inference.cs (inference wave). getEffectiveRestType owned by relater.
 
     // ---- type creation (#16) ----
     internal Type CreateTypeReference(Type target, Type[]? typeArguments) => throw new NotImplementedException("createTypeReference");
@@ -68,9 +64,9 @@ public partial class Checker
 
     // ---- indexed access / mapped (#18) ----
     // getIndexedAccessType (26789) implemented in Checker.IndexedAccess.cs (#18).
-    internal Type SliceTupleType(Type t, int index, int endSkipCount) => throw new NotImplementedException("sliceTupleType");
+    // sliceTupleType owned by the relater wave (Checker.Relater.cs).
     internal void ResolveMappedTypeMembers(Type t) => throw new NotImplementedException("resolveMappedTypeMembers");
-    internal void ResolveReverseMappedTypeMembers(Type t) => throw new NotImplementedException("resolveReverseMappedTypeMembers");
+    // resolveReverseMappedTypeMembers (inference.go:1065) implemented in Checker.Inference.cs.
     internal void ResolveUnionTypeMembers(Type t) => throw new NotImplementedException("resolveUnionTypeMembers");
     internal void ResolveIntersectionTypeMembers(Type t) => throw new NotImplementedException("resolveIntersectionTypeMembers");
 
@@ -84,7 +80,7 @@ public partial class Checker
     internal bool HasTypeFacts(Type t, TypeFacts facts) => throw new NotImplementedException("hasTypeFacts");
     internal Type GetTypeWithFacts(Type t, TypeFacts include) => throw new NotImplementedException("getTypeWithFacts");
     internal Type GetAdjustedTypeWithFacts(Type t, TypeFacts facts) => throw new NotImplementedException("getAdjustedTypeWithFacts");
-    internal bool IsTypeAssignableTo(Type source, Type target) => throw new NotImplementedException("isTypeAssignableTo");
+    // isTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
     // isTypeAssignableToKind (27507) implemented in Checker.Constraints.cs (#19).
     internal bool IsValidSpreadType(Type t) => throw new NotImplementedException("isValidSpreadType");
     internal bool IsMatchingReference(Node source, Node target) => throw new NotImplementedException("isMatchingReference");
@@ -110,14 +106,12 @@ public partial class Checker
     internal Type? GetContextualIterationType(IterationTypeKind kind, Node functionDecl) => throw new NotImplementedException("getContextualIterationType");
     internal Type? GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind kind, Type returnType, bool isAsyncGenerator) => throw new NotImplementedException("getIterationTypeOfGeneratorFunctionReturnType");
     internal IterationTypes GetIterationTypesOfIterable(Type t, IterationUse use, Node? errorNode) => throw new NotImplementedException("getIterationTypesOfIterable");
-    internal bool IsResolvingReturnTypeOfSignature(Signature sig) => throw new NotImplementedException("isResolvingReturnTypeOfSignature");
+    // isResolvingReturnTypeOfSignature owned by the relater wave (Checker.Relater.cs).
 
     // ---- signatures / parameters (helpers in adjacent waves) ----
     internal Type GetTypeOfFirstParameterOfSignature(Signature signature) => throw new NotImplementedException("getTypeOfFirstParameterOfSignature");
-    internal Type GetTypeAtPosition(Signature signature, int pos) => throw new NotImplementedException("getTypeAtPosition");
-    internal Type GetRestTypeAtPosition(Signature source, int pos, bool readonlyElements) => throw new NotImplementedException("getRestTypeAtPosition");
+    // getTypeAtPosition / getRestTypeAtPosition / newTypePredicate owned by the relater wave.
     internal Signature[] GetDefaultConstructSignatures(Type classType) => throw new NotImplementedException("getDefaultConstructSignatures");
-    internal TypePredicate NewTypePredicate(TypePredicateKind kind, string parameterName, int parameterIndex, Type? t) => throw new NotImplementedException("newTypePredicate");
 
     // ---- diagnostics helpers ----
     internal void ErrorOrSuggestion(bool isError, Node? location, global::Ts.Diagnostics.Message? message, params object?[] args) => throw new NotImplementedException("errorOrSuggestion");

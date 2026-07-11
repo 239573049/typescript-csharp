@@ -6,7 +6,7 @@
 | 日期 | 2026-07-11 |
 | 状态 | Draft |
 | 性质 | **活文档**——plan/ 中唯一被持续编辑的文件；其余 00–10、12 号文档为设计基线，仅在设计变更时修订 |
-| 最近更新 | 2026-07-11（Claude Code 会话：vfs 核心分层落地 + 55 项单测，见变更日志） |
+| 最近更新 | 2026-07-12（Claude Code 会话：checker 关系引擎 relater + 推断 inference + 阶段6 地基 printer/sourcemap，Codex 收口 build 0/0、2569 测试，见变更日志） |
 | 交叉引用 | 00-overview.md（范围/钉扎）· 06-module-inventory.md（包档案，本表各行的事实来源）· 08-testing-strategy.md（差分夹具/conformance 跑批器口径）· 09-phases.md（门禁定义，签核表的依据）· 12-risks.md（风险册，偏差登记的下游） |
 
 ---
@@ -53,9 +53,9 @@
 
 | 指标 | 当前值 | 口径 |
 |---|---|---|
-| 当前阶段 | **阶段 5（checker 主峰）进行中**：前端管线（parse→resolve→bind）打通；checker 22 partial 中 9 个实质完成（骨架+类型系统基础+类型操作）；余 relations/inference/flow/check* 分派 + conformance 跑批器接线；阶段 0 待远端 CI | 首个未签核阶段 |
+| 当前阶段 | **阶段 5（checker 主峰）进行中**：前端管线（parse→resolve→bind）打通；checker 22 partial 中 11 个实质完成（骨架+类型系统基础+类型操作+关系引擎 relater+推断 inference）；余 flow 窄化/check* 分派/NameLookup/grammar/jsx + conformance 跑批器接线；阶段 6 地基预启（printer emit 基础设施 + sourcemap 并行落地）；阶段 0 待远端 CI | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
-| 包状态达「编译通过」及以上 | 19 / 49 行（约 63,837 LOC = **21.4%** LOC 加权：阶段 1–4 主体包 core…packagejson） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
+| 包状态达「编译通过」及以上 | 20 / 49 行（约 64,850 LOC = **21.7%** LOC 加权：阶段 1–4 主体包 core…packagejson + sourcemap） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
 | 最近 conformance 通过率 | —（尚未有跑批） | §5 历史表最新行 |
 | 最近 fourslash 通过率 | —（尚未有跑批） | §5.2 历史表最新行 |
 | 已签核门禁 | 0 | §6 行数 |
@@ -123,14 +123,14 @@
 | outputpaths | 4 | 307 | 单测绿 | — | emit 路径组合（GetOutputPathsFor/GetOutputExtension/GetCommonSourceDirectory）；经真实 SourceFile 的新单测；§1.5 复用 TsPath 类==命名空间尾 先例 |
 | diagnosticwriter | 4 | 506 | 未开始 | — | **阻塞：需 diagnostic.Localize/Format(阶段9 locale) + scanner.GetECMALineAndUTF16CharacterOfPosition**；errors.txt 字节承重面，不宜留桩；随阶段 9 locale 落地（或补最小 Localize 提前） |
 | compiler | 4–6 | 5,658 | 移植中 | — | **前端管线打通**：FileLoader(ProcessAllProgramFiles/module.Resolver/import·typeref·lib 解析)+FilesParser(并行 WorkGroup/SyncMap 发现)+Host+Program(NewProgram=load→bind→pool，真实 BindSourceFiles)+CheckerPool 对接具体 Program；3 文件传递 import 图 smoke 证明加载→解析→模块解析→绑定；emit/诊断编排/CommonSourceDirectory 桩（阶段5/6）；修复 PackageId 零值去重坍缩 bug |
-| checker | 5 | 59,822 | 移植中 | — | 22 partial 中 **9 个实质完成**：骨架 + 类型系统基础(#10/11/12/13/15) + 类型操作(#14 实例化/#17 联合交叉含真实 getUnionType 归约/#18 索引访问/#19 约束)；~650 方法；Deps 文件 dedup 模式（agent 自我消 120+ 碰撞桩）；60 测试；待后续波：relater(关系 5006)/inference(推断 1651)/flow(窄化 2734)/check* 分派(Statements/Expressions/OperatorExpressions)/grammar/jsx/NameLookup/长尾 |
+| checker | 5 | 59,822 | 移植中 | — | 22 partial 中 **11 个实质完成**：骨架 + 类型系统基础(#10/11/12/13/15) + 类型操作(#14 实例化/#17 联合交叉含真实 getUnionType 归约/#18 索引访问/#19 约束) + **关系引擎 relater(赋值兼容/子类型/可比较/同一性 5 关系 + 结构化比较 + relationCount 预算，Relater.cs/Engine.cs/Signatures.cs/Support.cs 共 ~5.8k 行) + 推断 inference(inferTypes/InferenceContext/优先级，2k 行)**；~900 方法；Deps 文件 dedup 模式（4 并行 agent 落地后经 Codex 消 84 碰撞/静态-实例/§1.5/可空错误统一至 0/0）；62 测试；待后续波：flow(窄化 2734)/check* 分派(Statements 2182-7016/Expressions 7494-12292/OperatorExpressions 12293-13874)/grammar/jsx/NameLookup/长尾；遗留单桩：GetInferredTypeParameterConstraint(infer T 全推断)/TypeToString/SubstituteIndexedMappedType |
 | evaluator | 5 | 168 | 单测绿 | — | 常量折叠全量（前缀一元/二元数值全运算含 ** 右结合/字符串拼接/模板/字面量/实体委托）+ AnyToString/IsTruthy；17 测试经真实 parser+jsnum 验证 |
 | nodebuilder | 5 | 78 | 单测绿 | — | ISymbolTracker 接口 + Flags/InternalFlags 枚举（printer emit resolver 用，阶段 6）；无单测视同达成 |
 | pseudochecker | 5 | 1,126 | 未开始 | — | 由 .d.ts 基线间接验收 |
 | modulespecifiers | 5 | 2,280 | 移植中 | — | 仅 ModuleSpecifierGenerationHost 接口 shell（checker 骨架最小建）；主体待阶段 5 后续 |
-| printer | 6 | 11,442 | 未开始 | — | 只依赖 AST，可与阶段 5 部分并行 |
+| printer | 6 | 11,442 | 移植中 | — | **emit 基础设施地基波落地**（纯 AST 侧，与阶段 5 并行）：EmitContext(侧车 EmitNode 数据)/EmitFlags/GeneratedIdentifierFlags/TextWriter/EmitTextWriter/SingleLineStringWriter/NameGenerator/EmitHost/SourceFileMetadataProvider/EmitResolver(仅接口契约，checker 后续实现)；EmitFlags 方法↔枚举 CS0119 冲突经 EF 别名解；NameGenerator 单测随；**待后续波**：printer.go(220k emit 主体)/factory.go(48k)/helpers.go(25k)/changetrackerwriter/utilities |
 | transformers | 6 | 24,323 | 未开始 | — | 7 个子命名空间；变换链顺序逐项保真 |
-| sourcemap | 6 | 1,013 | 未开始 | — | .js.map 字节门禁；列偏移 = UTF-16 |
+| sourcemap | 6 | 1,013 | 单测绿 | — | 全包移植完（Source/LineInfo/Util(Base64 VLQ)/Decoder/Generator/SourceMapper 6 文件，与阶段 5 并行落地）；列偏移 = UTF-16 code unit；RawSourceMap JSON 承重字节保真走 Utf8JsonWriter+UnsafeRelaxedJsonEscaping；GeneratorTests 全绿（VLQ 编码/addMapping/mappings 串逐字）；.js.map 全量字节门禁待阶段 6 emit 接线 |
 | execute | 7 | 9,348 | 未开始 | — | 项目归属暂定 Ts.Cli（06 §13.2 待澄清）；.tsbuildinfo 字节保真全家桶 + xxh3 承重 |
 | pprof | 7 | 169 | 未开始 | — | 非 1:1：EventPipe/.nettrace（设计期偏差，落地时登记 §8） |
 | cmd/tsgo | 7–9 | 359 | 未开始 | — | Ts.Cli 入口三路复用（tsc/--lsp/--api），随阶段 7/8/9 分步接线（06 §11.4） |
@@ -285,6 +285,7 @@
 
 | 日期 | 版本 | 会话/作者 | 摘要 |
 |---|---|---|---|
+| 2026-07-12 | v1.1 | Claude Code 会话（checker 引擎波 + 阶段6地基，Codex 收口） | port(checker)：relater.go(5006)→Checker.Relater.{cs,Engine.cs,Signatures.cs,Support.cs,Deps.cs}（5 关系引擎/结构化比较/relationCount 预算）+ inference.go(1651)→Checker.Inference.{cs,Support.cs,Deps.cs}（inferTypes/InferenceContext/优先级）；port(printer)：emit 基础设施地基波 src/Ts.Compiler/Printer/\*（EmitContext/EmitFlags/TextWriter/NameGenerator/EmitResolver 接口等 9 文件，纯 AST 侧）；port(sourcemap)：全包 src/Ts.Compiler/SourceMap/\*（Base64 VLQ/Generator/Decoder/SourceMapper 6 文件）+ GeneratorTests；4 并行 agent 落地后 84 编译错误经 Codex 子代理统一收口（mapper 静态限定/静态-实例/NodeTests→AstUtilities/§1.5/Set API/可空）→ build 0/0、test 2569 passed 17 skipped；checker 9→11 partial；printer 未开始→移植中；sourcemap 未开始→单测绿；快照两指标重算（编译通过≥20 行、当前阶段句）；未提交前的工作树验证全绿 |
 | 2026-07-11 | v1.1 | Claude Code 会话（vfs 核心分层） | port(vfs)：vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → src/Ts.Compiler/Vfs/\*（IFileSystem/Entries/IFileInfo/IDirEntry/FileMode、IFileProvider 垫片、TsPathShim 权宜内联）+ tests/Vfs 6 文件 55 测试绿（decodeBytes 表驱动 21 例）；偏差 D-005/D-006 登记；vfs 状态→移植中；快照两指标依 §9.2 重算修正（编译通过≥ 2 行、已登记偏差 6——前会话漏更）；待澄清 +1（01 §9.2 IVfs 字样）；验证时共享构建暂被并行 tspath/stringutil 在途文件阻塞，Vfs 文件本身 0 警告 0 错误（隔离工程全绿），未提交 commit（任务指令） |
 | 2026-07-11 | v1.1 | Codex 会话（阶段 0 脚手架） | 完成 W0-02/W0-01：收敛 `.gitignore`，修正 xUnit v3 空测试壳与 Ts.TestUtil 类库边界，建立初始提交 7e7e449；Release build/test、osx-arm64 Native AOT publish 及原生 `tscs --version` 冒烟全绿；plan/ 00–12 文件集齐全 |
 | 2026-07-11 | v1.1 | Claude Code 会话（评审修复） | 评审修复：06 交叉引用随其重编号修正（§14.x→§13.x；§12.1/§12.4→§11.1/§11.4）；checker 拆分表权威改指 03 §4.2 的 22 partial（裁决 R1）；ast 生成物 ×5→×7（裁决 R2）；fourslash 三段计数统一 289+210+3,796=4,295 并为 §5.2 增列 manual 列（裁决 R10，结构变更故 bump v1.1）；§3 文档状态重算——00–08、10–12 已落库，09 标补写中（裁决 R20） |

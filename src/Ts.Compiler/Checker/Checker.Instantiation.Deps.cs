@@ -38,5 +38,5 @@ public partial class Checker
 
     // ---- identity relation (relater) ----
     // checker.go — isTypeIdenticalTo(s, t).
-    internal bool IsTypeIdenticalTo(Type source, Type target) => throw new NotImplementedException("isTypeIdenticalTo");
+    // isTypeIdenticalTo owned by the relater wave (Checker.Relater.cs).
 }

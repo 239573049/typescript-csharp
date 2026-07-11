@@ -18,7 +18,7 @@ public partial class Checker
     // isTupleType (checker.go:23397) implemented in Checker.TypeNodes.cs (#15).
     internal static bool IsThisTypeParameter(Type type) => throw new NotImplementedException("isThisTypeParameter");
 
-    internal static void ClearCachedInferences(InferenceInfo[] inferences) => throw new NotImplementedException("clearCachedInferences");
+    // clearCachedInferences (inference.go:1609) implemented in Checker.Inference.cs (inference wave).
 
     // NameResolver closures (createNameResolver / createNameResolverForSuggestion).
     internal Symbol? GetSymbolOfDeclaration(Node node) => throw new NotImplementedException("getSymbolOfDeclaration");
@@ -47,12 +47,11 @@ public partial class Checker
     // Instantiation wave (Checker.Instantiation.cs).
     internal bool MarkNodeAssignmentsWorker(Node node) => throw new NotImplementedException("markNodeAssignmentsWorker");
 
-    internal Ternary CompareTypesAssignableWorker(Type source, Type target, bool reportErrors) => throw new NotImplementedException("compareTypesAssignableWorker");
+    // compareTypesAssignableWorker owned by the relater wave (Checker.Relater.cs).
 
     // Mapper / key back-references.
-    internal void InferFromIntraExpressionSites(InferenceContext context) => throw new NotImplementedException("inferFromIntraExpressionSites");
-
-    internal Type GetInferredType(InferenceContext context, int index) => throw new NotImplementedException("getInferredType");
+    // inferFromIntraExpressionSites (inference.go:1268) / getInferredType (inference.go:1283)
+    // implemented in Checker.Inference.cs (inference wave).
 
     internal Type MapType(Type t, Func<Type, Type> mapper) => throw new NotImplementedException("mapType");
 

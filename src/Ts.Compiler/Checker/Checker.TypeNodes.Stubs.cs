@@ -43,7 +43,7 @@ public partial class Checker
     // getNoInferType (27260) implemented in Checker.IndexedAccess.cs (#18).
 
     // relations / contextual / checks
-    internal bool CheckTypeAssignableTo(Type source, Type target, Node? errorNode, global::Ts.Diagnostics.Message? headMessage) => throw new NotImplementedException("checkTypeAssignableTo");
+    // checkTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
 
     internal bool IsContextSensitive(Node node) => throw new NotImplementedException("isContextSensitive");
 

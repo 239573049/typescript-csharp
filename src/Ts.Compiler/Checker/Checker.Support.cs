@@ -29,15 +29,10 @@ internal sealed class Relation
     public int Size => results?.Count ?? 0;
 }
 
-// relater.go — object-pooled relation engine. Shell for skeleton.
-internal sealed class Relater
-{
-}
+// relater.go — object-pooled relation engine. Real implementation in Checker.Relater.Engine.cs.
 
-// inference.go — inference recursion state. Shell for skeleton.
-internal sealed class InferenceState
-{
-}
+// inference.go:16-31 — inference recursion state: ported in Checker.Inference.Support.cs
+// (InferenceState with its full field set); this skeleton shell was removed by the inference wave.
 
 // flow.go — control-flow narrowing state. Shell for skeleton.
 internal sealed class FlowState

@@ -11,15 +11,9 @@ namespace Ts.Checker;
 
 public partial class Checker
 {
-    // ---- relation / subtype (relater.go) ----
-    internal bool IsTypeRelatedTo(Type source, Type target, Relation relation) => throw new NotImplementedException("isTypeRelatedTo");
-    internal bool IsTypeSubtypeOf(Type source, Type target) => throw new NotImplementedException("isTypeSubtypeOf");
-    internal bool IsTypeStrictSubtypeOf(Type source, Type target) => throw new NotImplementedException("isTypeStrictSubtypeOf");
-    internal bool IsTypeDerivedFrom(Type source, Type target) => throw new NotImplementedException("isTypeDerivedFrom");
-
-    // ---- template-literal / string-mapping matching (checker.go, later wave) ----
-    internal bool IsTypeMatchedByTemplateLiteralType(Type t, TemplateLiteralType template, TypeComparer compareTypes) => throw new NotImplementedException("isTypeMatchedByTemplateLiteralType");
-    internal bool IsMemberOfStringMapping(Type t, Type template) => throw new NotImplementedException("isMemberOfStringMapping");
+    // relation / subtype (isTypeRelatedTo/isTypeSubtypeOf/isTypeStrictSubtypeOf/isTypeDerivedFrom),
+    // template-literal (isTypeMatchedByTemplateLiteralType) and string-mapping
+    // (isMemberOfStringMapping) are OWNED by the relater wave — implemented in Checker.Relater.cs.
 
     // ---- misc type predicates (checker.go, later waves) ----
     internal bool IsPrimitiveOrObjectOrEmptyType(Type t) => throw new NotImplementedException("isPrimitiveOrObjectOrEmptyType");
