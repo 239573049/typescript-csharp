@@ -159,6 +159,8 @@ public virtual DeclarationBase? DeclarationData() => null;
 
 **命名冲突硬规则（2026-07-11 教训，避免 CS0234 别名遮蔽）**：当 Go 包/子包映射为一个**同名静态类**（如 baseline 包 → 类 `Baseline`），该类**不得**落入末段同名的命名空间——即禁止 `namespace Ts.TestUtil.Baseline; class Baseline`。否则 `Ts.TestUtil.Baseline.X` 会被解析为命名空间而非类，且 `using Ns.Baseline;` 会遮蔽 `using Baseline = Ns.Baseline.Baseline;` 别名。裁定：类落在**父命名空间**（`namespace Ts.TestUtil; class Baseline`），子文件夹只作物理组织不进命名空间段；跨包引用包级函数一律**全限定或 global::**（`global::Ts.StringUtil.StringUtil.SplitLines`），不依赖易被同名命名空间遮蔽的 `using` 别名。同理 `Ts.TsPath` 命名空间下的**品牌 struct `Path`** 与**静态类 `TsPath`** 并存：包级函数在 `TsPath`（`Ts.TsPath.TsPath.GetBaseFileName`），勿误写 `Ts.TsPath.Path.X`。
 
+**⚠️ 外层命名空间遮蔽（2026-07-11 tsoptions 672 错教训——最易踩、后果最重）**：C# 名称解析中，**外层命名空间成员优先于 using-alias**。文件在 `namespace Ts.<Pkg>`（嵌套于根 `Ts`）内写简单名 `Core`/`Scanner`/`Diagnostics`，会先经外层 `Ts` 命名空间查找命中**兄弟命名空间** `Ts.Core`/`Ts.Scanner`/`Ts.Diagnostics`，**这优先于** `using Core = Ts.Core.Core;` 之类的别名——别名被静默无视，`Core.Foo` 解析为 `Ts.Core.Foo`（命名空间）→ 若 Foo 不是命名空间成员则 CS0234。**铁律：跨包引用凡目标类名 == 某兄弟命名空间末段（Core/Scanner/Diagnostics/Parser/Binder/…），一律 `global::Ts.<Pkg>.<Class>.Member` 全限定，禁用 `using <Class> = ...` 别名。** 反例（全 672 处）：`Diagnostics.Type_Checking`、`Core.ResolveProjectReferencePath`、`Scanner.SkipTrivia` 全部失效；正解 `global::Ts.Diagnostics.Diagnostics.Type_Checking` 等。不与命名空间同名的宿主类（如 `CoreUtil`、`NodeTests`、`AstUtilities`）无此问题，可直接用。扩展方法（`Set.Has`/`OrderedMap.Keys`）需 `using Ts.Collections;` 在作用域，别忘。
+
 ---
 
 ## 2. 文件映射（1:1）

@@ -115,10 +115,10 @@
 | astnav | 3 | 783 | 单测绿 | — | tokens.go→Ts.AstNav.Tokens（19 函数，find-node-at-position + JSX << 重扫描）；补落 ast-face 延后的 ast 表面（token 缓存/VisitEachChild/UpdateSourceFile/JSDoc 谓词）；11 测试绿 6 待 parser；UTF-16 代理对验证；§1.5 global:: 修正 |
 | testrunner | 3 | 889 | 移植中 | — | test_case_parser 已移植（Ts.TestUtil/TestCaseParser.cs）；compiler_runner 驱动待阶段 4 Program |
 | testutil | 3–8 | 5,730 | 移植中 | — | baseline（逐字节比对 + patience diff + accept 流）+ test_case_parser（// @filename 多文件拆分）已落地（Ts.TestUtil/Baseline·Diff·TestCaseParser）；compiler_runner/tsbaseline/harnessutil 编译驱动待阶段 4 Program；race/ 不移植 |
-| binder | 4 | 3,555 | 未开始 | — | 门禁：symbol/flow 转储 100% |
-| tsoptions | 4 | 6,144 | 未开始 | — | 全仓反射最密集：per-field switch 生成器统一供给 |
-| module | 4 | 2,780 | 未开始 | — | 门禁：模块解析 trace 夹具匹配（日志逐字保真） |
-| packagejson | 4 | 662 | 未开始 | — | |
+| binder | 4 | 3,555 | 单测绿 | — | binder.go/nameresolver/referenceresolver 全量 + Symbol 完整体（SymbolTable=Dictionary ordinal）+ 补全 ast/scanner binder 前置；CFG 流图构造；BindSourceFile 经 LargeStackExecutor；28 测试；G4.1 symbol/flow 转储待 R24 |
+| tsoptions | 4 | 6,144 | 单测绿 | — | CommandLineOption/声明表/enummaps/namemap/parseCompilerOptions 150 键 switch/tsconfigparsing(extends/通配)/ParsedCommandLine，反射消除；集成方修正 672 处外层命名空间遮蔽（§1.5 强化规则）；G4.2 基线待跑批器 |
+| module | 4 | 2,780 | 单测绿 | — | resolver node16/nodenext/bundler 全算法 + exports/imports/typesVersions/symlink realpath；33 测试；G4.3 trace 夹具待 R24 |
+| packagejson | 4 | 662 | 单测绿 | — | Fields/Expected<T>/JSONValue/ExportsOrImports/Cache，STJ 流式容重复键；随 module |
 | symlinks | 4 | 134 | 未开始 | — | |
 | outputpaths | 4 | 307 | 未开始 | — | 无单测；emit 基线间接覆盖 |
 | diagnosticwriter | 4 | 506 | 未开始 | — | 输出逐字符进 errors.txt 基线 |
@@ -218,6 +218,7 @@
 | D-003 | 2026-07-11 | ast 生成器 | 可空性按 04 §2.2 横切规则（Go 指针→全可空），不采纳 02 §8.1/8.3 示例的 optional 非空推断 | 类型签名（编译期；非基线） | 实证三处 member/base optional 不一致会迫使 `!` 扩散 | 生效 |
 | D-004 | 2026-07-11 | tools/generator | 输入副本置于 `_scripts/` 子目录而非 04 §1.1 平铺——schema.ts 以相对路径定位 ast.json，平铺须打补丁破坏 sha256 钉扎 | 工作区布局（非基线） | 保逐字节副本优先；README 已注记 | 生效 |
 | D-007 | 2026-07-11 | core/LinkStore.cs | plan/03 §5.2 的 `ReferenceEqualityComparer.Instance`（BCL，`IEqualityComparer<object?>`，接口不变型）无法充当 `IEqualityComparer<K>`——改用自研泛型 `Ts.Core.ReferenceEqualityComparer<T> where T:class` | 编译期（语义等价；非基线） | plan 片段不可编译，03 §5.2 / 05 §7.5 应改名此泛型包装（并影响 checker HashSet<Type> 站点）| 生效 |
+| D-008 | 2026-07-11 | ast/Symbol.cs | InternalSymbolName.Prefix 保留 Go 的 `"\xFE"`，在 UTF-16 下是 U+00FE(þ)——合法 JS 标识符字符（Go 侧是非法 UTF-8 字节 0xFE），理论上与 þ 前缀用户标识符碰撞 | 语义（极罕见碰撞；非基线） | 按"原样"移植；建议主计划评估改用真正非标识符码元 U+FFFE 以求 UTF-16 保真 | 生效 |
 | D-005 | 2026-07-11 | vfs/Internal/Common.cs | DecodeBytes 无 BOM 路径对**无效 UTF-8** 的替换粒度：Go 按 rune 迭代逐无效字节产一个 U+FFFD，.NET Encoding.UTF8 按最大无效子序列产一个 U+FFFD；有效 UTF-8 双方逐字符等价 | 行为（仅无效 UTF-8 源文件；conformance 语料待核） | C# string=UTF-16 边界（plan/01），BCL 解码器语义；AGENTS §6 登记备查 | 生效 |
 | D-006 | 2026-07-11 | vfs/FileProvider.cs | IFileProvider 失败以 null 表达、不携错误明细；WalkDir 算法在 stat/ReadDir 失败时给回调传 `VfsUtil.ErrNotExist` 哨兵而非 Go 的 \*PathError | 行为（walkFn 的 err 身份；tsgo 生产 walkFn 均只判空/吞掉，唯 fourslash 基架 errors.Is(fs.ErrNotExist)——阶段 9 前重估） | plan/05 §4 就地消费判据；survey 证据见 vfs 移植会话 | 生效 |
 
