@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using Ts.Vfs.Internal;
 using FileMode = Ts.Vfs.FileMode;
+using TsPathApi = Ts.TsPath.TsPath; // Go: tspath.* (a plain `using` collides with the sibling Ts.TsPath namespace)
 
 namespace Ts.Vfs.IoVfs;
 
@@ -114,11 +115,11 @@ public static class IoVfsUtil
                         return fsys;
                     }
 
-                    string p = TsPathShim.RemoveTrailingDirectorySeparator(root);
+                    string p = TsPathApi.RemoveTrailingDirectorySeparator(root);
                     var sub = FileProvider.Sub(fsys, p);
                     if (sub == null)
                     {
-                        if (TsPathShim.IsUrl(root))
+                        if (TsPathApi.IsUrl(root))
                         {
                             return null;
                         }
@@ -252,7 +253,7 @@ internal sealed class IoFs : IFsWithSys
             // Go: any write error falls through to mkdirAll + retry. IOException is the
             // Go-error equivalence class for the write family (05-conventions.md §4.2).
         }
-        mkdirAll(TsPathShim.GetDirectoryPath(TsPathShim.NormalizePath(path)));
+        mkdirAll(TsPathApi.GetDirectoryPath(TsPathApi.NormalizePath(path)));
         write(path, content);
     }
 

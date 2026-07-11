@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TsPathApi = Ts.TsPath.TsPath; // Go: tspath.* (a plain `using` collides with the sibling Ts.TsPath namespace)
 
 namespace Ts.Vfs.Internal;
 
@@ -23,7 +24,7 @@ public sealed class Common
     // internal.go:20-28
     public static int RootLength(string p)
     {
-        int l = TsPathShim.GetEncodedRootLength(p);
+        int l = TsPathApi.GetEncodedRootLength(p);
         if (l == 0)
         {
             // Go: panic(fmt.Sprintf("vfs: path %q is not absolute", p)).
@@ -42,10 +43,10 @@ public sealed class Common
     // PORT-NOTE: "Rest" is a reserved tuple element name in C# (CS8126) → RestPath.
     public static (string RootName, string RestPath) SplitPath(string p)
     {
-        p = TsPathShim.NormalizePath(p);
+        p = TsPathApi.NormalizePath(p);
         int l = RootLength(p);
         string rootName = p[..l];
-        string rest = TsPathShim.RemoveTrailingDirectorySeparator(p[l..]);
+        string rest = TsPathApi.RemoveTrailingDirectorySeparator(p[l..]);
         return (rootName, rest);
     }
 
