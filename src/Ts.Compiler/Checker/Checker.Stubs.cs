@@ -45,7 +45,7 @@ public partial class Checker
     // IsStringIndexSignatureOnlyTypeWorker (27231) implemented in Checker.IndexedAccess.cs (#18).
     // couldContainTypeVariablesWorker / instantiateType / getTypeArguments implemented by the #14
     // Instantiation wave (Checker.Instantiation.cs).
-    internal bool MarkNodeAssignmentsWorker(Node node) => throw new NotImplementedException("markNodeAssignmentsWorker");
+    // markNodeAssignmentsWorker: owned by flow.go — real body in Checker.Flow.cs.
 
     // compareTypesAssignableWorker owned by the relater wave (Checker.Relater.cs).
 

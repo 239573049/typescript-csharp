@@ -42,6 +42,14 @@ public partial class Checker
     internal static bool EveryType(Type t, Func<Type, bool> f) =>
         (t.flags & TypeFlags.Union) != 0 ? CoreUtil.Every(t.Types(), f) : f(t);
 
+    // utilities.go:242
+    internal static bool HasOnlyExpressionInitializer(Node node) => node.Kind switch
+    {
+        SyntaxKind.VariableDeclaration or SyntaxKind.Parameter or SyntaxKind.BindingElement or
+            SyntaxKind.PropertyDeclaration or SyntaxKind.PropertyAssignment or SyntaxKind.EnumMember => true,
+        _ => false,
+    };
+
     // utilities.go:250
     internal static bool HasDotDotDotToken(Node node) => node.Kind switch
     {
@@ -51,6 +59,12 @@ public partial class Checker
         SyntaxKind.JsxExpression => node.AsJsxExpression().DotDotDotToken is not null,
         _ => false,
     };
+
+    // utilities.go:1058-1060
+    internal static Node? GetBindingElementPropertyName(Node node) => node.PropertyNameOrName();
+
+    // utilities.go:1062-1064
+    internal static bool IsCallChain(Node node) => NodeTests.IsCallExpression(node) && (node.Flags & NodeFlags.OptionalChain) != 0;
 
     // checker.go:27658
     internal static bool IsRestParameter(Node param) => param.AsParameterDeclaration().DotDotDotToken is not null;

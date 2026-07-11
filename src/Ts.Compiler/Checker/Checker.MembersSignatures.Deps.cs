@@ -24,7 +24,7 @@ public partial class Checker
     internal Type CheckIteratedTypeOrElementType(IterationUse use, Type inputType, Type sentinelType, Node? errorNode) => throw new NotImplementedException("checkIteratedTypeOrElementType");
     internal Type CheckDeclarationInitializer(Node declaration, CheckMode checkMode, Type? contextualType) => throw new NotImplementedException("checkDeclarationInitializer");
     internal bool IsConstContext(Node node) => throw new NotImplementedException("isConstContext");
-    internal bool IsConstantReference(Node node) => throw new NotImplementedException("isConstantReference");
+    // isConstantReference: owned by flow.go — real body in Checker.Flow.cs.
     internal Type GetTypeOfExpression(Node node) => throw new NotImplementedException("getTypeOfExpression");
     internal Type GetYieldedTypeOfYieldExpression(Node node, Type yieldExprType, Type sentType, bool isAsync) => throw new NotImplementedException("getYieldedTypeOfYieldExpression");
 
@@ -35,12 +35,12 @@ public partial class Checker
     internal bool IsNamedMember(Symbol symbol, string id) => throw new NotImplementedException("isNamedMember");
     internal Symbol GetSpreadSymbol(Symbol prop, bool isReadonly) => throw new NotImplementedException("getSpreadSymbol");
     internal ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => throw new NotImplementedException("getDeclarationModifierFlagsFromSymbol");
-    internal Type GetFlowTypeInConstructor(Symbol symbol, Node constructor) => throw new NotImplementedException("getFlowTypeInConstructor");
+    // getFlowTypeInConstructor: owned by flow.go — real body in Checker.Flow.cs.
     internal Type? GetTypeOfPropertyInBaseClass(Symbol symbol) => throw new NotImplementedException("getTypeOfPropertyInBaseClass");
-    internal Type GetTypeOfInitializer(Node node) => throw new NotImplementedException("getTypeOfInitializer");
+    // getTypeOfInitializer: owned by flow.go — real body in Checker.Flow.cs.
     internal Node? GetDeclaringConstructor(Symbol symbol) => throw new NotImplementedException("getDeclaringConstructor");
     internal bool IsSpreadableProperty(Symbol prop) => throw new NotImplementedException("isSpreadableProperty");
-    internal bool IsSymbolAssigned(Symbol symbol) => throw new NotImplementedException("isSymbolAssigned");
+    // isSymbolAssigned: owned by flow.go — real body in Checker.Flow.cs.
     internal bool IsKnownSymbol(Symbol symbol) => throw new NotImplementedException("IsKnownSymbol");
     // getLiteralTypeFromProperty (26617) / getLiteralTypeFromPropertyName (26640) implemented in Checker.IndexedAccess.cs (#18).
     // getPropertyOfObjectType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
@@ -83,15 +83,12 @@ public partial class Checker
     // isTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
     // isTypeAssignableToKind (27507) implemented in Checker.Constraints.cs (#19).
     internal bool IsValidSpreadType(Type t) => throw new NotImplementedException("isValidSpreadType");
-    internal bool IsMatchingReference(Node source, Node target) => throw new NotImplementedException("isMatchingReference");
+    // isMatchingReference: owned by flow.go — real body in Checker.Flow.cs.
     internal bool HasDefaultValue(Node node) => throw new NotImplementedException("hasDefaultValue");
 
     // ---- flow ----
-    internal FlowNode? GetFlowNodeOfNode(Node node) => throw new NotImplementedException("getFlowNodeOfNode");
-    internal Type GetFlowTypeOfReference(Node reference, Type declaredType) => throw new NotImplementedException("getFlowTypeOfReference");
-    internal Type GetFlowTypeOfReferenceEx(Node reference, Type declaredType, Type initialType, Node? flowContainer, FlowNode? flowNode) => throw new NotImplementedException("getFlowTypeOfReferenceEx");
-    internal bool IsReachableFlowNode(FlowNode flowNode) => throw new NotImplementedException("isReachableFlowNode");
-    internal bool GetDestructuringPropertyName(Node node, out string name) => throw new NotImplementedException("getDestructuringPropertyName");
+    // getFlowNodeOfNode / getFlowTypeOfReference / getFlowTypeOfReferenceEx / isReachableFlowNode /
+    // getDestructuringPropertyName: owned by flow.go — real bodies in Checker.Flow.cs.
 
     // ---- contextual (#21) ----
     internal Type? GetContextualReturnType(Node functionDecl, ContextFlags contextFlags) => throw new NotImplementedException("getContextualReturnType");

@@ -34,17 +34,8 @@ internal sealed class Relation
 // inference.go:16-31 — inference recursion state: ported in Checker.Inference.Support.cs
 // (InferenceState with its full field set); this skeleton shell was removed by the inference wave.
 
-// flow.go — control-flow narrowing state. Shell for skeleton.
-internal sealed class FlowState
-{
-}
-
-// flow.go:35 — SharedFlow{flow *ast.FlowNode; flowType FlowType}. flowType deferred to the
-// flow.go wave (FlowType is a union type not yet ported).
-internal struct SharedFlow
-{
-    internal Ts.Ast.FlowNode? flow;
-}
+// flow.go — FlowType / FlowState / SharedFlow are fully ported in Checker.Flow.cs (flow wave);
+// the skeleton shells that lived here were removed by that wave.
 
 // emitresolver.go:34 — public emit-time resolver. Shell for skeleton (phase 6).
 public sealed class EmitResolver
