@@ -1,0 +1,71 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  # Gate 1: upstream pin + generated-product drift (00-overview.md §4.4).
+  # Regenerates every committed generator product and fails if git diff is non-empty.
+  pin-and-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: verify upstream pin and regenerate products
+        run: bash tools/check-upstream-pin.sh
+
+  # Gate 2: build + analyzers + unit tests across the three platforms.
+  # TreatWarningsAsErrors + the three AOT/Trim/SingleFile analyzers mean a green
+  # build IS the analyzer gate (10 §1.13).
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet build TypeScript.slnx -c Release
+      - run: dotnet test TypeScript.slnx -c Release --no-build
+
+  # Gate 3: Native AOT smoke — publish the real binary on each platform and run it.
+  aot-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,  rid: linux-x64 }
+          - { os: windows-latest, rid: win-x64 }
+          - { os: macos-latest,   rid: osx-arm64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1        # smoke needs no submodule/testdata
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet publish src/Ts.Cli/Ts.Cli.csproj -c Release -r ${{ matrix.rid }} /p:PublishAot=true
+      - name: run --version and assert
+        shell: bash
+        run: |
+          bin=$(find src/Ts.Cli/bin/Release -type d -name publish | head -1)
+          out=$("$bin/tscs" --version)
+          echo "tscs --version => $out"
+          test "$out" = "Version 7.1.0-dev"

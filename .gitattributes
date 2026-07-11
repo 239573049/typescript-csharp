@@ -13,3 +13,6 @@
 # testdata is a byte-for-byte mirror of the pinned tsgo Git tree. Some upstream
 # baselines intentionally contain CRLF, so Git must never normalize this tree.
 testdata/** -text
+
+# Differential-fixture shards use Git LFS (fixtures/README.md, G0.5).
+fixtures/*.tar.zst filter=lfs diff=lfs merge=lfs -text
