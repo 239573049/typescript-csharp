@@ -13,6 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- checker CacheHashKey / keyBuilder: XXH3-128 via System.IO.Hashing.XxHash128
+         (plan/03 §8; version pinned centrally in Directory.Packages.props). -->
+    <PackageReference Include="System.IO.Hashing" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- 07-aot-constraints.md §5.2: explicit, stable logical names. Runtime reads
          via Assembly.GetManifestResourceStream("bundled/libs/<name>"); lib
          discovery goes through the generated Bundled.LibNames, never through

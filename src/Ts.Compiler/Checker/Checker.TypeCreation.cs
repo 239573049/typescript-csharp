@@ -1,0 +1,342 @@
+// Ported from tsgo internal/checker/checker.go (section: newType..literal interning, lines
+// 24911-25246). plan/03 §4.2 #16. These primitives are REAL (the constructor's field
+// initialization depends on them); the deeper members of the TypeCreation section remain stubs.
+//
+// Arenas deleted (plan §一.5): newType no longer takes a `data` arg (the concrete object IS the
+// header); newSignature/newIndexInfo just `new`.
+
+using Ts.Ast;
+
+namespace Ts.Checker;
+
+public partial class Checker
+{
+    // checker.go:24911-24923
+    internal Type NewType(TypeFlags flags, ObjectFlags objectFlags, Type t)
+    {
+        TypeCount++;
+        t.flags = flags;
+        t.objectFlags = objectFlags & ~(ObjectFlags.CouldContainTypeVariablesComputed | ObjectFlags.CouldContainTypeVariables | ObjectFlags.MembersResolved);
+        t.id = new TypeId(TypeCount);
+        t.checker = this;
+        if (tracer is not null)
+        {
+            tracer.RecordType(t);
+        }
+        return t;
+    }
+
+    // checker.go:24925-24927
+    internal Type NewIntrinsicType(TypeFlags flags, string intrinsicName) =>
+        NewIntrinsicTypeEx(flags, intrinsicName, ObjectFlags.None);
+
+    // checker.go:24929-24933
+    internal Type NewIntrinsicTypeEx(TypeFlags flags, string intrinsicName, ObjectFlags objectFlags)
+    {
+        var data = new IntrinsicType { intrinsicName = intrinsicName };
+        return NewType(flags, objectFlags, data);
+    }
+
+    // checker.go:24935-24942
+    internal Type CreateWideningType(Type nonWideningType)
+    {
+        if (strictNullChecks)
+        {
+            return nonWideningType;
+        }
+        var t = NewIntrinsicType(nonWideningType.flags, nonWideningType.AsIntrinsicType().intrinsicName);
+        t.objectFlags |= ObjectFlags.ContainsWideningType;
+        return t;
+    }
+
+    // checker.go:24944-24949
+    internal Type CreateUnknownUnionType()
+    {
+        if (strictNullChecks)
+        {
+            return GetUnionType([undefinedType!, nullType!, unknownEmptyObjectType!]);
+        }
+        return unknownType!;
+    }
+
+    // checker.go:24951-24961
+    internal Type NewLiteralType(TypeFlags flags, object? value, Type? regularType)
+    {
+        var data = new LiteralType { value = value };
+        var t = NewType(flags, ObjectFlags.None, data);
+        data.regularType = regularType ?? t;
+        return t;
+    }
+
+    // checker.go:24963-24969
+    internal Type NewUniqueESSymbolType(Symbol? symbol, string name)
+    {
+        var data = new UniqueESSymbolType { name = name };
+        var t = NewType(TypeFlags.UniqueESSymbol, ObjectFlags.None, data);
+        t.symbol = symbol;
+        return t;
+    }
+
+    // checker.go:24971-24996 — ObjectFlags priority chain (plan/03 §3); order is load-bearing.
+    internal Type NewObjectType(ObjectFlags objectFlags, Symbol? symbol)
+    {
+        Type data =
+            (objectFlags & ObjectFlags.ClassOrInterface) != 0 ? new InterfaceType() :
+            (objectFlags & ObjectFlags.Tuple) != 0 ? new TupleType() :
+            (objectFlags & ObjectFlags.Reference) != 0 ? new TypeReference() :
+            (objectFlags & ObjectFlags.Mapped) != 0 ? new MappedType() :
+            (objectFlags & ObjectFlags.ReverseMapped) != 0 ? new ReverseMappedType() :
+            (objectFlags & ObjectFlags.EvolvingArray) != 0 ? new EvolvingArrayType() :
+            (objectFlags & ObjectFlags.InstantiationExpressionType) != 0 ? new InstantiationExpressionType() :
+            (objectFlags & ObjectFlags.Anonymous) != 0 ? new ObjectType() :
+            throw new InvalidOperationException("Unhandled case in newObjectType");
+        var t = NewType(TypeFlags.Object, objectFlags, data);
+        t.symbol = symbol;
+        return t;
+    }
+
+    // checker.go:24998-25002
+    internal Type NewAnonymousType(Symbol? symbol, SymbolTable? members, Signature[]? callSignatures, Signature[]? constructSignatures, IndexInfo[]? indexInfos)
+    {
+        var t = NewObjectType(ObjectFlags.Anonymous, symbol);
+        SetStructuredTypeMembers(t, members, callSignatures, constructSignatures, indexInfos);
+        return t;
+    }
+
+    // checker.go:25053-25074
+    internal void SetStructuredTypeMembers(Type t, SymbolTable? members, Signature[]? callSignatures, Signature[]? constructSignatures, IndexInfo[]? indexInfos)
+    {
+        t.objectFlags |= ObjectFlags.MembersResolved;
+        var data = t.AsStructuredType()!;
+        data.members = members;
+        data.properties = GetNamedMembers(members, t.symbol);
+        if (callSignatures is { Length: > 0 })
+        {
+            data.signatures = constructSignatures is { Length: > 0 } ? [.. callSignatures, .. constructSignatures] : callSignatures;
+            data.callSignatureCount = callSignatures.Length;
+        }
+        else
+        {
+            data.signatures = constructSignatures is { Length: > 0 } ? constructSignatures : null;
+            data.callSignatureCount = 0;
+        }
+        data.indexInfos = indexInfos;
+    }
+
+    // MINIMAL-BUILD: the real getNamedMembers (named-member filtering) is a later wave. During
+    // construction every caller passes null members, so [] is correct there.
+    internal Symbol[] GetNamedMembers(SymbolTable? members, Symbol? symbol)
+    {
+        if (members is null || members.Count == 0)
+        {
+            return [];
+        }
+        // PORT-NOTE: skeleton placeholder; real getNamedMembers filters computed/reserved names.
+        return [.. members.Values];
+    }
+
+    // checker.go:25076-25080
+    internal Type NewTypeParameter(Symbol? symbol)
+    {
+        var t = NewType(TypeFlags.TypeParameter, ObjectFlags.None, new TypeParameter());
+        t.symbol = symbol;
+        return t;
+    }
+
+    // checker.go:25086-25094
+    internal ObjectFlags GetPropagatingFlagsOfTypes(Type[]? types, TypeFlags excludeKinds)
+    {
+        var result = ObjectFlags.None;
+        foreach (var t in types ?? [])
+        {
+            if ((t.flags & excludeKinds) == 0)
+            {
+                result |= t.objectFlags;
+            }
+        }
+        return result & ObjectFlags.PropagatingFlags;
+    }
+
+    // checker.go:25096-25100
+    internal Type NewUnionType(ObjectFlags objectFlags, Type[] types)
+    {
+        var data = new UnionType { types = types };
+        return NewType(TypeFlags.Union, objectFlags, data);
+    }
+
+    // checker.go:25102-25106
+    internal Type NewIntersectionType(ObjectFlags objectFlags, Type[] types)
+    {
+        var data = new IntersectionType { types = types };
+        return NewType(TypeFlags.Intersection, objectFlags, data);
+    }
+
+    // checker.go:25108-25114
+    internal Type NewIndexedAccessType(Type objectType, Type indexType, AccessFlags accessFlags)
+    {
+        var data = new IndexedAccessType { objectType = objectType, indexType = indexType, accessFlags = accessFlags };
+        return NewType(TypeFlags.IndexedAccess, ObjectFlags.None, data);
+    }
+
+    // checker.go:25116-25121
+    internal Type NewIndexType(Type target, IndexFlags indexFlags)
+    {
+        var data = new IndexType { target = target, indexFlags = indexFlags };
+        return NewType(TypeFlags.Index, ObjectFlags.None, data);
+    }
+
+    // checker.go:25123-25128
+    internal Type NewTemplateLiteralType(string[] texts, Type[] types)
+    {
+        var data = new TemplateLiteralType { texts = texts, types = types };
+        return NewType(TypeFlags.TemplateLiteral, ObjectFlags.None, data);
+    }
+
+    // checker.go:25130-25136
+    internal Type NewStringMappingType(Symbol? symbol, Type target)
+    {
+        var data = new StringMappingType { target = target };
+        var t = NewType(TypeFlags.StringMapping, ObjectFlags.None, data);
+        t.symbol = symbol;
+        return t;
+    }
+
+    // checker.go:25148-25153
+    internal Type NewSubstitutionType(Type baseType, Type constraint)
+    {
+        var data = new SubstitutionType { baseType = baseType, constraint = constraint };
+        return NewType(TypeFlags.Substitution, ObjectFlags.None, data);
+    }
+
+    // checker.go:25155-25169 (arena → new)
+    internal Signature NewSignature(SignatureFlags flags, Node? declaration, Type[]? typeParameters, Symbol? thisParameter, Symbol[]? parameters, Type? resolvedReturnType, TypePredicate? resolvedTypePredicate, int minArgumentCount)
+    {
+        SignatureCount++;
+        var sig = new Signature
+        {
+            id = new SignatureId(SignatureCount),
+            flags = flags,
+            declaration = declaration,
+            typeParameters = typeParameters,
+            parameters = parameters,
+            thisParameter = thisParameter,
+            resolvedReturnType = resolvedReturnType,
+            resolvedTypePredicate = resolvedTypePredicate,
+            minArgumentCount = minArgumentCount,
+            resolvedMinArgumentCount = -1,
+        };
+        return sig;
+    }
+
+    // checker.go:25171-25179 (arena → new)
+    internal IndexInfo NewIndexInfo(Type keyType, Type valueType, bool isReadonly, Node? declaration, Node[]? components) =>
+        new()
+        {
+            keyType = keyType,
+            valueType = valueType,
+            isReadonly = isReadonly,
+            declaration = declaration,
+            components = components,
+        };
+
+    // checker.go:25181-25193
+    internal Type GetRegularTypeOfLiteralType(Type t)
+    {
+        if ((t.flags & TypeFlags.Freshable) != 0)
+        {
+            return t.AsLiteralType().regularType!;
+        }
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            var u = t.AsUnionType();
+            u.regularType ??= MapType(t, GetRegularTypeOfLiteralType);
+            return u.regularType;
+        }
+        return t;
+    }
+
+    // checker.go:25195-25207
+    internal Type GetFreshTypeOfLiteralType(Type t)
+    {
+        if ((t.flags & TypeFlags.Freshable) != 0)
+        {
+            var d = t.AsLiteralType();
+            if (d.freshType is null)
+            {
+                var f = NewLiteralType(t.flags, d.value, t);
+                f.symbol = t.symbol;
+                f.AsLiteralType().freshType = f;
+                d.freshType = f;
+            }
+            return d.freshType;
+        }
+        return t;
+    }
+
+    // checker.go:25209-25211
+    internal static bool IsFreshLiteralType(Type t) =>
+        (t.flags & TypeFlags.Freshable) != 0 && t.AsLiteralType().freshType == t;
+
+    // checker.go:25213-25220
+    internal Type GetStringLiteralType(string value)
+    {
+        var t = stringLiteralTypes.GetValueOrDefault(value);
+        if (t is null)
+        {
+            t = NewLiteralType(TypeFlags.StringLiteral, value, null);
+            stringLiteralTypes[value] = t;
+        }
+        return t;
+    }
+
+    // checker.go:25222-25237 — NaN never enters the map (plan/03 §6.4); own field.
+    internal Type GetNumberLiteralType(Ts.JsNum.Number value)
+    {
+        if (double.IsNaN(value.Value))
+        {
+            nanType ??= NewLiteralType(TypeFlags.NumberLiteral, value, null);
+            return nanType;
+        }
+        var t = numberLiteralTypes.GetValueOrDefault(value);
+        if (t is null)
+        {
+            t = NewLiteralType(TypeFlags.NumberLiteral, value, null);
+            numberLiteralTypes[value] = t;
+        }
+        return t;
+    }
+
+    // checker.go:25239-25246
+    internal Type GetBigIntLiteralType(Ts.JsNum.PseudoBigInt value)
+    {
+        var t = bigintLiteralTypes.GetValueOrDefault(value);
+        if (t is null)
+        {
+            t = NewLiteralType(TypeFlags.BigIntLiteral, value, null);
+            bigintLiteralTypes[value] = t;
+        }
+        return t;
+    }
+
+    // MINIMAL-BUILD stand-ins for constructor support. Full getUnionTypeWorker reduction/interning
+    // (checker.go §17) and getTemplateLiteralType interning (checker.go §15) land in later waves.
+    internal Type GetUnionType(Type[] types)
+    {
+        // PORT-NOTE: skeleton stand-in — no reduction/dedup/interning.
+        if (types.Length == 0)
+        {
+            return neverType!;
+        }
+        if (types.Length == 1)
+        {
+            return types[0];
+        }
+        return NewUnionType(ObjectFlags.None, types);
+    }
+
+    internal Type GetTemplateLiteralType(string[] texts, Type[] types)
+    {
+        // PORT-NOTE: skeleton stand-in — no normalization/interning.
+        return NewTemplateLiteralType(texts, types);
+    }
+}
