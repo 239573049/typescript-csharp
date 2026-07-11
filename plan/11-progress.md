@@ -112,7 +112,7 @@
 | scanner | 2 | 4,256 | 单测绿 | — | 全包移植完（scanner/regexp/unicodeproperties/utilities，UTF-16 世界观：char→text[pos]、DecodeRuneAt、PositionMap 删除）；65 单测绿；十六/二/八进制 TokenValue 经 jsnum 归一十进制（tsgo 行为）；两处 UTF-16 规格差异 PORT-NOTE（正则裸 LS/PS、pendingLowSurrogate 蒸发，09 §5.6 授权取移植口径）；AST 依赖函数（行图/注释范围）顺延阶段 3；**G2.1 全语料 token 流差分待 dumptool tokens 导出器就绪后另跑签核** |
 | ast | 3 | 20,847 | 移植中 | — | 生成面（7 .g.cs）+ 手写面已落地：utilities.go ~113 谓词/导航、30 个 §4.4 switch 访问器 + 便捷访问器（53 扩展方法，解 CS0108 遮蔽）、diagnostic/precedence/deepclone、checkflags/symbolflags/functionflags、SourceFile 全体 + UTF-16 行图；补全 scanner 顺延的 text-of-node 函数；**待阶段 4**：Symbol 依赖的 utilities 后半（Symbol 仍骨架）+ LS/parser 钩子；positionmap.go 不移植 |
 | parser | 3 | 9,071 | 未开始 | — | 深递归 0 号风险主现场；门禁：AST 转储 + 诊断(code,pos,len)三元组 100% |
-| astnav | 3 | 783 | 未开始 | — | |
+| astnav | 3 | 783 | 单测绿 | — | tokens.go→Ts.AstNav.Tokens（19 函数，find-node-at-position + JSX << 重扫描）；补落 ast-face 延后的 ast 表面（token 缓存/VisitEachChild/UpdateSourceFile/JSDoc 谓词）；11 测试绿 6 待 parser；UTF-16 代理对验证；§1.5 global:: 修正 |
 | testrunner | 3 | 889 | 移植中 | — | test_case_parser 已移植（Ts.TestUtil/TestCaseParser.cs）；compiler_runner 驱动待阶段 4 Program |
 | testutil | 3–8 | 5,730 | 移植中 | — | baseline（逐字节比对 + patience diff + accept 流）+ test_case_parser（// @filename 多文件拆分）已落地（Ts.TestUtil/Baseline·Diff·TestCaseParser）；compiler_runner/tsbaseline/harnessutil 编译驱动待阶段 4 Program；race/ 不移植 |
 | binder | 4 | 3,555 | 未开始 | — | 门禁：symbol/flow 转储 100% |
