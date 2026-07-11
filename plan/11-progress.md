@@ -53,7 +53,7 @@
 
 | 指标 | 当前值 | 口径 |
 |---|---|---|
-| 当前阶段 | **阶段 4（Binder+选项+module+Program 骨架）进行中**：binder/tsoptions/module/packagejson 单测绿，余 compiler.Program/fileloader + conformance 跑批器接线；阶段 0 待远端 CI | 首个未签核阶段 |
+| 当前阶段 | **阶段 5（checker 主峰）进行中**：前端管线（parse→resolve→bind）打通；checker 22 partial 中 9 个实质完成（骨架+类型系统基础+类型操作）；余 relations/inference/flow/check* 分派 + conformance 跑批器接线；阶段 0 待远端 CI | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
 | 包状态达「编译通过」及以上 | 19 / 49 行（约 63,837 LOC = **21.4%** LOC 加权：阶段 1–4 主体包 core…packagejson） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
 | 最近 conformance 通过率 | —（尚未有跑批） | §5 历史表最新行 |
