@@ -93,7 +93,7 @@
 |---|---:|---:|---|---:|---|
 | bundled | 0 | 1,110 | 移植中 | — | generate-libs.ts 已落地：108 个 lib.*.d.ts 生成并以 bundled/libs/* 逻辑名内嵌（07 §5.2）；bundled:/// 覆盖 VFS 待 vfs 包（阶段 1） |
 | diagnostics | 0 | 9,423 | 移植中 | — | generate-diagnostics.ts 已落地：Messages.g.cs 2,154 条计数断言通过（G0.3 实质达成，签核待 §6）；本地化面（Localize/Format/loc）后续阶段 |
-| core | 1 | 2,669 | 移植中 | — | 已移植：text/tristate/stack/binarysearch/pattern/textchange/languagevariant/scriptkind/nodemodules/semaphore/workgroup + debug + **CompilerOptions 家族（130/130 字段，声明序保真，133 测试）** + LargeStackExecutor/Version 预移；单测全绿；待：core.go 大杂烩/bfs/context/linkstore（在途 agent）；arena.go 不移植 |
+| core | 1 | 2,669 | 单测绿 | — | 全包主体移植完：小件族 + CompilerOptions 家族（130 字段声明序保真）+ core.go ~70 助手 + bfs + linkstore + context(RequestContext) + LargeStackExecutor/Version；242 Core 测试绿；UTF-16 世界观（TextPos→int/UTF16Len→Length/ECMALineStarts 按 code unit）；StringifyJson 与 ShouldRewriteModuleSpecifier 文档化隔离（前者延后 Utf8JsonWriter，后者依赖已到位可择时恢复）；arena.go 不移植；宿主类不一致：BinarySearch 在 Ts.Core.Core、core.go 助手在 Ts.Core.CoreUtil（待 06 统一） |
 | collections | 1 | 840 | 单测绿 | — | 全包 7 文件移植完（OrderedMap 流式 JSON 面按 10 §2.3 波次推迟）；7 个测试文件全绿；OrderedMap = map 序审计白名单容器 |
 | tspath | 1 | 1,435 | 单测绿 | — | 全包移植完（65 函数 Go 序；Path 品牌 record struct）；1,189 行测试全移植 88/88 绿；连带 stringutil Compare/Runes 前置（与 Go 逐码点对齐的大小写折叠）；SplitVolumePath 因元组保留名 Rest 改 bool+out（PORT-NOTE） |
 | vfs | 1 | 3,131 | 移植中 | — | 2026-07-11：核心分层落地（vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → Ts.Vfs.\*；`FS→IFileSystem` 依 05 §1.3，ReadFile→Try、写族→IOException、WalkDir→`Exception?` 值 + SkipDir/SkipAll 身份哨兵；io/fs → 自定义 IFileProvider 最小抽象；tspath 依赖以 internal TsPathShim 权宜内联，tspath 落地后删）；单测 55 项绿（含 decodeBytes BOM/UTF-16LE/BE 表驱动 21 例；vfs_test.go 仅基准→按 05 §16.1 归阶段 10）；待：osvfs/vfsmatch/vfstest/vfsmock；vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
@@ -213,6 +213,7 @@
 | D-002 | 2026-07-11 | glob/Glob.cs | 尾斜杠模式耗尽输入时 Go 会越界 panic（glob.go:233），C# 加守卫返回 true | 行为（Go 崩溃路径→合法匹配；非基线） | 上游潜在 bug，AGENTS §6 保守处置 | 生效 |
 | D-003 | 2026-07-11 | ast 生成器 | 可空性按 04 §2.2 横切规则（Go 指针→全可空），不采纳 02 §8.1/8.3 示例的 optional 非空推断 | 类型签名（编译期；非基线） | 实证三处 member/base optional 不一致会迫使 `!` 扩散 | 生效 |
 | D-004 | 2026-07-11 | tools/generator | 输入副本置于 `_scripts/` 子目录而非 04 §1.1 平铺——schema.ts 以相对路径定位 ast.json，平铺须打补丁破坏 sha256 钉扎 | 工作区布局（非基线） | 保逐字节副本优先；README 已注记 | 生效 |
+| D-007 | 2026-07-11 | core/LinkStore.cs | plan/03 §5.2 的 `ReferenceEqualityComparer.Instance`（BCL，`IEqualityComparer<object?>`，接口不变型）无法充当 `IEqualityComparer<K>`——改用自研泛型 `Ts.Core.ReferenceEqualityComparer<T> where T:class` | 编译期（语义等价；非基线） | plan 片段不可编译，03 §5.2 / 05 §7.5 应改名此泛型包装（并影响 checker HashSet<Type> 站点）| 生效 |
 | D-005 | 2026-07-11 | vfs/Internal/Common.cs | DecodeBytes 无 BOM 路径对**无效 UTF-8** 的替换粒度：Go 按 rune 迭代逐无效字节产一个 U+FFFD，.NET Encoding.UTF8 按最大无效子序列产一个 U+FFFD；有效 UTF-8 双方逐字符等价 | 行为（仅无效 UTF-8 源文件；conformance 语料待核） | C# string=UTF-16 边界（plan/01），BCL 解码器语义；AGENTS §6 登记备查 | 生效 |
 | D-006 | 2026-07-11 | vfs/FileProvider.cs | IFileProvider 失败以 null 表达、不携错误明细；WalkDir 算法在 stat/ReadDir 失败时给回调传 `VfsUtil.ErrNotExist` 哨兵而非 Go 的 \*PathError | 行为（walkFn 的 err 身份；tsgo 生产 walkFn 均只判空/吞掉，唯 fourslash 基架 errors.Is(fs.ErrNotExist)——阶段 9 前重估） | plan/05 §4 就地消费判据；survey 证据见 vfs 移植会话 | 生效 |
 
