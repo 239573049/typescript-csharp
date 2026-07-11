@@ -122,7 +122,7 @@
 | symlinks | 4 | 134 | 单测绿 | — | KnownSymlinks 双向缓存（SyncMap 按 Path 键）；8 Go 测试全移植（含线程安全→Parallel.For） |
 | outputpaths | 4 | 307 | 单测绿 | — | emit 路径组合（GetOutputPathsFor/GetOutputExtension/GetCommonSourceDirectory）；经真实 SourceFile 的新单测；§1.5 复用 TsPath 类==命名空间尾 先例 |
 | diagnosticwriter | 4 | 506 | 未开始 | — | **阻塞：需 diagnostic.Localize/Format(阶段9 locale) + scanner.GetECMALineAndUTF16CharacterOfPosition**；errors.txt 字节承重面，不宜留桩；随阶段 9 locale 落地（或补最小 Localize 提前） |
-| compiler | 4–6 | 5,658 | 未开始 | — | **阻塞：program/fileloader/checkerpool/emitter 焊死具体 checker.Checker(阶段5)/printer(阶段6) 类型，无法接口占位**；清晰落地序=先起阶段 5 checker 骨架提供具体类型→再本包 + fileloader→module→binder smoke；symlinks/outputpaths 已先行拆出 |
+| compiler | 4–6 | 5,658 | 移植中 | — | **前端管线打通**：FileLoader(ProcessAllProgramFiles/module.Resolver/import·typeref·lib 解析)+FilesParser(并行 WorkGroup/SyncMap 发现)+Host+Program(NewProgram=load→bind→pool，真实 BindSourceFiles)+CheckerPool 对接具体 Program；3 文件传递 import 图 smoke 证明加载→解析→模块解析→绑定；emit/诊断编排/CommonSourceDirectory 桩（阶段5/6）；修复 PackageId 零值去重坍缩 bug |
 | checker | 5 | 59,822 | 移植中 | — | **骨架落地**（17 文件）：types.go 24 类严格单继承树（真实）+ ~320 字段 Checker + Keys(CacheHashKey/XxHash128/KeyBuilder/哨兵) + NewChecker 逐行真实构造 + newType/newObjectType/驻留原语真实 + CheckerPool(N×index%N×Lock) + Program/Host 接口（解锁 compiler.Program）；~55 check* 桩锚定 plan/03 §4.2 的 22 partial 待分簇填充；5 smoke 测试 |
 | evaluator | 5 | 168 | 单测绿 | — | 常量折叠全量（前缀一元/二元数值全运算含 ** 右结合/字符串拼接/模板/字面量/实体委托）+ AnyToString/IsTruthy；17 测试经真实 parser+jsnum 验证 |
 | nodebuilder | 5 | 78 | 单测绿 | — | ISymbolTracker 接口 + Flags/InternalFlags 枚举（printer emit resolver 用，阶段 6）；无单测视同达成 |

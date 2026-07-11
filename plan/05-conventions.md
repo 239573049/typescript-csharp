@@ -720,6 +720,8 @@ var s = sb.ToString();
 
 ## 9. struct 值语义 vs class
 
+**⚠️ struct 零值字符串字段陷阱（2026-07-11 compiler PackageId 教训）**：Go struct 的字符串零值是 `""`，C# `default(T).StringField` 是 **null**。Go 里 `pkgId.Name != ""`（无包文件为 false）直译成 C# `pkgId.Name != ""` 会变 `null != ""` = **true**，导致所有无包文件在去重 map 里坍缩到同一个空 PackageId（实测只有根文件幸存）。**铁律：readonly (record) struct 的字符串字段与 Go 零值 `""` 比较，一律用 `string.IsNullOrEmpty(x)` 而非 `x != ""`/`x == ""`**；或在类型上把这些字段初始化为 `""`。同类：`default(结构).数组字段` 是 null（Go 是 nil，range/len 安全）——见 12-risks R04。
+
 ### 9.1 保持 C# struct 的类型（白名单制）
 
 **默认规则：Go struct → C# class**（tsgo 中绝大多数 struct 经指针使用，身份语义）。仅下列几类保持/转为 struct：
