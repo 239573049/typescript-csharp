@@ -157,6 +157,8 @@ public virtual DeclarationBase? DeclarationData() => null;
 
 `internal/<pkg>` → `Ts.<Pkg>`（主计划 §三：`internal/ast`→`Ts.Ast`）。多词包名 Pascal 连写：`tspath`→`Ts.TsPath`、`jsnum`→`Ts.JsNum`、`stringutil`→`Ts.StringUtil`、`tsoptions`→`Ts.TsOptions`、`modulespecifiers`→`Ts.ModuleSpecifiers`、`jsonrpc`→`Ts.JsonRpc`。物理归属（哪个 csproj）见 06-module-inventory.md。Go 调用点 `core.Filter(...)` → C# `Core.Filter(...)`（静态类 `Ts.Core.Core` 太拗口：包级函数集中到与包同名的静态类，如 `Ts.Core` 命名空间下 `static class Core`；文件级函数多的包可按 Go 文件分静态类，见 §2）。宿主类钦定一例（裁决 R7）：ast 生成的 `Is*` 节点守卫统一落 `Ts.Ast.NodeTests` 静态类——对应原版 TypeScript 的 `factory/nodeTests.ts`，域忠实。
 
+**命名冲突硬规则（2026-07-11 教训，避免 CS0234 别名遮蔽）**：当 Go 包/子包映射为一个**同名静态类**（如 baseline 包 → 类 `Baseline`），该类**不得**落入末段同名的命名空间——即禁止 `namespace Ts.TestUtil.Baseline; class Baseline`。否则 `Ts.TestUtil.Baseline.X` 会被解析为命名空间而非类，且 `using Ns.Baseline;` 会遮蔽 `using Baseline = Ns.Baseline.Baseline;` 别名。裁定：类落在**父命名空间**（`namespace Ts.TestUtil; class Baseline`），子文件夹只作物理组织不进命名空间段；跨包引用包级函数一律**全限定或 global::**（`global::Ts.StringUtil.StringUtil.SplitLines`），不依赖易被同名命名空间遮蔽的 `using` 别名。同理 `Ts.TsPath` 命名空间下的**品牌 struct `Path`** 与**静态类 `TsPath`** 并存：包级函数在 `TsPath`（`Ts.TsPath.TsPath.GetBaseFileName`），勿误写 `Ts.TsPath.Path.X`。
+
 ---
 
 ## 2. 文件映射（1:1）
