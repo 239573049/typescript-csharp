@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Ts.Core;
 
-// Go: internal/core/core.go — partial port (phase 0): only SameMap, which generated
-// VisitEachChild bodies use for raw node slices (plan/04 §2.2 #10 maps core.SameMap
-// to Ts.Core.CoreUtil.SameMap). The full core.go port (phase 1) extends this class,
-// keeping Go source order within that port.
-public static class CoreUtil
+// Go: internal/core/core.go — the SameMap member landed in phase 0 for generated
+// VisitEachChild bodies over raw node slices (plan/04 §2.2 #10 maps core.SameMap to
+// Ts.Core.CoreUtil.SameMap). The remaining ~70 core.go helpers are ported (in Go
+// source order) onto this same partial class in the sibling Core.cs.
+public static partial class CoreUtil
 {
     // core.go:151-165 — returns the input slice unchanged (same reference) when f
     // maps every element to itself; Go's `mapped != value` on pointers is reference
