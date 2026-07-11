@@ -50,7 +50,9 @@ public class TypeNodesTests
     [Theory]
     [InlineData("string", TypeFlags.String)]
     [InlineData("number", TypeFlags.Number)]
-    // [InlineData("boolean", TypeFlags.Boolean)] — booleanType = getUnionType([false,true]); a Union, and getUnionType is a skeleton stand-in (later wave). Re-enable after UnionIntersection cluster.
+    // booleanType = getUnionType([false,true]) — a union carrying the Boolean flag once both
+    // constituents are boolean literals (getUnionTypeFromSortedList, checker.go:25657-25659).
+    [InlineData("boolean", TypeFlags.Boolean)]
     [InlineData("bigint", TypeFlags.BigInt)]
     [InlineData("void", TypeFlags.Void)]
     [InlineData("undefined", TypeFlags.Undefined)]

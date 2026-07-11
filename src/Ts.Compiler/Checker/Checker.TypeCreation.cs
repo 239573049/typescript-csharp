@@ -318,22 +318,10 @@ public partial class Checker
         return t;
     }
 
-    // MINIMAL-BUILD stand-ins for constructor support. Full getUnionTypeWorker reduction/interning
-    // (checker.go §17) and getTemplateLiteralType interning (checker.go §15) land in later waves.
-    internal Type GetUnionType(Type[] types)
-    {
-        // PORT-NOTE: skeleton stand-in — no reduction/dedup/interning.
-        if (types.Length == 0)
-        {
-            return neverType!;
-        }
-        if (types.Length == 1)
-        {
-            return types[0];
-        }
-        return NewUnionType(ObjectFlags.None, types);
-    }
+    // getUnionType / getUnionTypeWorker (real reduction) now live in Checker.UnionIntersection.cs (#17).
 
+    // MINIMAL-BUILD stand-in for constructor support. Full getTemplateLiteralType interning
+    // (checker.go §15) lands in a later wave.
     internal Type GetTemplateLiteralType(string[] texts, Type[] types)
     {
         // PORT-NOTE: skeleton stand-in — no normalization/interning.

@@ -31,9 +31,8 @@ public partial class Checker
     // ---- symbol resolution / symbol types (#10/#11) ----
     internal Symbol? GetParentOfSymbol(Symbol symbol) => throw new NotImplementedException("getParentOfSymbol");
     internal Symbol? GetSymbolOfNode(Node node) => throw new NotImplementedException("getSymbolOfNode");
-    internal bool SymbolIsValueEx(Symbol symbol, bool includeTypeOnlyMembers) => throw new NotImplementedException("symbolIsValueEx");
+    // symbolIsValueEx / createSymbolWithType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal bool IsNamedMember(Symbol symbol, string id) => throw new NotImplementedException("isNamedMember");
-    internal Symbol CreateSymbolWithType(Symbol source, Type? t) => throw new NotImplementedException("createSymbolWithType");
     internal Symbol GetSpreadSymbol(Symbol prop, bool isReadonly) => throw new NotImplementedException("getSpreadSymbol");
     internal ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => throw new NotImplementedException("getDeclarationModifierFlagsFromSymbol");
     internal Type GetFlowTypeInConstructor(Symbol symbol, Node constructor) => throw new NotImplementedException("getFlowTypeInConstructor");
@@ -43,21 +42,15 @@ public partial class Checker
     internal bool IsSpreadableProperty(Symbol prop) => throw new NotImplementedException("isSpreadableProperty");
     internal bool IsSymbolAssigned(Symbol symbol) => throw new NotImplementedException("isSymbolAssigned");
     internal bool IsKnownSymbol(Symbol symbol) => throw new NotImplementedException("IsKnownSymbol");
-    internal Type GetLiteralTypeFromProperty(Symbol prop, TypeFlags include, bool includeNonPublic) => throw new NotImplementedException("getLiteralTypeFromProperty");
-    internal Type GetLiteralTypeFromPropertyName(Node? name) => throw new NotImplementedException("getLiteralTypeFromPropertyName");
-    internal Symbol? GetPropertyOfObjectType(Type t, string name) => throw new NotImplementedException("getPropertyOfObjectType");
+    // getLiteralTypeFromProperty (26617) / getLiteralTypeFromPropertyName (26640) implemented in Checker.IndexedAccess.cs (#18).
+    // getPropertyOfObjectType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal Symbol? GetPropertyOfUnionOrIntersectionType(Type t, string name, bool skipObjectFunctionPropertyAugment) => throw new NotImplementedException("getPropertyOfUnionOrIntersectionType");
 
     // ---- instantiation (#14) ----
-    internal Type GetReducedApparentType(Type t) => throw new NotImplementedException("getReducedApparentType");
-    internal Type GetBaseConstraintOrType(Type t) => throw new NotImplementedException("getBaseConstraintOrType");
-    internal Signature[]? InstantiateSignatures(Signature[]? signatures, TypeMapper mapper) => throw new NotImplementedException("instantiateSignatures");
-    internal Symbol[]? InstantiateSymbols(Symbol[]? symbols, TypeMapper mapper) => throw new NotImplementedException("instantiateSymbols");
-    internal IndexInfo[]? InstantiateIndexInfos(IndexInfo[]? infos, TypeMapper mapper) => throw new NotImplementedException("instantiateIndexInfos");
-    internal Type[]? InstantiateTypes(Type[]? types, TypeMapper mapper) => throw new NotImplementedException("instantiateTypes");
-    internal Type CloneTypeParameter(Type tp) => throw new NotImplementedException("cloneTypeParameter");
-    internal Type[]? FillMissingTypeArguments(Type[]? typeArguments, Type[]? typeParameters, int minTypeArgumentCount, bool isJavaScriptImplicitAny) => throw new NotImplementedException("fillMissingTypeArguments");
-    internal int GetMinTypeArgumentCount(Type[]? typeParameters) => throw new NotImplementedException("getMinTypeArgumentCount");
+    // getReducedApparentType / instantiateSignatures / instantiateSymbols / instantiateIndexInfos /
+    // instantiateTypes / cloneTypeParameter / fillMissingTypeArguments / getMinTypeArgumentCount
+    // implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
+    // getBaseConstraintOrType (27294) implemented in Checker.IndexedAccess.cs (#18).
     internal InferenceContext NewInferenceContext(Type[]? typeParameters, Signature? signature, InferenceFlags flags, TypeComparer? compareTypes) => throw new NotImplementedException("newInferenceContext");
     internal Type? GetEffectiveRestType(Signature signature) => throw new NotImplementedException("getEffectiveRestType");
     internal void ApplyToParameterTypes(Signature source, Signature target, Action<Type, Type> callback) => throw new NotImplementedException("applyToParameterTypes");
@@ -70,19 +63,16 @@ public partial class Checker
     internal Type CloneTypeReference(Type source) => throw new NotImplementedException("cloneTypeReference");
 
     // ---- union / intersection (#17) ----
-    internal Type GetUnionTypeEx(Type[]? types, UnionReduction unionReduction, TypeAlias? alias, Type? origin) => throw new NotImplementedException("getUnionTypeEx");
-    internal Type GetUnionOrIntersectionType(Type[]? types, bool isUnion, UnionReduction unionReduction) => throw new NotImplementedException("getUnionOrIntersectionType");
-    internal Type FilterType(Type t, Func<Type, bool> f) => throw new NotImplementedException("filterType");
-    internal bool IsEmptyObjectType(Type t) => throw new NotImplementedException("isEmptyObjectType");
+    // getUnionTypeEx / getUnionOrIntersectionType / filterType / isEmptyObjectType / isPatternLiteralType
+    // (25536/25518/26447/26374/26405) implemented in Checker.UnionIntersection.cs (#17).
 
     // ---- indexed access / mapped (#18) ----
-    internal Type GetIndexedAccessType(Type objectType, Type indexType) => throw new NotImplementedException("getIndexedAccessType");
+    // getIndexedAccessType (26789) implemented in Checker.IndexedAccess.cs (#18).
     internal Type SliceTupleType(Type t, int index, int endSkipCount) => throw new NotImplementedException("sliceTupleType");
     internal void ResolveMappedTypeMembers(Type t) => throw new NotImplementedException("resolveMappedTypeMembers");
     internal void ResolveReverseMappedTypeMembers(Type t) => throw new NotImplementedException("resolveReverseMappedTypeMembers");
     internal void ResolveUnionTypeMembers(Type t) => throw new NotImplementedException("resolveUnionTypeMembers");
     internal void ResolveIntersectionTypeMembers(Type t) => throw new NotImplementedException("resolveIntersectionTypeMembers");
-    internal bool IsPatternLiteralType(Type t) => throw new NotImplementedException("isPatternLiteralType");
 
     // ---- widening / initializer inference ----
     internal Type WidenTypeInferredFromInitializer(Node declaration, Type t) => throw new NotImplementedException("widenTypeInferredFromInitializer");
@@ -95,7 +85,7 @@ public partial class Checker
     internal Type GetTypeWithFacts(Type t, TypeFacts include) => throw new NotImplementedException("getTypeWithFacts");
     internal Type GetAdjustedTypeWithFacts(Type t, TypeFacts facts) => throw new NotImplementedException("getAdjustedTypeWithFacts");
     internal bool IsTypeAssignableTo(Type source, Type target) => throw new NotImplementedException("isTypeAssignableTo");
-    internal bool IsTypeAssignableToKind(Type source, TypeFlags kind) => throw new NotImplementedException("isTypeAssignableToKind");
+    // isTypeAssignableToKind (27507) implemented in Checker.Constraints.cs (#19).
     internal bool IsValidSpreadType(Type t) => throw new NotImplementedException("isValidSpreadType");
     internal bool IsMatchingReference(Node source, Node target) => throw new NotImplementedException("isMatchingReference");
     internal bool HasDefaultValue(Node node) => throw new NotImplementedException("hasDefaultValue");
@@ -132,7 +122,7 @@ public partial class Checker
     // ---- diagnostics helpers ----
     internal void ErrorOrSuggestion(bool isError, Node? location, global::Ts.Diagnostics.Message? message, params object?[] args) => throw new NotImplementedException("errorOrSuggestion");
     internal string TypeToStringEx(Type t, Node? enclosingDeclaration, TypeFormatFlags flags, object? writer) => throw new NotImplementedException("typeToStringEx");
-    internal Diagnostic? ElaborateNeverIntersection(Diagnostic? chain, Node? errorNode, Type t) => throw new NotImplementedException("elaborateNeverIntersection");
+    // elaborateNeverIntersection implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal Diagnostic? NewDiagnosticChainForNode(Diagnostic? details, Node? node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("NewDiagnosticChainForNode");
 
     // ---- ast helpers with no C# home yet ----

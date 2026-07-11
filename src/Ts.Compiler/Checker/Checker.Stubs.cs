@@ -36,32 +36,25 @@ public partial class Checker
     internal void OnSuccessfullyResolvedSymbol(Node? errorLocation, Symbol symbol, SymbolFlags meaning, Node? lastLocation, Node? associatedDeclarationForContainingInitializerOrBindingName, bool withinDeferredContext) => throw new NotImplementedException("onSuccessfullyResolvedSymbol");
 
     // Constructor closures.
-    internal int CompareSymbolsWorker(Symbol a, Symbol b) => throw new NotImplementedException("compareSymbolsWorker");
-
+    // compareSymbolsWorker (utilities.go:343) implemented in Checker.TypeOps.Support.cs (needed by CompareTypes).
     internal int CompareSymbolChainsWorker(Symbol[] a, Symbol[] b) => throw new NotImplementedException("compareSymbolChainsWorker");
 
     // evaluateEntity (23932), getUniqueLiteralTypeForTypeParameter (24853), restrictiveMapperWorker
     // (24433), permissiveMapperWorker (24440) implemented in Checker.TypeNodes.cs (#15).
-    internal bool IsEmptyAnonymousObjectType(Type t) => throw new NotImplementedException("IsEmptyAnonymousObjectType");
-
-    internal bool CouldContainTypeVariablesWorker(Type t) => throw new NotImplementedException("couldContainTypeVariablesWorker");
-
-    internal bool IsStringIndexSignatureOnlyTypeWorker(Type t) => throw new NotImplementedException("isStringIndexSignatureOnlyTypeWorker");
-
+    // IsEmptyAnonymousObjectType (26365) implemented in Checker.UnionIntersection.cs (#17).
+    // IsStringIndexSignatureOnlyTypeWorker (27231) implemented in Checker.IndexedAccess.cs (#18).
+    // couldContainTypeVariablesWorker / instantiateType / getTypeArguments implemented by the #14
+    // Instantiation wave (Checker.Instantiation.cs).
     internal bool MarkNodeAssignmentsWorker(Node node) => throw new NotImplementedException("markNodeAssignmentsWorker");
 
     internal Ternary CompareTypesAssignableWorker(Type source, Type target, bool reportErrors) => throw new NotImplementedException("compareTypesAssignableWorker");
 
     // Mapper / key back-references.
-    internal Type InstantiateType(Type t, TypeMapper? mapper) => throw new NotImplementedException("instantiateType");
-
     internal void InferFromIntraExpressionSites(InferenceContext context) => throw new NotImplementedException("inferFromIntraExpressionSites");
 
     internal Type GetInferredType(InferenceContext context, int index) => throw new NotImplementedException("getInferredType");
 
     internal Type MapType(Type t, Func<Type, Type> mapper) => throw new NotImplementedException("mapType");
-
-    internal Type[] GetTypeArguments(Type t) => throw new NotImplementedException("getTypeArguments");
 
     // ===== #3 construction (deep global resolution, reached only via memoized resolvers) =====
 
@@ -111,27 +104,19 @@ public partial class Checker
     // getPropertyOfType, getSignaturesOfType, getSignatureFromDeclaration, getReturnTypeOfSignature).
 
     // ===== #14 instantiation =====
-
-    internal Symbol InstantiateSymbol(Symbol symbol, TypeMapper mapper) => throw new NotImplementedException("instantiateSymbol");
-
-    internal Type GetApparentType(Type type) => throw new NotImplementedException("getApparentType");
+    // instantiateSymbol / getApparentType / getReducedType implemented by the #14 Instantiation wave.
 
     // ===== #15 type nodes =====
     // getTypeFromTypeNode and family implemented in Checker.TypeNodes.cs.
 
     // ===== #17 union / intersection =====
-
-    internal Type GetIntersectionType(Type[] types) => throw new NotImplementedException("getIntersectionType");
-
-    internal Type GetReducedType(Type type) => throw new NotImplementedException("getReducedType");
+    // getIntersectionType (25946) implemented in Checker.UnionIntersection.cs (#17).
 
     // ===== #18 indexed access =====
-
-    internal Type GetIndexType(Type type, IndexFlags indexFlags) => throw new NotImplementedException("getIndexType");
+    // getIndexType/getIndexTypeEx (26551/26555) implemented in Checker.IndexedAccess.cs (#18).
 
     // ===== #19 constraints =====
-
-    internal Type? GetBaseConstraintOfType(Type type) => throw new NotImplementedException("getBaseConstraintOfType");
+    // getBaseConstraintOfType (27302) implemented in Checker.Constraints.cs (#19).
 
     // ===== #21 contextual types =====
 

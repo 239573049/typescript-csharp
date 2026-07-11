@@ -817,28 +817,16 @@ public partial class Checker
 
     internal Type? GetInferredTypeParameterConstraint(Type t, bool omitTypeReferences) => throw new NotImplementedException("getInferredTypeParameterConstraint");
 
-    internal Type[] GetEffectiveTypeArguments(Node node, Type[] typeParameters) => throw new NotImplementedException("getEffectiveTypeArguments");
-
-    internal Type GetResolvedBaseConstraint(Type t, Node? stack) => throw new NotImplementedException("getResolvedBaseConstraint");
-
-    internal Type? GetSimplifiedTypeOrConstraint(Type type) => throw new NotImplementedException("getSimplifiedTypeOrConstraint");
-
-    internal Type? GetIndexedAccessTypeOrUndefined(Type objectType, Type indexType, AccessFlags accessFlags, Node? accessNode, Symbol? aliasSymbol) => throw new NotImplementedException("getIndexedAccessTypeOrUndefined");
-
-    internal bool IsMappedTypeGenericIndexedAccess(Type t) => throw new NotImplementedException("isMappedTypeGenericIndexedAccess");
+    // getEffectiveTypeArguments / isMappedTypeGenericIndexedAccess / getConditionalTypeInstantiation
+    // implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
+    // getResolvedBaseConstraint (27313) / getSimplifiedType (27731) / getSimplifiedTypeOrConstraint (27862)
+    // implemented in Checker.Constraints.cs (#19); getIndexedAccessTypeOrUndefined (26801) in Checker.IndexedAccess.cs (#18).
 
     internal Type SubstituteIndexedMappedType(Type objectType, Type index) => throw new NotImplementedException("substituteIndexedMappedType");
 
-    internal Type GetSimplifiedType(Type type, bool writing) => throw new NotImplementedException("getSimplifiedType");
-
-    internal Type GetConditionalTypeInstantiation(Type t, TypeMapper? mapper, bool forConstraint, TypeAlias? alias) => throw new NotImplementedException("getConditionalTypeInstantiation");
 
 
-
-
-
-
-    internal bool IsErrorType(Type type) => throw new NotImplementedException("isErrorType");
+    // isErrorType (26509) implemented in Checker.UnionIntersection.cs (#17).
 
     // getTypeOfSymbolAtLocation (checker.go:16367) — leaf public-ish query, large surface — remaining.
     internal Type GetTypeOfSymbolAtLocation(Symbol symbol, Node? location) => throw new NotImplementedException("getTypeOfSymbolAtLocation");

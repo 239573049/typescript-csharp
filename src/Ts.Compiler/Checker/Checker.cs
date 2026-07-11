@@ -115,7 +115,7 @@ public sealed partial class Checker
     internal CompilerOptions compilerOptions = null!;
     internal SourceFile[] files = [];
     internal Dictionary<SourceFile, int> fileIndexMap = null!;
-    internal Func<Symbol, Symbol, int> compareSymbols = null!;
+    internal Func<Symbol?, Symbol?, int> compareSymbols = null!;
     internal Func<Symbol[], Symbol[], int> compareSymbolChains = null!;
     internal uint TypeCount;
     internal uint SymbolCount;

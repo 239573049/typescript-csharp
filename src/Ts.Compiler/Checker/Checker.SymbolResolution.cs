@@ -1223,7 +1223,7 @@ public partial class Checker
 
 
 
-    internal Type CheckComputedPropertyName(Node node) => throw new NotImplementedException("checkComputedPropertyName");
+    // checkComputedPropertyName (26667) implemented in Checker.IndexedAccess.cs (#18).
 
     internal void AddDiagnostic(Diagnostic diagnostic) => throw new NotImplementedException("addDiagnostic");
 
