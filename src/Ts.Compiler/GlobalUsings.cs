@@ -3,3 +3,7 @@
 
 // Go: internal/stringutil/compare.go:26 `type Comparison = int`
 global using Comparison = int;
+
+// Go: internal/core/compileroptions.go:421 `type ResolutionMode = ModuleKind`
+// (ModuleKindNone | ModuleKindCommonJS | ModuleKindESNext).
+global using ResolutionMode = Ts.Core.ModuleKind;
