@@ -2710,12 +2710,155 @@ public sealed partial class Parser
         return NewModifierList(locationNode.Loc, nodes);
     }
 
-    // ── remaining JSDoc/reparser deep paths (jsdoc.go / reparser.go) — still stubs ──
-    // These belong to the @template/@callback/@augments reparse surface which pulls in a large
-    // JSDoc-cluster dependency set; left as faithful stubs (breadth-first, per task铁律10).
-    private NodeList? GatherTypeParameters(Node? j, bool typedefOrCallback) => throw new System.NotImplementedException("gatherTypeParameters");
-    private NodeList ParseCallbackTagParameters(int indent) => throw new System.NotImplementedException("parseCallbackTagParameters");
-    private Node ParseTemplateTagTypeParameter() => throw new System.NotImplementedException("parseTemplateTagTypeParameter");
-    private NodeList ParseTemplateTagTypeParameters() => throw new System.NotImplementedException("parseTemplateTagTypeParameters");
-    private Node ParseExpressionWithTypeArgumentsForAugments() => throw new System.NotImplementedException("parseExpressionWithTypeArgumentsForAugments");
+    // ── JSDoc/reparser deep paths (jsdoc.go / reparser.go) — filled once the JsDoc cluster landed ──
+
+    // reparser.go:293
+    private NodeList? GatherTypeParameters(Node? j, bool typedefOrCallback)
+    {
+        List<Node>? typeParameters = null;
+        int pos = -1;
+        int endPos = -1;
+        bool firstTemplate = true;
+        foreach (Node tag in j!.AsJSDoc().Tags!.Nodes)
+        {
+            // When a JSDoc comment contains an `@typedef` or `@callback` tag, `@template` type parameter
+            // declarations apply to the type being defined.
+            if (!typedefOrCallback && (NodeTests.IsJSDocTypedefTag(tag) || NodeTests.IsJSDocCallbackTag(tag)))
+            {
+                return null;
+            }
+            if (!NodeTests.IsJSDocTemplateTag(tag))
+            {
+                continue;
+            }
+            if (firstTemplate)
+            {
+                pos = tag.Pos;
+                firstTemplate = false;
+            }
+            endPos = tag.End;
+            Node? constraint = tag.AsJSDocTemplateTag().Constraint;
+            bool firstTypeParameter = true;
+            foreach (Node tp in tag.TypeParameters()!)
+            {
+                Node reparse;
+                if (constraint != null && firstTypeParameter)
+                {
+                    reparse = factory.NewTypeParameterDeclaration(
+                        factory.DeepCloneReparseModifiers(tp.Modifiers()),
+                        AddDeepCloneReparse(CheckNonIdentifierName(tp.Name())),
+                        AddDeepCloneReparse(constraint.Type()),
+                        null, // expression
+                        AddDeepCloneReparse(tp.AsTypeParameterDeclaration().DefaultType));
+                    FinishReparsedNode(reparse, tp);
+                }
+                else
+                {
+                    reparse = AddDeepCloneReparse(tp)!;
+                }
+                typeParameters ??= new List<Node>();
+                typeParameters.Add(reparse);
+                firstTypeParameter = false;
+            }
+        }
+        if (typeParameters == null || typeParameters.Count == 0)
+        {
+            return null;
+        }
+        return NewNodeList(new TextRange(pos, endPos), typeParameters.ToArray());
+    }
+
+    // jsdoc.go:1101
+    private NodeList ParseCallbackTagParameters(int indent)
+    {
+        var parameters = new List<Node>();
+        int pos = NodePos();
+        while (true)
+        {
+            ParserState state = Mark();
+            Node? child = ParseChildParameterOrPropertyTag(PropertyLikeParse.CallbackParameter, indent, null);
+            if (child == null)
+            {
+                Rewind(state);
+                break;
+            }
+            if (child.Kind == SyntaxKind.JSDocTemplateTag)
+            {
+                ParseErrorAtRange(child.TagName()!.Loc, global::Ts.Diagnostics.Diagnostics.A_JSDoc_template_tag_may_not_follow_a_typedef_callback_or_overload_tag);
+            }
+            else
+            {
+                parameters.Add(child);
+            }
+        }
+        return NewNodeList(new TextRange(pos, NodePos()), parameters.ToArray());
+    }
+
+    // jsdoc.go:1253
+    private Node? ParseTemplateTagTypeParameter()
+    {
+        int typeParameterPos = NodePos();
+        bool isBracketed = ParseOptionalJsdoc(SyntaxKind.OpenBracketToken);
+        if (isBracketed)
+        {
+            SkipWhitespace();
+        }
+
+        ModifierList? modifiers = ParseModifiersEx(false, true /*permitConstAsModifier*/, false);
+        Node name = ParseJSDocIdentifierName(global::Ts.Diagnostics.Diagnostics.Unexpected_token_A_type_parameter_name_was_expected_without_curly_braces);
+        Node? defaultType = null;
+        if (isBracketed)
+        {
+            SkipWhitespace();
+            ParseExpected(SyntaxKind.EqualsToken);
+            NodeFlags saveContextFlags = contextFlags;
+            SetContextFlags(NodeFlags.JSDoc, true);
+            defaultType = ParseJSDocType();
+            contextFlags = saveContextFlags;
+            ParseExpected(SyntaxKind.CloseBracketToken);
+        }
+
+        if (AstUtilities.NodeIsMissing(name))
+        {
+            return null;
+        }
+        return FinishNode(factory.NewTypeParameterDeclaration(modifiers, name, null /*constraint*/, null /*expression*/, defaultType), typeParameterPos);
+    }
+
+    // jsdoc.go:1279
+    private NodeList ParseTemplateTagTypeParameters()
+    {
+        var typeParameters = new List<Node>();
+        bool ok = true;
+        while (ok) // do-while: body runs, then continue while a comma follows
+        {
+            SkipWhitespace();
+            Node? node = ParseTemplateTagTypeParameter();
+            if (node != null)
+            {
+                typeParameters.Add(node);
+            }
+            SkipWhitespaceOrAsterisk();
+            ok = ParseOptionalJsdoc(SyntaxKind.CommaToken);
+        }
+        return NewNodeList(new TextRange(NodePos(), NodePos()), typeParameters.ToArray());
+    }
+
+    // jsdoc.go:956
+    private Node ParseExpressionWithTypeArgumentsForAugments()
+    {
+        bool usedBrace = ParseOptional(SyntaxKind.OpenBraceToken);
+        int pos = NodePos();
+        Node expression = ParsePropertyAccessEntityNameExpression();
+        scanner.SetSkipJSDocLeadingAsterisks(true);
+        NodeList? typeArguments = ParseTypeArguments();
+        scanner.SetSkipJSDocLeadingAsterisks(false);
+        Node node = FinishNode(factory.NewExpressionWithTypeArguments(expression, typeArguments), pos);
+        if (usedBrace)
+        {
+            SkipWhitespace();
+            ParseExpected(SyntaxKind.CloseBraceToken);
+        }
+        return node;
+    }
 }
