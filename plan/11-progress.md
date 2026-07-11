@@ -119,10 +119,10 @@
 | tsoptions | 4 | 6,144 | 移植中 | — | 主体移植 + 44 测试绿：CommandLineOption/声明表/enummaps/namemap/parseCompilerOptions 130 字段 switch/mergeCompilerOptions 反射→手写 per-field 表；集成方修正 672 处外层命名空间遮蔽（§1.5 强化规则）；**余 12 桩**：tsconfig JSON-source 走查/ParseJsonConfigFileContent/extends 链（依赖 ast.TryGetTextOfPropertyName + module.ResolveConfig + locale）、CommonSourceDirectory/GetOutputFileNames（依赖 outputpaths+glob）；G4.2 基线待跑批器 |
 | module | 4 | 2,780 | 单测绿 | — | resolver node16/nodenext/bundler 全算法 + exports/imports/typesVersions/symlink realpath；33 测试；G4.3 trace 夹具待 R24 |
 | packagejson | 4 | 662 | 单测绿 | — | Fields/Expected<T>/JSONValue/ExportsOrImports/Cache，STJ 流式容重复键；随 module |
-| symlinks | 4 | 134 | 未开始 | — | |
-| outputpaths | 4 | 307 | 未开始 | — | 无单测；emit 基线间接覆盖 |
-| diagnosticwriter | 4 | 506 | 未开始 | — | 输出逐字符进 errors.txt 基线 |
-| compiler | 4–6 | 5,658 | 未开始 | — | 拆移：阶段 4 fileloader/Program 子集 → 阶段 5 checkerpool → 阶段 6 emitter |
+| symlinks | 4 | 134 | 单测绿 | — | KnownSymlinks 双向缓存（SyncMap 按 Path 键）；8 Go 测试全移植（含线程安全→Parallel.For） |
+| outputpaths | 4 | 307 | 单测绿 | — | emit 路径组合（GetOutputPathsFor/GetOutputExtension/GetCommonSourceDirectory）；经真实 SourceFile 的新单测；§1.5 复用 TsPath 类==命名空间尾 先例 |
+| diagnosticwriter | 4 | 506 | 未开始 | — | **阻塞：需 diagnostic.Localize/Format(阶段9 locale) + scanner.GetECMALineAndUTF16CharacterOfPosition**；errors.txt 字节承重面，不宜留桩；随阶段 9 locale 落地（或补最小 Localize 提前） |
+| compiler | 4–6 | 5,658 | 未开始 | — | **阻塞：program/fileloader/checkerpool/emitter 焊死具体 checker.Checker(阶段5)/printer(阶段6) 类型，无法接口占位**；清晰落地序=先起阶段 5 checker 骨架提供具体类型→再本包 + fileloader→module→binder smoke；symlinks/outputpaths 已先行拆出 |
 | checker | 5 | 59,822 | 未开始 | — | 22 个 partial 拆分表以 03-checker-design.md §4.2 为唯一权威（裁决 R1）；分级门禁 25→60→90→99.5→100%（errors.txt） |
 | evaluator | 5 | 168 | 未开始 | — | 数字格式承重（const enum 内联） |
 | nodebuilder | 5 | 78 | 未开始 | — | 微包；printer 生产依赖，须前置 |
@@ -303,3 +303,4 @@
 7. **vfs.FS 接口定名 `IFileSystem` 的文档同步**：05 §1.3/§4.2 钦定 `IFileSystem`（05:1197 自注留待落型确认），vfs 落地已采用；plan/01 §9.2 表格残留 `IVfs` 字样，已在 01 §10 待澄清第 7 条登记，请 01 下次修订同步。相关命名连带裁决（本会话既成事实，供追认）：包级函数/变量宿主循 CoreUtil 先例（`VfsUtil`/`IoVfsUtil`/`WrapVfsUtil`），具体 FS 类循 01 §9.2 BundledWrapFs 先例（`CachedFs`/`TrackingFs`/`WrappedFs`/`IoFs`）；C# 保留元组名致 `SplitPath` 元素 `Rest→RestPath`。
 
 7. **core 包宿主静态类 `Core` vs `CoreUtil` 冲突（04 vs 05）**：plan/05 §1.5（命名权威，第 169 行）钦定包级函数落**与包同名的 `Core`**（并举例 binarysearch.go→`partial class Core`）；plan/04 §2.2 #10（第 167 行）却写 `core.SameMap`→`Ts.Core.CoreUtil.SameMap`，且 generate-csharp-ast.ts 已据此发射 `CoreUtil.SameMap`。实况：CoreUtil 已成事实标准（生成器 + vfs + core.go + scanner 共 ~582 处引用），仅 5 个早期文件（Pattern/TextChange/NodeModules/ProjectReference/CompilerOptions/BinarySearch）用 `Core`。二者共存、编译通过、全测试绿（cosmetic 非功能问题）。**建议裁定统一到 `CoreUtil`**（最小 churn：改 5 个 Core 文件 + 修 05 §1.5，避免动 582 处生成物与在飞 scanner），待主计划确认后统一执行；在此之前两者并存不阻塞。
+8. **阶段 4 内含阶段 5/9 依赖（Program agent 发现）**：主计划把 compiler.Program（签名含具体 `*checker.Checker`）与 diagnosticwriter（需 `Localize/Format`+locale）划入阶段 4，但二者硬依赖阶段 5 checker 类型与阶段 9 locale，无法在阶段 4 内接口占位完成。**裁定采用的落地序**：阶段 5 checker 骨架（types 24 类 + Checker 壳 + NewChecker + checkerpool 具体）先行 → 再 compiler.Program/fileloader + smoke → diagnosticwriter 随阶段 9（或补最小英文 Localize 提前）。建议主计划 09-phases 记此序。
