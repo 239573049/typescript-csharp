@@ -55,7 +55,7 @@
 |---|---|---|
 | 当前阶段 | **阶段 0（待签核，交付物齐备）+ 阶段 1（地基，进行中）并行** | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
-| 包状态达「编译通过」及以上 | 8 / 49 行（9,641 LOC = **3.2%** LOC 加权：collections、tspath、jsnum、stringutil、glob、semver、debug、repo） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
+| 包状态达「编译通过」及以上 | 10 / 49 行（15,441 LOC = **5.2%** LOC 加权：+core、vfs） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
 | 最近 conformance 通过率 | —（尚未有跑批） | §5 历史表最新行 |
 | 最近 fourslash 通过率 | —（尚未有跑批） | §5.2 历史表最新行 |
 | 已签核门禁 | 0 | §6 行数 |
@@ -96,7 +96,7 @@
 | core | 1 | 2,669 | 单测绿 | — | 全包主体移植完：小件族 + CompilerOptions 家族（130 字段声明序保真）+ core.go ~70 助手 + bfs + linkstore + context(RequestContext) + LargeStackExecutor/Version；242 Core 测试绿；UTF-16 世界观（TextPos→int/UTF16Len→Length/ECMALineStarts 按 code unit）；StringifyJson 与 ShouldRewriteModuleSpecifier 文档化隔离（前者延后 Utf8JsonWriter，后者依赖已到位可择时恢复）；arena.go 不移植；宿主类不一致：BinarySearch 在 Ts.Core.Core、core.go 助手在 Ts.Core.CoreUtil（待 06 统一） |
 | collections | 1 | 840 | 单测绿 | — | 全包 7 文件移植完（OrderedMap 流式 JSON 面按 10 §2.3 波次推迟）；7 个测试文件全绿；OrderedMap = map 序审计白名单容器 |
 | tspath | 1 | 1,435 | 单测绿 | — | 全包移植完（65 函数 Go 序；Path 品牌 record struct）；1,189 行测试全移植 88/88 绿；连带 stringutil Compare/Runes 前置（与 Go 逐码点对齐的大小写折叠）；SplitVolumePath 因元组保留名 Rest 改 bool+out（PORT-NOTE） |
-| vfs | 1 | 3,131 | 移植中 | — | 2026-07-11：核心分层落地（vfs.go/internal/iovfs/cachedvfs/wrapvfs/trackingvfs → Ts.Vfs.\*；`FS→IFileSystem` 依 05 §1.3，ReadFile→Try、写族→IOException、WalkDir→`Exception?` 值 + SkipDir/SkipAll 身份哨兵；io/fs → 自定义 IFileProvider 最小抽象；tspath 依赖以 internal TsPathShim 权宜内联，tspath 落地后删）；单测 55 项绿（含 decodeBytes BOM/UTF-16LE/BE 表驱动 21 例；vfs_test.go 仅基准→按 05 §16.1 归阶段 10）；待：osvfs/vfsmatch/vfstest/vfsmock；vfstest/vfsmock 归 Ts.TestUtil；osvfs OS 特定 |
+| vfs | 1 | 3,131 | 单测绿 | — | 全包移植完：核心分层 + osvfs（大小写探测/Realpath BCL LinkTarget/reparse→symlink）+ vfsmatch（生产 include/exclude 主引擎，MATCHING_ALGORITHM 内嵌）+ vfstest→Ts.TestUtil；TsPathShim 删除换 Ts.TsPath；116 Vfs 测试绿；vfsmock 不移植（FakeFs 替身）；VfsMatch 私有 Every/LastOrNil/Flatten 待重定向 Ts.Core.CoreUtil；osvfs Realpath 待 nativepath 落地后收敛 |
 | nativepath | 1 | 298 | 未开始 | — | 接口保形、实现换体（BCL ResolveLinkTarget），非逐行直译 |
 | jsnum | 1 | 584 | 单测绿 | — | 全包移植完，686 用例绿；52.6 万例对 Go 直接对拍零失配（发现并修复 .NET 最短往返幂次二缺陷，证据入 R05）；G1.2 夹具生成可复用其差分脚本；遗留：NumberString.cs 内私有 stringutil 谓词镜像待并回 Ts.StringUtil |
 | stringutil | 1 | 5,573 | 单测绿 | — | 全包移植完；两张表经 transcribe-unicode.ts 转写为 RVA .g.cs（11,364 行，fixtures/stringutil oracle 逐项校验）；全码点 SimpleFold/casing 对 Go 1.26.4 零分歧；WTF-8 哨兵机制在原生 UTF-16 下蒸发（签名保形）；50 测试绿 |
