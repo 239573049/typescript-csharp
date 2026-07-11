@@ -35,19 +35,7 @@ public partial class Checker
     internal void AddRelatedInfo(Diagnostic diagnostic, params Diagnostic[] relatedInformation) => throw new NotImplementedException("addRelatedInfo");
 
     // ---- grammar checks (grammar cluster) ----
-    internal bool CheckGrammarSourceFile(SourceFile node) => throw new NotImplementedException("checkGrammarSourceFile");
-    internal bool CheckGrammarStatementInAmbientContext(Node node) => throw new NotImplementedException("checkGrammarStatementInAmbientContext");
-    internal bool CheckGrammarVariableDeclarationList(VariableDeclarationList declarationList) => throw new NotImplementedException("checkGrammarVariableDeclarationList");
-    internal bool CheckGrammarForDisallowedBlockScopedVariableStatement(VariableStatement node) => throw new NotImplementedException("checkGrammarForDisallowedBlockScopedVariableStatement");
-    internal bool CheckGrammarModifiers(Node node) => throw new NotImplementedException("checkGrammarModifiers");
-    internal bool CheckGrammarVariableDeclaration(VariableDeclaration node) => throw new NotImplementedException("checkGrammarVariableDeclaration");
-    internal bool CheckGrammarBindingElement(BindingElement node) => throw new NotImplementedException("checkGrammarBindingElement");
-    internal bool CheckGrammarForInOrForOfStatement(ForInOrOfStatement node) => throw new NotImplementedException("checkGrammarForInOrForOfStatement");
-    internal bool CheckGrammarBreakOrContinueStatement(Node node) => throw new NotImplementedException("checkGrammarBreakOrContinueStatement");
-    internal bool CheckGrammarForGenerator(Node node) => throw new NotImplementedException("checkGrammarForGenerator");
-    internal void GrammarErrorOnNode(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("grammarErrorOnNode");
-    internal bool GrammarErrorOnFirstToken(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("grammarErrorOnFirstToken");
-    internal bool GrammarErrorAtPos(Node nodeForSourceFile, int start, int length, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("grammarErrorAtPos");
+    // All CheckGrammar*/GrammarErrorOn*/GrammarErrorAtPos are now REAL in Checker.Grammar.cs (grammar wave).
 
     // ---- unused-identifiers / collision / shadowing (owned by #6 unused cluster) ----
     // RegisterForUnusedIdentifiersCheck already stubbed in Stubs.cs.
@@ -146,7 +134,7 @@ public partial class Checker
     internal void CheckJSDocType(Node node) => throw new NotImplementedException("checkJSDocType");
 
     // ---- misc helpers (utilities) ----
-    internal bool ContainerAllowsBlockScopedVariable(Node node) => throw new NotImplementedException("containerAllowsBlockScopedVariable");
+    // ContainerAllowsBlockScopedVariable is now REAL in Checker.Grammar.cs (grammar wave).
     internal bool IsInAmbientOrTypeNode(Node node) => throw new NotImplementedException("isInAmbientOrTypeNode");
     // IsPrivateWithinAmbient is real in Checker.MembersSignatures.Support.cs.
 }

@@ -25,10 +25,13 @@ public sealed class CheckerEndToEndTests
         return new Program(new ProgramOptions { Host = host, Config = config, SingleThreaded = Tristate.True });
     }
 
-    // Pipeline probe: currently blocked on CheckGrammarSourceFile (the first thing CheckSourceFile
-    // calls), stubbed until the grammar-checks wave lands. Un-skip once grammar + the const-
-    // assignment check path are real; if a downstream stub is then hit, re-note the next blocker.
-    [Fact(Skip = "e2e check blocked on checkGrammarSourceFile stub (grammar-checks wave)")]
+    // Pipeline probe: CheckGrammarSourceFile (the first thing CheckSourceFile calls) is now REAL
+    // (grammar-checks wave landed), so the probe advances past grammar and blocks on the next
+    // downstream stub: IsCanceled() (checker.go isCanceled), thrown from CheckSourceFile before the
+    // const-assignment not-assignable diagnostic can be produced. Un-skip once IsCanceled and the
+    // remaining check* path (checkVariableDeclaration → resolveName → assignability) are real; if a
+    // further stub is then hit, re-note the next blocker.
+    [Fact(Skip = "e2e check blocked on isCanceled stub (advanced past grammar; deferred-diagnostics/cancellation cluster)")]
     public void ChecksSimpleAssignmentError_ProducesTypeDiagnostic()
     {
         var files = new Dictionary<string, string>

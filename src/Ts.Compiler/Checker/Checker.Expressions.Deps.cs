@@ -130,9 +130,7 @@ public partial class Checker
     internal Type CheckJsxFragment(Node node) => throw new NotImplementedException("checkJsxFragment");
     internal Type CheckJsxAttributes(Node node, CheckMode checkMode) => throw new NotImplementedException("checkJsxAttributes");
 
-    // grammar.go — grammar checks (Checker.Grammar.cs cluster).
-    internal bool CheckGrammarNumericLiteral(Node node) => throw new NotImplementedException("checkGrammarNumericLiteral");
-    internal bool CheckGrammarBigIntLiteral(Node node) => throw new NotImplementedException("checkGrammarBigIntLiteral");
+    // grammar.go — CheckGrammarNumericLiteral/CheckGrammarBigIntLiteral are now REAL in Checker.Grammar.cs (grammar wave).
 
     // checker.go — global-symbol resolution (Construction / NameLookup clusters).
     internal Symbol? GetGlobalNaNSymbolOrNil() => throw new NotImplementedException("getGlobalNaNSymbolOrNil");

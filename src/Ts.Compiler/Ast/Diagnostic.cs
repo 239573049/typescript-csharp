@@ -114,6 +114,20 @@ public sealed class Diagnostic
         return (Diagnostic)MemberwiseClone();
     }
 
+    // diagnostic.go:101-104 — Localize renders the final (localized + arg-substituted) message
+    // text for this diagnostic. Delegates to diagnostics.Localize (now landed in
+    // Ts.Diagnostics.Diagnostics.Format.cs). The diagnosticwriter (errors.txt) path consumes this.
+    public string Localize(Ts.Locale.Locale locale)
+    {
+        return global::Ts.Diagnostics.Diagnostics.Localize(locale, message, messageKey, messageArgs ?? System.Array.Empty<string>());
+    }
+
+    // diagnostic.go:106-108 — String() (debugging only): Localize with the default locale.
+    public override string ToString()
+    {
+        return global::Ts.Diagnostics.Diagnostics.Localize(Ts.Locale.Locale.Default, message, messageKey, messageArgs ?? System.Array.Empty<string>());
+    }
+
     // diagnostic.go:110-136
     public static Diagnostic NewDiagnosticFromSerialized(
         SourceFile? file,

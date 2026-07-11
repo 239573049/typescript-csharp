@@ -231,6 +231,43 @@ public sealed partial class Scanner
         return ComputeLineOfPosition(lineMap, pos);
     }
 
+    // Go: scanner.go:2682-2690
+    // GetECMALineAndUTF16CharacterOfPosition returns the 0-based line number and the
+    // UTF-16 code unit offset from the start of that line for the given byte position.
+    // Uses ECMAScript line separators (LF, CR, CRLF, LS, PS).
+    // PORT-NOTE: Go's `character core.UTF16Offset` → int (positions are UTF-16 code units,
+    // plan/01 §UTF-16); core.UTF16Len(text[lineMap[line]:pos]) == (pos - lineMap[line]) because a
+    // C# string index already IS a UTF-16 code-unit offset, so the substring's Length equals that
+    // difference. Kept as a substring-Length call to mirror the Go control flow verbatim.
+    public static (int Line, int Character) GetECMALineAndUTF16CharacterOfPosition(SourceFileLike sourceFile, int pos)
+    {
+        var lineMap = GetECMALineStarts(sourceFile);
+        var line = ComputeLineOfPosition(lineMap, pos);
+        var character = CoreUtil.UTF16Len(sourceFile.Text().Substring(lineMap[line], pos - lineMap[line]));
+        return (line, character);
+    }
+
+    // Go: scanner.go:2722-2727
+    // GetECMAPositionOfLineAndByteOffset converts a 0-based line number and byte offset
+    // from line start back to an absolute byte position in the source text.
+    // Uses ECMAScript line separators.
+    public static int GetECMAPositionOfLineAndByteOffset(SourceFileLike sourceFile, int line, int byteOffset)
+    {
+        return ComputePositionOfLineAndByteOffset(GetECMALineStarts(sourceFile), line, byteOffset);
+    }
+
+    // Go: scanner.go:2729-2736
+    // ComputePositionOfLineAndByteOffset computes a byte position from a line and
+    // raw byte offset from the line start. This is a simple addition with validation.
+    public static int ComputePositionOfLineAndByteOffset(int[] lineStarts, int line, int byteOffset)
+    {
+        if (line < 0 || line >= lineStarts.Length)
+        {
+            throw new System.InvalidOperationException($"Bad line number. Line: {line}, lineStarts.length: {lineStarts.Length}.");
+        }
+        return lineStarts[line] + byteOffset;
+    }
+
     // Go: scanner.go:2703-2712
     public static int GetECMAEndLinePosition(SourceFile sourceFile, int line)
     {
