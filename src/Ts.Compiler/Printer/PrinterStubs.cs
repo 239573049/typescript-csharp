@@ -4,8 +4,60 @@
 
 using System;
 using Ts.Ast;
+using Ts.Core;
 
 namespace Ts.Printer;
+
+// PORT-NOTE: Stubs for the remaining internal/printer/utilities.go functions that printer.go references but
+// that are not part of this emit-body wave (utilities.go is a later wave). Each throws NotImplementedException
+// naming the Go symbol. These are only reached on the comment-recognition and `preserveSourceNewlines`
+// emit paths (isJSDocLikeText / IsPinnedComment / IsRecognizedTripleSlashComment / calculateIndent /
+// siblingNodePositionsAreComparable / originalNodesHaveSameParent) and on unique-name generation with a
+// currentSourceFile (IsFileLevelUniqueName). Port them with the rest of utilities.go and remove these.
+internal static partial class PrinterUtilities
+{
+    // Go: IsFileLevelUniqueName (utilities.go:651)
+    internal static bool IsFileLevelUniqueName(SourceFile sourceFile, string name, Func<string, bool>? hasGlobalName)
+    {
+        throw new NotImplementedException("IsFileLevelUniqueName: internal/printer/utilities.go, not yet ported");
+    }
+
+    // Go: IsRecognizedTripleSlashComment (utilities.go:804)
+    internal static bool IsRecognizedTripleSlashComment(string text, CommentRange commentRange)
+    {
+        throw new NotImplementedException("IsRecognizedTripleSlashComment: internal/printer/utilities.go, not yet ported");
+    }
+
+    // Go: isJSDocLikeText (utilities.go:861)
+    internal static bool IsJSDocLikeText(string text, CommentRange comment)
+    {
+        throw new NotImplementedException("isJSDocLikeText: internal/printer/utilities.go, not yet ported");
+    }
+
+    // Go: IsPinnedComment (utilities.go:868)
+    internal static bool IsPinnedComment(string text, CommentRange comment)
+    {
+        throw new NotImplementedException("IsPinnedComment: internal/printer/utilities.go, not yet ported");
+    }
+
+    // Go: calculateIndent (utilities.go:874)
+    internal static int CalculateIndent(string text, int pos, int end)
+    {
+        throw new NotImplementedException("calculateIndent: internal/printer/utilities.go, not yet ported");
+    }
+
+    // Go: siblingNodePositionsAreComparable (utilities.go:422)
+    internal static bool SiblingNodePositionsAreComparable(EmitContext emitContext, Node previousNode, Node nextNode)
+    {
+        throw new NotImplementedException("siblingNodePositionsAreComparable: internal/printer/utilities.go, not yet ported");
+    }
+
+    // Go: originalNodesHaveSameParent (utilities.go:567)
+    internal static bool OriginalNodesHaveSameParent(EmitContext emitContext, Node nodeA, Node nodeB)
+    {
+        throw new NotImplementedException("originalNodesHaveSameParent: internal/printer/utilities.go, not yet ported");
+    }
+}
 
 internal static class PrinterStubs
 {

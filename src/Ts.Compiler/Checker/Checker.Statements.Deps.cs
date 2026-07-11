@@ -1,0 +1,152 @@
+// Single dedup surface for cross-cluster methods that the #5 statements wave CALLS but does not own.
+// They live in not-yet-landed waves (grammar, expressions/#7-#8, name lookup, unused-identifiers,
+// collision checks, external-module/import-export resolution, JSDoc, iteration types, decorators,
+// and the complex class/interface/enum declaration validators). Each throws NotImplementedException
+// so the statement call sites compile; deep runtime paths run only once the owning wave lands its
+// real implementation, at which point that wave DELETES the corresponding stub here.
+// **Do NOT implement whole missing subsystems.**
+//
+// COMPLEX-DECLARATION CHECKLIST (deferred, remaining work): full class/interface/enum/module/import/
+// export validation (checkClassDeclaration/checkClassLikeDeclaration/checkInterfaceDeclaration/
+// checkEnumDeclaration/checkEnumMember/checkModuleDeclaration/checkImport*/checkExport*), the
+// decorator checks (checkDecorators/checkDecorator), signature/method/accessor/constructor/parameter/
+// property checks, the type-node checks (checkTypeReferenceNode..checkMappedType), the whole
+// iteration-types family (checkIteratedTypeOrElementType and its ~40 helpers, checker.go:6074-6713),
+// type-parameter checks, and the override/index/member-conflict validators. These are stubbed below
+// with their goName and belong to a follow-up statements pass.
+//
+// §1.5: diagnostics via `using Diag = ...`; cross-package classes shadowed by sibling namespaces
+// are `global::`-qualified where referenced.
+
+using System;
+using Ts.Ast;
+using Ts.Core;
+
+namespace Ts.Checker;
+
+public partial class Checker
+{
+    // ---- diagnostics / error reporting (owned by #9 diagnostics; some already stubbed elsewhere) ----
+    // Error / ErrorOrSuggestion / NewDiagnosticForNode already stubbed in Stubs.cs / Deps surfaces.
+    internal void AddErrorOrSuggestion(bool isError, Diagnostic diagnostic) => throw new NotImplementedException("addErrorOrSuggestion");
+    internal void ErrorAndMaybeSuggestAwait(Node? location, bool maybeMissingAwait, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("errorAndMaybeSuggestAwait");
+    internal Diagnostic? ErrorOrNil(Node? location, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("error");
+    // CreateDiagnosticForNode is real in Checker.Relater.cs.
+    internal void AddRelatedInfo(Diagnostic diagnostic, params Diagnostic[] relatedInformation) => throw new NotImplementedException("addRelatedInfo");
+
+    // ---- grammar checks (grammar cluster) ----
+    internal bool CheckGrammarSourceFile(SourceFile node) => throw new NotImplementedException("checkGrammarSourceFile");
+    internal bool CheckGrammarStatementInAmbientContext(Node node) => throw new NotImplementedException("checkGrammarStatementInAmbientContext");
+    internal bool CheckGrammarVariableDeclarationList(VariableDeclarationList declarationList) => throw new NotImplementedException("checkGrammarVariableDeclarationList");
+    internal bool CheckGrammarForDisallowedBlockScopedVariableStatement(VariableStatement node) => throw new NotImplementedException("checkGrammarForDisallowedBlockScopedVariableStatement");
+    internal bool CheckGrammarModifiers(Node node) => throw new NotImplementedException("checkGrammarModifiers");
+    internal bool CheckGrammarVariableDeclaration(VariableDeclaration node) => throw new NotImplementedException("checkGrammarVariableDeclaration");
+    internal bool CheckGrammarBindingElement(BindingElement node) => throw new NotImplementedException("checkGrammarBindingElement");
+    internal bool CheckGrammarForInOrForOfStatement(ForInOrOfStatement node) => throw new NotImplementedException("checkGrammarForInOrForOfStatement");
+    internal bool CheckGrammarBreakOrContinueStatement(Node node) => throw new NotImplementedException("checkGrammarBreakOrContinueStatement");
+    internal bool CheckGrammarForGenerator(Node node) => throw new NotImplementedException("checkGrammarForGenerator");
+    internal void GrammarErrorOnNode(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("grammarErrorOnNode");
+    internal bool GrammarErrorOnFirstToken(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("grammarErrorOnFirstToken");
+    internal bool GrammarErrorAtPos(Node nodeForSourceFile, int start, int length, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("grammarErrorAtPos");
+
+    // ---- unused-identifiers / collision / shadowing (owned by #6 unused cluster) ----
+    // RegisterForUnusedIdentifiersCheck already stubbed in Stubs.cs.
+    internal void CheckUnusedRenamedBindingElements() => throw new NotImplementedException("checkUnusedRenamedBindingElements");
+    internal void CheckUnusedIdentifiers(Node[] identifierCheckNodes) => throw new NotImplementedException("checkUnusedIdentifiers");
+    internal void CheckCollisionsForDeclarationName(Node node, Node? name) => throw new NotImplementedException("checkCollisionsForDeclarationName");
+    internal void CheckVarDeclaredNamesNotShadowed(Node node) => throw new NotImplementedException("checkVarDeclaredNamesNotShadowed");
+
+    // ---- deferred diagnostics / cancellation ----
+    internal void ProduceDeferredDiagnostics() => throw new NotImplementedException("produceDeferredDiagnostics");
+    internal bool IsCanceled() => throw new NotImplementedException("isCanceled");
+
+    // ---- expressions (#7/#8) ----
+    // CheckExpression / CheckExpressionCached already stubbed in Stubs.cs; GetResolvedSymbolOrNil elsewhere.
+    internal Type CheckTruthinessExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkTruthinessExpression");
+    // CheckReferenceExpression owned by the operator-expressions cluster.
+    internal Type CheckDestructuringAssignment(Node exprOrAssignment, Type rightType, CheckMode checkMode, bool rightIsThis) => throw new NotImplementedException("checkDestructuringAssignment");
+    internal bool IsTypeAssertion(Node node) => throw new NotImplementedException("isTypeAssertion");
+
+    // ---- symbol / node location helpers (#10/#11 symbol resolution) ----
+    internal Symbol? GetSymbolAtLocation(Node node, bool ignoreErrors) => throw new NotImplementedException("getSymbolAtLocation");
+
+    // ---- type comparison / awaited / iteration (relater/#22/iteration) ----
+    // IsTypeEqualityComparableTo owned by the operator-expressions cluster.
+    internal Type? GetAwaitedTypeOfPromise(Type t) => throw new NotImplementedException("getAwaitedTypeOfPromise");
+    // CheckIteratedTypeOrElementType already stubbed in Checker.MembersSignatures.Deps.cs (iteration family, deferred).
+
+    // ---- containers / global types (construction / global resolution) ----
+    internal Node? GetContainingFunctionOrClassStaticBlock(Node node) => throw new NotImplementedException("getContainingFunctionOrClassStaticBlock");
+    internal Type GetGlobalDisposableType() => throw new NotImplementedException("getGlobalDisposableType");
+    internal Type GetGlobalAsyncDisposableType() => throw new NotImplementedException("getGlobalAsyncDisposableType");
+    internal void CheckExternalEmitHelpers(Node location, ExternalEmitHelpers helpers) => throw new NotImplementedException("checkExternalEmitHelpers");
+
+    // ---- non-null / property helpers (members/type ops) ----
+    internal Type CheckNonNullNonVoidType(Type t, Node node) => throw new NotImplementedException("checkNonNullNonVoidType");
+    internal void MarkPropertyAsReferenced(Symbol prop, Node? nodeForCheckWriteOnly, bool isSelfTypeAccess) => throw new NotImplementedException("markPropertyAsReferenced");
+    internal bool CheckPropertyAccessibility(Node node, bool isSuper, bool writing, Type type, Symbol prop) => throw new NotImplementedException("checkPropertyAccessibility");
+
+    // ---- contextual / implicit-any / signatures (#21 / signatures) ----
+    internal Signature? GetContextualCallSignature(Type type, Node node) => throw new NotImplementedException("getContextualCallSignature");
+
+    // ---- function/constructor symbol checks (owned by later statements pass) ----
+    internal void CheckFunctionOrConstructorSymbol(Symbol symbol) => throw new NotImplementedException("checkFunctionOrConstructorSymbol");
+    internal void CheckAllCodePathsInNonVoidFunctionReturnOrThrow(Node fn, Type? returnType) => throw new NotImplementedException("checkAllCodePathsInNonVoidFunctionReturnOrThrow");
+    internal bool IsUnwrappedReturnTypeUndefinedVoidOrAny(Node fn, Type returnType) => throw new NotImplementedException("isUnwrappedReturnTypeUndefinedVoidOrAny");
+
+    // ---- deferred node worker (deferred-check cluster) ----
+    internal void CheckDeferredNodeWorker(Node node) => throw new NotImplementedException("checkDeferredNodeWorker");
+
+    // ---- signature/member/type-node declaration checks (complex declaration validators, deferred) ----
+    internal void CheckTypeParameter(Node node) => throw new NotImplementedException("checkTypeParameter");
+    internal void CheckParameter(Node node) => throw new NotImplementedException("checkParameter");
+    internal void CheckPropertyDeclaration(Node node) => throw new NotImplementedException("checkPropertyDeclaration");
+    internal void CheckPropertySignature(Node node) => throw new NotImplementedException("checkPropertySignature");
+    internal void CheckSignatureDeclaration(Node node) => throw new NotImplementedException("checkSignatureDeclaration");
+    internal void CheckMethodDeclaration(Node node) => throw new NotImplementedException("checkMethodDeclaration");
+    internal void CheckClassStaticBlockDeclaration(Node node) => throw new NotImplementedException("checkClassStaticBlockDeclaration");
+    internal void CheckConstructorDeclaration(Node node) => throw new NotImplementedException("checkConstructorDeclaration");
+    internal void CheckAccessorDeclaration(Node node) => throw new NotImplementedException("checkAccessorDeclaration");
+    internal void CheckTypeReferenceNode(Node node) => throw new NotImplementedException("checkTypeReferenceNode");
+    internal void CheckTypePredicate(Node node) => throw new NotImplementedException("checkTypePredicate");
+    internal void CheckTypeQuery(Node node) => throw new NotImplementedException("checkTypeQuery");
+    internal void CheckTypeLiteral(Node node) => throw new NotImplementedException("checkTypeLiteral");
+    internal void CheckArrayType(Node node) => throw new NotImplementedException("checkArrayType");
+    internal void CheckTupleType(Node node) => throw new NotImplementedException("checkTupleType");
+    internal void CheckUnionOrIntersectionType(Node node) => throw new NotImplementedException("checkUnionOrIntersectionType");
+    internal void CheckThisType(Node node) => throw new NotImplementedException("checkThisType");
+    internal void CheckTypeOperator(Node node) => throw new NotImplementedException("checkTypeOperator");
+    internal void CheckConditionalType(Node node) => throw new NotImplementedException("checkConditionalType");
+    internal void CheckInferType(Node node) => throw new NotImplementedException("checkInferType");
+    internal void CheckTemplateLiteralType(Node node) => throw new NotImplementedException("checkTemplateLiteralType");
+    internal void CheckImportType(Node node) => throw new NotImplementedException("checkImportType");
+    internal void CheckNamedTupleMember(Node node) => throw new NotImplementedException("checkNamedTupleMember");
+    internal void CheckIndexedAccessType(Node node) => throw new NotImplementedException("checkIndexedAccessType");
+    internal void CheckMappedType(Node node) => throw new NotImplementedException("checkMappedType");
+    internal void CheckDecorators(Node node) => throw new NotImplementedException("checkDecorators");
+    internal void CheckTypeParameters(Node[] typeParameterDeclarations) => throw new NotImplementedException("checkTypeParameters");
+
+    // ---- complex declaration validators (class/interface/enum/module/import/export), deferred ----
+    internal void CheckClassDeclaration(Node node) => throw new NotImplementedException("checkClassDeclaration");
+    internal void CheckInterfaceDeclaration(Node node) => throw new NotImplementedException("checkInterfaceDeclaration");
+    internal void CheckEnumDeclaration(Node node) => throw new NotImplementedException("checkEnumDeclaration");
+    internal void CheckEnumMember(Node node) => throw new NotImplementedException("checkEnumMember");
+    internal void CheckModuleDeclaration(Node node) => throw new NotImplementedException("checkModuleDeclaration");
+    internal void CheckImportDeclaration(Node node) => throw new NotImplementedException("checkImportDeclaration");
+    internal void CheckImportEqualsDeclaration(Node node) => throw new NotImplementedException("checkImportEqualsDeclaration");
+    internal void CheckExportDeclaration(Node node) => throw new NotImplementedException("checkExportDeclaration");
+    internal void CheckExportAssignment(Node node) => throw new NotImplementedException("checkExportAssignment");
+    internal void CheckExternalModuleExports(Node node) => throw new NotImplementedException("checkExternalModuleExports");
+    internal void CheckAliasSymbol(Node node) => throw new NotImplementedException("checkAliasSymbol");
+    internal void CheckExportsOnMergedDeclarations(Node node) => throw new NotImplementedException("checkExportsOnMergedDeclarations");
+    internal bool AreDeclarationFlagsIdentical(Node left, Node right) => throw new NotImplementedException("areDeclarationFlagsIdentical");
+
+    // ---- JSDoc comment checks (JSDoc cluster) ----
+    internal void CheckJSDocComments(Node node) => throw new NotImplementedException("checkJSDocComments");
+    internal void CheckJSDocType(Node node) => throw new NotImplementedException("checkJSDocType");
+
+    // ---- misc helpers (utilities) ----
+    internal bool ContainerAllowsBlockScopedVariable(Node node) => throw new NotImplementedException("containerAllowsBlockScopedVariable");
+    internal bool IsInAmbientOrTypeNode(Node node) => throw new NotImplementedException("isInAmbientOrTypeNode");
+    // IsPrivateWithinAmbient is real in Checker.MembersSignatures.Support.cs.
+}

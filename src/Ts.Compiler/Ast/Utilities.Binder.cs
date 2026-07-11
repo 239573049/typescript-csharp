@@ -494,6 +494,14 @@ public static partial class AstUtilities
         return (ancestors[..n], ancestors[n]);
     }
 
+    // Go: utilities.go:2424-2428
+    public static bool IsInstantiatedModule(Node node, bool preserveConstEnums)
+    {
+        var moduleState = GetModuleInstanceState(node);
+        return moduleState == ModuleInstanceState.Instantiated ||
+            (preserveConstEnums && moduleState == ModuleInstanceState.ConstEnumOnly);
+    }
+
     // Go: utilities.go:2303-2305
     public static ModuleInstanceState GetModuleInstanceState(Node node)
     {

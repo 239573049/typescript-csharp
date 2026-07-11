@@ -16,7 +16,8 @@ public partial class Checker
     // getTypeOfExpression / checkExpression / checkExpressionCached / checkNonNullExpression /
     // getResolvedSymbol / getResolvedSymbolOrNil / checkRightHandSideOfForOf / checkIteratedTypeOrElementType
     // are stubbed by other Members/Signatures/Stubs dedup surfaces (already present).
-    internal Type GetContextFreeTypeOfExpression(Node node) => throw new NotImplementedException("getContextFreeTypeOfExpression");
+    // getContextFreeTypeOfExpression (checker.go:7519) — real body landed in Checker.Expressions.cs (#7 wave).
+    internal Type GetContextFreeTypeOfExpression(Node node) => GetContextFreeTypeOfExpressionCore(node);
     internal Type CheckNonNullType(Type t, Node node) => throw new NotImplementedException("checkNonNullType");
     internal Type GetOptionalExpressionType(Type exprType, Node expression) => throw new NotImplementedException("getOptionalExpressionType");
     internal Type CheckSuperExpression(Node node) => throw new NotImplementedException("checkSuperExpression");

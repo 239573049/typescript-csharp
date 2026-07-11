@@ -666,6 +666,24 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.ClassDeclaration || node.Kind == SyntaxKind.ClassExpression || node.Kind == SyntaxKind.InterfaceDeclaration;
     }
 
+    // utilities.go:3009-3016
+    public static bool IsVariableLike(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.EnumMember:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.ShorthandPropertyAssignment:
+            case SyntaxKind.VariableDeclaration:
+                return true;
+        }
+        return false;
+    }
+
     // utilities.go:539-552
     public static bool IsClassElement(Node node)
     {

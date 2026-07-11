@@ -62,26 +62,27 @@ public partial class Checker
     internal Symbol? GetGlobalTypeAliasSymbol(string name, int arity, bool reportErrors) => throw new NotImplementedException("getGlobalTypeAliasSymbol");
 
     // ===== #5 statements / source elements =====
-
-    internal void CheckSourceFile(SourceFile node) => throw new NotImplementedException("checkSourceFile");
-
-    internal void CheckSourceElement(Node? node) => throw new NotImplementedException("checkSourceElement");
+    // CheckSourceFile / CheckSourceElement implemented in Checker.Statements.cs (#5).
 
     // ===== #6 unused identifiers =====
 
     internal void RegisterForUnusedIdentifiersCheck(Node node) => throw new NotImplementedException("registerForUnusedIdentifiersCheck");
 
     // ===== #7 expressions =====
+    // Dispatch trunk landed in Checker.Expressions.cs; these are the canonical entry wrappers
+    // (checker.go:7530 checkExpression, 7490 checkExpressionCached).
 
-    internal Type CheckExpression(Node node) => throw new NotImplementedException("checkExpression");
+    internal Type CheckExpression(Node node) => CheckExpressionCore(node);
 
-    internal Type CheckExpressionCached(Node node) => throw new NotImplementedException("checkExpressionCached");
+    internal Type CheckExpressionCached(Node node) => CheckExpressionCachedEx(node, CheckMode.Normal);
 
     // ===== #8 operator expressions =====
+    // Real bodies landed in Checker.OperatorExpressions.cs (checkBinaryExpression 12293,
+    // getResolvedSymbol 13814).
 
-    internal Type CheckBinaryExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkBinaryExpression");
+    internal Type CheckBinaryExpression(Node node, CheckMode checkMode) => CheckBinaryExpressionCore(node, checkMode);
 
-    internal Symbol GetResolvedSymbol(Node node) => throw new NotImplementedException("getResolvedSymbol");
+    internal Symbol GetResolvedSymbol(Node node) => GetResolvedSymbolCore(node);
 
     // ===== #9 diagnostics =====
 

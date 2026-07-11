@@ -56,7 +56,7 @@ public partial class Checker
     internal void PopContextualType() => throw new NotImplementedException("popContextualType");
     internal Type CheckArrayLiteral(Node node, CheckMode checkMode) => throw new NotImplementedException("checkArrayLiteral");
     internal Node GetEffectiveCheckNode(Node node) => throw new NotImplementedException("getEffectiveCheckNode");
-    internal bool IsExactOptionalPropertyMismatch(Type? source, Type? target) => throw new NotImplementedException("isExactOptionalPropertyMismatch");
+    // isExactOptionalPropertyMismatch (13076): real body landed in Checker.OperatorExpressions.cs (#8 wave).
 
     // isValidNumberString / isValidBigIntString stubbed in Checker.Inference.Deps.cs.
 }

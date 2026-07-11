@@ -1217,9 +1217,8 @@ public partial class Checker
 
     internal void AddDeprecatedSuggestion(Node? location, Node[] declarations, string deprecatedEntity) => throw new NotImplementedException("addDeprecatedSuggestion");
 
-    internal global::Ts.Diagnostics.Message? GetCannotFindNameDiagnosticForName(Node node) => throw new NotImplementedException("getCannotFindNameDiagnosticForName");
-
-    internal Symbol? GetResolvedSymbolOrNil(Node node) => throw new NotImplementedException("getResolvedSymbolOrNil");
+    // getCannotFindNameDiagnosticForName (13839) / getResolvedSymbolOrNil (13827): real bodies landed
+    // in Checker.OperatorExpressions.cs (#8 wave).
 
 
 

@@ -17,8 +17,8 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // ---- expressions (#7/#8) ----
-    internal Type CheckExpressionCachedEx(Node node, CheckMode checkMode) => throw new NotImplementedException("checkExpressionCachedEx");
-    internal Type CheckExpressionEx(Node node, CheckMode checkMode) => throw new NotImplementedException("checkExpressionEx");
+    // checkExpressionCachedEx (7494) / checkExpressionEx (7534): real bodies landed in
+    // Checker.Expressions.cs (#7 wave) — stubs removed from here.
     internal Type CheckExpressionForMutableLocation(Node node, CheckMode checkMode) => throw new NotImplementedException("checkExpressionForMutableLocation");
     internal Type CheckNonNullExpression(Node node) => throw new NotImplementedException("checkNonNullExpression");
     internal Type CheckIteratedTypeOrElementType(IterationUse use, Type inputType, Type sentinelType, Node? errorNode) => throw new NotImplementedException("checkIteratedTypeOrElementType");
