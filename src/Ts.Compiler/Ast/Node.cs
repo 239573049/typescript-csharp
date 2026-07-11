@@ -17,7 +17,7 @@ public delegate bool Visitor(Node node);
 // AsMutable and the §4.4 switch accessors) lands with the phase-3 ast package port —
 // note that some of those introduce member names that will require `new`/shadowing
 // decisions against generated mixin properties (tracked in the phase-0 work log).
-public abstract partial class Node
+public abstract partial class Node : IKindString
 {
     public SyntaxKind Kind;
     public NodeFlags Flags;
