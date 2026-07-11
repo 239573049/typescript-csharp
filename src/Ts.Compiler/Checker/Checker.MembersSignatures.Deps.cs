@@ -112,7 +112,7 @@ public partial class Checker
 
     // ---- diagnostics helpers ----
     internal void ErrorOrSuggestion(bool isError, Node? location, global::Ts.Diagnostics.Message? message, params object?[] args) => throw new NotImplementedException("errorOrSuggestion");
-    internal string TypeToStringEx(Type t, Node? enclosingDeclaration, TypeFormatFlags flags, object? writer) => throw new NotImplementedException("typeToStringEx");
+    // TypeToStringEx: real implementation in Checker.TypeToString.cs (phase-5 type-display wave).
     // elaborateNeverIntersection implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal Diagnostic? NewDiagnosticChainForNode(Diagnostic? details, Node? node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("NewDiagnosticChainForNode");
 

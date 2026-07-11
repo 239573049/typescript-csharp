@@ -43,7 +43,54 @@ public partial class Checker
     internal void CheckUnusedRenamedBindingElements() => throw new NotImplementedException("checkUnusedRenamedBindingElements");
     internal void CheckUnusedIdentifiers(Node[] identifierCheckNodes) => throw new NotImplementedException("checkUnusedIdentifiers");
     internal void CheckCollisionsForDeclarationName(Node node, Node? name) => throw new NotImplementedException("checkCollisionsForDeclarationName");
-    internal void CheckVarDeclaredNamesNotShadowed(Node node) => throw new NotImplementedException("checkVarDeclaredNamesNotShadowed");
+
+    // resolveName (checker.go) — core name resolution, owned by the NameLookup wave. Stubbed until then.
+    internal Symbol? ResolveName(Node? location, string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? nameNotFoundMessage, bool isUse, bool excludeGlobals) => throw new NotImplementedException("resolveName");
+
+    // checkVarDeclaredNamesNotShadowed (checker.go): a function-scoped (var) declaration with an
+    // initializer must not step on a block-scoped (let/const) declaration hoisted from an outer scope.
+    // Block-scoped declarations (const/let) and parameters early-return — the common case, incl. the
+    // e2e probe's `const x`. The function-scoped-var shadowing branch routes through resolveName (NameLookup wave).
+    internal void CheckVarDeclaredNamesNotShadowed(Node node)
+    {
+        // skip block-scoped variables and parameters
+        if ((GetCombinedNodeFlagsCached(node) & NodeFlags.BlockScoped) != 0 || AstUtilities.IsPartOfParameterDeclaration(node))
+        {
+            return;
+        }
+        Symbol symbol = GetSymbolOfDeclaration(node)!;
+        Node name = node.Name()!;
+        if ((symbol.Flags & SymbolFlags.FunctionScopedVariable) != 0)
+        {
+            if (!NodeTests.IsIdentifier(name))
+            {
+                throw new global::System.InvalidOperationException("Identifier expected");
+            }
+            Symbol? localDeclarationSymbol = ResolveName(node, name.Text(), SymbolFlags.Variable, null /*nameNotFoundMessage*/, false /*isUse*/, false);
+            if (localDeclarationSymbol != null && localDeclarationSymbol != symbol && (localDeclarationSymbol.Flags & SymbolFlags.BlockScopedVariable) != 0)
+            {
+                if ((GetDeclarationNodeFlagsFromSymbol(localDeclarationSymbol) & NodeFlags.BlockScoped) != 0)
+                {
+                    Node? varDeclList = AstUtilities.FindAncestorKind(localDeclarationSymbol.ValueDeclaration, SyntaxKind.VariableDeclarationList);
+                    Node? container = null;
+                    if (NodeTests.IsVariableStatement(varDeclList!.Parent!) && varDeclList.Parent!.Parent != null)
+                    {
+                        container = varDeclList.Parent.Parent;
+                    }
+                    // names of block-scoped and function scoped variables can collide only if the block-scoped
+                    // variable is defined in the function/module/source-file scope (because of variable hoisting)
+                    bool namesShareScope = container != null && (
+                        (NodeTests.IsBlock(container) && AstUtilities.IsFunctionLike(container.Parent)) ||
+                        NodeTests.IsModuleBlock(container) || NodeTests.IsModuleDeclaration(container) || NodeTests.IsSourceFile(container));
+                    if (!namesShareScope)
+                    {
+                        string nameStr = SymbolToString(localDeclarationSymbol);
+                        Error(node, global::Ts.Diagnostics.Diagnostics.Cannot_initialize_outer_scoped_variable_0_in_the_same_scope_as_block_scoped_declaration_1, nameStr, nameStr);
+                    }
+                }
+            }
+        }
+    }
 
     // ---- deferred diagnostics / cancellation (checker.go / utilities.go) ----
     // produceDeferredDiagnostics (checker.go): run each queued callback, then clear the queue.
