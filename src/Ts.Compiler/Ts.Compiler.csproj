@@ -13,13 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- In-flight ahead-of-order port: Tracing.cs references Ts.Ast.Node/Symbol,
-         which land in phase 3/4. Excluded so the tree stays green (AGENTS.md §4-10);
-         remove this line when the Ast types exist and Tracing compiles. -->
-    <Compile Remove="Tracing/**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- 07-aot-constraints.md §5.2: explicit, stable logical names. Runtime reads
          via Assembly.GetManifestResourceStream("bundled/libs/<name>"); lib
          discovery goes through the generated Bundled.LibNames, never through
