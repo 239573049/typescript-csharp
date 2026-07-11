@@ -26,13 +26,9 @@ public static class NodeJSDocAccessors
         }
         if (file.hasLazyJSDoc)
         {
-            // PORT-NOTE: resolveJSDoc (ast.go:2612) requires the parser hook parseJSDocForNode,
-            // which is deferred until the parser lands (see SourceFile.cs SCOPE note). Lazy-JSDoc
-            // source files are therefore not yet supported through this accessor; eager JSDoc
-            // (populated in jsdocCache at parse time) is fully supported. Fails loudly rather than
-            // silently diverging from Go behaviour.
-            throw new NotImplementedException(
-                "SourceFile lazy JSDoc resolution (resolveJSDoc) requires the not-yet-ported parser JSDoc hook");
+            // resolveJSDoc (ast.go:2612): parse JSDoc lazily on first access. The parser package
+            // registers the hook (JSDocLazyResolve.ParseForNode) at module init.
+            return file.ResolveJSDoc(node);
         }
         // Go reads file.jsdocCache[node]; a nil map yields nil. jsdocCache may be null here.
         return file.jsdocCache?.GetValueOrDefault(node);
