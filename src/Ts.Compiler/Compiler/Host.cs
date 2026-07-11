@@ -1,0 +1,104 @@
+// Ported from tsgo internal/compiler/host.go.
+//
+// §1.5 (namespace shadowing): sibling-namespace static classes (Parser, TsPath, Core, TsOptions)
+// are written global::Ts.<Pkg>.<Class>; CoreUtil is not a namespace name.
+
+using System;
+using Ts.Ast;
+using Ts.Vfs;
+
+namespace Ts.Compiler;
+
+// host.go:14-21 — the compiler host contract. Extends module.ResolutionHost (FS + GetCurrentDirectory)
+// so it can be passed straight to module.NewResolver, matching Go where the loader hands opts.Host
+// (a CompilerHost) to the resolver as a module.ResolutionHost.
+public interface CompilerHost : global::Ts.Module.ResolutionHost
+{
+    // FS() and GetCurrentDirectory() are inherited from ResolutionHost.
+    string DefaultLibraryPath();
+
+    void Trace(global::Ts.Diagnostics.Message msg, params object?[] args);
+
+    SourceFile? GetSourceFile(SourceFileParseOptions opts);
+
+    global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path);
+}
+
+// host.go:25-31
+internal sealed class CompilerHostImpl : CompilerHost
+{
+    private readonly string currentDirectory;
+    private readonly IFileSystem fs;
+    private readonly string defaultLibraryPath;
+    private readonly global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache;
+    private readonly Action<global::Ts.Diagnostics.Message, object?[]> trace;
+
+    private CompilerHostImpl(
+        string currentDirectory,
+        IFileSystem fs,
+        string defaultLibraryPath,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache,
+        Action<global::Ts.Diagnostics.Message, object?[]>? trace)
+    {
+        this.currentDirectory = currentDirectory;
+        this.fs = fs;
+        this.defaultLibraryPath = defaultLibraryPath;
+        this.extendedConfigCache = extendedConfigCache;
+        this.trace = trace ?? ((_, _) => { });
+    }
+
+    // host.go:33-41
+    public static CompilerHost NewCachedFSCompilerHost(
+        string currentDirectory,
+        IFileSystem fs,
+        string defaultLibraryPath,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache,
+        Action<global::Ts.Diagnostics.Message, object?[]>? trace)
+    {
+        return NewCompilerHost(currentDirectory, global::Ts.Vfs.CachedVfs.CachedFs.From(fs), defaultLibraryPath, extendedConfigCache, trace);
+    }
+
+    // host.go:43-60
+    public static CompilerHost NewCompilerHost(
+        string currentDirectory,
+        IFileSystem fs,
+        string defaultLibraryPath,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache,
+        Action<global::Ts.Diagnostics.Message, object?[]>? trace)
+    {
+        return new CompilerHostImpl(currentDirectory, fs, defaultLibraryPath, extendedConfigCache, trace);
+    }
+
+    // host.go:62-64
+    public IFileSystem FS() => fs;
+
+    // host.go:66-68
+    public string DefaultLibraryPath() => defaultLibraryPath;
+
+    // host.go:70-72
+    public string GetCurrentDirectory() => currentDirectory;
+
+    // host.go:74-76
+    public void Trace(global::Ts.Diagnostics.Message msg, params object?[] args) => trace(msg, args);
+
+    // host.go:78-84
+    public SourceFile? GetSourceFile(SourceFileParseOptions opts)
+    {
+        if (!FS().TryReadFile(opts.FileName, out var text))
+        {
+            return null;
+        }
+        return global::Ts.Parser.Parser.ParseSourceFile(opts, text, global::Ts.Core.CoreUtil.GetScriptKindFromFileName(opts.FileName));
+    }
+
+    // host.go:86-89
+    // PORT-NOTE (phase 4/5): reached only when project references are configured. The Go body calls
+    // tsoptions.GetParsedCommandLineOfConfigFilePath, whose C# equivalent + its ParseConfigHost wiring
+    // are part of the deferred project-reference surface. Returns null until that lands; the loader's
+    // project-reference path (addProjectReferenceTasks) is a no-op when there are no references.
+    public global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path)
+    {
+        _ = extendedConfigCache;
+        return null;
+    }
+}
