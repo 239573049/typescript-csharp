@@ -86,10 +86,23 @@ public partial class Checker
 
     // ===== #9 diagnostics =====
 
-    internal Diagnostic[] GetDiagnostics(SourceFile? sourceFile) => throw new NotImplementedException("GetDiagnostics");
+    // checker.go:13875 GetDiagnostics — check the file, then return its collected diagnostics.
+    internal Diagnostic[] GetDiagnostics(SourceFile? sourceFile) => GetDiagnosticsWorker(sourceFile!, diagnostics);
 
-    // Aggregated by the checker pool. Empty for the skeleton (no checking is performed).
-    public Diagnostic[] GetGlobalDiagnostics() => [];
+    // checker.go:13883 getDiagnostics
+    private Diagnostic[] GetDiagnosticsWorker(SourceFile sourceFile, DiagnosticsCollection collection)
+    {
+        bool checkUnused = compilerOptions.NoUnusedLocals.IsTrue() || compilerOptions.NoUnusedParameters.IsTrue() || ReferenceEquals(collection, suggestionDiagnostics);
+        CheckSourceFile(sourceFile, checkUnused);
+        if (wasCanceled)
+        {
+            return [];
+        }
+        return collection.GetDiagnosticsForFile(sourceFile.FileName());
+    }
+
+    // checker.go:13894 GetGlobalDiagnostics
+    public Diagnostic[] GetGlobalDiagnostics() => diagnostics.GetGlobalDiagnostics();
 
     // ===== #10 symbol resolution =====
 
