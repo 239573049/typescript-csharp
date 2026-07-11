@@ -53,9 +53,9 @@
 
 | 指标 | 当前值 | 口径 |
 |---|---|---|
-| 当前阶段 | **阶段 1（地基）基本完成 → 阶段 2（scanner）进行中**；阶段 0 待远端 CI 签核 | 首个未签核阶段 |
+| 当前阶段 | **阶段 2（scanner）移植完成（单测绿，G2.1 差分待夹具）→ 阶段 3（AST 手写面 + parser）待开工**；阶段 0 待远端 CI 签核 | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
-| 包状态达「编译通过」及以上 | 11 / 49 行（15,739 LOC = **5.3%** LOC 加权：+nativepath） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
+| 包状态达「编译通过」及以上 | 12 / 49 行（19,995 LOC = **6.7%** LOC 加权：+scanner） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
 | 最近 conformance 通过率 | —（尚未有跑批） | §5 历史表最新行 |
 | 最近 fourslash 通过率 | —（尚未有跑批） | §5.2 历史表最新行 |
 | 已签核门禁 | 0 | §6 行数 |
@@ -107,7 +107,7 @@
 | debug | 1 | 61 | 单测绿 | — | 吸收为 Ts.Core.Debug 静态类（DebugFailureException←panic）；4 项单测绿（commit 286d047） |
 | repo | 1 | 87 | 单测绿 | — | Ts.TestUtil/RepoPaths.cs（slnx 标记根遍历 + xunit v3 动态 skip）；无产品程序集引用；无单测视同达成（commit 286d047） |
 | json | 1 | 100 | N/A | — | 不移植：薄封装消失，调用点直用 STJ（06 §10.1） |
-| scanner | 2 | 4,256 | 未开始 | — | 门禁：全语料 token 流 diff 100%；UTF-16 code unit 步进系统性改写 |
+| scanner | 2 | 4,256 | 单测绿 | — | 全包移植完（scanner/regexp/unicodeproperties/utilities，UTF-16 世界观：char→text[pos]、DecodeRuneAt、PositionMap 删除）；65 单测绿；十六/二/八进制 TokenValue 经 jsnum 归一十进制（tsgo 行为）；两处 UTF-16 规格差异 PORT-NOTE（正则裸 LS/PS、pendingLowSurrogate 蒸发，09 §5.6 授权取移植口径）；AST 依赖函数（行图/注释范围）顺延阶段 3；**G2.1 全语料 token 流差分待 dumptool tokens 导出器就绪后另跑签核** |
 | ast | 3 | 20,847 | 移植中 | — | 生成面已落地（Ast/*.g.cs ×7 + stringers，11,924 行，计数与 Go 对齐，幂等，commit cc149c8）+13 个手写配套（Node 虚表/NodeList/Factory/Visitor/flags/Flow/Symbol·SourceFile 最小骨架）；待：ast.go 手写面全量与 jsdoc 桥；阶段 3 注意——BinaryExpression.setModifiers 已生成勿重复（ast.go:2056）、便捷访问器与 mixin 属性同名需遮蔽决策；positionmap.go 不移植 |
 | parser | 3 | 9,071 | 未开始 | — | 深递归 0 号风险主现场；门禁：AST 转储 + 诊断(code,pos,len)三元组 100% |
 | astnav | 3 | 783 | 未开始 | — | |
