@@ -11,6 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Ports of Go package-private helpers (patience uniqueElements/makeHunks/typeSymbol,
+         etc.) stay `internal`, mirroring Go visibility; the test assembly exercises them. -->
+    <InternalsVisibleTo Include="Ts.Compiler.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- global usings are per-compilation; share the generated AST alias set by
          linking the file (plan/04-codegen.md §2.2 #5). -->
     <Compile Include="../../src/Ts.Compiler/Ast/GlobalUsings.g.cs" Link="Ast/GlobalUsings.g.cs" />
