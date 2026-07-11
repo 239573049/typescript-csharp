@@ -147,7 +147,7 @@ public static class OsVfsUtil
         {
             subdir = "typescript";
         }
-        return TsPathApi.CombinePaths(cacheDir, subdir, VersionMajorMinor());
+        return TsPathApi.CombinePaths(cacheDir, subdir, TsVersion.VersionMajorMinor());
     }
 
     // Go: filepath.FromSlash — '/' → OS separator (identity on POSIX).
@@ -188,31 +188,6 @@ public static class OsVfsUtil
         return xdg;
     }
 
-    // Go: core.VersionMajorMinor (internal/core/version.go). PORT-NOTE: core.go is a separate
-    // work item; this local port mirrors versionMajorMinor exactly against Ts.Core.TsVersion.
-    private static string VersionMajorMinor()
-    {
-        string version = TsVersion.Value;
-        bool seenMajor = false;
-        int i = -1;
-        for (int k = 0; k < version.Length; k++)
-        {
-            if (version[k] == '.')
-            {
-                if (seenMajor)
-                {
-                    i = k;
-                    break;
-                }
-                seenMajor = true;
-            }
-        }
-        if (i == -1)
-        {
-            throw new InvalidOperationException("invalid version string: " + version);
-        }
-        return version[..i];
-    }
 }
 
 // Go: os.DirFS(root) — a concrete IFileProvider reading the real disk rooted at `root`.
