@@ -20,11 +20,8 @@ internal sealed class ObjectRestSpreadTransformer : Transformer
 
     private Node Visit(Node node)
     {
-        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsESObjectRestOrSpread) == 0)
-        {
-            return node;
-        }
-
+        // PORT-NOTE: The current C# parser does not yet aggregate this SubtreeFacts bit onto
+        // SourceFile. Traverse unconditionally until that infrastructure surface is complete.
         // Save the expressionResultIsUnused flag set by the parent for this node,
         // then reset to false for children (the default). Specific cases below override as needed.
         var savedExpressionResultIsUnused = expressionResultIsUnused;
@@ -145,7 +142,7 @@ internal sealed class ObjectRestSpreadTransformer : Transformer
 
     private Node VisitObjectLiteralExpression(ObjectLiteralExpression node)
     {
-        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsObjectRestOrSpread) == 0)
+        if (!HasSpreadAssignment(node.Properties))
         {
             return Visitor().VisitEachChild(node.AsNode())!;
         }
@@ -212,6 +209,22 @@ internal sealed class ObjectRestSpreadTransformer : Transformer
             objects.Add(Factory().NewObjectLiteralExpression(Factory().NewNodeList(chunkObject.ToArray()), false));
         }
         return objects;
+    }
+
+    private static bool HasSpreadAssignment(NodeList? list)
+    {
+        if (list is null)
+        {
+            return false;
+        }
+        foreach (var element in list.Nodes)
+        {
+            if (element.Kind == SyntaxKind.SpreadAssignment)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     // TODO(estransforms): Port parameter/catch/for-of body rewriting from objectrestspread.go.

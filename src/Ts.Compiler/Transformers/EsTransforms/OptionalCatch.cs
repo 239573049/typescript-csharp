@@ -10,11 +10,8 @@ internal sealed class OptionalCatchTransformer : Transformer
 
     private Node Visit(Node node)
     {
-        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsMissingCatchClauseVariable) == 0)
-        {
-            return node;
-        }
-
+        // PORT-NOTE: The current C# parser does not yet aggregate this SubtreeFacts bit onto
+        // SourceFile. Traverse unconditionally until that infrastructure surface is complete.
         return node.Kind == SyntaxKind.CatchClause
             ? VisitCatchClause(node.AsCatchClause())
             : Visitor().VisitEachChild(node)!;

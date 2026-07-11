@@ -15,10 +15,8 @@ internal sealed class TaggedTemplateTransformer : Transformer
 
     private Node Visit(Node node)
     {
-        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsInvalidTemplateEscape) == 0)
-        {
-            return node;
-        }
+        // PORT-NOTE: The current C# parser does not yet aggregate this SubtreeFacts bit onto
+        // SourceFile. Traverse unconditionally until that infrastructure surface is complete.
         return node.Kind switch
         {
             SyntaxKind.SourceFile => VisitSourceFile(node.AsSourceFile()),

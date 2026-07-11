@@ -11,11 +11,16 @@ internal sealed class OptionalChainTransformer : Transformer
 
     private Node Visit(Node node)
     {
-        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsOptionalChaining) == 0)
+        // PORT-NOTE: The current C# parser does not yet aggregate this SubtreeFacts bit onto
+        // SourceFile. Traverse unconditionally until that infrastructure surface is complete.
+        // Preserve the Go fast-path for synthesized output from an earlier transform: visiting
+        // it again is unnecessary and the currently partial generated visitor surface can erase
+        // optional children on synthesized declarations.
+        if (AstUtilities.NodeIsSynthesized(node) &&
+            (node.SubtreeFacts() & SubtreeFacts.SubtreeContainsOptionalChaining) == 0)
         {
             return node;
         }
-
         return node.Kind switch
         {
             SyntaxKind.CallExpression => VisitCallExpression(node.AsCallExpression(), false),

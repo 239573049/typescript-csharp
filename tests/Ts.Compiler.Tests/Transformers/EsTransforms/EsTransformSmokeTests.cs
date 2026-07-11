@@ -31,17 +31,27 @@ public sealed class EsTransformSmokeTests
         return transformer.TransformSourceFile(Parse(text));
     }
 
-    private static Node FirstVariableInitializer(SourceFile sourceFile) =>
-        sourceFile.Statements!.Nodes[0]
-            .AsVariableStatement()
-            .DeclarationList!
-            .AsVariableDeclarationList()
-            .Declarations!
-            .Nodes[0]
-            .AsVariableDeclaration()
-            .Initializer!;
+    private static Node FirstVariableInitializer(SourceFile sourceFile)
+    {
+        foreach (var statement in sourceFile.Statements!.Nodes)
+        {
+            if (!NodeTests.IsVariableStatement(statement))
+            {
+                continue;
+            }
+            foreach (var declaration in statement.AsVariableStatement().DeclarationList!
+                .AsVariableDeclarationList().Declarations!.Nodes)
+            {
+                if (declaration.Initializer() is { } initializer)
+                {
+                    return initializer;
+                }
+            }
+        }
+        throw new System.InvalidOperationException("Expected an initialized variable declaration");
+    }
 
-    [Fact(Skip = "estransforms transform output WIP (breadth-first port); re-enable after the transform-correctness follow-up pass")]
+    [Fact]
     public void Exponentiation_LowersToMathPowCall()
     {
         var transformed = Transform("const value = left ** right;", ScriptTarget.ES2015);
@@ -53,7 +63,7 @@ public sealed class EsTransformSmokeTests
         Assert.Equal(2, call.Arguments!.Nodes.Length);
     }
 
-    [Fact(Skip = "estransforms transform output WIP (breadth-first port); re-enable after the transform-correctness follow-up pass")]
+    [Fact]
     public void NullishCoalescing_LowersToConditionalExpression()
     {
         var transformed = Transform("const value = getValue() ?? fallback;", ScriptTarget.ES2019);
@@ -64,7 +74,7 @@ public sealed class EsTransformSmokeTests
         Assert.Equal("fallback", conditional.WhenFalse!.Text());
     }
 
-    [Fact(Skip = "estransforms transform output WIP (breadth-first port); re-enable after the transform-correctness follow-up pass")]
+    [Fact]
     public void LogicalAssignment_LowersToShortCircuitAndAssignment()
     {
         var transformed = Transform("value ||= fallback;", ScriptTarget.ES2020);
@@ -75,7 +85,7 @@ public sealed class EsTransformSmokeTests
         Assert.Equal(SyntaxKind.EqualsToken, binary.Right.Expression()!.AsBinaryExpression().OperatorToken!.Kind);
     }
 
-    [Fact(Skip = "estransforms transform output WIP (breadth-first port); re-enable after the transform-correctness follow-up pass")]
+    [Fact]
     public void OptionalCatch_InsertsGeneratedCatchVariable()
     {
         var transformed = Transform("try { work(); } catch { recover(); }", ScriptTarget.ES2018);
@@ -88,14 +98,15 @@ public sealed class EsTransformSmokeTests
             tryStatement.CatchClause.AsCatchClause().VariableDeclaration!.Name()!.Kind);
     }
 
-    [Fact(Skip = "estransforms transform output WIP (breadth-first port); re-enable after the transform-correctness follow-up pass")]
+    [Fact]
     public void ObjectSpread_LowersToAssignHelperCall()
     {
         var transformed = Transform("const value = { a: 1, ...other, b: 2 };", ScriptTarget.ES2017);
         var call = FirstVariableInitializer(transformed).AsCallExpression();
 
-        Assert.Equal(SyntaxKind.Identifier, call.Expression!.Kind);
-        Assert.Equal("__assign", call.Expression.Text());
+        Assert.Equal(SyntaxKind.PropertyAccessExpression, call.Expression!.Kind);
+        Assert.Equal("Object", call.Expression.Expression()!.Text());
+        Assert.Equal("assign", call.Expression.Name()!.Text());
         Assert.Equal(2, call.Arguments!.Nodes.Length);
     }
 

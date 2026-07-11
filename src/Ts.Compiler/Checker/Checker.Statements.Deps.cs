@@ -6,14 +6,15 @@
 // real implementation, at which point that wave DELETES the corresponding stub here.
 // **Do NOT implement whole missing subsystems.**
 //
-// COMPLEX-DECLARATION CHECKLIST (deferred, remaining work): full class/interface/enum/module/import/
-// export validation (checkClassDeclaration/checkClassLikeDeclaration/checkInterfaceDeclaration/
-// checkEnumDeclaration/checkEnumMember/checkModuleDeclaration/checkImport*/checkExport*), the
-// decorator checks (checkDecorators/checkDecorator), signature/method/accessor/constructor/parameter/
-// property checks, the type-node checks (checkTypeReferenceNode..checkMappedType), the whole
-// iteration-types family (checkIteratedTypeOrElementType and its ~40 helpers, checker.go:6074-6713),
-// type-parameter checks, and the override/index/member-conflict validators. These are stubbed below
-// with their goName and belong to a follow-up statements pass.
+// COMPLEX-DECLARATION CHECKLIST: the class/interface/enum/module/import/export validators
+// (checkClassDeclaration/checkClassLikeDeclaration/checkInterfaceDeclaration/checkEnumDeclaration/
+// checkEnumMember/checkModuleDeclaration/checkImport*/checkExport*), plus the signature/method/
+// accessor/constructor/parameter/property/type-parameter checks and the type-node checks
+// (checkTypeReferenceNode..checkMappedType) are now REAL in Checker.Declarations.cs (complex-
+// declaration long-tail wave). checkDecorators is REAL in Checker.Statements.cs. Still deferred:
+// the whole iteration-types family (checkIteratedTypeOrElementType and its ~40 helpers,
+// checker.go:6074-6713) and the deep override/index/member-conflict analysis those validators call —
+// single-dedup stubbed in Checker.Declarations.Deps.cs / Checker.MembersSignatures.Deps.cs.
 //
 // §1.5: diagnostics via `using Diag = ...`; cross-package classes shadowed by sibling namespaces
 // are `global::`-qualified where referenced.
@@ -96,54 +97,23 @@ public partial class Checker
     // ---- deferred node worker (deferred-check cluster) ----
     internal void CheckDeferredNodeWorker(Node node) => throw new NotImplementedException("checkDeferredNodeWorker");
 
-    // ---- signature/member/type-node declaration checks (complex declaration validators, deferred) ----
-    internal void CheckTypeParameter(Node node) => throw new NotImplementedException("checkTypeParameter");
-    internal void CheckParameter(Node node) => throw new NotImplementedException("checkParameter");
-    internal void CheckPropertyDeclaration(Node node) => throw new NotImplementedException("checkPropertyDeclaration");
-    internal void CheckPropertySignature(Node node) => throw new NotImplementedException("checkPropertySignature");
-    internal void CheckSignatureDeclaration(Node node) => throw new NotImplementedException("checkSignatureDeclaration");
-    internal void CheckMethodDeclaration(Node node) => throw new NotImplementedException("checkMethodDeclaration");
-    internal void CheckClassStaticBlockDeclaration(Node node) => throw new NotImplementedException("checkClassStaticBlockDeclaration");
-    internal void CheckConstructorDeclaration(Node node) => throw new NotImplementedException("checkConstructorDeclaration");
-    internal void CheckAccessorDeclaration(Node node) => throw new NotImplementedException("checkAccessorDeclaration");
-    internal void CheckTypeReferenceNode(Node node) => throw new NotImplementedException("checkTypeReferenceNode");
-    internal void CheckTypePredicate(Node node) => throw new NotImplementedException("checkTypePredicate");
-    internal void CheckTypeQuery(Node node) => throw new NotImplementedException("checkTypeQuery");
-    internal void CheckTypeLiteral(Node node) => throw new NotImplementedException("checkTypeLiteral");
-    internal void CheckArrayType(Node node) => throw new NotImplementedException("checkArrayType");
-    internal void CheckTupleType(Node node) => throw new NotImplementedException("checkTupleType");
-    internal void CheckUnionOrIntersectionType(Node node) => throw new NotImplementedException("checkUnionOrIntersectionType");
-    internal void CheckThisType(Node node) => throw new NotImplementedException("checkThisType");
-    internal void CheckTypeOperator(Node node) => throw new NotImplementedException("checkTypeOperator");
-    internal void CheckConditionalType(Node node) => throw new NotImplementedException("checkConditionalType");
-    internal void CheckInferType(Node node) => throw new NotImplementedException("checkInferType");
-    internal void CheckTemplateLiteralType(Node node) => throw new NotImplementedException("checkTemplateLiteralType");
-    internal void CheckImportType(Node node) => throw new NotImplementedException("checkImportType");
-    internal void CheckNamedTupleMember(Node node) => throw new NotImplementedException("checkNamedTupleMember");
-    internal void CheckIndexedAccessType(Node node) => throw new NotImplementedException("checkIndexedAccessType");
-    internal void CheckMappedType(Node node) => throw new NotImplementedException("checkMappedType");
-    // CheckDecorators is now REAL in Checker.Statements.cs (checker.go:6001). Its deep decorator-emit
-    // branches (checkDecorator / markLinkedReferences / getFirstTransformableStaticClassElement) remain
-    // stubbed below — unreached for decorator-free inputs, which early-return at the guard.
+    // ---- signature/member/type-node/complex declaration validators ----
+    // All CheckTypeParameter(s)/CheckParameter/CheckProperty*/CheckSignatureDeclaration/
+    // CheckMethodDeclaration/CheckClassStaticBlockDeclaration/CheckConstructorDeclaration/
+    // CheckAccessorDeclaration, the CheckTypeReferenceNode..CheckMappedType type-node checks, and the
+    // CheckClassDeclaration/CheckInterfaceDeclaration/CheckEnumDeclaration/CheckEnumMember/
+    // CheckModuleDeclaration/CheckImport*/CheckExport*/CheckExternalModuleExports/CheckAliasSymbol/
+    // CheckExportsOnMergedDeclarations/AreDeclarationFlagsIdentical validators are now REAL in
+    // Checker.Declarations.cs (complex-declaration long-tail wave). Their remaining un-landed callees
+    // are single-dedup stubbed in Checker.Declarations.Deps.cs.
+    //
+    // CheckDecorators is REAL in Checker.Statements.cs (checker.go:6001). Its deep decorator-emit
+    // branches (checkDecorator / getFirstTransformableStaticClassElement) remain stubbed below —
+    // unreached for decorator-free inputs, which early-return at the guard. MarkLinkedReferences is
+    // called by the import/export validators but its landing belongs to the reference-marking cluster.
     internal void CheckDecorator(Node node) => throw new NotImplementedException("checkDecorator");
     internal void MarkLinkedReferences(Node location, ReferenceHint hint, Symbol? propSymbol, Type? parentType) => throw new NotImplementedException("markLinkedReferences");
     internal Node? GetFirstTransformableStaticClassElement(Node node) => throw new NotImplementedException("getFirstTransformableStaticClassElement");
-    internal void CheckTypeParameters(Node[] typeParameterDeclarations) => throw new NotImplementedException("checkTypeParameters");
-
-    // ---- complex declaration validators (class/interface/enum/module/import/export), deferred ----
-    internal void CheckClassDeclaration(Node node) => throw new NotImplementedException("checkClassDeclaration");
-    internal void CheckInterfaceDeclaration(Node node) => throw new NotImplementedException("checkInterfaceDeclaration");
-    internal void CheckEnumDeclaration(Node node) => throw new NotImplementedException("checkEnumDeclaration");
-    internal void CheckEnumMember(Node node) => throw new NotImplementedException("checkEnumMember");
-    internal void CheckModuleDeclaration(Node node) => throw new NotImplementedException("checkModuleDeclaration");
-    internal void CheckImportDeclaration(Node node) => throw new NotImplementedException("checkImportDeclaration");
-    internal void CheckImportEqualsDeclaration(Node node) => throw new NotImplementedException("checkImportEqualsDeclaration");
-    internal void CheckExportDeclaration(Node node) => throw new NotImplementedException("checkExportDeclaration");
-    internal void CheckExportAssignment(Node node) => throw new NotImplementedException("checkExportAssignment");
-    internal void CheckExternalModuleExports(Node node) => throw new NotImplementedException("checkExternalModuleExports");
-    internal void CheckAliasSymbol(Node node) => throw new NotImplementedException("checkAliasSymbol");
-    internal void CheckExportsOnMergedDeclarations(Node node) => throw new NotImplementedException("checkExportsOnMergedDeclarations");
-    internal bool AreDeclarationFlagsIdentical(Node left, Node right) => throw new NotImplementedException("areDeclarationFlagsIdentical");
 
     // ---- JSDoc comment checks (JSDoc cluster) ----
     internal void CheckJSDocComments(Node node) => throw new NotImplementedException("checkJSDocComments");
