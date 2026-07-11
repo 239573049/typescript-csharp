@@ -57,6 +57,7 @@
 | R21 | testdata 283MB 与子模块体积的仓库管理 | INFRA | 低 | 高 | CI clone/checkout 时长监控；无硬门禁 | 开放 |
 | R22 | 稳定排序：Go 稳定排序 vs C# `Array.Sort` 不稳定 | SEM | 中 | 高 | 各阶段差分夹具与基线门禁 + 重复运行探针 | 开放 |
 | R23 | locale 匹配器：x/text Matcher vs 自研匹配的行为对齐 | SEM | 低 | 中 | 诊断本地化表驱动对照单测 | 开放 |
+| R24 | dumptool 差分主干环境阻塞：dumptool 需 tsgo 的**可写 git 检出**（补丁分支 git am），而当前 /Users/token/Desktop/code/typescript-go-main 是**只读非 git 快照**（UPSTREAM.lock: no local Git metadata）——G2.1/G3.2/G4.1 全语料差分门禁无法生成夹具 | INFRA | 高 | 高 | 需按 pin 克隆 tsgo 至可写 git 检出后建 dumptool；在此之前阶段 2–4 以自建单测覆盖，差分门禁记为「待夹具」 | 开放 |
 
 阅读优先级建议：动手写代码前先读 R01/R03/R04/R09/R22（每天都会踩）；进入对应阶段前读该阶段挂钩的条目（见各条「检测手段」）。
 

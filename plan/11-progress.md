@@ -61,6 +61,8 @@
 | 已签核门禁 | 0 | §6 行数 |
 | 已登记偏差 | 6（另有 6 项设计期偏差待落地登记，§8.2） | §8.1 行数 |
 
+> **差分主干环境阻塞（2026-07-11，R24）**：dumptool 需 tsgo 可写 git 检出跑补丁分支，当前为只读非 git 快照——G2.1（token 流）/G3.2（AST 转储）/G4.1（symbol·flow）全语料差分门禁的夹具无法生成。阶段 2–4 移植以自建单测覆盖并推进，差分门禁记为「待夹具」，待环境提供 tsgo git 检出后补跑签核。
+>
 > **阶段 1 地基状态（2026-07-11）**：11 个包全部单测绿（core/collections/tspath/vfs/nativepath/jsnum/stringutil/glob/semver/debug/repo），json 为 N/A。G1.1（移植单测全绿）达成；G1.2（jsnum 四向对拍）已以 52.6 万例对 Go 零失配实证，形式化 100 万夹具门禁待 dumptool jsnum 导出器；G1.3（tspath 双路径）88/88；G1.4（stringutil 表与 Go 一致）全码点零分歧。文档化延后：OrderedMap 流式 JSON 面、core.StringifyJson。
 >
 > 注意：LOC 加权进度 ≠ 工期进度。主计划 §二的占比列是**工作量**估算（checker 33% 工作量但仅 21.3% LOC）；本表只报 LOC 口径，不做工期折算。
