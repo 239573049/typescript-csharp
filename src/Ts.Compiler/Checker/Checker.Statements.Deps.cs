@@ -44,9 +44,20 @@ public partial class Checker
     internal void CheckCollisionsForDeclarationName(Node node, Node? name) => throw new NotImplementedException("checkCollisionsForDeclarationName");
     internal void CheckVarDeclaredNamesNotShadowed(Node node) => throw new NotImplementedException("checkVarDeclaredNamesNotShadowed");
 
-    // ---- deferred diagnostics / cancellation ----
-    internal void ProduceDeferredDiagnostics() => throw new NotImplementedException("produceDeferredDiagnostics");
-    internal bool IsCanceled() => throw new NotImplementedException("isCanceled");
+    // ---- deferred diagnostics / cancellation (checker.go / utilities.go) ----
+    // produceDeferredDiagnostics (checker.go): run each queued callback, then clear the queue.
+    // saveDeferredDiagnostics is false by the time this runs, so callbacks cannot re-enqueue.
+    internal void ProduceDeferredDiagnostics()
+    {
+        foreach (var cb in deferredDiagnosticCallbacks)
+        {
+            cb();
+        }
+        deferredDiagnosticCallbacks = [];
+    }
+
+    // isCanceled (utilities.go:1635): Go `c.ctx != nil && c.ctx.Err() != nil`.
+    internal bool IsCanceled() => ctx.IsCancellationRequested;
 
     // ---- expressions (#7/#8) ----
     // CheckExpression / CheckExpressionCached already stubbed in Stubs.cs; GetResolvedSymbolOrNil elsewhere.

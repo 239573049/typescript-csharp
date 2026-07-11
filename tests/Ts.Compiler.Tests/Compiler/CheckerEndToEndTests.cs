@@ -31,7 +31,12 @@ public sealed class CheckerEndToEndTests
     // const-assignment not-assignable diagnostic can be produced. Un-skip once IsCanceled and the
     // remaining check* path (checkVariableDeclaration → resolveName → assignability) are real; if a
     // further stub is then hit, re-note the next blocker.
-    [Fact(Skip = "e2e check blocked on isCanceled stub (advanced past grammar; deferred-diagnostics/cancellation cluster)")]
+    // Pipeline probe: advances through grammar + isCanceled + the variable-statement check path
+    // (CheckVariableStatement → …Declaration → …LikeDeclaration) and now blocks on CheckDecorators
+    // (runs even with no decorators; its guard needs the still-stubbed ast decorator predicates
+    // HasDecorators/NodeCanBeDecorated). Un-skip once the const-assignment check path (checkDecorators
+    // early-return + type-annotation + initializer assignability elaboration) is real.
+    [Fact(Skip = "e2e check blocked on checkDecorators stub (variable-decl check path; needs ast decorator predicates)")]
     public void ChecksSimpleAssignmentError_ProducesTypeDiagnostic()
     {
         var files = new Dictionary<string, string>
