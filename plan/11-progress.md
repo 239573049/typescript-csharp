@@ -76,11 +76,12 @@
 | LargeStackExecutor（64MB 大栈线程，0 号风险对策） | 已完成 | src/Ts.Compiler/Core/LargeStackExecutor.cs + Version.cs 预移；tests/Ts.Compiler.Tests/Core/LargeStackExecutorTests.cs |
 | plan/ 文档集 13 份 | 已完成 | 00–12 全部落库；09 已包含稳定门禁 ID `G<阶段>.<序号>` 体系；各文档中的待澄清项仍按既定流程跟踪 |
 | _submodules/TypeScript 钉扎（与 tsgo 同 commit） | 已完成 | UPSTREAM.lock 双坐标 + testdata 指纹已提交（commit 9b728b8） |
-| tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 已完成 | 七文件+stringers 发射落库并幂等（commit cc149c8）；计数断言 192/35/351 过；G0.2 实质达成（签核待 §6） |
+| tools/generator/ 生成器自举：generate-csharp-ast.ts（ast.json+schema.ts 拷贝入仓） | 已完成 | 七文件+stringers 发射落库并幂等（commit cc149c8）；计数断言 192/35/351 过；G0.2 本地 gen:all 重跑 0 diff 实证通过（签核待远端 §6） |
 | tools/generator/ 生成器自举：generate-diagnostics.ts | 已完成 | Messages.g.cs 计数=2,154 断言通过（commit 377c270） |
 | tools/generator/ 生成器自举：generate-libs.ts + EmbeddedResource glob（108 个 lib.*.d.ts） | 已完成 | 108 个生成 + 内嵌（commit 377c270） |
-| CI 管线（三平台构建 + AOT publish + analyzer 门禁） | 未开始 | 仓库无 .github/ |
-| 阶段 0 出口门禁签核 | 未达 | 通过后记入 §6 |
+| CI 管线（三平台构建 + AOT publish + analyzer 门禁） | 已完成 | .github/workflows/ci.yml（pin-and-drift + build-test×3 + aot-smoke×3）+ tools/check-upstream-pin.sh（sha256 + gen:all 漂移检查，本地跑通 G0.2 漂移 PASS）（commit 88f5cb9） |
+| dumptool 骨架 + fixtures 存储决策（W0-22 / G0.4 / G0.5） | 已完成 | tools/dumptool/{patches/README.md,regen.sh}（--help/--dry-run 跑通，步骤 TODO(phase-2) 桩）；fixtures.lock.json（tsgoCommit 对齐 pin）；G0.5 裁定 Git LFS + .gitattributes 路由（commit 88f5cb9） |
+| 阶段 0 出口门禁签核 | 待签核 | G0.2/G0.3 本地实证通过（gen:all 幂等、2,154 计数、0 警告）、G0.4/G0.5/G0.6 交付物就绪；G0.1 三平台 CI 待远端首跑；签核记入 §6 |
 
 ---
 
