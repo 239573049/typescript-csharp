@@ -134,7 +134,7 @@ public partial class Checker
     internal bool CheckPropertyAccessibility(Node node, bool isSuper, bool writing, Type type, Symbol prop) => throw new NotImplementedException("checkPropertyAccessibility");
 
     // ---- contextual / implicit-any / signatures (#21 / signatures) ----
-    internal Signature? GetContextualCallSignature(Type type, Node node) => throw new NotImplementedException("getContextualCallSignature");
+    // getContextualCallSignature (10281): real body landed in Checker.ContextualType.cs.
 
     // ---- function/constructor symbol checks (owned by later statements pass) ----
     internal void CheckFunctionOrConstructorSymbol(Symbol symbol) => throw new NotImplementedException("checkFunctionOrConstructorSymbol");

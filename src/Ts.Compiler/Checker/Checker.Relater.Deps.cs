@@ -68,10 +68,9 @@ public partial class Checker
     // getJsxType / elaborateJsxComponents: real bodies landed in Checker.Jsx.cs (jsx wave).
 
     // ---- expression checking / contextual (expressions, contextual waves) ----
-    internal void PushContextualType(Node node, Type type, bool isCache) => throw new NotImplementedException("pushContextualType");
-    internal void PopContextualType() => throw new NotImplementedException("popContextualType");
+    // pushContextualType / popContextualType (30633/30637): real bodies in Checker.ContextualType.cs.
+    // getEffectiveCheckNode (9357): real body in Checker.CallResolution.Applicability.cs.
     internal Type CheckArrayLiteral(Node node, CheckMode checkMode) => throw new NotImplementedException("checkArrayLiteral");
-    internal Node GetEffectiveCheckNode(Node node) => throw new NotImplementedException("getEffectiveCheckNode");
     // isExactOptionalPropertyMismatch (13076): real body landed in Checker.OperatorExpressions.cs (#8 wave).
 
     // isValidNumberString / isValidBigIntString stubbed in Checker.Inference.Deps.cs.

@@ -75,7 +75,7 @@ public partial class Checker
     internal Type ParseBigIntLiteralType(string text) => throw new NotImplementedException("parseBigIntLiteralType");
 
     // ---- contextual (#21) ----
-    internal Type? GetContextualTypeForObjectLiteralMethod(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForObjectLiteralMethod");
+    // getContextualTypeForObjectLiteralMethod (29721): real body landed in Checker.ContextualType.cs.
 
     // ---- jsnum / literal-value free functions (checker.go package funcs) ----
     internal static bool IsValidNumberString(string s, bool roundTripOnly) => throw new NotImplementedException("isValidNumberString");

@@ -91,9 +91,11 @@ public partial class Checker
     // getDestructuringPropertyName: owned by flow.go — real bodies in Checker.Flow.cs.
 
     // ---- contextual (#21) ----
-    internal Type? GetContextualReturnType(Node functionDecl, ContextFlags contextFlags) => throw new NotImplementedException("getContextualReturnType");
-    internal Signature? GetContextualSignatureForFunctionLikeDeclaration(Node node) => throw new NotImplementedException("getContextualSignatureForFunctionLikeDeclaration");
-    internal Type InstantiateContextualType(Type contextualType, Node node, ContextFlags contextFlags) => throw new NotImplementedException("instantiateContextualType");
+    // getContextualReturnType / getContextualSignatureForFunctionLikeDeclaration: real bodies landed in
+    // Checker.ContextualType.cs (#21 wave).
+    // checker.go:30574 — deep return-mapper instantiation; deferred. PORT-NOTE: signature made nullable to
+    // match Go (nil in → nil out) so contextual-type callers pass through cleanly.
+    internal Type? InstantiateContextualType(Type? contextualType, Node node, ContextFlags contextFlags) => contextualType;
 
     // ---- awaited / iteration (#22) ----
     internal Type UnwrapAwaitedType(Type t) => throw new NotImplementedException("unwrapAwaitedType");

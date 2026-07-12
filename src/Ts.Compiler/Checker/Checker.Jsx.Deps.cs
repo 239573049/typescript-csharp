@@ -31,17 +31,9 @@ public partial class Checker
     // checker.go:7461
     internal Type CheckExpressionWithContextualType(Node node, Type contextualType, InferenceContext? inferenceContext, CheckMode checkMode) => throw new NotImplementedException("checkExpressionWithContextualType");
 
-    // checker.go:30443
-    internal Type? GetApparentTypeOfContextualType(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getApparentTypeOfContextualType");
-
-    // checker.go:30308
-    internal Type? GetTypeOfPropertyOfContextualType(Type t, string name) => throw new NotImplementedException("getTypeOfPropertyOfContextualType");
-
-    // checker.go:30643
-    internal int FindContextualNode(Node node, bool includeCaches) => throw new NotImplementedException("findContextualNode");
-
-    // checker.go:29529
-    internal Type? GetContextualTypeForArgumentAtIndex(Node callTarget, int argIndex) => throw new NotImplementedException("getContextualTypeForArgumentAtIndex");
+    // getApparentTypeOfContextualType (30443), getTypeOfPropertyOfContextualType (30308),
+    // findContextualNode (30643), getContextualTypeForArgumentAtIndex (29529): real bodies landed in
+    // Checker.ContextualType.cs (call-resolution + contextual-type wave).
 
     // checker.go:30559
     internal bool IsPossiblyDiscriminantValue(Node node) => throw new NotImplementedException("isPossiblyDiscriminantValue");
@@ -83,18 +75,8 @@ public partial class Checker
     internal InferenceContext GetInferenceContext(Node node) => throw new NotImplementedException("getInferenceContext");
 
     // ---- call resolution (checker.go call wave: 8xxx-9xxx) ----
-
-    // checker.go:8819
-    internal Signature ResolveCall(Node node, Signature[] signatures, List<Signature>? candidatesOutArray, CheckMode checkMode, SignatureFlags callChainFlags, global::Ts.Diagnostics.Message? headMessage) => throw new NotImplementedException("resolveCall");
-
-    // checker.go:9899
-    internal Signature ResolveErrorCall(Node node) => throw new NotImplementedException("resolveErrorCall");
-
-    // checker.go:9878
-    internal Signature ResolveUntypedCall(Node node) => throw new NotImplementedException("resolveUntypedCall");
-
-    // checker.go:9909
-    internal bool IsUntypedFunctionCall(Type funcType, Type apparentFuncType, int numCallSignatures, int numConstructSignatures) => throw new NotImplementedException("isUntypedFunctionCall");
+    // resolveCall (8819), resolveErrorCall (9899), resolveUntypedCall (9878), isUntypedFunctionCall
+    // (9909): real bodies landed in Checker.CallResolution.cs / Checker.CallResolution.Applicability.cs.
 
     // checker.go:8340
     internal void CheckDeprecatedSignature(Signature sig, Node node) => throw new NotImplementedException("checkDeprecatedSignature");

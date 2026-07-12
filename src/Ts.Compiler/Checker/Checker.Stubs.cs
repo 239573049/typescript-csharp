@@ -285,8 +285,7 @@ public partial class Checker
     // getBaseConstraintOfType (27302) implemented in Checker.Constraints.cs (#19).
 
     // ===== #21 contextual types =====
-
-    internal Type? GetContextualType(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getContextualType");
+    // getContextualType and family: real bodies landed in Checker.ContextualType.cs (#21 wave).
 
     // ===== #22 awaited types =====
 

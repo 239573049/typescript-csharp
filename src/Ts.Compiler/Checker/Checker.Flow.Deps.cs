@@ -21,7 +21,8 @@ public partial class Checker
     internal Type CheckNonNullType(Type t, Node node) => throw new NotImplementedException("checkNonNullType");
     internal Type GetOptionalExpressionType(Type exprType, Node expression) => throw new NotImplementedException("getOptionalExpressionType");
     internal Type CheckSuperExpression(Node node) => throw new NotImplementedException("checkSuperExpression");
-    internal Signature GetResolvedSignature(Node node, Signature[]? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("getResolvedSignature");
+    // getResolvedSignature (8383): real body landed in Checker.CallResolution.cs (candidatesOutArray
+    // modeled as List<Signature>? to match the Go *[]*Signature out-parameter).
     internal AssignmentKind GetAssignmentTargetKind(Node node) => throw new NotImplementedException("getAssignmentTargetKind");
     internal bool IsInCompoundLikeAssignment(Node node) => throw new NotImplementedException("isInCompoundLikeAssignment");
 

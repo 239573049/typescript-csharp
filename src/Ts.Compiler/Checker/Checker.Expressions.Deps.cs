@@ -58,8 +58,7 @@ public partial class Checker
     // checker.go:8244
     internal Type CheckImportCallExpression(Node node) => throw new NotImplementedException("checkImportCallExpression");
 
-    // checker.go:8298
-    internal Type CheckCallExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkCallExpression");
+    // checker.go:8298 — checkCallExpression: real body landed in Checker.CallResolution.cs.
 
     // checker.go:10010
     internal Type CheckTaggedTemplateExpression(Node node) => throw new NotImplementedException("checkTaggedTemplateExpression");
