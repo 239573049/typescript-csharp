@@ -55,6 +55,6 @@ public partial class Checker
     // ---- checker-side, not-yet-landed (owned by other clusters) ----
     internal bool IsInParameterInitializerBeforeContainingFunction(Node node) => throw new NotImplementedException("isInParameterInitializerBeforeContainingFunction");
     internal static global::Ts.Diagnostics.Message GetVerbatimModuleSyntaxErrorMessage(Node node) => throw new NotImplementedException("getVerbatimModuleSyntaxErrorMessage");
-    internal static bool IsDeclarationReadonly(Node declaration) => throw new NotImplementedException("isDeclarationReadonly");
+    // IsDeclarationReadonly is now REAL in Checker.Widening.cs (utilities.go:805).
     internal static bool HasAsyncModifier(Node node) => throw new NotImplementedException("hasAsyncModifier");
 }

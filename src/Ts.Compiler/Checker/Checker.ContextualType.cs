@@ -542,6 +542,7 @@ public partial class Checker
         var instantiatedType = InstantiateContextualType(contextualType, node, contextFlags);
         if (instantiatedType != null && !((contextFlags & ContextFlags.NoConstraints) != 0 && (instantiatedType.flags & TypeFlags.TypeVariable) != 0))
         {
+            // mapTypeEx with a total mapping function never returns nil (checker.go treats result as non-null).
             var apparentType = MapTypeEx(instantiatedType, t =>
             {
                 if ((t.objectFlags & ObjectFlags.Mapped) != 0)
@@ -549,7 +550,7 @@ public partial class Checker
                     return t;
                 }
                 return GetApparentType(t);
-            }, true);
+            }, true)!;
             if ((apparentType.flags & TypeFlags.Union) != 0 && NodeTests.IsObjectLiteralExpression(node))
             {
                 return DiscriminateContextualTypeByObjectMembers(node, apparentType);

@@ -141,7 +141,7 @@ public partial class Checker
     // inferFromIntraExpressionSites (inference.go:1268) / getInferredType (inference.go:1283)
     // implemented in Checker.Inference.cs (inference wave).
 
-    internal Type MapType(Type t, Func<Type, Type> mapper) => throw new NotImplementedException("mapType");
+    // MapType is now REAL in Checker.Widening.cs (checker.go:25469).
 
     // ===== #3 construction (deep global resolution, reached only via memoized resolvers) =====
 

@@ -41,9 +41,9 @@ public partial class Checker
     }
     internal Symbol? GetUnionOrIntersectionProperty(Type type, string name, bool skipObjectFunctionPropertyAugment) => throw new NotImplementedException("getUnionOrIntersectionProperty");
     internal Type? GetTypeOfPropertyOrIndexSignatureOfType(Type type, string name) => throw new NotImplementedException("getTypeOfPropertyOrIndexSignatureOfType");
-    internal Type GetRegularTypeOfObjectLiteral(Type type) => throw new NotImplementedException("getRegularTypeOfObjectLiteral");
+    // GetRegularTypeOfObjectLiteral is now REAL in Checker.Widening.cs (checker.go:27988).
     internal bool TypeHasCallOrConstructSignatures(Type type) => throw new NotImplementedException("typeHasCallOrConstructSignatures");
-    internal Type GetBaseTypeOfEnumLikeType(Type type) => throw new NotImplementedException("getBaseTypeOfEnumLikeType");
+    // GetBaseTypeOfEnumLikeType is now REAL in Checker.Widening.cs (checker.go:25378).
     internal bool IsFunctionObjectType(Type type) => throw new NotImplementedException("isFunctionObjectType");
     internal Ternary CompareProperties(Symbol sourceProp, Symbol targetProp, Func<Type, Type, Ternary> compareTypes) => throw new NotImplementedException("compareProperties");
     // isNonGenericObjectType / getBaseTypeOfLiteralType / isReadonlySymbol stubbed in Checker.Inference.Deps.cs.

@@ -987,7 +987,7 @@ public partial class Checker
     internal Type? GetContextualThisParameterType(Node fn) => throw new NotImplementedException("getContextualThisParameterType");
     internal Type? GetContextuallyTypedParameterType(Node parameter) => throw new NotImplementedException("getContextuallyTypedParameterType");
 
-    internal Type GetWidenedLiteralType(Type type) => throw new NotImplementedException("getWidenedLiteralType");
+    // GetWidenedLiteralType is now REAL in Checker.Widening.cs (checker.go:25395).
 
     internal Type CheckPropertyAssignment(Node node, CheckMode checkMode) => throw new NotImplementedException("checkPropertyAssignment");
 

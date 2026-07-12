@@ -72,8 +72,8 @@ public partial class Checker
 
     // ---- widening / initializer inference ----
     internal Type WidenTypeInferredFromInitializer(Node declaration, Type t) => throw new NotImplementedException("widenTypeInferredFromInitializer");
-    internal Type GetWidenedLiteralTypeForInitializer(Node declaration, Type t) => throw new NotImplementedException("getWidenedLiteralTypeForInitializer");
-    internal Type? GetWidenedLiteralLikeTypeForContextualType(Type? t, Type? contextualType) => throw new NotImplementedException("getWidenedLiteralLikeTypeForContextualType");
+    // GetWidenedLiteralTypeForInitializer is now REAL in Checker.Widening.cs (checker.go:16810).
+    // GetWidenedLiteralLikeTypeForContextualType is now REAL in Checker.Widening.cs (checker.go:25423).
     internal Type GetNonUndefinedType(Type t) => throw new NotImplementedException("getNonUndefinedType");
 
     // ---- facts / assignability (flow, relater) ----

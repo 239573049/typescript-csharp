@@ -33,8 +33,7 @@ public partial class Checker
     // isNoInferType (26688) implemented in Checker.IndexedAccess.cs (#18).
 
     // ---- union/intersection mapping (#17) ----
-    // checker.go — mapTypeWithAlias(t, f, alias).
-    internal Type MapTypeWithAlias(Type t, Func<Type, Type> f, TypeAlias? alias) => throw new NotImplementedException("mapTypeWithAlias");
+    // MapTypeWithAlias is now REAL in Checker.Widening.cs (checker.go:25462).
 
     // ---- identity relation (relater) ----
     // checker.go — isTypeIdenticalTo(s, t).

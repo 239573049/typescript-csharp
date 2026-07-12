@@ -40,8 +40,7 @@ public partial class Checker
 
     // ---- type mapping / spread (checker.go union/spread wave) ----
 
-    // checker.go:25473
-    internal Type MapTypeEx(Type t, Func<Type, Type> f, bool noReductions) => throw new NotImplementedException("mapTypeEx");
+    // MapTypeEx is now REAL in Checker.Widening.cs (checker.go:25473).
 
     // checker.go:13319
     internal Type GetSpreadType(Type left, Type right, Symbol? symbol, ObjectFlags objectFlags, bool @readonly) => throw new NotImplementedException("getSpreadType");
