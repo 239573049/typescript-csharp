@@ -399,9 +399,7 @@ public sealed partial class Program : global::Ts.Checker.Program
         // PORT-NOTE (phase 4/5): option validation is a program-diagnostics surface; deferred.
     }
 
-    // program.go:1633-1695 — deferred (printer/transformers are phase 6).
-    public EmitResult Emit(CancellationToken ctx, EmitOptions options) =>
-        throw new NotImplementedException("Program.Emit is a phase 6 deliverable (printer/transformers not yet ported)");
+    // program.go:1633-1695 — Program.Emit lives in Program.Emit.cs (this wave).
 
     // program.go:1436-1440 — the diagnostics aggregation surface lands with the CLI type-check-and-report wave.
     // SortAndDeduplicateDiagnostics and the Get*Diagnostics methods are ported in Program.Diagnostics.cs.

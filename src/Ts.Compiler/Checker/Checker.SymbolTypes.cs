@@ -1107,8 +1107,17 @@ public partial class Checker
     // utilities.go:276-278
     private static bool IsOptionalDeclaration(Node declaration) => AstUtilities.HasQuestionToken(declaration);
 
-    // Missing ast helpers (absent from Ts.Ast) — minimal local stubs (report to add to ast).
-    private static Node WalkUpBindingElementsAndPatterns(Node binding) => throw new NotImplementedException("ast.WalkUpBindingElementsAndPatterns");
+    // ast/utilities.go WalkUpBindingElementsAndPatterns — implemented by the EmitResolver wave;
+    // internal so the EmitResolver class (separate type) can reach it.
+    internal static Node WalkUpBindingElementsAndPatterns(Node binding)
+    {
+        var node = binding.Parent!;
+        while (NodeTests.IsBindingElement(node.Parent!))
+        {
+            node = node.Parent!.Parent!;
+        }
+        return node.Parent!;
+    }
 
     private static bool IsJsonSourceFile(SourceFile file) => throw new NotImplementedException("ast.IsJsonSourceFile");
 

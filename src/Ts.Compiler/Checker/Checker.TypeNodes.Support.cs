@@ -36,7 +36,8 @@ public partial class Checker
         NodeTests.IsVariableDeclarationList(node.Parent!) && NodeTests.IsVariableStatement(node.Parent!.Parent!);
 
     // ast.go IsVarConst — GetCombinedNodeFlags(node) & BlockScoped == Const.
-    private static bool IsVarConst(Node node) =>
+    // internal so the EmitResolver class (separate type) can reach it.
+    internal static bool IsVarConst(Node node) =>
         (AstUtilities.GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Const;
 
     // ast/utilities.go:4130-4132 (ast.GetContainingFunction)

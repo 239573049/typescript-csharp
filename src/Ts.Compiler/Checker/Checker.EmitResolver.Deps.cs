@@ -1,0 +1,125 @@
+// Single dedup surface for the EmitResolver wave (Checker.EmitResolver.cs + .Synthesis.cs).
+//
+// Contents:
+//   * GetEmitResolver() — checker.go:31916 (lazy EmitResolver construction).
+//   * NewNodeBuilder(EmitContext) — checker/nodebuilder.go:279 (request-scoped builder factory;
+//     builder body is a throwing shell until the NodeBuilder request-builder wave lands).
+//   * A handful of `ast` package utilities that the EmitResolver references but that are not yet
+//     ported into Ts.Ast (IsVarConst / IsExpandoPropertyDeclaration / IsLateVisibilityPaintedStatement /
+//     GetAnyImportSyntax). Hosted here as `internal static` on Checker (no other cluster references
+//     them yet, so no CS0111 collision). Domain note: these belong to Ts.Ast; when the ast wave
+//     ports them, these should move and these copies be deleted.
+//   * checker methods the EmitResolver reads that belong to not-yet-ported waves
+//     (GetExternalModuleFileFromDeclaration / GetConstantValue / IsSymbolAccessible /
+//     GetGlobalPromiseConstructorSymbol / containsUndefinedType / containsNonMissingUndefinedType).
+//     Faithful signatures; bodies throw until their owning wave lands. Each appears exactly once in
+//     the assembly (helpers already stubbed elsewhere — e.g. GetFirstIdentifier,
+//     IsInternalModuleImportEqualsDeclaration — are implemented in place, not re-declared here).
+//
+// §1.5: cross-package classes shadowed by sibling namespaces are `global::`-qualified.
+
+using System;
+using Ts.Ast;
+
+namespace Ts.Checker;
+
+public partial class Checker
+{
+    // checker.go:31916 — GetEmitResolver.
+    public EmitResolver GetEmitResolver()
+    {
+        emitResolverOnce.Do(() => { emitResolver = new EmitResolver(this); });
+        return emitResolver!;
+    }
+
+    // checker/nodebuilder.go:279 — NewNodeBuilder(ch, e). Request-scoped builder (per-emit-context).
+    internal NodeBuilder NewNodeBuilder(global::Ts.Printer.EmitContext emitContext) => new(this, emitContext);
+
+    // ── ast package utilities referenced by EmitResolver but not yet in Ts.Ast ──────────────────
+
+    // ast/utilities.go:1238 — IsVarConst is already hosted (internal static) on
+    // Checker.TypeNodes.Support.cs; not re-declared here (CS0111).
+
+    // ast/utilities.go:4523 — IsExpandoPropertyDeclaration.
+    internal static bool IsExpandoPropertyDeclaration(Node? node) =>
+        node is not null && NodeTests.IsBinaryExpression(node);
+
+    // ast/utilities.go:3529 — IsLateVisibilityPaintedStatement.
+    internal static bool IsLateVisibilityPaintedStatement(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.VariableStatement:
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.ModuleDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.EnumDeclaration:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // checker/utilities.go:1579 — getAnyImportSyntax.
+    internal static Node? GetAnyImportSyntax(Node node)
+    {
+        Node? importNode;
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportEqualsDeclaration:
+                importNode = node;
+                break;
+            case SyntaxKind.ImportClause:
+                importNode = node.Parent;
+                break;
+            case SyntaxKind.NamespaceImport:
+                importNode = node.Parent!.Parent;
+                break;
+            case SyntaxKind.ImportSpecifier:
+                importNode = node.Parent!.Parent!.Parent;
+                break;
+            default:
+                return null;
+        }
+        return importNode;
+    }
+
+    // checker/utilities.go:1569 — containsNonMissingUndefinedType(c, t). Deep type-facts helper from
+    // a not-yet-ported wave.
+    internal static bool ContainsNonMissingUndefinedType(Checker c, Type t) =>
+        throw new NotImplementedException("containsNonMissingUndefinedType");
+
+    // ── checker methods from not-yet-ported waves ───────────────────────────────────────────────
+
+    // checker.go:15047 — getExternalModuleFileFromDeclaration.
+    internal SourceFile? GetExternalModuleFileFromDeclaration(Node declaration) =>
+        throw new NotImplementedException("getExternalModuleFileFromDeclaration");
+
+    // services.go:859 — GetConstantValue (const-enum inlining source of truth).
+    internal object? GetConstantValue(Node node) =>
+        throw new NotImplementedException("GetConstantValue");
+
+    // symbolaccessibility.go:839 — IsSymbolAccessible.
+    internal global::Ts.Printer.SymbolAccessibilityResult IsSymbolAccessible(
+        Symbol? symbol, Node enclosingDeclaration, SymbolFlags meaning, bool shouldComputeAliasesToMakeVisible) =>
+        throw new NotImplementedException("IsSymbolAccessible");
+
+    // checker.go:843 — getGlobalPromiseConstructorSymbol (getGlobalValueSymbolResolver("Promise")).
+    internal Symbol? GetGlobalPromiseConstructorSymbol() =>
+        throw new NotImplementedException("getGlobalPromiseConstructorSymbol");
+
+    // checker.go:27683 — containsUndefinedType.
+    internal static bool ContainsUndefinedType(Checker c, Type t) =>
+        throw new NotImplementedException("containsUndefinedType");
+
+    // checker/utilities.go:280 — isOptionalParameter (depends on getSignatureFromDeclaration /
+    // getMinArgumentCountEx / getEffectiveCallArguments from not-yet-ported waves).
+    internal bool IsOptionalParameter(Node node) =>
+        throw new NotImplementedException("isOptionalParameter");
+}

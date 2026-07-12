@@ -163,9 +163,18 @@ public static class Tsc
             getBindDiagnostics: (c, f) => program.GetBindDiagnostics(c, f),
             getSemanticDiagnostics: (c, f) => program.GetSemanticDiagnostics(c, f)));
 
-        // emit.go:105-118 — emit is a phase 6 deliverable; this wave does type-check-and-report only, so
-        // emit is skipped (EmitSkipped == true, the --noEmit behaviour). No output files are written.
-        bool emitSkipped = true;
+        // emit.go:105-118 — run the emit pipeline (unless --listFilesOnly). The result carries emit
+        // diagnostics (declaration transform) and the EmitSkipped flag; both feed the exit status.
+        var emitResult = new EmitResult { EmitSkipped = true, Diagnostics = [] };
+        if (!program.Options().ListFilesOnly.IsTrue())
+        {
+            emitResult = program.Emit(ctx, new EmitOptions());
+        }
+        if (emitResult.Diagnostics is not null)
+        {
+            allDiagnostics.AddRange(emitResult.Diagnostics);
+        }
+        bool emitSkipped = emitResult.EmitSkipped;
 
         // emit.go:120-123 — sort + dedupe, then report each diagnostic.
         var sorted = Program.SortAndDeduplicateDiagnostics(allDiagnostics.ToArray());

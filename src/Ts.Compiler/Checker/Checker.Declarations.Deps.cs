@@ -151,8 +151,10 @@ public partial class Checker
     internal static Node[] GetImplementsHeritageClauseElements(Node node) => throw new NotImplementedException("ast.GetImplementsHeritageClauseElements");
     // ast/utilities.go:3548
     internal static bool IsExternalModuleAugmentation(Node node) => throw new NotImplementedException("ast.IsExternalModuleAugmentation");
-    // ast/utilities.go:2442
-    internal static bool IsInternalModuleImportEqualsDeclaration(Node node) => throw new NotImplementedException("ast.IsInternalModuleImportEqualsDeclaration");
+    // ast/utilities.go:2442 — implemented by the EmitResolver wave (markLinkedAliases dependency).
+    internal static bool IsInternalModuleImportEqualsDeclaration(Node node) =>
+        NodeTests.IsImportEqualsDeclaration(node) &&
+        node.AsImportEqualsDeclaration().ModuleReference!.Kind != SyntaxKind.ExternalModuleReference;
     // checker.go: module kind display for diagnostics (ModuleKind.String())
     internal static string ModuleKindToString(ModuleKind moduleKind) => throw new NotImplementedException("ModuleKind.String");
     // scanner.go:2516 — scanner.ScanTokenAtPosition not yet landed on the Scanner host.

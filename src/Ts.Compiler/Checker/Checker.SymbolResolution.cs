@@ -1317,11 +1317,26 @@ public partial class Checker
 
     private static bool IsRightSideOfQualifiedNameOrPropertyAccess(Node node) => throw new NotImplementedException("ast.IsRightSideOfQualifiedNameOrPropertyAccess");
 
-    private static bool IsTypeOnlyImportOrExportDeclaration(Node node) => throw new NotImplementedException("ast.IsTypeOnlyImportOrExportDeclaration");
+    // internal so the EmitResolver class (separate type) can reach it; body still deferred to the ast wave.
+    internal static bool IsTypeOnlyImportOrExportDeclaration(Node node) => throw new NotImplementedException("ast.IsTypeOnlyImportOrExportDeclaration");
 
     private static bool IsDeclarationNode(Node node) => throw new NotImplementedException("ast.IsDeclarationNode");
 
-    private static Node GetFirstIdentifier(Node node) => throw new NotImplementedException("ast.GetFirstIdentifier");
+    // ast/utilities.go:2488 — implemented by the EmitResolver wave. internal so the EmitResolver
+    // class (separate type, faithful to Go's EmitResolver struct) can reach it.
+    internal static Node GetFirstIdentifier(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.Identifier:
+                return node;
+            case SyntaxKind.QualifiedName:
+                return GetFirstIdentifier(node.AsQualifiedName().Left!);
+            case SyntaxKind.PropertyAccessExpression:
+                return GetFirstIdentifier(node.AsPropertyAccessExpression().Expression!);
+        }
+        throw new global::System.InvalidOperationException("Unhandled case in GetFirstIdentifier");
+    }
 
     private static Node? GetNameOfDeclaration(Node? declaration) => throw new NotImplementedException("ast.GetNameOfDeclaration");
 
