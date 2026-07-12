@@ -38,7 +38,7 @@ public partial class Checker
     {
         if ((meaning & SymbolFlags.All) != 0)
         {
-            var symbol = GetMergedSymbol(symbols!.GetValueOrDefault(name));
+            var symbol = GetMergedSymbol(symbols?.GetValueOrDefault(name));
             if (symbol != null)
             {
                 if ((symbol.Flags & meaning) != 0)

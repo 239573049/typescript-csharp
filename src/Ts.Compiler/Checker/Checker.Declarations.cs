@@ -894,6 +894,264 @@ public partial class Checker
         return true;
     }
 
+    // checker.go:4464
+    internal void CheckBaseTypeAccessibility(Type t, Node node)
+    {
+        var signatures = GetSignaturesOfType(t, SignatureKind.Construct);
+        if (signatures.Length != 0)
+        {
+            var declaration = signatures[0].declaration;
+            if (declaration is not null && HasModifier(declaration, ModifierFlags.Private))
+            {
+                var typeClassDeclaration = AstUtilities.GetClassLikeDeclarationOfSymbol(t.symbol!);
+                if (!IsNodeWithinClass(node, typeClassDeclaration))
+                {
+                    Error(node, Diag.Cannot_extend_a_class_0_Class_constructor_is_marked_as_private, GetFullyQualifiedName(t.symbol!, null));
+                }
+            }
+        }
+    }
+
+    // checker.go:4502
+    internal Type GetTypeWithoutSignatures(Type t)
+    {
+        if ((t.flags & TypeFlags.Object) != 0)
+        {
+            var resolved = ResolveStructuredTypeMembers(t);
+            if ((resolved.signatures ?? []).Length != 0)
+            {
+                var result = NewObjectType(ObjectFlags.Anonymous, t.symbol);
+                result.objectFlags |= ObjectFlags.MembersResolved;
+                result.AsObjectType()!.members = resolved.members;
+                result.AsObjectType()!.properties = resolved.properties;
+                return result;
+            }
+        }
+        else if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            return GetIntersectionType(CoreUtil.Map(t.AsIntersectionType().types, GetTypeWithoutSignatures));
+        }
+        return t;
+    }
+
+    // checker.go:4519 — MemberInfo record for checkKindsOfPropertyMemberOverrides.
+    private readonly record struct PropertyMemberOverrideMemberInfo(string[] MissedProperties, string BaseTypeName, string TypeName);
+
+    // checker.go:4519
+    internal void CheckKindsOfPropertyMemberOverrides(Type t, Type baseType)
+    {
+        // TypeScript 1.0 spec (April 2014): 8.2.3
+        // A derived class inherits all members from its base class it doesn't override.
+        // Inheritance means that a derived class implicitly contains all non - overridden members of the base class.
+        // Both public and private property members are inherited, but only public property members can be overridden.
+        // A property member in a derived class is said to override a property member in a base class
+        // when the derived class property member has the same name and kind(instance or static)
+        // as the base class property member.
+        // The type of an overriding property member must be assignable(section 3.8.4)
+        // to the type of the overridden property member, or otherwise a compile - time error occurs.
+        // Base class instance member functions can be overridden by derived class instance member functions,
+        // but not by other kinds of members.
+        // Base class instance member variables and accessors can be overridden by
+        // derived class instance member variables and accessors, but not by other kinds of members.
+        // NOTE: assignability is checked in checkClassDeclaration
+        Dictionary<Node, PropertyMemberOverrideMemberInfo>? notImplementedInfo = null;
+        foreach (var baseProperty in GetPropertiesOfType(baseType))
+        {
+            var @base = GetTargetSymbol(baseProperty)!;
+            if ((@base.Flags & SymbolFlags.Prototype) != 0)
+            {
+                continue;
+            }
+            var baseSymbol = GetPropertyOfObjectType(t, @base.Name);
+            if (baseSymbol is null)
+            {
+                continue;
+            }
+            var derived = GetTargetSymbol(baseSymbol)!;
+            var baseDeclarationFlags = GetDeclarationModifierFlagsFromSymbol(@base);
+            // In order to resolve whether the inherited method was overridden in the base class or not,
+            // we compare the Symbols obtained. Since getTargetSymbol returns the symbol on the *uninstantiated*
+            // type declaration, derived and base resolve to the same symbol even in the case of generic classes.
+            if (derived == @base)
+            {
+                // derived class inherits base without override/redeclaration.
+                if ((baseDeclarationFlags & ModifierFlags.Abstract) != 0)
+                {
+                    // It is an error to inherit an abstract member without implementing it or being declared abstract.
+                    // If there is no declaration for the derived class (as in the case of class expressions),
+                    // then the class cannot be declared abstract.
+                    var derivedClassDecl = AstUtilities.GetClassLikeDeclarationOfSymbol(t.symbol!);
+                    if (derivedClassDecl is null || !AstUtilities.HasSyntacticModifier(derivedClassDecl, ModifierFlags.Abstract))
+                    {
+                        // Searches other base types for a declaration that would satisfy the inherited abstract member.
+                        // (The class may have more than one base type via declaration merging with an interface with the
+                        // same name.)
+                        var derivedPropertyExistsElsewhere = false;
+                        foreach (var otherBaseType in GetBaseTypes(t))
+                        {
+                            if (otherBaseType == baseType)
+                            {
+                                continue;
+                            }
+                            var otherBaseSymbol = GetPropertyOfObjectType(otherBaseType, @base.Name);
+                            if (otherBaseSymbol is not null && @base != GetTargetSymbol(otherBaseSymbol))
+                            {
+                                // Derived property exists elsewhere.
+                                derivedPropertyExistsElsewhere = true;
+                                break;
+                            }
+                        }
+                        if (derivedPropertyExistsElsewhere)
+                        {
+                            continue; // continue basePropertyCheck
+                        }
+                        var baseTypeName = TypeToString(baseType);
+                        var typeName = TypeToString(t);
+                        var previousMissed = notImplementedInfo is not null && notImplementedInfo.TryGetValue(derivedClassDecl!, out var existing)
+                            ? existing.MissedProperties
+                            : [];
+                        var missedProperties = SlicesAppend(previousMissed, SymbolToString(baseProperty));
+                        notImplementedInfo ??= new Dictionary<Node, PropertyMemberOverrideMemberInfo>();
+                        notImplementedInfo[derivedClassDecl!] = new PropertyMemberOverrideMemberInfo(missedProperties, baseTypeName, typeName);
+                    }
+                }
+            }
+            else
+            {
+                // derived overrides base.
+                var derivedDeclarationFlags = GetDeclarationModifierFlagsFromSymbol(derived);
+                if ((baseDeclarationFlags & ModifierFlags.Private) != 0 || (derivedDeclarationFlags & ModifierFlags.Private) != 0)
+                {
+                    // either base or derived property is private - not override, skip it
+                    continue;
+                }
+                global::Ts.Diagnostics.Message errorMessage;
+                var basePropertyFlags = @base.Flags & SymbolFlags.PropertyOrAccessor;
+                var derivedPropertyFlags = derived.Flags & SymbolFlags.PropertyOrAccessor;
+                if (basePropertyFlags != 0 && derivedPropertyFlags != 0)
+                {
+                    // property/accessor is overridden with property/accessor
+                    if ((@base.CheckFlags & CheckFlags.Mapped) != 0 ||
+                        derived.ValueDeclaration is not null && NodeTests.IsBinaryExpression(derived.ValueDeclaration) ||
+                        ArePropertiesAbstractOrInterface(@base, baseDeclarationFlags))
+                    {
+                        // when the base property is abstract or from an interface, base/derived flags don't need to match
+                        // for intersection properties, this must be true of *any* of the declarations, for others it must be true of *all*
+                        // same when the derived property is from an assignment
+                        continue;
+                    }
+                    var overriddenInstanceProperty = basePropertyFlags != SymbolFlags.Property && derivedPropertyFlags == SymbolFlags.Property;
+                    var overriddenInstanceAccessor = basePropertyFlags == SymbolFlags.Property && derivedPropertyFlags != SymbolFlags.Property;
+                    if (overriddenInstanceProperty || overriddenInstanceAccessor)
+                    {
+                        var overrideErrorMessage = CoreUtil.IfElse(overriddenInstanceProperty,
+                            Diag.X_0_is_defined_as_an_accessor_in_class_1_but_is_overridden_here_in_2_as_an_instance_property,
+                            Diag.X_0_is_defined_as_a_property_in_class_1_but_is_overridden_here_in_2_as_an_accessor);
+                        Error(global::Ts.Core.CoreUtil.OrElse(AstUtilities.GetNameOfDeclaration(derived.ValueDeclaration!), derived.ValueDeclaration), overrideErrorMessage, SymbolToString(@base), TypeToString(baseType), TypeToString(t));
+                    }
+                    else if (compilerOptions.GetUseDefineForClassFields())
+                    {
+                        var uninitialized = CoreUtil.Find(derived.Declarations, static d =>
+                            NodeTests.IsPropertyDeclaration(d) && d.Initializer() == null);
+                        if (uninitialized is not null && (derived.Flags & SymbolFlags.Transient) == 0 && (baseDeclarationFlags & ModifierFlags.Abstract) == 0 && (derivedDeclarationFlags & ModifierFlags.Abstract) == 0 && !CoreUtil.Some(derived.Declarations, static d =>
+                            (d.Flags & NodeFlags.Ambient) != 0))
+                        {
+                            var constructor = AstUtilities.FindConstructorDeclaration(AstUtilities.GetClassLikeDeclarationOfSymbol(t.symbol!)!);
+                            var propName = uninitialized.Name();
+                            if (IsExclamationToken(uninitialized.PostfixToken()) || constructor is null || !NodeTests.IsIdentifier(propName!) || !strictNullChecks || !IsPropertyInitializedInConstructor(propName!, t, constructor))
+                            {
+                                var overwriteErrorMessage = Diag.Property_0_will_overwrite_the_base_property_in_1_If_this_is_intentional_add_an_initializer_Otherwise_add_a_declare_modifier_or_remove_the_redundant_declaration;
+                                Error(global::Ts.Core.CoreUtil.OrElse(AstUtilities.GetNameOfDeclaration(derived.ValueDeclaration!), derived.ValueDeclaration), overwriteErrorMessage, SymbolToString(@base), TypeToString(baseType));
+                            }
+                        }
+                    }
+                    // correct case
+                    continue;
+                }
+                else if (IsPrototypeProperty(@base))
+                {
+                    if (IsPrototypeProperty(derived) || (derived.Flags & SymbolFlags.Property) != 0)
+                    {
+                        // method is overridden with method or property -- correct case
+                        continue;
+                    }
+                    else
+                    {
+                        errorMessage = Diag.Class_0_defines_instance_member_function_1_but_extended_class_2_defines_it_as_instance_member_accessor;
+                    }
+                }
+                else if ((@base.Flags & SymbolFlags.Accessor) != 0)
+                {
+                    errorMessage = Diag.Class_0_defines_instance_member_accessor_1_but_extended_class_2_defines_it_as_instance_member_function;
+                }
+                else
+                {
+                    errorMessage = Diag.Class_0_defines_instance_member_property_1_but_extended_class_2_defines_it_as_instance_member_function;
+                }
+                Error(global::Ts.Core.CoreUtil.OrElse(AstUtilities.GetNameOfDeclaration(derived.ValueDeclaration!), derived.ValueDeclaration), errorMessage, TypeToString(baseType), SymbolToString(@base), TypeToString(t));
+            }
+        }
+        // map-iter: 序无关 — one diagnostic per class declaration; the aggregated diagnostics are
+        // position-sorted downstream (Go iterates this map in random order).
+        foreach (var (errorNode, memberInfo) in notImplementedInfo ?? [])
+        {
+            if (memberInfo.MissedProperties.Length == 1)
+            {
+                var missedProperty = memberInfo.MissedProperties[0];
+                if (NodeTests.IsClassExpression(errorNode))
+                {
+                    Error(errorNode, Diag.Non_abstract_class_expression_does_not_implement_inherited_abstract_member_0_from_class_1, missedProperty, memberInfo.BaseTypeName);
+                }
+                else
+                {
+                    Error(errorNode, Diag.Non_abstract_class_0_does_not_implement_inherited_abstract_member_1_from_class_2, memberInfo.TypeName, missedProperty, memberInfo.BaseTypeName);
+                }
+            }
+            else if (memberInfo.MissedProperties.Length > 5)
+            {
+                var missedProperties = string.Join(", ", CoreUtil.Map(memberInfo.MissedProperties[..4], static prop => "'" + prop + "'")!);
+                var remainingMissedProperties = memberInfo.MissedProperties.Length - 4;
+                if (NodeTests.IsClassExpression(errorNode))
+                {
+                    Error(errorNode, Diag.Non_abstract_class_expression_is_missing_implementations_for_the_following_members_of_0_Colon_1_and_2_more, memberInfo.BaseTypeName, missedProperties, remainingMissedProperties);
+                }
+                else
+                {
+                    Error(errorNode, Diag.Non_abstract_class_0_is_missing_implementations_for_the_following_members_of_1_Colon_2_and_3_more, memberInfo.TypeName, memberInfo.BaseTypeName, missedProperties, remainingMissedProperties);
+                }
+            }
+            else
+            {
+                var missedProperties = string.Join(", ", CoreUtil.Map(memberInfo.MissedProperties, static prop => "'" + prop + "'")!);
+                if (NodeTests.IsClassExpression(errorNode))
+                {
+                    Error(errorNode, Diag.Non_abstract_class_expression_is_missing_implementations_for_the_following_members_of_0_Colon_1, memberInfo.BaseTypeName, missedProperties);
+                }
+                else
+                {
+                    Error(errorNode, Diag.Non_abstract_class_0_is_missing_implementations_for_the_following_members_of_1_Colon_2, memberInfo.TypeName, memberInfo.BaseTypeName, missedProperties);
+                }
+            }
+        }
+    }
+
+    // checker.go:4677
+    internal bool ArePropertiesAbstractOrInterface(Symbol @base, ModifierFlags baseDeclarationFlags)
+    {
+        if ((@base.CheckFlags & CheckFlags.Synthetic) != 0)
+        {
+            return CoreUtil.Some(@base.Declarations, d => IsPropertyAbstractOrInterface(d, baseDeclarationFlags));
+        }
+        return CoreUtil.Every(@base.Declarations, d => IsPropertyAbstractOrInterface(d, baseDeclarationFlags));
+    }
+
+    // checker.go:4684
+    internal bool IsPropertyAbstractOrInterface(Node declaration, ModifierFlags baseDeclarationFlags)
+    {
+        return NodeTests.IsInterfaceDeclaration(declaration.Parent!) ||
+            (baseDeclarationFlags & ModifierFlags.Abstract) != 0 && (!NodeTests.IsPropertyDeclaration(declaration) || declaration.Initializer() == null);
+    }
+
     // checker.go:3301
     internal void CheckTemplateLiteralType(Node node)
     {

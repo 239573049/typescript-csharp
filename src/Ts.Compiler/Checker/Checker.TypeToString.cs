@@ -153,6 +153,36 @@ public sealed partial class Checker
         {
             return f.NewKeywordTypeNode(SyntaxKind.BooleanKeyword);
         }
+        // nodebuilderimpl.go:3231 — enum-like (must precede the literal arms: enum literal types carry
+        // StringLiteral/NumberLiteral flags but render as their enum names). PORT-NOTE (reduced): the
+        // shouldExpandType union-expansion arm short-circuits (no VerbosityContext), and the import-type
+        // member arm is owned by the symbol-chain wave; the qualified `E.member` arm is ported via a
+        // direct qualified-name build (appendReferenceToType reduced to its TypeReferenceNode case).
+        if ((t.flags & TypeFlags.EnumLike) != 0)
+        {
+            if ((t.symbol!.Flags & SymbolFlags.EnumMember) != 0)
+            {
+                var parentSymbol = GetParentOfSymbol(t.symbol)!;
+                var parentName = SymbolToTypeReferenceNode(parentSymbol, f);
+                if (GetDeclaredTypeOfSymbol(parentSymbol) == t)
+                {
+                    return parentName;
+                }
+                var memberName = AstUtilities.SymbolName(t.symbol);
+                if (global::Ts.Scanner.Scanner.IsIdentifierText(memberName, LanguageVariant.Standard))
+                {
+                    return f.NewTypeReferenceNode(
+                        f.NewQualifiedName(parentName.AsTypeReferenceNode().TypeName, f.NewIdentifier(memberName)),
+                        null /*typeArguments*/);
+                }
+                // Non-identifier member names need the typeof-indexed-access form
+                // (`(typeof E)["a b"]`, nodebuilderimpl.go:3243-3250).
+                return f.NewIndexedAccessTypeNode(
+                    f.NewTypeQueryNode(parentName.AsTypeReferenceNode().TypeName, null),
+                    f.NewLiteralTypeNode(NewTypeToStringStringLiteral(memberName, f)));
+            }
+            return SymbolToTypeReferenceNode(t.symbol, f);
+        }
         if ((t.flags & TypeFlags.StringLiteral) != 0)
         {
             var lit = NewTypeToStringStringLiteral((string)t.AsLiteralType().value!, f);

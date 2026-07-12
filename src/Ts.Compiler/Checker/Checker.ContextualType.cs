@@ -752,6 +752,33 @@ public partial class Checker
         contextualInfos.RemoveAt(lastIndex);
     }
 
+    // checker.go:30712
+    internal void PushInferenceContext(Node node, InferenceContext? context)
+    {
+        inferenceContextInfos.Add(new InferenceContextInfo { node = node, context = context });
+    }
+
+    // checker.go:30716
+    internal void PopInferenceContext()
+    {
+        var lastIndex = inferenceContextInfos.Count - 1;
+        inferenceContextInfos[lastIndex] = new InferenceContextInfo();
+        inferenceContextInfos.RemoveAt(lastIndex);
+    }
+
+    // checker.go:30722
+    internal InferenceContext? GetInferenceContext(Node node)
+    {
+        for (var i = inferenceContextInfos.Count - 1; i >= 0; i--)
+        {
+            if (AstUtilities.IsNodeDescendantOf(node, inferenceContextInfos[i].node))
+            {
+                return inferenceContextInfos[i].context;
+            }
+        }
+        return null;
+    }
+
     // checker.go:30643
     internal int FindContextualNode(Node node, bool includeCaches)
     {

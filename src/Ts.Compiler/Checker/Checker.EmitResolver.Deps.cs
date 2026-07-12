@@ -107,8 +107,12 @@ public partial class Checker
 
     // symbolaccessibility.go:839 — IsSymbolAccessible.
     internal global::Ts.Printer.SymbolAccessibilityResult IsSymbolAccessible(
-        Symbol? symbol, Node enclosingDeclaration, SymbolFlags meaning, bool shouldComputeAliasesToMakeVisible) =>
+        Symbol? symbol, Node? enclosingDeclaration, SymbolFlags meaning, bool shouldComputeAliasesToMakeVisible) =>
         throw new NotImplementedException("IsSymbolAccessible");
+
+    // symbolaccessibility.go:16 — IsValueSymbolAccessible.
+    internal bool IsValueSymbolAccessible(Symbol symbol, Node? enclosingDeclaration) =>
+        throw new NotImplementedException("IsValueSymbolAccessible");
 
     // checker.go:843 — getGlobalPromiseConstructorSymbol (getGlobalValueSymbolResolver("Promise")).
     internal Symbol? GetGlobalPromiseConstructorSymbol() =>
@@ -124,8 +128,36 @@ public partial class Checker
         return (t.flags & TypeFlags.Undefined) != 0;
     }
 
-    // checker/utilities.go:280 — isOptionalParameter (depends on getSignatureFromDeclaration /
-    // getMinArgumentCountEx / getEffectiveCallArguments from not-yet-ported waves).
-    internal bool IsOptionalParameter(Node node) =>
-        throw new NotImplementedException("isOptionalParameter");
+    // checker/utilities.go:280 — isOptionalParameter.
+    internal bool IsOptionalParameter(Node node)
+    {
+        // !!! TODO: JSDoc support
+        if (NodeTests.IsParameterDeclaration(node) && node.QuestionToken() != null)
+        {
+            return true;
+        }
+        if (!NodeTests.IsParameterDeclaration(node))
+        {
+            return false;
+        }
+        if (node.Initializer() != null)
+        {
+            var signature = GetSignatureFromDeclaration(node.Parent!);
+            var parameterIndex = Array.IndexOf(node.Parent!.Parameters()!, node);
+            global::Ts.Core.Debug.Assert(parameterIndex >= 0);
+            // Only consider syntactic or instantiated parameters as optional, not `void` parameters as this function is used
+            // in grammar checks and checking for `void` too early results in parameter types widening too early
+            // and causes some noImplicitAny errors to be lost.
+            return parameterIndex >= GetMinArgumentCountEx(signature, MinArgumentCountFlags.StrongArityForUntypedJS | MinArgumentCountFlags.VoidIsNonOptional);
+        }
+        var iife = AstUtilities.GetImmediatelyInvokedFunctionExpression(node.Parent!);
+        if (iife != null)
+        {
+            var parameterIndex = Array.IndexOf(node.Parent!.Parameters()!, node);
+            return node.Type() == null &&
+                node.AsParameterDeclaration().DotDotDotToken == null &&
+                parameterIndex >= GetEffectiveCallArguments(iife).Length;
+        }
+        return false;
+    }
 }

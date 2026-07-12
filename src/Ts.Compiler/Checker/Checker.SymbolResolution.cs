@@ -204,7 +204,7 @@ public partial class Checker
     {
         if ((symbol.Flags & SymbolFlags.Module) != 0)
         {
-            var exportSymbol = GetExportsOfSymbol(symbol).GetValueOrDefault(nameText);
+            var exportSymbol = GetExportsOfSymbol(symbol)?.GetValueOrDefault(nameText);
             var resolved = ResolveSymbolEx(exportSymbol, dontResolveAlias);
             Node? exportStarDeclaration = null;
             var typeOnlyMap = moduleSymbolLinks.Get(symbol).typeOnlyExportStarMap;
@@ -622,7 +622,7 @@ public partial class Checker
     }
 
     // checker.go:15833
-    internal SymbolTable GetExportsOfSymbol(Symbol symbol)
+    internal SymbolTable? GetExportsOfSymbol(Symbol symbol)
     {
         if ((symbol.Flags & SymbolFlags.LateBindingContainer) != 0)
         {
@@ -632,11 +632,11 @@ public partial class Checker
         {
             return GetExportsOfModule(symbol);
         }
-        return symbol.Exports ?? EmptySymbolTable;
+        return symbol.Exports;
     }
 
     // checker.go:15843
-    internal SymbolTable GetResolvedMembersOrExportsOfSymbol(Symbol symbol, MembersOrExportsResolutionKind resolutionKind)
+    internal SymbolTable? GetResolvedMembersOrExportsOfSymbol(Symbol symbol, MembersOrExportsResolutionKind resolutionKind)
     {
         var links = membersAndExportsLinks.Get(symbol);
         if (links[resolutionKind] == null)
@@ -690,7 +690,7 @@ public partial class Checker
             }
             links[resolutionKind] = CombineSymbolTables(earlySymbols, lateSymbols);
         }
-        return links[resolutionKind]!;
+        return links[resolutionKind];
     }
 
     // checker.go:15918 — Performs late-binding of a dynamic member.
@@ -841,7 +841,7 @@ public partial class Checker
     {
         if ((symbol.Flags & SymbolFlags.LateBindingContainer) != 0)
         {
-            return GetResolvedMembersOrExportsOfSymbol(symbol, MembersOrExportsResolutionKind.ResolvedMembers);
+            return GetResolvedMembersOrExportsOfSymbol(symbol, MembersOrExportsResolutionKind.ResolvedMembers) ?? EmptySymbolTable;
         }
         return symbol.Members ?? EmptySymbolTable;
     }

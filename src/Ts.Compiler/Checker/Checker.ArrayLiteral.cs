@@ -83,7 +83,7 @@ public partial class Checker
                 {
                     var inferenceContext = GetInferenceContext(node);
                     // In CheckMode.Inferential we should always have an inference context
-                    AddIntraExpressionInferenceSite(inferenceContext, e, t);
+                    AddIntraExpressionInferenceSite(inferenceContext!, e, t);
                 }
             }
         }

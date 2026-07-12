@@ -56,18 +56,18 @@ public class SymbolResolutionTests
         };
 
         var exports = c.GetExportsOfSymbol(symbol);
-        Assert.Same(exported, exports["member"]);
+        Assert.NotNull(exports);
+        Assert.Same(exported, exports!["member"]);
     }
 
     [Fact]
-    public void GetExportsOfSymbol_NoExports_ReturnsEmptyTable()
+    public void GetExportsOfSymbol_NoExports_ReturnsNull()
     {
         var c = NewChecker();
         var symbol = new Symbol { Flags = SymbolFlags.Property, Name = "x" };
 
-        // Go reads a nil Exports map as empty; the port returns a shared empty table (never null).
-        Assert.NotNull(c.GetExportsOfSymbol(symbol));
-        Assert.Empty(c.GetExportsOfSymbol(symbol));
+        // Go returns the symbol's nil Exports map unchanged; callers treat nil as empty.
+        Assert.Null(c.GetExportsOfSymbol(symbol));
     }
 
     [Fact]

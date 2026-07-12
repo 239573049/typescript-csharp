@@ -529,6 +529,12 @@ public static partial class AstUtilities
         return IsEntityNameExpression(node) || IsClassExpression(node);
     }
 
+    // Go: utilities.go:1857-1859
+    public static bool IsInstanceOfExpression(Node node)
+    {
+        return IsBinaryExpression(node) && node.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.InstanceOfKeyword;
+    }
+
     // Go: utilities.go:1876-1878
     public static bool IsJsonSourceFile(SourceFile file)
     {

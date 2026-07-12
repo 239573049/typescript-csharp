@@ -36,7 +36,7 @@ public partial class Checker
 
     internal Type NewConditionalType(ConditionalRoot root, TypeMapper? mapper, TypeMapper? combinedMapper) => throw new NotImplementedException("newConditionalType");
 
-    internal Type GetEnumLiteralType(object? value, Symbol enumSymbol, Symbol symbol) => throw new NotImplementedException("getEnumLiteralType");
+    // GetEnumLiteralType is now REAL in Checker.TypeCreation.cs (checker.go:25270).
 
     // getSubstitutionType (27277) implemented in Checker.IndexedAccess.cs (#18).
 
@@ -53,7 +53,7 @@ public partial class Checker
     // instantiateTypeWithAlias / instantiateTypeAlias / getConstraintTypeFromMappedType /
     // getNameTypeFromMappedType / getTypeParameterFromMappedType / getHomomorphicTypeVariable /
     // isTypeParameterPossiblyReferenced implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
-    internal Type GetInstantiationExpressionType(Type exprType, Node node) => throw new NotImplementedException("getInstantiationExpressionType");
+    // GetInstantiationExpressionType is now REAL in Checker.Expressions.cs (checker.go:10634).
 
     // getNoInferType (27260) implemented in Checker.IndexedAccess.cs (#18).
 
@@ -64,7 +64,7 @@ public partial class Checker
 
     // isGenericStringLikeType (26412) implemented in Checker.UnionIntersection.cs (#17).
 
-    internal Type CheckExpressionWithTypeArguments(Node node) => throw new NotImplementedException("checkExpressionWithTypeArguments");
+    // CheckExpressionWithTypeArguments is now REAL in Checker.Expressions.cs (checker.go:10611).
 
     // utilities.go:1017
     internal bool IsConstantVariable(Symbol symbol) =>

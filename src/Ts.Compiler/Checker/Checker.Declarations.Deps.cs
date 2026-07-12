@@ -24,16 +24,14 @@ public partial class Checker
     // CheckTypeParameterListsIdentical is now REAL in Checker.Declarations.cs (checker.go:4399).
     // CheckObjectTypeForDuplicateDeclarations + ReportDuplicateMemberErrors are now REAL in Checker.Declarations.cs (checker.go:3128).
     // CheckClassForStaticPropertyNameConflicts is now REAL in Checker.Declarations.cs (checker.go:4376).
-    // checker.go:4464
-    internal void CheckBaseTypeAccessibility(Type t, Node node) => throw new NotImplementedException("checkBaseTypeAccessibility");
+    // CheckBaseTypeAccessibility is now REAL in Checker.Declarations.cs (checker.go:4464).
     // checker.go:3004
     internal bool CheckTypeArgumentConstraints(Node node, Type[]? typeParameters) => throw new NotImplementedException("checkTypeArgumentConstraints");
     // checker.go:4477
     internal void IssueMemberSpecificError(Node node, Type typeWithThis, Type baseWithThis, global::Ts.Diagnostics.Message broadDiag) => throw new NotImplementedException("issueMemberSpecificError");
-    // checker.go:4502
-    internal Type GetTypeWithoutSignatures(Type t) => throw new NotImplementedException("getTypeWithoutSignatures");
+    // GetTypeWithoutSignatures is now REAL in Checker.Declarations.cs (checker.go:4502).
     // checker.go:4519
-    internal void CheckKindsOfPropertyMemberOverrides(Type t, Type baseType) => throw new NotImplementedException("checkKindsOfPropertyMemberOverrides");
+    // CheckKindsOfPropertyMemberOverrides is now REAL in Checker.Declarations.cs (checker.go:4519).
     // CheckMembersForOverrideModifier + CheckMemberForOverrideModifier + GetSuggestedSymbolForNonexistentClassMember are now REAL in Checker.Declarations.cs (checker.go:4687).
     // CheckIndexConstraints + CheckIndexConstraintForProperty + CheckIndexConstraintForIndexSignature are now REAL in Checker.Declarations.cs (checker.go:4769).
     // CheckClassOrInterfaceForDuplicateIndexSignatures + CheckTypeForDuplicateIndexSignatures are now REAL in Checker.Declarations.cs (checker.go:4879).
@@ -257,7 +255,8 @@ public partial class Checker
 
     // ---- package-level ast/checker helpers not yet landed on a host class (deferred) ----
     // utilities.go:64
-    internal static ModifierFlags GetSelectedModifierFlags(Node node, ModifierFlags flags) => throw new NotImplementedException("getSelectedModifierFlags");
+    // utilities.go:64 — getSelectedModifierFlags.
+    internal static ModifierFlags GetSelectedModifierFlags(Node node, ModifierFlags flags) => node.ModifierFlags() & flags;
     // checker.go:2894
     internal static bool IsInstancePropertyWithInitializerOrPrivateIdentifierProperty(Node n) => throw new NotImplementedException("isInstancePropertyWithInitializerOrPrivateIdentifierProperty");
     // checker.go:2898
@@ -278,7 +277,8 @@ public partial class Checker
     internal static bool HasTypeJsonImportAttribute(Node node) => throw new NotImplementedException("hasTypeJsonImportAttribute");
     // GetVerbatimModuleSyntaxErrorMessage (checker.go:5660) already stubbed in Checker.Grammar.Deps.cs.
     // utilities.go:1070
-    internal static bool IsSuperCall(Node n) => throw new NotImplementedException("isSuperCall");
+    // utilities.go:1070 — isSuperCall.
+    internal static bool IsSuperCall(Node n) => NodeTests.IsCallExpression(n) && n.Expression()!.Kind == SyntaxKind.SuperKeyword;
     // nodebuilderimpl.go:1187
     internal static Node? TryGetModuleSpecifierFromDeclaration(Node node) => throw new NotImplementedException("TryGetModuleSpecifierFromDeclaration");
     // ast/utilities.go:4054

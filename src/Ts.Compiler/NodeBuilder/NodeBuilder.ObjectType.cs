@@ -328,18 +328,50 @@ public sealed partial class NodeBuilder
     private Node CreateAnonymousTypeNode(Type t) => CreateAnonymousTypeNodeEx(t, false, false);
 
     // nodebuilderimpl.go:2733 — shouldWriteTypeOfFunctionSymbol.
-    // PORT-NOTE: only the plain-object-literal path (symbol without Class/Enum/ValueModule/Function/Method
-    // flags) is exercised by the anonymous-object messages; the static-method / non-local-function arms are
-    // deferred. A plain object-literal symbol has none of those flags, so this returns (false, symbol).
     private (bool, Symbol) ShouldWriteTypeOfFunctionSymbol(Symbol symbol, TypeId typeId)
     {
         var isStaticMethodSymbol = (symbol.Flags & SymbolFlags.Method) != 0
             && CoreUtil.Some(symbol.Declarations, declaration =>
                 AstUtilities.IsStatic(declaration) && !ch.IsLateBindableIndexSignature(AstUtilities.GetNameOfDeclaration(declaration)!));
-        if (isStaticMethodSymbol)
+        var isNonLocalFunctionSymbol = false;
+        var isFunctionExpressionSymbol = false;
+        if ((symbol.Flags & SymbolFlags.Function) != 0)
         {
-            // DEFERRED: the isNonLocalFunctionSymbol / typeof-emission arms (nodebuilderimpl.go:2737+).
-            throw new NotImplementedException("nodeBuilder.shouldWriteTypeOfFunctionSymbol");
+            if (symbol.Parent is not null)
+            {
+                isNonLocalFunctionSymbol = true;
+            }
+            else
+            {
+                foreach (var declaration in symbol.Declarations ?? [])
+                {
+                    if (declaration.Parent!.Kind == SyntaxKind.SourceFile || declaration.Parent.Kind == SyntaxKind.ModuleBlock)
+                    {
+                        isNonLocalFunctionSymbol = true;
+                        break;
+                    }
+                    if (AstUtilities.IsFunctionExpressionOrArrowFunction(declaration) && NodeTests.IsVariableDeclaration(declaration.Parent) &&
+                        NodeTests.IsVariableDeclarationList(declaration.Parent.Parent!) && NodeTests.IsVariableStatement(declaration.Parent.Parent!.Parent!) &&
+                        declaration.Parent.Parent.Parent!.Parent is not null &&
+                        (declaration.Parent.Parent.Parent.Parent.Kind == SyntaxKind.SourceFile || declaration.Parent.Parent.Parent.Parent.Kind == SyntaxKind.ModuleBlock))
+                    {
+                        isNonLocalFunctionSymbol = true;
+                        isFunctionExpressionSymbol = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (isStaticMethodSymbol || isNonLocalFunctionSymbol)
+        {
+            if (isFunctionExpressionSymbol && symbol.ValueDeclaration is not null && symbol.ValueDeclaration.Parent is not null &&
+                symbol.ValueDeclaration.Parent != ctx!.enclosingDeclaration)
+            {
+                symbol = ch.GetMergedSymbol(symbol.ValueDeclaration.Parent.Symbol())!;
+            }
+            // typeof is allowed only for static/non local functions
+            return (((ctx!.flags & global::Ts.NodeBuilder.Flags.UseTypeOfFunction) != 0 || ctx.visitedTypes.Contains(typeId)) && // it is type of the symbol uses itself recursively
+                ((ctx.flags & global::Ts.NodeBuilder.Flags.UseStructuralFallback) == 0 || ch.IsValueSymbolAccessible(symbol, ctx.enclosingDeclaration)), symbol); // And the build is going to succeed without visibility error or there is no structural fallback allowed
         }
         return (false, symbol);
     }
@@ -351,14 +383,12 @@ public sealed partial class NodeBuilder
         {
             return (false, symbol);
         }
-        if ((symbol.Flags & SymbolFlags.Class) != 0)
-        {
-            // DEFERRED: the class arm of nonFunctionResult needs IsSymbolAccessible / GetBaseTypeVariableOfClass
-            // interplay (symbolaccessibility.go). A plain object-literal type has no Class flag, so this arm
-            // is unreachable from the anonymous-object assignability messages; deferring keeps it honest.
-            throw new NotImplementedException("nodeBuilder.shouldEmitTypeOfSymbol(class)");
-        }
-        var nonFunctionResult = (symbol.Flags & (SymbolFlags.Enum | SymbolFlags.ValueModule)) != 0;
+        var nonFunctionResult = ((symbol.Flags & SymbolFlags.Class) != 0 && !forceClassExpansion && ch.GetBaseTypeVariableOfClass(symbol) is null &&
+            !(symbol.ValueDeclaration is not null && AstUtilities.IsClassLike(symbol.ValueDeclaration) &&
+                (ctx!.flags & global::Ts.NodeBuilder.Flags.WriteClassExpressionAsTypeLiteral) != 0 &&
+                (!NodeTests.IsClassDeclaration(symbol.ValueDeclaration) ||
+                    ch.IsSymbolAccessible(symbol, ctx.enclosingDeclaration, isInstanceType, false /*shouldComputeAliasesToMakeVisible*/).Accessibility != global::Ts.Printer.SymbolAccessibility.Accessible)))
+            || (symbol.Flags & (SymbolFlags.Enum | SymbolFlags.ValueModule)) != 0;
         if (nonFunctionResult)
         {
             return (true, symbol);
@@ -434,14 +464,20 @@ public sealed partial class NodeBuilder
         return null;
     }
 
-    // symboltostring.go path — symbolToTypeNode reduced to a name. The anonymous-object messages only reach
-    // this from the "typeof the symbol" arm, which a plain object literal never triggers. Kept faithful to
-    // the bare-name reference produced by SymbolToTypeReferenceNode.
+    // nodebuilderimpl.go:638 — symbolToTypeNode, reduced. PORT-NOTE (reduced): the import-type module
+    // root arm and the symbol-chain access with type arguments (createAccessFromSymbolChain) stay with
+    // the symbol-chain wave; the diagnostics slice only reaches this with simple bare-name chains. The
+    // `typeof X` wrapping for mask == Value (nodebuilderimpl.go:727-736) is load-bearing for
+    // "Type 'typeof C' ..." messages and is ported.
     private Node SymbolToNodeImplTypeNode(Symbol symbol, SymbolFlags meaning)
     {
-        // PORT-NOTE (deferred): full symbolToTypeNode (chain + type arguments + typeof wrapping). Reduced to
-        // a bare identifier type reference here; a plain object-literal symbol does not take this arm.
-        return SymbolToTypeReferenceNodeLocal(symbol, null);
+        var isTypeOf = meaning == SymbolFlags.Value;
+        var entityName = f.NewIdentifier(AstUtilities.SymbolName(symbol));
+        if (isTypeOf)
+        {
+            return f.NewTypeQueryNode(entityName, null);
+        }
+        return f.NewTypeReferenceNode(entityName, null);
     }
 
     // nodebuilderimpl.go:3089 — visitAndTransformType (circular-reference / symbol-depth guard).
@@ -740,9 +776,24 @@ public sealed partial class NodeBuilder
         if ((propertySymbol.Flags & (SymbolFlags.Function | SymbolFlags.Method)) != 0
             && ch.GetPropertiesOfObjectType(propertyType).Length == 0 && !ch.IsReadonlySymbol(propertySymbol))
         {
-            // DEFERRED: method-signature synthesis (getSignaturesOfType -> signatureToSignatureDeclarationHelper).
-            // Owned by the signature-serialization wave; a data-property object literal never enters this arm.
-            throw new NotImplementedException("nodeBuilder.addPropertyToElementList(method)");
+            var signatures = ch.GetSignaturesOfType(ch.FilterType(propertyType, static t =>
+                (t.flags & TypeFlags.Undefined) == 0), SignatureKind.Call);
+            foreach (var signature in signatures)
+            {
+                var methodDeclaration = SignatureToSignatureDeclarationHelper(signature, SyntaxKind.MethodSignature, new SignatureToSignatureDeclarationOptions
+                {
+                    name = propertyName,
+                    questionToken = optionalToken,
+                });
+                // PORT-NOTE (deferred): setCommentRange(methodDeclaration, signature.declaration ??
+                // propertySymbol.ValueDeclaration) copies JSDoc/comment ranges for .d.ts emit; the
+                // assignability messages strip comments, so it is a no-op here.
+                typeElements.Add(methodDeclaration);
+            }
+            if (signatures.Length != 0 || optionalToken is null)
+            {
+                return;
+            }
         }
         Node? propertyTypeNode;
         if (ShouldUsePlaceholderForProperty(propertySymbol))
@@ -1009,12 +1060,9 @@ public sealed partial class NodeBuilder
         return name is not null && NodeTests.IsStringLiteral(name) && (name.AsStringLiteral().TokenFlags & TokenFlags.SingleQuote) != 0;
     }
 
-    // nodebuilderimpl.go:1786 — signatureToSignatureDeclarationHelper.
-    // DEFERRED: call/construct/method/getter/setter/function/constructor signature synthesis — needs
-    // enterSignatureScope + symbolToParameterDeclaration + serializeReturnTypeForSignature +
-    // typeParameterToDeclaration. The anonymous-object property path (data properties only) never reaches it.
-    private Node SignatureToSignatureDeclarationHelper(Signature signature, SyntaxKind kind, SignatureToSignatureDeclarationOptions? options) =>
-        throw new NotImplementedException("nodeBuilder.signatureToSignatureDeclarationHelper");
+    // signatureToSignatureDeclarationHelper (nodebuilderimpl.go:1786) is now REAL in
+    // NodeBuilder.Signatures.cs together with the enterSignatureScope / symbolToParameterDeclaration /
+    // serializeReturnTypeForSignature / typeParameterToDeclaration machinery.
 }
 
 // nodebuilderimpl.go:1780 — SignatureToSignatureDeclarationOptions (options bag for the deferred signature

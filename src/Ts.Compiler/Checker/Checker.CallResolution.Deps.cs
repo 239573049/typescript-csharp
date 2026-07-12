@@ -145,10 +145,8 @@ public partial class Checker
 
     // ===== (b) deferred leaves called by the trunk (owned elsewhere / not yet landed) =====
 
-    // checker.go:8624 — private/protected-constructor accessibility. Deferred: needs isNodeWithinClass /
-    // typeHasProtectedAccessibleBase / findMixins (class-heritage cluster). PORT-NOTE: returning true is
-    // the accessible-by-default answer; only affects `new` on non-public constructors.
-    private bool IsConstructorAccessible(Node node, Signature signature) => throw new NotImplementedException("isConstructorAccessible");
+    // IsConstructorAccessible + TypeHasProtectedAccessibleBase are now REAL in Checker.CallResolution.cs
+    // (checker.go:8624/8657); FindMixins is REAL in Checker.Instantiation.cs (checker.go:21270).
 
     // checker.go:8306 — deprecated-signature suggestion (deprecation-diagnostics cluster). (Real stub in
     // Checker.Jsx.Deps.cs — not redeclared.)

@@ -60,6 +60,16 @@ internal sealed class NodeBuilderContext
     // nodebuilderimpl.go:78 — typeParameterSymbolList: guards re-emitting a symbol's type parameters within
     // one qualified name. Read/written by lookup*TypeArgumentNodes (only when WriteTypeParametersInQualifiedName).
     internal readonly HashSet<SymbolId> typeParameterSymbolList = new();
+    // nodebuilderimpl.go:85-87 — type-parameter naming scopes. PORT-NOTE (shape): Go declares these as
+    // collections.CopyOnWriteMap/-Set consumed via EnterScope; the C# COW Scope is a ref struct (05 §5.2)
+    // and cannot be captured by the cleanup closure enterNewScope returns, so plain containers are used
+    // and CloneNodeBuilderContext snapshot-restores them — identical restore semantics, eager copy.
+    internal readonly Dictionary<TypeId, Node> typeParameterNames = new();
+    internal readonly HashSet<string> typeParameterNamesByText = new(StringComparer.Ordinal);
+    internal readonly Dictionary<string, int> typeParameterNamesByTextNextNameCount = new(StringComparer.Ordinal);
+    // nodebuilderimpl.go:72 — suppressReportInferenceFallback: quiets ReportInferenceFallback while
+    // serializing an inferred return type (the tracker call itself lands with the reuse wave).
+    internal bool suppressReportInferenceFallback;
 
     // ── object-type serialization state (nodebuilderimpl.go:57 NodeBuilderContext) ───────────────────
     // These fields back the anonymous/object type-literal path (createAnonymousTypeNode ->

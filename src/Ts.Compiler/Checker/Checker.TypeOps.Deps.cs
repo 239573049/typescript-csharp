@@ -17,7 +17,9 @@ public partial class Checker
 
     // ---- misc type predicates (checker.go, later waves) ----
     internal bool IsPrimitiveOrObjectOrEmptyType(Type t) => throw new NotImplementedException("isPrimitiveOrObjectOrEmptyType");
-    internal bool ContainsMissingType(Type t) => throw new NotImplementedException("containsMissingType");
+    // checker.go:1250 — containsMissingType (constructor-bound closure in Go; direct method here).
+    internal bool ContainsMissingType(Type t) =>
+        t == missingType || (t.flags & TypeFlags.Union) != 0 && t.Types()[0] == missingType;
     // isStringIndexSignatureOnlyType is a memoized Func<Type,bool> field (Checker.cs) bound to IsStringIndexSignatureOnlyTypeWorker; callers invoke the field.
     internal static bool IsObjectOrArrayLiteralType(Type t) => throw new NotImplementedException("isObjectOrArrayLiteralType");
 
@@ -43,5 +45,14 @@ public partial class Checker
     }
 
     // ---- ast free-function helper ----
-    internal static bool IsDeleteTarget(Node node) => throw new NotImplementedException("isDeleteTarget");
+    // checker/utilities.go:110 — isDeleteTarget.
+    internal static bool IsDeleteTarget(Node node)
+    {
+        if (!AstUtilities.IsAccessExpression(node))
+        {
+            return false;
+        }
+        var parent = AstUtilities.WalkUpParenthesizedExpressions(node.Parent);
+        return parent != null && parent.Kind == SyntaxKind.DeleteExpression;
+    }
 }

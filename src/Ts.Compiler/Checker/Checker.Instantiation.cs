@@ -1091,6 +1091,10 @@ public partial class Checker
         return s;
     }
 
+    // checker.go:21580
+    internal static bool IsPrototypeProperty(Symbol symbol) =>
+        (symbol.Flags & SymbolFlags.Method) != 0 || (symbol.CheckFlags & CheckFlags.SyntheticMethod) != 0;
+
     // checker.go:21608-21618
     internal Symbol CreateSymbolWithType(Symbol source, Type? t)
     {
@@ -1115,6 +1119,36 @@ public partial class Checker
                 (GetMappedTypeModifiers(objectType) & MappedTypeModifiers.ExcludeOptional) == 0 && objectType.AsMappedType().declaration!.NameType is null;
         }
         return false;
+    }
+
+    // checker.go:21270
+    internal (bool[], int) FindMixins(Type[] types)
+    {
+        var mixinFlags = CoreUtil.Map(types, IsMixinConstructorType)!;
+        int constructorTypeCount = 0, mixinCount = 0;
+        var firstMixinIndex = -1;
+        for (var i = 0; i < types.Length; i++)
+        {
+            var t = types[i];
+            if (GetSignaturesOfType(t, SignatureKind.Construct).Length > 0)
+            {
+                constructorTypeCount++;
+            }
+            if (mixinFlags[i])
+            {
+                if (firstMixinIndex < 0)
+                {
+                    firstMixinIndex = i;
+                }
+                mixinCount++;
+            }
+        }
+        if (constructorTypeCount > 0 && constructorTypeCount == mixinCount)
+        {
+            mixinFlags[firstMixinIndex] = false;
+            mixinCount--;
+        }
+        return (mixinFlags, mixinCount);
     }
 
     // checker.go:21308-21317 — property by name on an object type, or null.

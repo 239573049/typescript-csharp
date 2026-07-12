@@ -65,8 +65,8 @@ public partial class Checker
     // checker.go:10023
     internal Type CheckClassExpression(Node node) => throw new NotImplementedException("checkClassExpression");
 
-    // checker.go:10090
-    internal Type CheckFunctionExpressionOrObjectLiteralMethod(Node node, CheckMode checkMode) => throw new NotImplementedException("checkFunctionExpressionOrObjectLiteralMethod");
+    // CheckFunctionExpressionOrObjectLiteralMethod (+ contextual/deferred/parameter-assignment family)
+    // is now REAL in Checker.Expressions.cs (checker.go:10090-10433).
 
     // checker.go:12256
     internal Type CheckAssertion(Node node, CheckMode checkMode) => throw new NotImplementedException("checkAssertion");

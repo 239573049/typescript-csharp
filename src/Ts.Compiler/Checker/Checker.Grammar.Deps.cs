@@ -43,7 +43,41 @@ public partial class Checker
     // NodeCanBeDecorated / HasDecorators are now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs);
     // call sites use AstUtilities.NodeCanBeDecorated / AstUtilities.HasDecorators directly.
     internal static AllAccessorDeclarations GetAllAccessorDeclarationsForDeclaration(Node accessor, Node[] declarationsOfSymbol) => throw new NotImplementedException("ast.GetAllAccessorDeclarationsForDeclaration");
-    internal static bool CanHaveModifiers(Node node) => throw new NotImplementedException("ast.CanHaveModifiers");
+    // ast/utilities.go:1081 — CanHaveModifiers.
+    internal static bool CanHaveModifiers(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.TypeParameter:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.MethodSignature:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.Constructor:
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.IndexSignature:
+            case SyntaxKind.ConstructorType:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.ClassExpression:
+            case SyntaxKind.VariableStatement:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.EnumDeclaration:
+            case SyntaxKind.ModuleDeclaration:
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            case SyntaxKind.ExportAssignment:
+            case SyntaxKind.ExportDeclaration:
+                return true;
+        }
+        return false;
+    }
     internal static bool CanHaveIllegalModifiers(Node node) => throw new NotImplementedException("ast.CanHaveIllegalModifiers");
     // IsEffectiveExternalModule is now REAL in Ast/Utilities.Binder.cs (utilities.go:1650); callers use AstUtilities.IsEffectiveExternalModule.
 

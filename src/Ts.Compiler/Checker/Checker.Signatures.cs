@@ -1087,7 +1087,7 @@ public partial class Checker
         {
             var varsOnly = new SymbolTable();
             // map-iter: 序无关 — filtering into another table; order does not affect result.
-            foreach (var p in members.Values)
+            foreach (var p in (members ?? EmptySymbolTable).Values)
             {
                 if ((p.Flags & SymbolFlags.BlockScoped) == 0 && !((p.Flags & SymbolFlags.ValueModule) != 0 && (p.Declarations ?? []).Length != 0 && CoreUtil.Every(p.Declarations, AstUtilities.IsAmbientModule)))
                 {
@@ -1104,7 +1104,9 @@ public partial class Checker
             var baseConstructorType = GetBaseConstructorTypeOfClass(classType);
             if ((baseConstructorType.flags & (TypeFlags.Object | TypeFlags.Intersection | TypeFlags.TypeVariable)) != 0)
             {
-                members = new SymbolTable(members);
+                // maps.Clone(nil) == nil; the Go source ignores addInheritedMembers' return value here,
+                // so a nil members table stays nil and inherited members are dropped (tsgo behavior).
+                members = members is null ? null : new SymbolTable(members);
                 AddInheritedMembers(members, GetPropertiesOfType(baseConstructorType));
                 SetStructuredTypeMembers(t, members, null, null, null);
             }
@@ -1113,11 +1115,11 @@ public partial class Checker
                 baseConstructorIndexInfo = anyBaseTypeIndexInfo;
             }
         }
-        var indexSymbol = members.GetValueOrDefault(InternalSymbolName.Index);
+        var indexSymbol = members?.GetValueOrDefault(InternalSymbolName.Index);
         if (indexSymbol is not null)
         {
             // map-iter: 序无关 — collect members; getIndexInfosOfIndexSymbol reduces order-independently.
-            indexInfos = GetIndexInfosOfIndexSymbol(indexSymbol, members.Values.ToArray());
+            indexInfos = GetIndexInfosOfIndexSymbol(indexSymbol, members!.Values.ToArray());
         }
         else
         {

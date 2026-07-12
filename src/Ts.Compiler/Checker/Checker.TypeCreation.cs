@@ -376,6 +376,45 @@ public partial class Checker
         return t;
     }
 
+    // checker.go:25270
+    internal Type GetEnumLiteralType(object? value, Symbol enumSymbol, Symbol symbol)
+    {
+        TypeFlags flags;
+        switch (value)
+        {
+            case string:
+                flags = TypeFlags.EnumLiteral | TypeFlags.StringLiteral;
+                break;
+            case Ts.JsNum.Number v:
+                flags = TypeFlags.EnumLiteral | TypeFlags.NumberLiteral;
+                // NaN cannot be used as a Go map key because NaN != NaN in IEEE 754,
+                // so Go map lookups for NaN always miss. Cache NaN enum types separately by enum symbol.
+                if (double.IsNaN(v.Value))
+                {
+                    var nan = enumNaNLiteralTypes.GetValueOrDefault(enumSymbol);
+                    if (nan is null)
+                    {
+                        nan = NewLiteralType(flags, value, null);
+                        nan.symbol = symbol;
+                        enumNaNLiteralTypes[enumSymbol] = nan;
+                    }
+                    return nan;
+                }
+                break;
+            default:
+                throw new InvalidOperationException("Unhandled case in getEnumLiteralType");
+        }
+        var key = new EnumLiteralKey(enumSymbol, value);
+        var t = enumLiteralTypes.GetValueOrDefault(key);
+        if (t is null)
+        {
+            t = NewLiteralType(flags, value, null);
+            t.symbol = symbol;
+            enumLiteralTypes[key] = t;
+        }
+        return t;
+    }
+
     // getUnionType / getUnionTypeWorker (real reduction) now live in Checker.UnionIntersection.cs (#17).
 
     // MINIMAL-BUILD stand-in for constructor support. Full getTemplateLiteralType interning

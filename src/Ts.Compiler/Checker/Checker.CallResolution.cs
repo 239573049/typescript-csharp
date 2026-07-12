@@ -160,7 +160,9 @@ public partial class Checker
                 result = links.resolvedSignature!;
             }
             // If signature resolution originated in control flow type analysis we don't cache the result.
-            if (flowLoopStack.Count == 0)
+            // Go `len(c.flowLoopStack) == 0`: checkExpressionCachedEx nils the stack out while computing
+            // a cached type, so the nil case is live and means "empty" (05 §6.1 nil-slice semantics).
+            if ((flowLoopStack?.Count ?? 0) == 0)
             {
                 links.resolvedSignature = result;
             }
@@ -382,6 +384,89 @@ public partial class Checker
         }
         InvocationError(node.Expression()!, expressionType, SignatureKind.Construct, null);
         return ResolveErrorCall(node);
+    }
+
+    // checker.go:8624
+    private bool IsConstructorAccessible(Node node, Signature? signature)
+    {
+        if (signature is null || signature.declaration is null)
+        {
+            return true;
+        }
+        var declaration = signature.declaration;
+        var modifiers = GetSelectedModifierFlags(declaration, ModifierFlags.NonPublicAccessibilityModifier);
+        // (1) Public constructors and (2) constructor functions are always accessible.
+        if (modifiers == 0 || !NodeTests.IsConstructorDeclaration(declaration))
+        {
+            return true;
+        }
+        var declaringClassDeclaration = AstUtilities.GetClassLikeDeclarationOfSymbol(declaration.Parent!.Symbol()!);
+        var declaringClass = GetDeclaredTypeOfSymbol(declaration.Parent!.Symbol()!);
+        // A private or protected constructor can only be instantiated within its own class (or a subclass, for protected)
+        if (!IsNodeWithinClass(node, declaringClassDeclaration))
+        {
+            var containingClass = AstUtilities.GetContainingClass(node);
+            if (containingClass is not null && (modifiers & ModifierFlags.Protected) != 0)
+            {
+                var containingType = GetDeclaredTypeOfSymbol(containingClass.Symbol()!);
+                if (TypeHasProtectedAccessibleBase(declaration.Parent!.Symbol()!, containingType))
+                {
+                    return true;
+                }
+            }
+            if ((modifiers & ModifierFlags.Private) != 0)
+            {
+                Error(node, Diag.Constructor_of_class_0_is_private_and_only_accessible_within_the_class_declaration, TypeToString(declaringClass));
+            }
+            if ((modifiers & ModifierFlags.Protected) != 0)
+            {
+                Error(node, Diag.Constructor_of_class_0_is_protected_and_only_accessible_within_the_class_declaration, TypeToString(declaringClass));
+            }
+            return false;
+        }
+        return true;
+    }
+
+    // checker.go:8657
+    private bool TypeHasProtectedAccessibleBase(Symbol target, Type t)
+    {
+        var baseTypes = GetBaseTypes(GetTargetType(t));
+        if (baseTypes.Length == 0)
+        {
+            return false;
+        }
+        var firstBase = baseTypes[0];
+        if ((firstBase.flags & TypeFlags.Intersection) != 0)
+        {
+            var types = firstBase.AsIntersectionType().types;
+            var (mixinFlags, _) = FindMixins(types!);
+            var i = 0;
+            foreach (var intersectionMember in firstBase.Types())
+            {
+                // We want to ignore mixin ctors
+                if (!mixinFlags[i])
+                {
+                    if ((intersectionMember.objectFlags & (ObjectFlags.Class | ObjectFlags.Interface)) != 0)
+                    {
+                        if (intersectionMember.symbol == target)
+                        {
+                            return true;
+                        }
+                        if (TypeHasProtectedAccessibleBase(target, intersectionMember))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                i++;
+            }
+            return false;
+        }
+        if (firstBase.symbol == target)
+        {
+            return true;
+        }
+        return TypeHasProtectedAccessibleBase(target, firstBase);
     }
 
     // checker.go:8819
@@ -801,7 +886,7 @@ public partial class Checker
             // We have skipped a generic function during inferential typing. Indicate this so a second pass
             // of inference is needed.
             var context = GetInferenceContext(node);
-            context.flags |= InferenceFlags.SkippedGenericFunction;
+            context!.flags |= InferenceFlags.SkippedGenericFunction;
         }
     }
 }

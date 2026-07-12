@@ -1541,6 +1541,73 @@ public static partial class AstUtilities
         return (node.ModifierFlags() & flags) != 0;
     }
 
+    // utilities.go:3231-3280
+    public static Node[] CreateModifiersFromModifierFlags(ModifierFlags flags, Func<SyntaxKind, Node> createModifier)
+    {
+        var result = new List<Node>();
+        if ((flags & ModifierFlags.Export) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.ExportKeyword));
+        }
+        if ((flags & ModifierFlags.Ambient) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.DeclareKeyword));
+        }
+        if ((flags & ModifierFlags.Default) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.DefaultKeyword));
+        }
+        if ((flags & ModifierFlags.Const) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.ConstKeyword));
+        }
+        if ((flags & ModifierFlags.Public) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.PublicKeyword));
+        }
+        if ((flags & ModifierFlags.Private) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.PrivateKeyword));
+        }
+        if ((flags & ModifierFlags.Protected) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.ProtectedKeyword));
+        }
+        if ((flags & ModifierFlags.Abstract) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.AbstractKeyword));
+        }
+        if ((flags & ModifierFlags.Static) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.StaticKeyword));
+        }
+        if ((flags & ModifierFlags.Override) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.OverrideKeyword));
+        }
+        if ((flags & ModifierFlags.Readonly) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.ReadonlyKeyword));
+        }
+        if ((flags & ModifierFlags.Accessor) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.AccessorKeyword));
+        }
+        if ((flags & ModifierFlags.Async) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.AsyncKeyword));
+        }
+        if ((flags & ModifierFlags.In) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.InKeyword));
+        }
+        if ((flags & ModifierFlags.Out) != 0)
+        {
+            result.Add(createModifier(SyntaxKind.OutKeyword));
+        }
+        return result.ToArray();
+    }
+
     // utilities.go:1021-1023
     public static bool HasAccessorModifier(Node node)
     {

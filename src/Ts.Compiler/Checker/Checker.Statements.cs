@@ -479,14 +479,31 @@ public partial class Checker
                 // checker.go:2499-2502 — direct translation: resolveUntypedCall.
                 ResolveUntypedCall(node);
                 break;
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.MethodSignature:
+                // checker.go:2503-2504
+                CheckFunctionExpressionOrObjectLiteralMethodDeferred(node);
+                break;
             case SyntaxKind.TypeParameter:
                 // checker.go:2510-2511
                 CheckTypeParameterDeferred(node);
                 break;
+            case SyntaxKind.VoidExpression:
+                // checker.go:2519-2520
+                CheckExpression(node.Expression()!);
+                break;
+            case SyntaxKind.BinaryExpression:
+                // checker.go:2521-2523
+                if (AstUtilities.IsInstanceOfExpression(node))
+                {
+                    ResolveUntypedCall(node);
+                }
+                break;
             default:
-                // Remaining kinds (function/arrow/method deferred bodies, accessors, class expressions,
-                // JSX, assertions, void/instanceof operands) still route to the deferred-check cluster's
-                // worker stub (checker.go:2503-2524).
+                // Remaining kinds (accessors, class expressions, JSX, assertions) still route to the
+                // deferred-check cluster's worker stub (checker.go:2505-2518).
                 CheckDeferredNodeWorker(node);
                 break;
         }

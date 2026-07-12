@@ -993,7 +993,54 @@ public partial class Checker
     // Contextual parameter typing (#21 contextual-types cluster) — reached only by the KindParameter
     // branch of getTypeForVariableLikeDeclaration, not by intrinsic-typed variable declarations.
     internal Type? GetContextualThisParameterType(Node fn) => throw new NotImplementedException("getContextualThisParameterType");
-    internal Type? GetContextuallyTypedParameterType(Node parameter) => throw new NotImplementedException("getContextuallyTypedParameterType");
+    // checker.go:29215
+    internal Type? GetContextuallyTypedParameterType(Node parameter)
+    {
+        var fn = parameter.Parent!;
+        if (!IsContextSensitiveFunctionOrObjectLiteralMethod(fn))
+        {
+            return null;
+        }
+        var iife = AstUtilities.GetImmediatelyInvokedFunctionExpression(fn);
+        if (iife is not null)
+        {
+            var args = GetEffectiveCallArguments(iife);
+            var indexOfParameter = Array.IndexOf(fn.Parameters()!, parameter);
+            if (HasDotDotDotToken(parameter))
+            {
+                return GetSpreadArgumentType(args, indexOfParameter, args.Length, anyType!, null /*context*/, CheckMode.Normal);
+            }
+            var links = signatureLinks.Get(iife);
+            var cached = links.resolvedSignature;
+            links.resolvedSignature = anySignature;
+            Type? t;
+            if (indexOfParameter < args.Length)
+            {
+                t = GetWidenedLiteralType(CheckExpression(args[indexOfParameter]));
+            }
+            else if (parameter.Initializer() is not null)
+            {
+                t = null;
+            }
+            else
+            {
+                t = undefinedWideningType;
+            }
+            links.resolvedSignature = cached;
+            return t;
+        }
+        var contextualSignature = GetContextualSignature(fn);
+        if (contextualSignature is not null)
+        {
+            var index = Array.IndexOf(fn.Parameters()!, parameter) - CoreUtil.IfElse(AstUtilities.GetThisParameter(fn) is not null, 1, 0);
+            if (HasDotDotDotToken(parameter) && CoreUtil.LastOrNil(fn.Parameters()) == parameter)
+            {
+                return GetRestTypeAtPosition(contextualSignature, index, false);
+            }
+            return TryGetTypeAtPosition(contextualSignature, index);
+        }
+        return null;
+    }
 
     // GetWidenedLiteralType is now REAL in Checker.Widening.cs (checker.go:25395).
 
@@ -1019,7 +1066,21 @@ public partial class Checker
 
     internal Type CheckShorthandPropertyAssignment(Node node, bool inDestructuringPattern, CheckMode checkMode) => throw new NotImplementedException("checkShorthandPropertyAssignment");
 
-    internal Type CheckObjectLiteralMethod(Node node, CheckMode checkMode) => throw new NotImplementedException("checkObjectLiteralMethod");
+    // checker.go:13789
+    internal Type CheckObjectLiteralMethod(Node node, CheckMode checkMode)
+    {
+        // Grammar checking
+        CheckGrammarMethod(node);
+        // Do not use hasDynamicName here, because that returns false for well known symbols.
+        // We want to perform checkComputedPropertyName for all computed properties, including
+        // well known symbols.
+        if (NodeTests.IsComputedPropertyName(node.Name()!))
+        {
+            CheckComputedPropertyName(node.Name()!);
+        }
+        var uninstantiatedType = CheckFunctionExpressionOrObjectLiteralMethod(node, checkMode);
+        return InstantiateTypeWithSingleGenericCallSignature(node, uninstantiatedType, checkMode);
+    }
 
     // checkJsxAttribute: real body landed in Checker.Jsx.cs (jsx wave).
 

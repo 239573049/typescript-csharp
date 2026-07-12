@@ -186,7 +186,7 @@ public partial class Checker
                     {
                         inferenceNode = memberDecl.Initializer()!;
                     }
-                    AddIntraExpressionInferenceSite(inferenceContext, inferenceNode, t);
+                    AddIntraExpressionInferenceSite(inferenceContext!, inferenceNode, t);
                 }
             }
             else if (memberDecl.Kind == SyntaxKind.SpreadAssignment)

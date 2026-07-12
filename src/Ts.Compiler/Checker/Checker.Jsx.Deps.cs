@@ -28,8 +28,7 @@ public partial class Checker
 {
     // ---- contextual typing (contextual wave: checker.go:29xxx-30xxx) ----
 
-    // checker.go:7461
-    internal Type CheckExpressionWithContextualType(Node node, Type contextualType, InferenceContext? inferenceContext, CheckMode checkMode) => throw new NotImplementedException("checkExpressionWithContextualType");
+    // CheckExpressionWithContextualType + GetContextNode are now REAL in Checker.Expressions.cs (checker.go:7461/7482).
 
     // getApparentTypeOfContextualType (30443), getTypeOfPropertyOfContextualType (30308),
     // findContextualNode (30643), getContextualTypeForArgumentAtIndex (29529): real bodies landed in
@@ -76,8 +75,8 @@ public partial class Checker
 
     // ---- inference context (checker.go:30722) ----
 
-    // checker.go:30722
-    internal InferenceContext GetInferenceContext(Node node) => throw new NotImplementedException("getInferenceContext");
+    // PushInferenceContext / PopInferenceContext / GetInferenceContext are now REAL in
+    // Checker.ContextualType.cs (checker.go:30712-30729).
 
     // ---- call resolution (checker.go call wave: 8xxx-9xxx) ----
     // resolveCall (8819), resolveErrorCall (9899), resolveUntypedCall (9878), isUntypedFunctionCall
