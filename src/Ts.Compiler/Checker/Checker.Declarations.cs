@@ -660,6 +660,87 @@ public partial class Checker
         RegisterForUnusedIdentifiersCheck(node);
     }
 
+    // checker.go:4399
+    internal void CheckTypeParameterListsIdentical(Symbol symbol)
+    {
+        if (symbol.Declarations.Len() == 1)
+        {
+            return;
+        }
+        var links = declaredTypeLinks.Get(symbol);
+        if (!links.typeParametersChecked)
+        {
+            links.typeParametersChecked = true;
+            var declarations = GetClassOrInterfaceDeclarationsOfSymbol(symbol);
+            if (declarations.Length <= 1)
+            {
+                return;
+            }
+            var t = GetDeclaredTypeOfSymbol(symbol);
+            if (!AreTypeParametersIdentical(declarations, t.AsInterfaceType()!.LocalTypeParameters()!, static decl => decl.TypeParameters().OrEmpty()))
+            {
+                // Report an error on every conflicting declaration.
+                var name = SymbolToString(symbol);
+                foreach (var declaration in declarations)
+                {
+                    Error(declaration.Name(), Diag.All_declarations_of_0_must_have_identical_type_parameters, name);
+                }
+            }
+        }
+    }
+
+    // checker.go:4421
+    internal Node[] GetClassOrInterfaceDeclarationsOfSymbol(Symbol symbol)
+    {
+        return CoreUtil.Filter(symbol.Declarations, static d => NodeTests.IsClassDeclaration(d) || NodeTests.IsInterfaceDeclaration(d)).OrEmpty();
+    }
+
+    // checker.go:4427
+    internal bool AreTypeParametersIdentical(Node[] declarations, Type[] targetParameters, Func<Node, Node[]> getTypeParameterDeclarations)
+    {
+        var maxTypeArgumentCount = targetParameters.Length;
+        var minTypeArgumentCount = GetMinTypeArgumentCount(targetParameters);
+        foreach (var declaration in declarations)
+        {
+            // If this declaration has too few or too many type parameters, we report an error
+            var sourceParameters = getTypeParameterDeclarations(declaration);
+            if (sourceParameters.Length < minTypeArgumentCount || sourceParameters.Length > maxTypeArgumentCount)
+            {
+                return false;
+            }
+            for (var i = 0; i < sourceParameters.Length; i++)
+            {
+                var source = sourceParameters[i];
+                var target = targetParameters[i];
+                // If the type parameter node does not have the same name as the resolved type
+                // parameter at this position, we report an error.
+                if (source.Name()!.Text() != target.symbol!.Name)
+                {
+                    return false;
+                }
+                // If the type parameter node does not have an identical constraintNode as the resolved
+                // type parameter at this position, we report an error.
+                var constraintNode = source.AsTypeParameterDeclaration().Constraint;
+                var targetConstraint = GetConstraintOfTypeParameter(target);
+                // relax check if later interface augmentation has no constraint, it's more broad and is OK to merge with
+                // a more constrained interface (this could be generalized to a full hierarchy check, but that's maybe overkill)
+                if (constraintNode != null && targetConstraint != null && !IsTypeIdenticalTo(GetTypeFromTypeNode(constraintNode), targetConstraint))
+                {
+                    return false;
+                }
+                // If the type parameter node has a default and it is not identical to the default
+                // for the type parameter at this position, we report an error.
+                var defaultNode = source.AsTypeParameterDeclaration().DefaultType;
+                var targetDefault = GetDefaultFromTypeParameter(target);
+                if (defaultNode != null && targetDefault != null && !IsTypeIdenticalTo(GetTypeFromTypeNode(defaultNode), targetDefault))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     // checker.go:3301
     internal void CheckTemplateLiteralType(Node node)
     {

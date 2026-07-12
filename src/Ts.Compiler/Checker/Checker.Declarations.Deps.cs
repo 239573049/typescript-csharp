@@ -21,8 +21,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // ---- class/interface heritage + override + index-constraint analysis (members/type-ops, deferred) ----
-    // checker.go:4399
-    internal void CheckTypeParameterListsIdentical(Symbol symbol) => throw new NotImplementedException("checkTypeParameterListsIdentical");
+    // CheckTypeParameterListsIdentical is now REAL in Checker.Declarations.cs (checker.go:4399).
     // checker.go:3128
     internal void CheckObjectTypeForDuplicateDeclarations(Node node, bool checkPrivateNames) => throw new NotImplementedException("checkObjectTypeForDuplicateDeclarations");
     // checker.go:4376
@@ -49,8 +48,7 @@ public partial class Checker
     internal bool CheckInheritedPropertiesAreIdentical(Type t, Node? typeNode) => throw new NotImplementedException("checkInheritedPropertiesAreIdentical");
     // checker.go:4887
     internal void CheckTypeForDuplicateIndexSignatures(Node node) => throw new NotImplementedException("checkTypeForDuplicateIndexSignatures");
-    // checker.go:4427
-    internal bool AreTypeParametersIdentical(Node[] declarations, Type[] targetParameters, Func<Node, Node[]> getTypeParameterDeclarations) => throw new NotImplementedException("areTypeParametersIdentical");
+    // AreTypeParametersIdentical is now REAL in Checker.Declarations.cs (checker.go:4427).
 
     // ---- erasable-syntax / isolated-modules flags (options-driven checks, deferred) ----
     // checker.go:2638

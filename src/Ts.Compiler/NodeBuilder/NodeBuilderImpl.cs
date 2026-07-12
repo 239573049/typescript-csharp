@@ -54,6 +54,12 @@ internal sealed class NodeBuilderContext
     // nodebuilderimpl.go:80 — declaration-symbol -> type overrides (populated by the deferred reuse path;
     // read by serializeTypeForDeclaration/serializeReturnTypeForSignature). Empty in this wave.
     internal readonly Dictionary<SymbolId, Type> enclosingSymbolTypes = new();
+    // nodebuilderimpl.go:70 — remappedSymbolReferences: alias smuggling for reused pseudo-type nodes.
+    // Populated only by the deferred reuse path; read by getNameOfSymbolAsWritten. Empty in this wave.
+    internal readonly Dictionary<SymbolId, Symbol> remappedSymbolReferences = new();
+    // nodebuilderimpl.go:78 — typeParameterSymbolList: guards re-emitting a symbol's type parameters within
+    // one qualified name. Read/written by lookup*TypeArgumentNodes (only when WriteTypeParametersInQualifiedName).
+    internal readonly HashSet<SymbolId> typeParameterSymbolList = new();
 }
 
 // nodebuilder.go:10 + nodebuilderimpl.go:91 — request-scoped builder. In tsgo the public NodeBuilder
@@ -161,13 +167,32 @@ public sealed class NodeBuilder
         global::Ts.NodeBuilder.ISymbolTracker tracker) =>
         throw new NotImplementedException("NodeBuilder.SerializeTypeForExpression");
 
-    // nodebuilder.go:231 — SymbolToExpression.
-    // DEFERRED: needs lookupSymbolChain / createExpressionFromSymbolChain (module specifiers, property
-    // access chains, name-as-written). Used by CreateLiteralConstValue for enum-member initializers.
+    // nodebuilder.go:224 — SymbolToEntityName.
+    internal Node? SymbolToEntityName(Symbol symbol, SymbolFlags meaning, Node? enclosingDeclaration,
+        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(SymbolToNameImpl(symbol, meaning, false));
+    }
+
+    // nodebuilder.go:231 — SymbolToExpression. Used by CreateLiteralConstValue for enum-member initializers.
     internal Node? SymbolToExpression(Symbol symbol, SymbolFlags meaning, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new NotImplementedException("NodeBuilder.SymbolToExpression");
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(SymbolToExpressionImpl(symbol, meaning));
+    }
+
+    // nodebuilder.go:236 — SymbolToNode.
+    internal Node? SymbolToNode(Symbol symbol, SymbolFlags meaning, Node? enclosingDeclaration,
+        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(SymbolToNodeImpl(symbol, meaning));
+    }
 
     // nodebuilder.go:267 — TypeToTypeNode.
     internal Node? TypeToTypeNode(Type type, Node? enclosingDeclaration,
@@ -324,4 +349,353 @@ public sealed class NodeBuilder
         }
         return "x";
     }
+
+    // ── symbol -> node (symbolToString family) ───────────────────────────────────────────────────────
+    //
+    // SCOPE (breadth-first, per phase-6 symbol-display wave): faithfully ports the leaf of the symbol
+    // serializer that the common assignability / "cannot assign to" error messages need — a single-symbol
+    // chain rendered by getNameOfSymbolAsWritten. The full lookupSymbolChain qualification path
+    // (getSymbolChain -> getAccessibleSymbolChain / needsQualification / getContainersOfSymbol, plus
+    // module-specifier import-type synthesis) is only reachable when an enclosingDeclaration is present or
+    // FlagsUseFullyQualifiedType is set; symbolToString(symbol) passes neither, so lookupSymbolChainWorker
+    // takes its else branch (chain = [symbol]) exactly as ported below. getSymbolChain is a documented
+    // deferred stub that only that path would hit.
+
+    // nodebuilderimpl.go:572 — symbolToNode.
+    private Node? SymbolToNodeImpl(Symbol symbol, SymbolFlags meaning)
+    {
+        if ((ctx!.internalFlags & global::Ts.NodeBuilder.InternalFlags.WriteComputedProps) != 0)
+        {
+            if (symbol.ValueDeclaration is not null)
+            {
+                var name = AstUtilities.GetNameOfDeclaration(symbol.ValueDeclaration);
+                if (name is not null && NodeTests.IsComputedPropertyName(name))
+                {
+                    return name;
+                }
+            }
+            if (ch.valueSymbolLinks.Has(symbol))
+            {
+                var nameType = ch.valueSymbolLinks.Get(symbol).nameType;
+                if (nameType is not null && (nameType.flags & (TypeFlags.EnumLiteral | TypeFlags.UniqueESSymbol)) != 0)
+                {
+                    var oldEnclosing = ctx.enclosingDeclaration;
+                    ctx.enclosingDeclaration = nameType.symbol!.ValueDeclaration;
+                    var result = f.NewComputedPropertyName(SymbolToExpressionImpl(nameType.symbol, meaning));
+                    ctx.enclosingDeclaration = oldEnclosing;
+                    return result;
+                }
+            }
+        }
+        return SymbolToExpressionImpl(symbol, meaning);
+    }
+
+    // nodebuilderimpl.go:594 — symbolToName.
+    private Node SymbolToNameImpl(Symbol symbol, SymbolFlags meaning, bool expectsIdentifier)
+    {
+        var chain = LookupSymbolChain(symbol, meaning, false);
+        if (expectsIdentifier && chain.Length != 1 && !ctx!.encounteredError
+            && (ctx.flags & global::Ts.NodeBuilder.Flags.AllowQualifiedNameInPlaceOfIdentifier) != 0)
+        {
+            ctx.encounteredError = true;
+        }
+        return CreateEntityNameFromSymbolChain(chain, chain.Length - 1);
+    }
+
+    // nodebuilderimpl.go:602 — createEntityNameFromSymbolChain.
+    private Node CreateEntityNameFromSymbolChain(Symbol[] chain, int index)
+    {
+        var symbol = chain[index];
+
+        if (index == 0)
+        {
+            ctx!.flags |= global::Ts.NodeBuilder.Flags.InInitialEntityName;
+        }
+        var symbolName = GetNameOfSymbolAsWritten(symbol);
+        if (index == 0)
+        {
+            ctx!.flags ^= global::Ts.NodeBuilder.Flags.InInitialEntityName;
+        }
+
+        var identifier = NewIdentifier(symbolName, symbol);
+        e.AddEmitFlags(identifier, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+        if (index > 0)
+        {
+            return f.NewQualifiedName(CreateEntityNameFromSymbolChain(chain, index - 1), identifier);
+        }
+        return identifier;
+    }
+
+    // nodebuilderimpl.go:847 — symbolToExpression.
+    private Node SymbolToExpressionImpl(Symbol symbol, SymbolFlags mask)
+    {
+        var chain = LookupSymbolChain(symbol, mask, false);
+        return CreateExpressionFromSymbolChain(chain, chain.Length - 1);
+    }
+
+    // nodebuilderimpl.go:852 — createExpressionFromSymbolChain.
+    private Node CreateExpressionFromSymbolChain(Symbol[] chain, int index)
+    {
+        var typeParameterNodes = LookupExpressionChainTypeArgumentNodes(chain, index);
+        var symbol = chain[index];
+
+        if (index == 0)
+        {
+            ctx!.flags |= global::Ts.NodeBuilder.Flags.InInitialEntityName;
+        }
+        var symbolName = GetNameOfSymbolAsWritten(symbol);
+        if (index == 0)
+        {
+            ctx!.flags ^= global::Ts.NodeBuilder.Flags.InInitialEntityName;
+        }
+
+        if (StartsWithSingleOrDoubleQuote(symbolName) && CoreUtil.Some(symbol.Declarations, HasNonGlobalAugmentationExternalModuleSymbol))
+        {
+            // DEFERRED: getSpecifierForModuleSymbol (module-specifier synthesis). Reached only for module
+            // symbols, which the symbolToString error paths in this wave do not exercise.
+            throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol");
+        }
+
+        if (index == 0 || CanUsePropertyAccess(symbolName))
+        {
+            var identifier = NewIdentifier(symbolName, symbol);
+            e.AddEmitFlags(identifier, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+            if (index > 0)
+            {
+                var result = f.NewPropertyAccessExpression(CreateExpressionFromSymbolChain(chain, index - 1), null, identifier, NodeFlags.None);
+                e.AddEmitFlags(result, global::Ts.Printer.EmitFlags.NoIndentation);
+                return CreateExpressionWithTypeArguments(result, typeParameterNodes);
+            }
+            return CreateExpressionWithTypeArguments(identifier, typeParameterNodes);
+        }
+
+        if (StartsWithSquareBracket(symbolName))
+        {
+            symbolName = symbolName[1..^1];
+        }
+
+        Node? expression = null;
+        if (StartsWithSingleOrDoubleQuote(symbolName) && (symbol.Flags & SymbolFlags.EnumMember) == 0)
+        {
+            var literalText = global::Ts.StringUtil.StringUtil.UnquoteString(symbolName);
+            expression = NewStringLiteralEx(literalText, symbolName[0] == '\'');
+        }
+        else if (global::Ts.JsNum.JsNum.FromString(symbolName).ToString() == symbolName)
+        {
+            expression = f.NewNumericLiteral(symbolName, TokenFlags.None);
+        }
+        if (expression is null)
+        {
+            expression = NewIdentifier(symbolName, symbol);
+            e.AddEmitFlags(expression, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+        }
+        return CreateExpressionWithTypeArguments(
+            f.NewElementAccessExpression(CreateExpressionFromSymbolChain(chain, index - 1), null, expression, NodeFlags.None),
+            typeParameterNodes);
+    }
+
+    // nodebuilderimpl.go:906 — canUsePropertyAccess.
+    private static bool CanUsePropertyAccess(string name)
+    {
+        if (name.Length == 0)
+        {
+            return false;
+        }
+        if (name.StartsWith("#", StringComparison.Ordinal))
+        {
+            return name.Length > 1 && global::Ts.Scanner.Scanner.IsIdentifierText(name[1..], LanguageVariant.Standard);
+        }
+        return global::Ts.Scanner.Scanner.IsIdentifierText(name, LanguageVariant.Standard);
+    }
+
+    // nodebuilderimpl.go:918 — startsWithSingleOrDoubleQuote.
+    private static bool StartsWithSingleOrDoubleQuote(string str) =>
+        str.StartsWith("'", StringComparison.Ordinal) || str.StartsWith("\"", StringComparison.Ordinal);
+
+    // nodebuilderimpl.go:922 — startsWithSquareBracket.
+    private static bool StartsWithSquareBracket(string str) => str.StartsWith("[", StringComparison.Ordinal);
+
+    // symbolaccessibility.go:105 — hasNonGlobalAugmentationExternalModuleSymbol.
+    private static bool HasNonGlobalAugmentationExternalModuleSymbol(Node declaration) =>
+        AstUtilities.IsModuleWithStringLiteralName(declaration)
+        || (declaration.Kind == SyntaxKind.SourceFile && AstUtilities.IsExternalOrCommonJSModule(declaration.AsSourceFile()));
+
+    // nodebuilderimpl.go:967 — getNameOfSymbolAsWritten.
+    private string GetNameOfSymbolAsWritten(Symbol symbol)
+    {
+        if (ctx!.remappedSymbolReferences.TryGetValue(AstUtilities.GetSymbolId(symbol), out var remapped))
+        {
+            symbol = remapped;
+        }
+        if (symbol.Name == InternalSymbolName.Default && (ctx.flags & global::Ts.NodeBuilder.Flags.UseAliasDefinedOutsideCurrentScope) == 0
+            && ((ctx.flags & global::Ts.NodeBuilder.Flags.InInitialEntityName) == 0
+                || symbol.Declarations.Len() == 0
+                || (ctx.enclosingDeclaration is not null
+                    && AstUtilities.FindAncestor(symbol.Declarations![0], IsDefaultBindingContext)
+                        != AstUtilities.FindAncestor(ctx.enclosingDeclaration, IsDefaultBindingContext))))
+        {
+            return "default";
+        }
+        if (symbol.Declarations.Len() > 0)
+        {
+            var name = CoreUtil.FirstNonNil(symbol.Declarations, AstUtilities.GetNameOfDeclaration); // Try using a declaration with a name, first
+            if (name is not null)
+            {
+                if (NodeTests.IsComputedPropertyName(name) && (symbol.CheckFlags & CheckFlags.Late) == 0)
+                {
+                    if (ch.valueSymbolLinks.Has(symbol) && ch.valueSymbolLinks.Get(symbol).nameType is not null
+                        && (ch.valueSymbolLinks.Get(symbol).nameType!.flags & TypeFlags.StringOrNumberLiteral) != 0)
+                    {
+                        var fromNameType = GetNameOfSymbolFromNameType(symbol);
+                        if (fromNameType.Length > 0)
+                        {
+                            return fromNameType;
+                        }
+                    }
+                }
+                return global::Ts.Scanner.Scanner.DeclarationNameToString(name);
+            }
+            var declaration = symbol.Declarations![0]; // Declaration may be nameless, but we'll try anyway
+            if (declaration.Parent is not null && declaration.Parent.Kind == SyntaxKind.VariableDeclaration)
+            {
+                return global::Ts.Scanner.Scanner.DeclarationNameToString(declaration.Parent.AsVariableDeclaration().Name());
+            }
+            if (NodeTests.IsClassExpression(declaration) || NodeTests.IsFunctionExpression(declaration) || NodeTests.IsArrowFunction(declaration))
+            {
+                if (!ctx.encounteredError && (ctx.flags & global::Ts.NodeBuilder.Flags.AllowAnonymousIdentifier) == 0)
+                {
+                    ctx.encounteredError = true;
+                }
+                switch (declaration.Kind)
+                {
+                    case SyntaxKind.ClassExpression:
+                        return "(Anonymous class)";
+                    case SyntaxKind.FunctionExpression:
+                    case SyntaxKind.ArrowFunction:
+                        return "(Anonymous function)";
+                }
+            }
+        }
+        var nameFromType = GetNameOfSymbolFromNameType(symbol);
+        if (nameFromType.Length > 0)
+        {
+            return nameFromType;
+        }
+        return AstUtilities.EscapeInternalSymbolName(symbol.Name);
+    }
+
+    // nodebuilderimpl.go:930 — getNameOfSymbolFromNameType.
+    private string GetNameOfSymbolFromNameType(Symbol symbol)
+    {
+        if (ch.valueSymbolLinks.Has(symbol))
+        {
+            var nameType = ch.valueSymbolLinks.Get(symbol).nameType;
+            if (nameType is null)
+            {
+                return "";
+            }
+            if ((nameType.flags & TypeFlags.StringOrNumberLiteral) != 0)
+            {
+                var name = "";
+                var value = nameType.AsLiteralType().value;
+                if (value is string s)
+                {
+                    name = s;
+                }
+                else if (value is global::Ts.JsNum.Number num)
+                {
+                    name = num.ToString();
+                }
+                if (!global::Ts.Scanner.Scanner.IsIdentifierText(name, LanguageVariant.Standard) && !Checker.IsNumericLiteralName(name))
+                {
+                    return ch.ValueToString(nameType.AsLiteralType().value);
+                }
+                if (Checker.IsNumericLiteralName(name) && name.StartsWith("-", StringComparison.Ordinal))
+                {
+                    return "[" + name + "]";
+                }
+                return name;
+            }
+            if ((nameType.flags & TypeFlags.UniqueESSymbol) != 0)
+            {
+                var text = GetNameOfSymbolAsWritten(nameType.AsUniqueESSymbolType().symbol!);
+                return "[" + text + "]";
+            }
+        }
+        return "";
+    }
+
+    // nodebuilderimpl.go:983 — isDefaultBindingContext.
+    private static bool IsDefaultBindingContext(Node location) =>
+        location.Kind == SyntaxKind.SourceFile || AstUtilities.IsAmbientModule(location);
+
+    // nodebuilderimpl.go:1055 — lookupSymbolChain.
+    private Symbol[] LookupSymbolChain(Symbol symbol, SymbolFlags meaning, bool yieldModuleSymbol)
+    {
+        ctx!.tracker?.TrackSymbol(symbol, ctx.enclosingDeclaration, meaning);
+        return LookupSymbolChainWorker(symbol, meaning, yieldModuleSymbol);
+    }
+
+    // nodebuilderimpl.go:1060 — lookupSymbolChainWorker.
+    private Symbol[] LookupSymbolChainWorker(Symbol symbol, SymbolFlags meaning, bool yieldModuleSymbol)
+    {
+        // Try to get qualified name if the symbol is not a type parameter and there is an enclosing declaration.
+        var isTypeParameter = (symbol.Flags & SymbolFlags.TypeParameter) != 0;
+        if (!isTypeParameter
+            && (ctx!.enclosingDeclaration is not null || (ctx.flags & global::Ts.NodeBuilder.Flags.UseFullyQualifiedType) != 0)
+            && (ctx.internalFlags & global::Ts.NodeBuilder.InternalFlags.DoNotIncludeSymbolChain) == 0)
+        {
+            var chain = GetSymbolChain(symbol, meaning, true, yieldModuleSymbol);
+            global::Ts.Core.Debug.Assert(chain is not null);
+            global::Ts.Core.Debug.Assert(chain!.Length > 0);
+            return chain;
+        }
+        return [symbol];
+    }
+
+    // nodebuilderimpl.go:1081 — getSymbolChain.
+    // DEFERRED: the qualified-name path needs getAccessibleSymbolChain / needsQualification /
+    // getContainersOfSymbol / getSpecifierForModuleSymbol (the symbolaccessibility.go someSymbolTableInScope
+    // machinery). Reached only when an enclosingDeclaration is present or FlagsUseFullyQualifiedType is set;
+    // the symbolToString error paths in this wave pass neither, so lookupSymbolChainWorker never calls this.
+    private Symbol[] GetSymbolChain(Symbol symbol, SymbolFlags meaning, bool endOfChain, bool yieldModuleSymbol) =>
+        throw new NotImplementedException("nodeBuilder.getSymbolChain");
+
+    // nodebuilderimpl.go:3563 — lookupExpressionChainTypeArgumentNodes.
+    // PORT-NOTE: only WriteTypeParametersInQualifiedName (qualified generic names) exercises the body; the
+    // symbolToString error paths do not set that flag, so this returns null (no smuggled type arguments).
+    private TypeList? LookupExpressionChainTypeArgumentNodes(Symbol[] chain, int index)
+    {
+        if ((ctx!.flags & global::Ts.NodeBuilder.Flags.WriteTypeParametersInQualifiedName) != 0 && index < chain.Length - 1)
+        {
+            // DEFERRED: lookupInstantiatedTypeArgumentNodes / typeParametersToTypeParameterDeclarations.
+            throw new NotImplementedException("nodeBuilder.lookupExpressionChainTypeArgumentNodes");
+        }
+        return null;
+    }
+
+    // nodebuilderimpl.go:3533 — createExpressionWithTypeArguments.
+    private Node CreateExpressionWithTypeArguments(Node expr, TypeList? typeArguments)
+    {
+        if (typeArguments is null || typeArguments.Nodes.Length == 0)
+        {
+            return expr;
+        }
+        return f.NewExpressionWithTypeArguments(expr, typeArguments);
+    }
+
+    // nodebuilderimpl.go:3499 — newStringLiteralEx.
+    private Node NewStringLiteralEx(string text, bool isSingleQuote)
+    {
+        var flags = TokenFlags.None;
+        if (isSingleQuote || (ctx!.flags & global::Ts.NodeBuilder.Flags.UseSingleQuotesForStringLiteralType) != 0)
+        {
+            flags |= TokenFlags.SingleQuote;
+        }
+        return f.NewStringLiteral(text, flags);
+    }
+
+    // nodebuilderimpl.go:3514 — newIdentifier. PORT-NOTE: the idToSymbol side-table (inlay-hint support) is
+    // part of the deferred full port; this identifier carries no symbol association.
+    private Node NewIdentifier(string text, Symbol? symbol) => f.NewIdentifier(text);
 }

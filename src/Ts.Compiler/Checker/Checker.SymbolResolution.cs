@@ -1271,9 +1271,7 @@ public partial class Checker
         return GetMergedSymbol(symbol);
     }
 
-    internal string SymbolToString(Symbol? symbol) => throw new NotImplementedException("symbolToString");
-
-    internal string SymbolToStringEx(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning, SymbolFormatFlags flags) => throw new NotImplementedException("symbolToStringEx");
+    // SymbolToString / SymbolToStringEx are now REAL in Checker.SymbolToString.cs (printer.go:250/262).
 
     internal Node? GetTypeOnlyAliasDeclaration(Symbol symbol) => throw new NotImplementedException("getTypeOnlyAliasDeclaration");
 

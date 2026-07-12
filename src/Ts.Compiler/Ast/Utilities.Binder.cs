@@ -411,6 +411,12 @@ public static partial class AstUtilities
         return IsModuleDeclaration(node) && (node.AsModuleDeclaration().Name()!.Kind == SyntaxKind.StringLiteral || IsGlobalScopeAugmentation(node));
     }
 
+    // Go: utilities.go:1689-1691
+    public static bool IsModuleWithStringLiteralName(Node node)
+    {
+        return IsModuleDeclaration(node) && node.Name()!.Kind == SyntaxKind.StringLiteral;
+    }
+
     // utilities.go:179-182 — The only kind of module that can be missing a body is a shorthand ambient module.
     public static bool IsShorthandAmbientModule(Node? node)
     {
