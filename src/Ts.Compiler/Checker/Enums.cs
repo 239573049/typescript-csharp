@@ -590,3 +590,23 @@ public enum TypeMapperKind
     Array,
     Merged,
 }
+
+// --- from jsx.go ---
+
+// jsx.go:17-24
+[System.Flags]
+public enum JsxFlags : uint
+{
+    None = 0,
+    IntrinsicNamedElement = 1 << 0, // An element from a named property of the JSX.IntrinsicElements interface
+    IntrinsicIndexedElement = 1 << 1, // An element inferred from the string index signature of the JSX.IntrinsicElements interface
+    IntrinsicElement = IntrinsicNamedElement | IntrinsicIndexedElement,
+}
+
+// jsx.go:26-32
+public enum JsxReferenceKind
+{
+    Component,
+    Function,
+    Mixed,
+}

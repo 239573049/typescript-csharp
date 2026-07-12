@@ -80,4 +80,12 @@ public static partial class AstUtilities
     {
         return IsArrayLiteralExpression(expression) && (expression.Elements()?.Length ?? 0) == 0;
     }
+
+    // Go: utilities.go:2082-2084 (ast.IsComputedNonLiteralName). Ported for the tsoptions
+    // JSON-source-file walk (convertObjectLiteralExpressionToJson) which cannot reach the
+    // checker package's internal copy.
+    public static bool IsComputedNonLiteralName(Node name)
+    {
+        return IsComputedPropertyName(name) && !IsStringOrNumericLiteralLike(name.Expression()!);
+    }
 }

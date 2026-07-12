@@ -995,7 +995,7 @@ public partial class Checker
 
     internal Type CheckObjectLiteralMethod(Node node, CheckMode checkMode) => throw new NotImplementedException("checkObjectLiteralMethod");
 
-    internal Type CheckJsxAttribute(Node node, CheckMode checkMode) => throw new NotImplementedException("checkJsxAttribute");
+    // checkJsxAttribute: real body landed in Checker.Jsx.cs (jsx wave).
 
     internal bool IsContextSensitiveFunctionOrObjectLiteralMethod(Node node) => throw new NotImplementedException("isContextSensitiveFunctionOrObjectLiteralMethod");
 

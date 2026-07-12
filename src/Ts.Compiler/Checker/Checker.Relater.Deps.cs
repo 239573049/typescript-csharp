@@ -61,12 +61,11 @@ public partial class Checker
     internal TypeFacts GetTypeFacts(Type type, TypeFacts facts) => throw new NotImplementedException("getTypeFacts");
 
     // ---- suggestions / jsx (services / jsx waves) ----
-    internal Symbol? GetSuggestedSymbolForNonexistentJSXAttribute(string name, Type containingType) => throw new NotImplementedException("getSuggestedSymbolForNonexistentJSXAttribute");
+    // getSuggestedSymbolForNonexistentJSXAttribute: real body landed in Checker.Jsx.cs (jsx wave).
     internal string GetSuggestionForNonexistentProperty(string name, Type containingType) => throw new NotImplementedException("getSuggestionForNonexistentProperty");
     internal Type? GetSuggestedTypeForNonexistentStringLiteralType(Type source, Type target) => throw new NotImplementedException("getSuggestedTypeForNonexistentStringLiteralType");
     internal Symbol[] GetExactOptionalUnassignableProperties(Type source, Type target) => throw new NotImplementedException("getExactOptionalUnassignableProperties");
-    internal Type GetJsxType(string name, Node? location) => throw new NotImplementedException("getJsxType");
-    internal bool ElaborateJsxComponents(Node node, Type source, Type target, Relation relation, System.Collections.Generic.List<Diagnostic>? diagnosticOutput) => throw new NotImplementedException("elaborateJsxComponents");
+    // getJsxType / elaborateJsxComponents: real bodies landed in Checker.Jsx.cs (jsx wave).
 
     // ---- expression checking / contextual (expressions, contextual waves) ----
     internal void PushContextualType(Node node, Type type, bool isCache) => throw new NotImplementedException("pushContextualType");
@@ -78,9 +77,24 @@ public partial class Checker
     // isValidNumberString / isValidBigIntString stubbed in Checker.Inference.Deps.cs.
 }
 
-// jsx.go — JSX intrinsic attribute names used by relater error reporting (jsx wave owns the real set).
+// jsx.go:41-63 — JSX namespace member names. Go models this as an anonymous struct value with
+// exported string fields; C# uses a static class of const strings (Ordinal, no culture).
 internal static class JsxNames
 {
+    internal const string JSX = "JSX";
+    internal const string IntrinsicElements = "IntrinsicElements";
+    internal const string ElementClass = "ElementClass";
+    internal const string ElementAttributesPropertyNameContainer = "ElementAttributesProperty";
+    internal const string ElementChildrenAttributeNameContainer = "ElementChildrenAttribute";
+    internal const string Element = "Element";
+    internal const string ElementType = "ElementType";
     internal const string IntrinsicAttributes = "IntrinsicAttributes";
     internal const string IntrinsicClassAttributes = "IntrinsicClassAttributes";
+    internal const string LibraryManagedAttributes = "LibraryManagedAttributes";
+}
+
+// jsx.go:65-69
+internal static class ReactNames
+{
+    internal const string Fragment = "Fragment";
 }

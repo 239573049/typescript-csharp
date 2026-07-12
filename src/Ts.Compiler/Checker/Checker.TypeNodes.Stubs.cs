@@ -55,7 +55,7 @@ public partial class Checker
 
     internal bool IsBlockScopedNameDeclaredBeforeUse(Node declaration, Node usage) => throw new NotImplementedException("isBlockScopedNameDeclaredBeforeUse");
 
-    internal Type GetBuiltinIteratorReturnType() => throw new NotImplementedException("getBuiltinIteratorReturnType");
+    // getBuiltinIteratorReturnType (6379): real body landed in Checker.IterationTypes.cs (iteration wave).
 
     // free-function helper (Go package-level; static class in Utilities.cs when that wave lands)
     internal static SymbolTable CreateSymbolTable(Symbol[]? symbols) => throw new NotImplementedException("createSymbolTable");

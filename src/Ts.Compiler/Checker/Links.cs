@@ -217,11 +217,11 @@ internal sealed class SignatureLinks
     internal Signature? decoratorSignature;
 }
 
-// jsx.go:34-39 (plan/03 §5.3 #9) — minimal shell for skeleton.
+// jsx.go:34-39 (plan/03 §5.3 #9).
 internal sealed class JsxElementLinks
 {
-    internal NodeCheckFlags jsxFlags;
-    internal Type? resolvedJsxElementAttributesType;
-    internal string jsxNamespace = "";
-    internal Symbol? jsxImplicitImportContainer;
+    internal JsxFlags jsxFlags;                        // Flags for the JSX element
+    internal Type? resolvedJsxElementAttributesType;   // Resolved element attributes type of a JSX opening-like element
+    internal Symbol? jsxNamespace;                     // Resolved JSX namespace symbol for this node
+    internal Symbol? jsxImplicitImportContainer;       // Resolved module symbol the implicit JSX import of this file should refer to
 }

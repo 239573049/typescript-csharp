@@ -21,7 +21,7 @@ public partial class Checker
     // Checker.Expressions.cs (#7 wave) — stubs removed from here.
     internal Type CheckExpressionForMutableLocation(Node node, CheckMode checkMode) => throw new NotImplementedException("checkExpressionForMutableLocation");
     internal Type CheckNonNullExpression(Node node) => throw new NotImplementedException("checkNonNullExpression");
-    internal Type CheckIteratedTypeOrElementType(IterationUse use, Type inputType, Type sentinelType, Node? errorNode) => throw new NotImplementedException("checkIteratedTypeOrElementType");
+    // checkIteratedTypeOrElementType (6074): real body landed in Checker.IterationTypes.cs (iteration wave).
     internal Type CheckDeclarationInitializer(Node declaration, CheckMode checkMode, Type? contextualType) => throw new NotImplementedException("checkDeclarationInitializer");
     internal bool IsConstContext(Node node) => throw new NotImplementedException("isConstContext");
     // isConstantReference: owned by flow.go — real body in Checker.Flow.cs.
@@ -101,8 +101,8 @@ public partial class Checker
     internal Type? GetAwaitedTypeNoAlias(Type t) => throw new NotImplementedException("getAwaitedTypeNoAlias");
     internal Type? GetPromisedTypeOfPromise(Type t) => throw new NotImplementedException("getPromisedTypeOfPromise");
     internal Type? GetContextualIterationType(IterationTypeKind kind, Node functionDecl) => throw new NotImplementedException("getContextualIterationType");
-    internal Type? GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind kind, Type returnType, bool isAsyncGenerator) => throw new NotImplementedException("getIterationTypeOfGeneratorFunctionReturnType");
-    internal IterationTypes GetIterationTypesOfIterable(Type t, IterationUse use, Node? errorNode) => throw new NotImplementedException("getIterationTypesOfIterable");
+    // getIterationTypeOfGeneratorFunctionReturnType (6195) / getIterationTypesOfIterable (6244):
+    // real bodies landed in Checker.IterationTypes.cs (iteration wave).
     // isResolvingReturnTypeOfSignature owned by the relater wave (Checker.Relater.cs).
 
     // ---- signatures / parameters (helpers in adjacent waves) ----

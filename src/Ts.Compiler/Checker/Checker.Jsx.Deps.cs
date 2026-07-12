@@ -1,0 +1,121 @@
+// Single dedup surface for the jsx wave (plan/03 §4.2 jsx). The JSX family (Checker.Jsx.cs) calls a
+// number of surrounding-subsystem helpers that are not yet landed in any wave: contextual-type
+// fetchers, spread-type construction, iteration types, call resolution, external-module resolution,
+// a couple of JSX-runtime AST helpers, and the JSX-alias-reference marker. Each is stubbed here with
+// its faithful C# signature (Go signature preserved in the comment) so the assembly compiles and the
+// intrinsic-tag / element / fragment / attributes trunk resolves for real where its dependencies
+// already exist. The owning wave DELETES the corresponding stub when it lands the real body.
+//
+// Stubs already declared by other dedup surfaces are intentionally NOT redeclared here (CS0111):
+//   GetContextualType (Stubs), GetResolvedSignature (Flow.Deps), ResolveSymbol (Stubs),
+//   CheckExpressionForMutableLocation / CreateTypeReference / IsValidSpreadType (MembersSignatures.Deps),
+//   GetRegularTypeOfObjectLiteral / GetTypeOfPropertyOrIndexSignatureOfType (Relater.Deps),
+//   IsTypeAny (SymbolTypes), IsContextSensitive (TypeNodes.Stubs), RemoveMissingType (SymbolTypes),
+//   NewDiagnosticForNode (TypeOps.Deps), GetSpellingSuggestionForName (NameLookup.Deps),
+//   GetSymbolAtLocation (Statements.Deps), IsDeprecatedSymbol / AddDeprecatedSuggestion /
+//   EntityNameToString / GetFirstIdentifier (SymbolResolution).
+//
+// §1.5: diagnostics via the fully-qualified `global::Ts.Diagnostics.Message` in signatures; no
+// culture-sensitive APIs. Do NOT implement whole missing subsystems here.
+
+using System;
+using System.Collections.Generic;
+using Ts.Ast;
+
+namespace Ts.Checker;
+
+public partial class Checker
+{
+    // ---- contextual typing (contextual wave: checker.go:29xxx-30xxx) ----
+
+    // checker.go:7461
+    internal Type CheckExpressionWithContextualType(Node node, Type contextualType, InferenceContext? inferenceContext, CheckMode checkMode) => throw new NotImplementedException("checkExpressionWithContextualType");
+
+    // checker.go:30443
+    internal Type? GetApparentTypeOfContextualType(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getApparentTypeOfContextualType");
+
+    // checker.go:30308
+    internal Type? GetTypeOfPropertyOfContextualType(Type t, string name) => throw new NotImplementedException("getTypeOfPropertyOfContextualType");
+
+    // checker.go:30643
+    internal int FindContextualNode(Node node, bool includeCaches) => throw new NotImplementedException("findContextualNode");
+
+    // checker.go:29529
+    internal Type? GetContextualTypeForArgumentAtIndex(Node callTarget, int argIndex) => throw new NotImplementedException("getContextualTypeForArgumentAtIndex");
+
+    // checker.go:30559
+    internal bool IsPossiblyDiscriminantValue(Node node) => throw new NotImplementedException("isPossiblyDiscriminantValue");
+
+    // ---- type mapping / spread (checker.go union/spread wave) ----
+
+    // checker.go:25473
+    internal Type MapTypeEx(Type t, Func<Type, Type> f, bool noReductions) => throw new NotImplementedException("mapTypeEx");
+
+    // checker.go:13319
+    internal Type GetSpreadType(Type left, Type right, Symbol? symbol, ObjectFlags objectFlags, bool @readonly) => throw new NotImplementedException("getSpreadType");
+
+    // checker.go:13303
+    internal void CheckSpreadPropOverrides(Type t, SymbolTable props, Node spread) => throw new NotImplementedException("checkSpreadPropOverrides");
+
+    // ---- signatures / first-parameter fallback (checker.go signature wave) ----
+
+    // checker.go:28762
+    internal Type GetTypeOfFirstParameterOfSignatureWithFallback(Signature signature, Type fallbackType) => throw new NotImplementedException("getTypeOfFirstParameterOfSignatureWithFallback");
+
+    // checker.go:21017
+    internal Signature[] GetUnionSignatures(Signature[][] signatureLists) => throw new NotImplementedException("getUnionSignatures");
+
+    // ---- index symbol (checker.go:31839) ----
+
+    // checker.go:31839
+    internal Symbol? GetApplicableIndexSymbol(Type t, Type keyType) => throw new NotImplementedException("getApplicableIndexSymbol");
+
+    // ---- iteration types (checker.go iteration wave) ----
+
+    // checker.go:1088 — lazy global-type resolver `getGlobalIterableType func() *Type`.
+    internal Type GetGlobalIterableType() => throw new NotImplementedException("getGlobalIterableType");
+
+    // getIterationTypeOfIterable (6217): real body landed in Checker.IterationTypes.cs (iteration wave).
+
+    // ---- inference context (checker.go:30722) ----
+
+    // checker.go:30722
+    internal InferenceContext GetInferenceContext(Node node) => throw new NotImplementedException("getInferenceContext");
+
+    // ---- call resolution (checker.go call wave: 8xxx-9xxx) ----
+
+    // checker.go:8819
+    internal Signature ResolveCall(Node node, Signature[] signatures, List<Signature>? candidatesOutArray, CheckMode checkMode, SignatureFlags callChainFlags, global::Ts.Diagnostics.Message? headMessage) => throw new NotImplementedException("resolveCall");
+
+    // checker.go:9899
+    internal Signature ResolveErrorCall(Node node) => throw new NotImplementedException("resolveErrorCall");
+
+    // checker.go:9878
+    internal Signature ResolveUntypedCall(Node node) => throw new NotImplementedException("resolveUntypedCall");
+
+    // checker.go:9909
+    internal bool IsUntypedFunctionCall(Type funcType, Type apparentFuncType, int numCallSignatures, int numConstructSignatures) => throw new NotImplementedException("isUntypedFunctionCall");
+
+    // checker.go:8340
+    internal void CheckDeprecatedSignature(Signature sig, Node node) => throw new NotImplementedException("checkDeprecatedSignature");
+
+    // ---- external module resolution (checker.go:15067) ----
+
+    // checker.go:15067
+    internal Symbol? ResolveExternalModule(Node? location, string moduleReference, global::Ts.Diagnostics.Message? moduleNotFoundError, Node? errorNode, bool isForAugmentation) => throw new NotImplementedException("resolveExternalModule");
+
+    // ---- jsx alias reference marking (checker.go:28259, AliasReferences wave #20) ----
+
+    // checker.go:28259
+    internal void MarkJsxAliasReferenced(Node node /*JsxOpeningLikeElement | JsxOpeningFragment*/) => throw new NotImplementedException("markJsxAliasReferenced");
+
+    // ---- JSX-runtime AST helpers (ast.GetPragmaFromSourceFile / GetSemanticJsxChildren) ----
+    // Live in the transformer adapters today; the AST layer owns their permanent home. Stubbed here
+    // (JSX-specific) so the pragma/children paths compile until the AST helper lands cleanly.
+
+    // ast/utilities.go:2782 — ast.GetPragmaFromSourceFile.
+    internal static Pragma? GetPragmaFromSourceFile(SourceFile file, string name) => throw new NotImplementedException("ast.GetPragmaFromSourceFile");
+
+    // ast — ast.GetSemanticJsxChildren.
+    internal static Node[] GetSemanticJsxChildren(Node[]? children) => throw new NotImplementedException("ast.GetSemanticJsxChildren");
+}

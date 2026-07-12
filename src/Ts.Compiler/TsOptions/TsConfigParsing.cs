@@ -1,22 +1,19 @@
 // Ported from tsgo internal/tsoptions/tsconfigparsing.go
 //
-// SCOPE (phase 4): the self-contained option-conversion + name-map machinery is ported in
-// full. The parts that depend on packages not yet available in this wave are stubbed with a
-// NotSupportedException and a PORT-TODO, keeping the build green (铁律 10):
-//   - the JSON-source-file → object walk (convertConfigFileToObject / convertToJson /
-//     convertObjectLiteralExpressionToJson / ForEachPropertyAssignment / …) needs
-//     ast.TryGetTextOfPropertyName + ast.IsComputedNonLiteralName, which the AST package has
-//     not exported yet (parallel Ast work).
-//   - non-relative `extends` resolution needs module.ResolveConfig (Module/ — parallel agent).
-//   - locale validation (validateJsonOptionValue extraValidationLocale) needs the locale
-//     package (phase 9).
-//   - getFileNamesFromConfigSpecs wildcard expansion needs vfsmatch.ReadDirectory (available)
-//     plus the AST-walk above; deferred with the orchestration.
-// The remainder — CommandLineOptionNameMap, commandLineOptionsToMap, CommandLineCompilerOptionsMap,
+// This file carries the self-contained option-conversion + name-map machinery
+// (CommandLineOptionNameMap, commandLineOptionsToMap, CommandLineCompilerOptionsMap,
 // convertMapToOptions, convertOptionsFromJson, isCompilerOptionsValue, validateJsonOptionValue,
 // convertJsonOption(+list/enum), normalizeNonListOptionValue, startsWithConfigDirTemplate,
 // specToDiagnostic + spec validators, GetSupportedExtensions(+WithJson), ParseConfigHost,
-// FileExtensionInfo, and the config value types — is a faithful 1:1 translation.
+// FileExtensionInfo, configFileSpecs, ExtendedConfigCache{,Entry}, TsConfigSourceFile).
+//
+// The tsconfig.json LOADING slice — the JSON-source-file → object walk, parseConfig, the worker,
+// extends-chain resolution (getExtendedConfig → module.ResolveConfig), ${configDir} substitution,
+// wildcard/file expansion (getFileNamesFromConfigSpecs), and the public entry points
+// (ParseConfigFileTextToJson / ParseJsonConfigFileContent / ParseJsonSourceFileConfigFileContent /
+// GetParsedCommandLineOfConfigFile{,Path}) — lives in the TsConfigParsing.Load.cs /
+// TsConfigParsing.Worker.cs partials of this same partial class. Only the extraValidationLocale
+// BCP-47 check inside validateJsonOptionValue remains a PORT-TODO (locale package, phase 9).
 
 using System;
 using System.Collections.Generic;
@@ -534,27 +531,10 @@ public static partial class TsConfigParsing
         return (options, errors);
     }
 
-    // ParseConfigFileTextToJson parses the text of the tsconfig.json file.
-    // PORT-TODO: convertConfigFileToObject walks the JSON AST via ast.TryGetTextOfPropertyName /
-    // ast.IsComputedNonLiteralName, which the AST package has not exported yet. Stubbed until
-    // those land (parallel Ast work).
-    public static (object? config, Diagnostic[]? errors) ParseConfigFileTextToJson(string fileName, Path path, string jsonText)
-    {
-        throw new NotSupportedException("ParseConfigFileTextToJson: JSON-AST → object conversion pending ast.TryGetTextOfPropertyName / IsComputedNonLiteralName (phase 4 breadth).");
-    }
-
-    // ParseJsonConfigFileContent / ParseJsonSourceFileConfigFileContent / GetParsedCommandLineOfConfigFile
-    // and the extends/wildcard orchestration (parseConfig, getFileNamesFromConfigSpecs, …) depend on
-    // module.ResolveConfig, locale.Parse, and the JSON-AST walk above. Stubbed for this wave.
-    public static ParsedCommandLine ParseJsonConfigFileContent(object? json, ParseConfigHost host, string basePath, CompilerOptions? existingOptions, string configFileName, Path[]? resolutionStack, FileExtensionInfo[]? extraFileExtensions, ExtendedConfigCache? extendedConfigCache)
-    {
-        throw new NotSupportedException("ParseJsonConfigFileContent: extends/wildcard orchestration pending module + locale + JSON-AST walk (phase 4 breadth).");
-    }
-
-    public static (ParsedCommandLine? result, Diagnostic[]? errors) GetParsedCommandLineOfConfigFile(string configFileName, CompilerOptions? options, OrderedMap<string, object?>? optionsRaw, ParseConfigHost sys, ExtendedConfigCache? extendedConfigCache)
-    {
-        throw new NotSupportedException("GetParsedCommandLineOfConfigFile: pending module + locale + JSON-AST walk (phase 4 breadth).");
-    }
+    // ParseConfigFileTextToJson, ParseJsonConfigFileContent, ParseJsonSourceFileConfigFileContent,
+    // GetParsedCommandLineOfConfigFile{,Path}, and the extends/wildcard orchestration (parseConfig,
+    // parseJsonConfigFileContentWorker, getFileNamesFromConfigSpecs, …) are ported in the
+    // TsConfigParsing.Load.cs / TsConfigParsing.Worker.cs partials (same partial class).
 }
 
 // Go: type ExtendedConfigCache interface { GetExtendedConfig(...) *ExtendedConfigCacheEntry }
@@ -563,11 +543,11 @@ public interface ExtendedConfigCache
     ExtendedConfigCacheEntry GetExtendedConfig(string fileName, Path path, Path[] resolutionStack, ParseConfigHost host);
 }
 
-// PORT-NOTE: internals kept opaque until the extends orchestration is ported (phase 4 breadth).
+// Go: type ExtendedConfigCacheEntry struct { extendedResult *TsConfigSourceFile; extendedConfig *parsedTsconfig; errors []*Diagnostic }
 public sealed class ExtendedConfigCacheEntry
 {
     internal TsConfigSourceFile? extendedResult;
-    internal object? extendedConfig; // parsedTsconfig
+    internal parsedTsconfig? extendedConfig;
     internal Diagnostic[]? errors;
 
     public string[]? ExtendedFileNames()

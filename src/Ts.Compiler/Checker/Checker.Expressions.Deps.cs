@@ -134,12 +134,7 @@ public partial class Checker
 
     // ===== (b) cross-cluster helpers called by #7/#8 (owned elsewhere) =====
 
-    // jsx.go — JSX expression checkers (Checker.Jsx.cs cluster).
-    internal Type CheckJsxExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkJsxExpression");
-    internal Type CheckJsxElement(Node node, CheckMode checkMode) => throw new NotImplementedException("checkJsxElement");
-    internal Type CheckJsxSelfClosingElement(Node node, CheckMode checkMode) => throw new NotImplementedException("checkJsxSelfClosingElement");
-    internal Type CheckJsxFragment(Node node) => throw new NotImplementedException("checkJsxFragment");
-    internal Type CheckJsxAttributes(Node node, CheckMode checkMode) => throw new NotImplementedException("checkJsxAttributes");
+    // jsx.go — JSX expression checkers: real bodies landed in Checker.Jsx.cs (jsx wave).
 
     // grammar.go — CheckGrammarNumericLiteral/CheckGrammarBigIntLiteral are now REAL in Checker.Grammar.cs (grammar wave).
 
