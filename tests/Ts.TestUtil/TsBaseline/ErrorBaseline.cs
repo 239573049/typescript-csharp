@@ -314,7 +314,7 @@ public static partial class ErrorBaseline
     [GeneratedRegex("(?im)^(lib.*\\.d\\.ts)\\([0-9]+,[0-9]+\\)")]
     private static partial Regex DiagnosticsLocationPrefixRegex();
 
-    [GeneratedRegex("(?i)(lib.*\\.d\\.ts):[0-9]+:[0-9]+")] 
+    [GeneratedRegex("(?i)(lib.*\\.d\\.ts):[0-9]+:[0-9]+")]
     private static partial Regex DiagnosticsLocationPatternRegex();
 
     [GeneratedRegex("\\r?\\n")]

@@ -58,9 +58,8 @@ public partial class Checker
         return null;
     }
 
-    internal Symbol? GetSuggestionForSymbolNameLookup(SymbolTable? symbols, string name, SymbolFlags meaning) => throw new NotImplementedException("getSuggestionForSymbolNameLookup");
-
-    internal bool CheckAndReportErrorForInvalidInitializer(Node? errorLocation, string name, Node? propertyWithInvalidInitializer, Symbol? result) => throw new NotImplementedException("checkAndReportErrorForInvalidInitializer");
+    // GetSuggestionForSymbolNameLookup / CheckAndReportErrorForInvalidInitializer are now REAL in
+    // Checker.NameLookup.cs (name-resolution wave).
 
     // checker.go:1564-1601
     internal void OnFailedToResolveSymbol(Node? errorLocation, string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? nameNotFoundMessage)
@@ -108,20 +107,10 @@ public partial class Checker
         Error(errorLocation, nameNotFoundMessage!, declarationName);
     }
 
-    internal void OnSuccessfullyResolvedSymbol(Node? errorLocation, Symbol symbol, SymbolFlags meaning, Node? lastLocation, Node? associatedDeclarationForContainingInitializerOrBindingName, bool withinDeferredContext) => throw new NotImplementedException("onSuccessfullyResolvedSymbol");
-
-    // onFailedToResolveSymbol's diagnostic-refinement helpers (checker.go:1532-1719). These are the
-    // errorLocation != null branches (JSDoc-link, missing-prefix, type-as-namespace, etc.) — NOT reached
-    // when resolution fails for a location-less lookup (e.g. the global-type bootstrap), which is the
-    // only failure path exercised so far. They short-circuit out of the `errorLocation != null && (...)`
-    // guard. Single stubs; port with the identifier-resolution diagnostics wave.
-    internal bool CheckAndReportErrorForMissingPrefix(Node errorLocation, string name) => throw new NotImplementedException("checkAndReportErrorForMissingPrefix");
-    internal bool CheckAndReportErrorForExtendingInterface(Node errorLocation) => throw new NotImplementedException("checkAndReportErrorForExtendingInterface");
-    internal bool CheckAndReportErrorForUsingTypeAsNamespace(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingTypeAsNamespace");
-    internal bool CheckAndReportErrorForExportingPrimitiveType(Node errorLocation, string name) => throw new NotImplementedException("checkAndReportErrorForExportingPrimitiveType");
-    internal bool CheckAndReportErrorForUsingNamespaceAsTypeOrValue(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingNamespaceAsTypeOrValue");
-    internal bool CheckAndReportErrorForUsingTypeAsValue(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingTypeAsValue");
-    internal bool CheckAndReportErrorForUsingValueAsType(Node errorLocation, string name, SymbolFlags meaning) => throw new NotImplementedException("checkAndReportErrorForUsingValueAsType");
+    // OnSuccessfullyResolvedSymbol and onFailedToResolveSymbol's diagnostic-refinement helpers
+    // (checkAndReportErrorForMissingPrefix / *ForExtendingInterface / *ForUsingTypeAsNamespace /
+    // *ForExportingPrimitiveType / *ForUsingNamespaceAsTypeOrValue / *ForUsingTypeAsValue /
+    // *ForUsingValueAsType) are now REAL in Checker.NameLookup.cs (name-resolution wave).
 
     // checker.go:1719-1725 — lib-feature suggestion for a non-existent name. The getFeatureMap() table
     // (a large static es-lib feature index) is deferred; for the currently-exercised NoLib global-type

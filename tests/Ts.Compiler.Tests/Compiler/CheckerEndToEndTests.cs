@@ -35,13 +35,14 @@ public sealed class CheckerEndToEndTests
     // (Checker.Statements.Deps.cs), which throws NotImplementedException after the not-assignable
     // diagnostic has been produced but before GetDiagnostics returns it.
     //
-    // MILESTONE (proven): the not-assignable diagnostic IS produced — the checker runs grammar →
-    // decorators → assignability → relation fails → error reporting → typeToStringEx renders the type
-    // names (TypeToStringTests verify this independently). checkVarDeclaredNamesNotShadowed now lands too.
-    // The probe trips only on the NEXT post-diagnostic edge-case grammar cluster (#6 collision/unused:
-    // checkCollisionsForDeclarationName → needCollisionCheckForIdentifier + collision leaf checks), which
-    // runs AFTER the diagnostic is created but before GetDiagnostics returns. Un-skip once #6 lands.
-    [Fact(Skip = "diagnostic IS produced (typeToStringEx milestone); blocked on the #6 collision/unused cluster — checkCollisionsForDeclarationName — which runs before GetDiagnostics returns")]
+    // MILESTONE (achieved): the checker's FIRST complete type error returns end-to-end. The full check runs
+    // grammar → decorators → assignability → relation fails → error reporting → typeToStringEx renders the
+    // type names → checkVarDeclaredNamesNotShadowed (routes through resolveName, name-resolution wave) →
+    // the #6 collision/unused cluster (checkCollisionsForDeclarationName → needCollisionCheckForIdentifier
+    // early-returns for the non-reserved name "x") → GetDiagnostics returns the not-assignable diagnostic.
+    // With the name-resolution wave (resolveName family) and the #6 collision/unused cluster landed, this
+    // probe is un-skipped and green — Assert.NotEmpty holds.
+    [Fact]
     public void ChecksSimpleAssignmentError_ProducesTypeDiagnostic()
     {
         var files = new Dictionary<string, string>

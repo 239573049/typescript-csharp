@@ -38,14 +38,14 @@ public partial class Checker
     // ---- grammar checks (grammar cluster) ----
     // All CheckGrammar*/GrammarErrorOn*/GrammarErrorAtPos are now REAL in Checker.Grammar.cs (grammar wave).
 
-    // ---- unused-identifiers / collision / shadowing (owned by #6 unused cluster) ----
-    // RegisterForUnusedIdentifiersCheck already stubbed in Stubs.cs.
-    internal void CheckUnusedRenamedBindingElements() => throw new NotImplementedException("checkUnusedRenamedBindingElements");
-    internal void CheckUnusedIdentifiers(Node[] identifierCheckNodes) => throw new NotImplementedException("checkUnusedIdentifiers");
-    internal void CheckCollisionsForDeclarationName(Node node, Node? name) => throw new NotImplementedException("checkCollisionsForDeclarationName");
+    // ---- unused-identifiers / collision / shadowing (#6 collision/unused cluster) ----
+    // RegisterForUnusedIdentifiersCheck already stubbed in Stubs.cs. CheckUnusedRenamedBindingElements /
+    // CheckUnusedIdentifiers are now REAL in Checker.Collisions.cs (their deep dispatch helpers remain
+    // deferred there). CheckCollisionsForDeclarationName + the 5 collision leaf checks +
+    // needCollisionCheckForIdentifier + checkClassNameCollisionWithObject are REAL in Checker.Collisions.cs.
 
-    // resolveName (checker.go) — core name resolution, owned by the NameLookup wave. Stubbed until then.
-    internal Symbol? ResolveName(Node? location, string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? nameNotFoundMessage, bool isUse, bool excludeGlobals) => throw new NotImplementedException("resolveName");
+    // resolveName / ResolveName — now REAL in Checker.NameLookup.cs (name-resolution wave): the ResolveName
+    // method wrapper forwards to the `resolveName` field delegate (wired in Checker.Construction.cs).
 
     // checkVarDeclaredNamesNotShadowed (checker.go): a function-scoped (var) declaration with an
     // initializer must not step on a block-scoped (let/const) declaration hoisted from an outer scope.
