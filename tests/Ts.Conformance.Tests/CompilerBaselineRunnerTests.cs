@@ -19,10 +19,9 @@ public sealed class CompilerBaselineRunnerTests
     {
         "invalidAssignmentsToVoid",
         "invalidVoidAssignments",
-        // boolInsteadOfBoolean now byte-matches: default-lib loading via triple-slash
-        // reference directives resolves global types (Boolean/Array/...), so the checker
-        // emits the correct TS2304 baseline instead of location-less TS2318 false errors.
-        "nonPrimitiveAssignError",
+        // nonPrimitiveAssignError now byte-matches: the NodeBuilder anonymous object-type wave synthesizes
+        // `{ foo: string; }` / `{}` type literals instead of rendering object types as `any`, so the TS2322
+        // "Type 'object' is not assignable to type '{ foo: string; }'" baseline is emitted verbatim.
         "assignmentToParenthesizedIdentifiers",
         "assignmentCompatWithObjectMembersOptionality",
         "typeParameterAssignability",

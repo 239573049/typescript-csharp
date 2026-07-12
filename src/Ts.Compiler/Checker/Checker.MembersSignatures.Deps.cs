@@ -238,7 +238,9 @@ public partial class Checker
     }
     // ast/utilities.go:2074 — delegates to the ast utility now that it has landed.
     internal static bool IsImportCall(Node node) => AstUtilities.IsImportCall(node);
-    internal static bool IsLateBoundName(string name) => throw new NotImplementedException("isLateBoundName");
+    // utilities.go:963 — isLateBoundName. PORT-NOTE: '\xfe' is the InternalSymbolName sentinel (U+00FE in
+    // UTF-16); late-bound names are `\xfe@...`.
+    internal static bool IsLateBoundName(string name) => name.Length >= 2 && name[0] == '\xfe' && name[1] == '@';
     internal bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions options) => throw new NotImplementedException("ast.IsCheckJSEnabledForFile");
     // ForEachReturnStatement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1138).
     // ForEachYieldExpression is now REAL in Checker.ContextSensitive.cs (internal/checker/utilities.go:1197).

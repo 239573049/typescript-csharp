@@ -60,13 +60,49 @@ internal sealed class NodeBuilderContext
     // nodebuilderimpl.go:78 — typeParameterSymbolList: guards re-emitting a symbol's type parameters within
     // one qualified name. Read/written by lookup*TypeArgumentNodes (only when WriteTypeParametersInQualifiedName).
     internal readonly HashSet<SymbolId> typeParameterSymbolList = new();
+
+    // ── object-type serialization state (nodebuilderimpl.go:57 NodeBuilderContext) ───────────────────
+    // These fields back the anonymous/object type-literal path (createAnonymousTypeNode ->
+    // createTypeNodeFromObjectType -> createTypeNodesFromResolvedType -> addPropertyToElementList).
+    //
+    // nodebuilderimpl.go:60 — approximateLength: running length estimate for truncation. Load-bearing only
+    // for checkTruncationLength; kept faithful so the truncation guard fires identically to Go.
+    internal int approximateLength;
+    // nodebuilderimpl.go:61 — maxTruncationLength: verbosity override (0 = use default). No VerbosityContext
+    // in the error-message / .d.ts callers, so this stays 0.
+    internal int maxTruncationLength;
+    // nodebuilderimpl.go:62 — truncating: sticky "already truncated" latch.
+    internal bool truncating;
+    // nodebuilderimpl.go:66 — depth: expansion depth (only advanced by the deferred hover-expansion path).
+    internal int depth;
+    // nodebuilderimpl.go:67 — maxExpansionDepth: -1 = no hover expansion. The error-message / .d.ts callers
+    // never set a VerbosityContext, so this is fixed at -1 and shouldExpandType always short-circuits false.
+    internal int maxExpansionDepth = -1;
+    // nodebuilderimpl.go:68 — typeStack: expansion-cycle stack (only used when maxExpansionDepth >= 0).
+    internal readonly List<Type> typeStack = new();
+    // nodebuilderimpl.go:73 — inferTypeParameters: infer-type-parameter scope (conditional-type path).
+    internal Type[]? inferTypeParameters;
+    // nodebuilderimpl.go:75 — visitedTypes: circular-reference guard for named anonymous types.
+    internal readonly HashSet<TypeId> visitedTypes = new();
+    // nodebuilderimpl.go:76 — symbolDepth: per-symbol recursion depth (visitAndTransformType circular guard).
+    internal readonly Dictionary<CompositeSymbolIdentity, int> symbolDepth = new();
+    // nodebuilderimpl.go:81 — reverseMappedStack: reverse-mapped-property nesting guard.
+    internal readonly List<Symbol> reverseMappedStack = new();
+    // nodebuilderimpl.go:64 — reportedDiagnostic: set when a nested diagnostic was reported (gates the
+    // serialized-types cache in the full port; here it only feeds the deferred cache write).
+    internal bool reportedDiagnostic;
 }
+
+// nodebuilderimpl.go:24 — CompositeSymbolIdentity. Composite key that lets visitAndTransformType track a
+// type by its (constructor-flavored) symbol identity or node identity rather than by TypeId, so that
+// distinct instantiations of the same anonymous type share a recursion-depth counter.
+internal readonly record struct CompositeSymbolIdentity(bool IsConstructorNode, SymbolId SymbolId, NodeId NodeId);
 
 // nodebuilder.go:10 + nodebuilderimpl.go:91 — request-scoped builder. In tsgo the public NodeBuilder
 // wrapper (enterContext/exitContext) and the NodeBuilderImpl body are separate structs sharing `ctx`;
 // this breadth-first port fuses them into one class (the wrapper's ctxStack is single-depth for the
 // non-hover .d.ts callers, so a plain enter/exit around one ctx is faithful).
-public sealed class NodeBuilder
+public sealed partial class NodeBuilder
 {
     // host members (nodebuilderimpl.go:92-96)
     private readonly Checker ch;
@@ -85,6 +121,11 @@ public sealed class NodeBuilder
         this.e = e;
         this.f = e.Factory.AsNodeFactory();
     }
+
+    // nodebuilderimpl.go:106 — EmitContext(). Exposes the builder's emit context so callers (typeToStringEx)
+    // can drive the Printer over the same context the type nodes were synthesized in (emit-flag lookups —
+    // SingleLine / NoAsciiEscaping — resolve against it).
+    internal global::Ts.Printer.EmitContext EmitContext() => e;
 
     // nodebuilder.go:33 — enterContext. Breadth-first: no verbosity plumbing, no SymbolTrackerImpl wrap
     // (the tracker is stored as-is; the wrapping layer is part of the deferred full port).
@@ -197,7 +238,7 @@ public sealed class NodeBuilder
     // nodebuilder.go:267 — TypeToTypeNode.
     internal Node? TypeToTypeNode(Type type, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker)
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
     {
         EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
         return ExitContext(TypeToTypeNodeImpl(type));
@@ -212,11 +253,14 @@ public sealed class NodeBuilder
 
     // ── impl body (nodebuilderimpl.go) ──────────────────────────────────────────────────────────────
 
-    // nodebuilderimpl.go:3176 — typeToTypeNode. Delegates to the shared Checker synthesis core
-    // (Checker.TypeToTypeNode(Type, NodeFactory), landed in Checker.TypeToString.cs), which covers the
-    // intrinsic / literal / union / intersection / named-reference slice. The remaining kinds fall through
-    // to that core's `any` fallback until the full NodeBuilderImpl port lands.
-    private Node TypeToTypeNodeImpl(Type t) => ch.NodeBuilderTypeToTypeNode(t, f);
+    // nodebuilderimpl.go:3176 — typeToTypeNode. The authoritative dispatch (TypeToTypeNodeCore, in
+    // NodeBuilder.ObjectType.cs) handles the object / reference / anonymous arms on the request-scoped
+    // builder (with ctx) and delegates the intrinsic / literal / union / named leaf kinds to the landed
+    // context-free core in Checker.TypeToString.cs.
+    private Node TypeToTypeNodeImpl(Type t) => TypeToTypeNodeCore(t);
+
+    // nodebuilderimpl.go:3187 — isExpanding (free func: maxExpansionDepth >= 0 && len(typeStack) > 0).
+    private static bool IsExpanding(NodeBuilderContext ctx) => ctx.maxExpansionDepth >= 0 && ctx.typeStack.Count > 0;
 
     // nodebuilderimpl.go:2167 — serializeTypeForDeclaration.
     // PORT-NOTE: the pseudo-type reuse fast path (nodebuilderimpl.go:2209-2255, gated on

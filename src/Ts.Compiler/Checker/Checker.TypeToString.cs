@@ -29,9 +29,9 @@ namespace Ts.Checker;
 public sealed partial class Checker
 {
     // nodebuilderimpl.go:113
-    private const int DefaultMaximumTruncationLength = 160;
+    internal const int DefaultMaximumTruncationLength = 160;
     // nodebuilderimpl.go:114
-    private const int NoTruncationMaximumTruncationLength = 1_000_000;
+    internal const int NoTruncationMaximumTruncationLength = 1_000_000;
 
     // printer.go:181 — toNodeBuilderFlags
     private static PrinterNs.EmitContext CreateTypeToStringEmitContext() => PrinterNs.EmitContext.NewEmitContext();
@@ -62,11 +62,23 @@ public sealed partial class Checker
         // vc == null in this wave, so noTruncation reduces to the NoErrorTruncation / NoTruncation checks.
         var noTruncation = (compilerOptions.NoErrorTruncation == Tristate.True) || (flags & TypeFormatFlags.NoTruncation) != 0;
 
+        // printer.go:202 — combinedFlags = toNodeBuilderFlags(flags) | FlagsIgnoreErrors (+ NoTruncation).
+        var combinedFlags = (global::Ts.NodeBuilder.Flags)(flags & TypeFormatFlags.NodeBuilderFlagsMask)
+            | global::Ts.NodeBuilder.Flags.IgnoreErrors;
+        if (noTruncation)
+        {
+            combinedFlags |= global::Ts.NodeBuilder.Flags.NoTruncation;
+        }
+
+        // printer.go:206 — getNodeBuilder(). Request-scoped builder over a fresh emit context; the object /
+        // reference / anonymous arms of typeToTypeNode need this builder's ctx (enclosingDeclaration mutation,
+        // InObjectTypeLiteral flag, truncation/depth state). PORT-NOTE: the pooled getNodeBuilder cache is
+        // deferred; a fresh builder per call is behaviorally identical (no cross-call state).
         var emitContext = CreateTypeToStringEmitContext();
-        var f = emitContext.Factory.AsNodeFactory();
+        var nodeBuilder = NewNodeBuilder(emitContext);
 
         serializationLevel++;
-        Node? typeNode = TypeToTypeNode(t, f);
+        Node? typeNode = nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, combinedFlags, global::Ts.NodeBuilder.InternalFlags.None, null /*tracker*/);
         serializationLevel--;
         if (typeNode == null)
         {
@@ -74,10 +86,9 @@ public sealed partial class Checker
         }
 
         // The unresolved type gets a synthesized comment on `any` to hint to users that it's not a plain
-        // `any`; otherwise we always strip comments out. (Comment synthesis on the unresolved marker is
-        // part of the deferred NodeBuilderImpl slice, so both branches print without comments here.)
+        // `any`; otherwise we always strip comments out.
         var printerOptions = new PrinterNs.PrinterOptions { RemoveComments = t != unresolvedType };
-        var p = PrinterNs.Printer.NewPrinter(printerOptions, new PrinterNs.PrintHandlers(), emitContext);
+        var p = PrinterNs.Printer.NewPrinter(printerOptions, new PrinterNs.PrintHandlers(), nodeBuilder.EmitContext());
         SourceFile? sourceFile = null;
         if (enclosingDeclaration != null)
         {
