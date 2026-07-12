@@ -526,6 +526,178 @@ public partial class Checker
         return GetTypeOfPropertyOfContextualTypeEx(t, name, null);
     }
 
+    // checker.go:30312
+    internal Type? GetTypeOfPropertyOfContextualTypeEx(Type t, string name, Type? nameType)
+    {
+        return MapTypeEx(t, tt =>
+        {
+            if ((tt.flags & TypeFlags.Intersection) != 0)
+            {
+                List<Type>? types = null;
+                List<Type>? indexInfoCandidates = null;
+                var ignoreIndexInfos = false;
+                foreach (var constituentType in tt.Types())
+                {
+                    if ((constituentType.flags & TypeFlags.Object) == 0)
+                    {
+                        continue;
+                    }
+                    if (IsGenericMappedType(constituentType) && GetMappedTypeNameTypeKind(constituentType) != MappedTypeNameTypeKind.Remapping)
+                    {
+                        var substitutedType = GetIndexedMappedTypeSubstitutedTypeOfContextualType(constituentType, name, nameType);
+                        types = AppendContextualPropertyTypeConstituent(types, substitutedType);
+                        continue;
+                    }
+                    var propertyType = GetTypeOfConcretePropertyOfContextualType(constituentType, name);
+                    if (propertyType == null)
+                    {
+                        if (!ignoreIndexInfos)
+                        {
+                            (indexInfoCandidates ??= []).Add(constituentType);
+                        }
+                        continue;
+                    }
+                    ignoreIndexInfos = true;
+                    indexInfoCandidates = null;
+                    types = AppendContextualPropertyTypeConstituent(types, propertyType);
+                }
+                if (indexInfoCandidates != null)
+                {
+                    foreach (var candidate in indexInfoCandidates)
+                    {
+                        var indexInfoType = GetTypeFromIndexInfosOfContextualType(candidate, name, nameType);
+                        types = AppendContextualPropertyTypeConstituent(types, indexInfoType);
+                    }
+                }
+                if ((types?.Count ?? 0) == 0)
+                {
+                    return null;
+                }
+                if (types!.Count == 1)
+                {
+                    return types[0];
+                }
+                return GetIntersectionType(types.ToArray());
+            }
+            if ((tt.flags & TypeFlags.Object) == 0)
+            {
+                return null;
+            }
+            if (IsGenericMappedType(tt) && GetMappedTypeNameTypeKind(tt) != MappedTypeNameTypeKind.Remapping)
+            {
+                return GetIndexedMappedTypeSubstitutedTypeOfContextualType(tt, name, nameType);
+            }
+            var result = GetTypeOfConcretePropertyOfContextualType(tt, name);
+            if (result != null)
+            {
+                return result;
+            }
+            return GetTypeFromIndexInfosOfContextualType(tt, name, nameType);
+        }, true /*noReductions*/);
+    }
+
+    // checker.go:30362
+    internal Type? GetIndexedMappedTypeSubstitutedTypeOfContextualType(Type t, string name, Type? nameType)
+    {
+        var propertyNameType = nameType;
+        if (propertyNameType == null)
+        {
+            propertyNameType = GetStringLiteralType(name);
+        }
+        var constraint = GetConstraintTypeFromMappedType(t);
+        // special case for conditional types pretending to be negated types
+        if ((t.AsMappedType().nameType != null && IsExcludedMappedPropertyName(t.AsMappedType().nameType!, propertyNameType)) || IsExcludedMappedPropertyName(constraint, propertyNameType))
+        {
+            return null;
+        }
+        var constraintOfConstraint = GetBaseConstraintOrType(constraint);
+        if (!IsTypeAssignableTo(propertyNameType, constraintOfConstraint))
+        {
+            return null;
+        }
+        return SubstituteIndexedMappedType(t, propertyNameType);
+    }
+
+    // checker.go:30379
+    internal List<Type>? AppendContextualPropertyTypeConstituent(List<Type>? types, Type? t)
+    {
+        // any doesn't provide any contextual information but could spoil the overall result by nullifying contextual information
+        // provided by other intersection constituents so it gets replaced with `unknown` as `T & unknown` is just `T` and all
+        // types computed based on the contextual information provided by other constituens are still assignable to any
+        if (t == null)
+        {
+            return types;
+        }
+        if ((t.flags & TypeFlags.Any) != 0)
+        {
+            (types ??= []).Add(unknownType!);
+            return types;
+        }
+        (types ??= []).Add(t);
+        return types;
+    }
+
+    // checker.go:30391
+    internal Type? GetTypeOfConcretePropertyOfContextualType(Type t, string name)
+    {
+        var prop = GetPropertyOfType(t, name);
+        if (prop == null || IsCircularMappedProperty(prop))
+        {
+            return null;
+        }
+        return RemoveMissingType(GetTypeOfSymbol(prop), (prop.Flags & SymbolFlags.Optional) != 0);
+    }
+
+    // checker.go:30398
+    internal Type? GetTypeFromIndexInfosOfContextualType(Type t, string name, Type? nameType)
+    {
+        if (IsTupleType(t) && IsNumericLiteralName(name) && global::Ts.JsNum.JsNum.FromString(name) >= 0)
+        {
+            var restType = GetElementTypeOfSliceOfTupleType(t, t.TargetTupleType().fixedLength, 0 /*endSkipCount*/, false /*writing*/, true /*noReductions*/);
+            if (restType != null)
+            {
+                return restType;
+            }
+        }
+        if (nameType == null)
+        {
+            nameType = GetStringLiteralType(name);
+        }
+        var indexInfo = FindApplicableIndexInfo(GetIndexInfosOfStructuredType(t), nameType);
+        if (indexInfo == null)
+        {
+            return null;
+        }
+        return indexInfo.valueType;
+    }
+
+    // checker.go:30412
+    internal bool IsExcludedMappedPropertyName(Type t, Type propertyNameType)
+    {
+        if ((t.flags & TypeFlags.Conditional) != 0)
+        {
+            return (GetReducedType(GetTrueTypeFromConditionalType(t)).flags & TypeFlags.Never) != 0 &&
+                GetActualTypeVariable(GetFalseTypeFromConditionalType(t)) == GetActualTypeVariable(t.AsConditionalType().checkType!) &&
+                IsTypeAssignableTo(propertyNameType, t.AsConditionalType().extendsType!);
+        }
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            return CoreUtil.Some(t.Types(), tt => IsExcludedMappedPropertyName(tt, propertyNameType));
+        }
+        return false;
+    }
+
+    // checker.go:30425
+    internal bool IsCircularMappedProperty(Symbol symbol)
+    {
+        if ((symbol.CheckFlags & CheckFlags.Mapped) != 0)
+        {
+            var links = valueSymbolLinks.Get(symbol);
+            return links.resolvedType == null && FindResolutionCycleStartIndex(symbol, TypeSystemPropertyName.Type) >= 0;
+        }
+        return false;
+    }
+
     // checker.go:30443 — Return the contextual type for a given expression node. During overload
     // resolution, a contextual type may temporarily be "pushed" onto a node.
     internal Type? GetApparentTypeOfContextualType(Node node, ContextFlags contextFlags)

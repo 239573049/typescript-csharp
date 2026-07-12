@@ -80,6 +80,9 @@ public partial class Checker
     internal static bool IsPrivateWithinAmbient(Node node) =>
         (AstUtilities.HasSyntacticModifier(node, ModifierFlags.Private) || AstUtilities.IsPrivateIdentifierClassElementDeclaration(node)) && (node.Flags & NodeFlags.Ambient) != 0;
 
+    // utilities.go:56
+    internal static bool HasOverrideModifier(Node node) => AstUtilities.HasSyntacticModifier(node, ModifierFlags.Override);
+
     // utilities.go:68 — PORT-NOTE: ast.HasModifier → AstUtilities.HasSyntacticModifier.
     internal static bool HasReadonlyModifier(Node node) => AstUtilities.HasSyntacticModifier(node, ModifierFlags.Readonly);
 

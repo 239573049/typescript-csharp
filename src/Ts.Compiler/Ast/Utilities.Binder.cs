@@ -435,6 +435,18 @@ public static partial class AstUtilities
         return file.ExternalModuleIndicator != null || file.CommonJSModuleIndicator != null;
     }
 
+    // Go: utilities.go:1650
+    public static bool IsEffectiveExternalModule(SourceFile node, CompilerOptions compilerOptions)
+    {
+        return IsExternalModule(node) || (IsCommonJSContainingModuleKind(compilerOptions.GetEmitModuleKind()) && node.CommonJSModuleIndicator != null);
+    }
+
+    // Go: utilities.go:1654
+    private static bool IsCommonJSContainingModuleKind(ModuleKind kind)
+    {
+        return kind == ModuleKind.CommonJS || (ModuleKind.Node16 <= kind && kind <= ModuleKind.NodeNext);
+    }
+
     // Go: utilities.go:1671-1673
     public static bool IsGlobalScopeAugmentation(Node node)
     {

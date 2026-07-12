@@ -70,7 +70,7 @@ public partial class Checker
     internal bool IsConstantVariable(Symbol symbol) =>
         (symbol.Flags & SymbolFlags.Variable) != 0 && (GetDeclarationNodeFlagsFromSymbol(symbol) & NodeFlags.Constant) != 0;
 
-    internal bool IsBlockScopedNameDeclaredBeforeUse(Node declaration, Node usage) => throw new NotImplementedException("isBlockScopedNameDeclaredBeforeUse");
+    // IsBlockScopedNameDeclaredBeforeUse (+ isUsedInFunctionOrInstanceProperty / isImmediatelyUsedInInitializerOfBlockScopedVariable / isSameScopeDescendentOf / isPropertyImmediatelyReferencedWithinDeclaration) are now REAL in Checker.NameLookup.cs (checker.go:1908).
 
     // getBuiltinIteratorReturnType (6379): real body landed in Checker.IterationTypes.cs (iteration wave).
 

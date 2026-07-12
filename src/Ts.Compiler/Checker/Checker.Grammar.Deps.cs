@@ -45,7 +45,7 @@ public partial class Checker
     internal static AllAccessorDeclarations GetAllAccessorDeclarationsForDeclaration(Node accessor, Node[] declarationsOfSymbol) => throw new NotImplementedException("ast.GetAllAccessorDeclarationsForDeclaration");
     internal static bool CanHaveModifiers(Node node) => throw new NotImplementedException("ast.CanHaveModifiers");
     internal static bool CanHaveIllegalModifiers(Node node) => throw new NotImplementedException("ast.CanHaveIllegalModifiers");
-    internal static bool IsEffectiveExternalModule(SourceFile node, CompilerOptions compilerOptions) => throw new NotImplementedException("ast.IsEffectiveExternalModule");
+    // IsEffectiveExternalModule is now REAL in Ast/Utilities.Binder.cs (utilities.go:1650); callers use AstUtilities.IsEffectiveExternalModule.
 
     // PORT-NOTE: Go's ast.SourceFile satisfies ast.HasFileName structurally; the C# Ast port declares
     // FileName()/Path() on SourceFile but not `: HasFileName`. Wrap here (mirrors FileLoader.AsHasFileName)

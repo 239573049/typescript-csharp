@@ -29,7 +29,20 @@ public partial class Checker
 {
     // ---- diagnostics / error reporting (owned by #9 diagnostics; some already stubbed elsewhere) ----
     // Error / ErrorOrSuggestion / NewDiagnosticForNode already stubbed in Stubs.cs / Deps surfaces.
-    internal void AddErrorOrSuggestion(bool isError, Diagnostic diagnostic) => throw new NotImplementedException("addErrorOrSuggestion");
+    // checker.go:13941
+    internal void AddErrorOrSuggestion(bool isError, Diagnostic diagnostic)
+    {
+        if (isError)
+        {
+            AddDiagnostic(diagnostic);
+        }
+        else
+        {
+            var suggestion = diagnostic.Clone();
+            suggestion.SetCategory(global::Ts.Diagnostics.Category.Suggestion);
+            AddSuggestionDiagnostic(suggestion);
+        }
+    }
     internal void ErrorAndMaybeSuggestAwait(Node? location, bool maybeMissingAwait, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("errorAndMaybeSuggestAwait");
     internal Diagnostic? ErrorOrNil(Node? location, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("error");
     // CreateDiagnosticForNode is real in Checker.Relater.cs.
@@ -128,7 +141,7 @@ public partial class Checker
     internal static Node? GetContainingFunctionOrClassStaticBlock(Node node) => AstUtilities.FindAncestor(node.Parent, AstUtilities.IsFunctionLikeOrClassStaticBlockDeclaration);
     internal Type GetGlobalDisposableType() => throw new NotImplementedException("getGlobalDisposableType");
     internal Type GetGlobalAsyncDisposableType() => throw new NotImplementedException("getGlobalAsyncDisposableType");
-    internal void CheckExternalEmitHelpers(Node location, ExternalEmitHelpers helpers) => throw new NotImplementedException("checkExternalEmitHelpers");
+    // CheckExternalEmitHelpers (+ HasSignatureWithArityGreaterThan / GetHelperNames / ResolveHelpersModule) are now REAL in Checker.AliasReferences.cs (checker.go:28333).
 
     // ---- non-null / property helpers (members/type ops) ----
     // checkNonNullNonVoidType 7414: real body landed in Checker.PropertyAccess.cs (non-null cluster).

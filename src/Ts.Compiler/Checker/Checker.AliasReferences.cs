@@ -450,6 +450,147 @@ public partial class Checker
         }
     }
 
+    // types.go:152
+    private const string ExternalHelpersModuleNameText = "tslib";
+
+    // checker.go:28333
+    internal void CheckExternalEmitHelpers(Node location, ExternalEmitHelpers helpers)
+    {
+        if (!compilerOptions.ImportHelpers.IsTrue())
+        {
+            return;
+        }
+        var sourceFile = AstUtilities.GetSourceFileOfNode(location);
+        if (!AstUtilities.IsEffectiveExternalModule(sourceFile!, compilerOptions) || (location.Flags & NodeFlags.Ambient) != 0)
+        {
+            return;
+        }
+        var helpersModule = ResolveHelpersModule(sourceFile!, location);
+        if (helpersModule == unknownSymbol)
+        {
+            return;
+        }
+        var links = sourceFileLinks.Get(sourceFile!);
+        if ((links.requestedExternalEmitHelpers & helpers) != helpers)
+        {
+            var uncheckedHelpers = helpers & ~links.requestedExternalEmitHelpers;
+            for (var helper = ExternalEmitHelpers.FirstEmitHelper; helper <= ExternalEmitHelpers.LastEmitHelper; helper = (ExternalEmitHelpers)((uint)helper << 1))
+            {
+                if ((uncheckedHelpers & helper) == 0)
+                {
+                    continue;
+                }
+                foreach (var name in GetHelperNames(helper))
+                {
+                    var symbol = ResolveSymbol(GetSymbol(GetExportsOfModule(helpersModule!), name, SymbolFlags.Value));
+                    if (symbol == null)
+                    {
+                        Error(location, Diag.This_syntax_requires_an_imported_helper_named_1_which_does_not_exist_in_0_Consider_upgrading_your_version_of_0, ExternalHelpersModuleNameText, name);
+                    }
+                    else if ((helper & ExternalEmitHelpers.ClassPrivateFieldGet) != 0)
+                    {
+                        if (!HasSignatureWithArityGreaterThan(symbol, 3))
+                        {
+                            Error(location, Diag.This_syntax_requires_an_imported_helper_named_1_with_2_parameters_which_is_not_compatible_with_the_one_in_0_Consider_upgrading_your_version_of_0, ExternalHelpersModuleNameText, name, 4);
+                        }
+                    }
+                    else if ((helper & ExternalEmitHelpers.ClassPrivateFieldSet) != 0)
+                    {
+                        if (!HasSignatureWithArityGreaterThan(symbol, 4))
+                        {
+                            Error(location, Diag.This_syntax_requires_an_imported_helper_named_1_with_2_parameters_which_is_not_compatible_with_the_one_in_0_Consider_upgrading_your_version_of_0, ExternalHelpersModuleNameText, name, 5);
+                        }
+                    }
+                }
+            }
+        }
+        links.requestedExternalEmitHelpers |= helpers;
+    }
+
+    // checker.go:28371
+    internal bool HasSignatureWithArityGreaterThan(Symbol symbol, int arity)
+    {
+        foreach (var signature in GetSignaturesOfSymbol(symbol))
+        {
+            if (GetParameterCount(signature) > arity)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // checker.go:28380
+    internal string[] GetHelperNames(ExternalEmitHelpers helper)
+    {
+        switch (helper)
+        {
+            case ExternalEmitHelpers.Rest:
+                return ["__rest"];
+            case ExternalEmitHelpers.Decorate:
+                if (legacyDecorators)
+                {
+                    return ["__decorate"];
+                }
+                return ["__esDecorate", "__runInitializers"];
+            case ExternalEmitHelpers.Metadata:
+                return ["__metadata"];
+            case ExternalEmitHelpers.Param:
+                return ["__param"];
+            case ExternalEmitHelpers.Awaiter:
+                return ["__awaiter"];
+            case ExternalEmitHelpers.Await:
+                return ["__await"];
+            case ExternalEmitHelpers.AsyncGenerator:
+                return ["__asyncGenerator"];
+            case ExternalEmitHelpers.AsyncDelegator:
+                return ["__asyncDelegator"];
+            case ExternalEmitHelpers.AsyncValues:
+                return ["__asyncValues"];
+            case ExternalEmitHelpers.ExportStar:
+                return ["__exportStar"];
+            case ExternalEmitHelpers.ImportStar:
+                return ["__importStar"];
+            case ExternalEmitHelpers.ImportDefault:
+                return ["__importDefault"];
+            case ExternalEmitHelpers.MakeTemplateObject:
+                return ["__makeTemplateObject"];
+            case ExternalEmitHelpers.ClassPrivateFieldGet:
+                return ["__classPrivateFieldGet"];
+            case ExternalEmitHelpers.ClassPrivateFieldSet:
+                return ["__classPrivateFieldSet"];
+            case ExternalEmitHelpers.ClassPrivateFieldIn:
+                return ["__classPrivateFieldIn"];
+            case ExternalEmitHelpers.SetFunctionName:
+                return ["__setFunctionName"];
+            case ExternalEmitHelpers.PropKey:
+                return ["__propKey"];
+            case ExternalEmitHelpers.AddDisposableResourceAndDisposeResources:
+                return ["__addDisposableResource", "__disposeResources"];
+            case ExternalEmitHelpers.RewriteRelativeImportExtension:
+                return ["__rewriteRelativeImportExtension"];
+            default:
+                throw new global::System.InvalidOperationException("Unrecognized helper");
+        }
+    }
+
+    // checker.go:28430
+    internal Symbol? ResolveHelpersModule(SourceFile file, Node errorNode)
+    {
+        var links = sourceFileLinks.Get(file);
+        if (links.externalHelpersModule == null)
+        {
+            var location = program.GetImportHelpersImportSpecifier(file.Path());
+            var helpersModule = ResolveExternalModule(location, ExternalHelpersModuleNameText, Diag.This_syntax_requires_an_imported_helper_but_module_0_cannot_be_found, errorNode, false /*isForAugmentation*/);
+            if (helpersModule == null)
+            {
+                helpersModule = unknownSymbol;
+            }
+            links.externalHelpersModule = helpersModule;
+        }
+        return links.externalHelpersModule;
+    }
+
     // checker.go:28443-28489
     internal void MarkDecoratorAliasReferenced(Node node /*HasDecorators*/)
     {

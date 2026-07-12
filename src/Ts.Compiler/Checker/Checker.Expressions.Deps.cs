@@ -144,7 +144,8 @@ public partial class Checker
 
     // checker.go — definitely-falsy type extraction (type-facts cluster).
     internal Type ExtractDefinitelyFalsyTypes(Type type) => throw new NotImplementedException("extractDefinitelyFalsyTypes");
-    internal Type RemoveDefinitelyFalsyTypes(Type type) => throw new NotImplementedException("removeDefinitelyFalsyTypes");
+    // checker.go:28863
+    internal Type RemoveDefinitelyFalsyTypes(Type t) => FilterType(t, x => HasTypeFacts(x, TypeFacts.Truthy));
 
     // checker.go — base-type-of-literal for relational comparison (type-facts cluster).
     internal Type GetBaseTypeOfLiteralTypeForComparison(Type type) => throw new NotImplementedException("getBaseTypeOfLiteralTypeForComparison");

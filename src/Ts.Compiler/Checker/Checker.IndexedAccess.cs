@@ -342,7 +342,7 @@ public partial class Checker
         }
         objectType = GetReducedType(objectType);
         // If the object type has a string index signature and no other members, simplify the result.
-        if (IsStringIndexSignatureOnlyType(objectType) && (indexType.flags & TypeFlags.Nullable) == 0 && IsTypeAssignableToKind(indexType, TypeFlags.String | TypeFlags.Number))
+        if (isStringIndexSignatureOnlyType(objectType) && (indexType.flags & TypeFlags.Nullable) == 0 && IsTypeAssignableToKind(indexType, TypeFlags.String | TypeFlags.Number))
         {
             indexType = stringType!;
         }
@@ -454,7 +454,7 @@ public partial class Checker
     // checker.go:27231-27234
     internal bool IsStringIndexSignatureOnlyTypeWorker(Type t) =>
         ((t.flags & TypeFlags.Object) != 0 && !IsGenericMappedType(t) && GetPropertiesOfType(t).Length == 0 && GetIndexInfosOfType(t).Length == 1 && GetIndexInfoOfType(t, stringType!) is not null) ||
-        ((t.flags & TypeFlags.UnionOrIntersection) != 0 && CoreUtil.Every(t.Types(), IsStringIndexSignatureOnlyType));
+        ((t.flags & TypeFlags.UnionOrIntersection) != 0 && CoreUtil.Every(t.Types(), isStringIndexSignatureOnlyType));
 
     // checker.go:27236-27245
     internal bool ShouldDeferIndexedAccessType(Type objectType, Type indexType, Node? accessNode)

@@ -157,7 +157,13 @@ public partial class Checker
     internal Type GetAdjustedTypeWithFacts(Type t, TypeFacts facts) => throw new NotImplementedException("getAdjustedTypeWithFacts");
     // isTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
     // isTypeAssignableToKind (27507) implemented in Checker.Constraints.cs (#19).
-    internal bool IsValidSpreadType(Type t) => throw new NotImplementedException("isValidSpreadType");
+    // checker.go:13436
+    internal bool IsValidSpreadType(Type t)
+    {
+        var s = RemoveDefinitelyFalsyTypes(MapType(t, GetBaseConstraintOrType));
+        return (s.flags & (TypeFlags.Any | TypeFlags.NonPrimitive | TypeFlags.Object | TypeFlags.InstantiableNonPrimitive)) != 0 ||
+            ((s.flags & TypeFlags.UnionOrIntersection) != 0 && CoreUtil.Every(s.Types(), IsValidSpreadType));
+    }
     // isMatchingReference: owned by flow.go — real body in Checker.Flow.cs.
     // checker.go:13540-13545
     internal bool HasDefaultValue(Node node) =>
@@ -190,10 +196,14 @@ public partial class Checker
     // ---- signatures / parameters (helpers in adjacent waves) ----
     internal Type GetTypeOfFirstParameterOfSignature(Signature signature) => throw new NotImplementedException("getTypeOfFirstParameterOfSignature");
     // getTypeAtPosition / getRestTypeAtPosition / newTypePredicate owned by the relater wave.
-    internal Signature[] GetDefaultConstructSignatures(Type classType) => throw new NotImplementedException("getDefaultConstructSignatures");
+    // GetDefaultConstructSignatures is now REAL in Checker.Signatures.cs (checker.go:20762).
 
     // ---- diagnostics helpers ----
-    internal void ErrorOrSuggestion(bool isError, Node? location, global::Ts.Diagnostics.Message? message, params object?[] args) => throw new NotImplementedException("errorOrSuggestion");
+    // checker.go:13937
+    internal void ErrorOrSuggestion(bool isError, Node? location, global::Ts.Diagnostics.Message message, params object?[] args)
+    {
+        AddErrorOrSuggestion(isError, NewDiagnosticForNode(location, message, args));
+    }
     // TypeToStringEx: real implementation in Checker.TypeToString.cs (phase-5 type-display wave).
     // elaborateNeverIntersection implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal Diagnostic? NewDiagnosticChainForNode(Diagnostic? details, Node? node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("NewDiagnosticChainForNode");

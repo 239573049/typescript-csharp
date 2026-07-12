@@ -22,10 +22,8 @@ public partial class Checker
 {
     // ---- class/interface heritage + override + index-constraint analysis (members/type-ops, deferred) ----
     // CheckTypeParameterListsIdentical is now REAL in Checker.Declarations.cs (checker.go:4399).
-    // checker.go:3128
-    internal void CheckObjectTypeForDuplicateDeclarations(Node node, bool checkPrivateNames) => throw new NotImplementedException("checkObjectTypeForDuplicateDeclarations");
-    // checker.go:4376
-    internal void CheckClassForStaticPropertyNameConflicts(Node node) => throw new NotImplementedException("checkClassForStaticPropertyNameConflicts");
+    // CheckObjectTypeForDuplicateDeclarations + ReportDuplicateMemberErrors are now REAL in Checker.Declarations.cs (checker.go:3128).
+    // CheckClassForStaticPropertyNameConflicts is now REAL in Checker.Declarations.cs (checker.go:4376).
     // checker.go:4464
     internal void CheckBaseTypeAccessibility(Type t, Node node) => throw new NotImplementedException("checkBaseTypeAccessibility");
     // checker.go:3004
@@ -36,18 +34,65 @@ public partial class Checker
     internal Type GetTypeWithoutSignatures(Type t) => throw new NotImplementedException("getTypeWithoutSignatures");
     // checker.go:4519
     internal void CheckKindsOfPropertyMemberOverrides(Type t, Type baseType) => throw new NotImplementedException("checkKindsOfPropertyMemberOverrides");
-    // checker.go:4687
-    internal void CheckMembersForOverrideModifier(Node node, Type t, Type typeWithThis, Type staticType) => throw new NotImplementedException("checkMembersForOverrideModifier");
-    // checker.go:4769
-    internal void CheckIndexConstraints(Type t, Symbol symbol, bool isStaticIndex) => throw new NotImplementedException("checkIndexConstraints");
-    // checker.go:4879
-    internal void CheckClassOrInterfaceForDuplicateIndexSignatures(Node node) => throw new NotImplementedException("checkClassOrInterfaceForDuplicateIndexSignatures");
-    // checker.go:4916
-    internal void CheckPropertyInitialization(Node node) => throw new NotImplementedException("checkPropertyInitialization");
-    // checker.go:5017
-    internal bool CheckInheritedPropertiesAreIdentical(Type t, Node? typeNode) => throw new NotImplementedException("checkInheritedPropertiesAreIdentical");
-    // checker.go:4887
-    internal void CheckTypeForDuplicateIndexSignatures(Node node) => throw new NotImplementedException("checkTypeForDuplicateIndexSignatures");
+    // CheckMembersForOverrideModifier + CheckMemberForOverrideModifier + GetSuggestedSymbolForNonexistentClassMember are now REAL in Checker.Declarations.cs (checker.go:4687).
+    // CheckIndexConstraints + CheckIndexConstraintForProperty + CheckIndexConstraintForIndexSignature are now REAL in Checker.Declarations.cs (checker.go:4769).
+    // CheckClassOrInterfaceForDuplicateIndexSignatures + CheckTypeForDuplicateIndexSignatures are now REAL in Checker.Declarations.cs (checker.go:4879).
+    // CheckPropertyInitialization + IsPropertyInitializedInStaticBlocks + IsPropertyInitializedInConstructor are now REAL in Checker.Declarations.cs (checker.go:4916).
+    // checker.go:5017 — an interface extending 2+ bases must inherit identical declarations of any
+    // same-named property (accessibility/optionality/type identity via compareProperties).
+    internal bool CheckInheritedPropertiesAreIdentical(Type t, Node? typeNode)
+    {
+        var baseTypes = GetBaseTypes(t);
+        if (baseTypes == null || baseTypes.Length < 2)
+        {
+            return true;
+        }
+        var seen = new Dictionary<string, InheritanceInfo>(global::System.StringComparer.Ordinal);
+        var declaredMembers = ResolveDeclaredMembers(t).declaredMembers;
+        if (declaredMembers != null)
+        {
+            // map-iter: 序无关 — keyed inserts by unique member name; no order-sensitive output.
+            foreach (var (id, p) in declaredMembers)
+            {
+                if (IsNamedMember(p, id))
+                {
+                    seen[p.Name] = new InheritanceInfo(p, t);
+                }
+            }
+        }
+        var identical = true;
+        foreach (var baseType in baseTypes)
+        {
+            var properties = GetPropertiesOfType(GetTypeWithThisArgument(baseType, t.AsInterfaceType()!.thisType, false));
+            foreach (var prop in properties)
+            {
+                if (!seen.TryGetValue(prop.Name, out var existing))
+                {
+                    seen[prop.Name] = new InheritanceInfo(prop, baseType);
+                }
+                else
+                {
+                    var isInheritedProperty = existing.containingType != t;
+                    if (isInheritedProperty && !IsPropertyIdenticalTo(existing.prop, prop))
+                    {
+                        identical = false;
+                        var typeName1 = TypeToString(existing.containingType);
+                        var typeName2 = TypeToString(baseType);
+                        var errorInfo = NewDiagnosticForNode(typeNode!, Diag.Named_property_0_of_types_1_and_2_are_not_identical, SymbolToString(prop), typeName1, typeName2);
+                        AddDiagnostic(Diagnostic.NewDiagnosticChain(errorInfo, Diag.Interface_0_cannot_simultaneously_extend_types_1_and_2, TypeToString(t), typeName1, typeName2));
+                    }
+                }
+            }
+        }
+        return identical;
+    }
+
+    // checker.go InheritanceInfo
+    private readonly struct InheritanceInfo(Symbol prop, Type containingType)
+    {
+        internal readonly Symbol prop = prop;
+        internal readonly Type containingType = containingType;
+    }
     // AreTypeParametersIdentical is now REAL in Checker.Declarations.cs (checker.go:4427).
 
     // ---- erasable-syntax / isolated-modules flags (options-driven checks, deferred) ----
@@ -152,8 +197,7 @@ public partial class Checker
     // getEffectiveDeclarationFlags 3687: real body landed in Checker.FunctionOrConstructorSymbol.cs.
 
     // ---- private-identifier / accessor / async-return-type checks (deferred) ----
-    // checker.go:10503
-    internal void SetNodeLinksForPrivateIdentifierScope(Node node) => throw new NotImplementedException("setNodeLinksForPrivateIdentifierScope");
+    // SetNodeLinksForPrivateIdentifierScope is now REAL in Checker.Declarations.cs (checker.go:10503).
     // checker.go:12249
     internal bool ClassDeclarationExtendsNull(Node classDecl) => throw new NotImplementedException("classDeclarationExtendsNull");
     // checker.go:2877

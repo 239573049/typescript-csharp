@@ -378,6 +378,330 @@ public partial class Checker
         }
     }
 
+    // checker.go:1874
+    internal void CheckResolvedBlockScopedVariable(Symbol result, Node errorLocation)
+    {
+        global::Ts.Core.Debug.Assert((result.Flags & SymbolFlags.BlockScopedVariable) != 0 || (result.Flags & SymbolFlags.Class) != 0 || (result.Flags & SymbolFlags.Enum) != 0);
+        if ((result.Flags & (SymbolFlags.Function | SymbolFlags.FunctionScopedVariable | SymbolFlags.Assignment)) != 0 && (result.Flags & SymbolFlags.Class) != 0)
+        {
+            // constructor functions aren't block scoped
+            return;
+        }
+        // Block-scoped variables cannot be used before their definition
+        var declaration = CoreUtil.Find(result.Declarations, d =>
+            AstUtilities.IsBlockOrCatchScoped(d) || AstUtilities.IsClassLike(d) || NodeTests.IsEnumDeclaration(d));
+        if (declaration == null)
+        {
+            throw new global::System.InvalidOperationException("checkResolvedBlockScopedVariable could not find block-scoped declaration");
+        }
+        if ((declaration.Flags & NodeFlags.Ambient) == 0 && !IsBlockScopedNameDeclaredBeforeUse(declaration, errorLocation))
+        {
+            Diagnostic? diagnostic = null;
+            var declarationName = global::Ts.Scanner.Scanner.DeclarationNameToString(AstUtilities.GetNameOfDeclaration(declaration));
+            if ((result.Flags & SymbolFlags.BlockScopedVariable) != 0)
+            {
+                diagnostic = Error(errorLocation, Diag.Block_scoped_variable_0_used_before_its_declaration, declarationName);
+            }
+            else if ((result.Flags & SymbolFlags.Class) != 0)
+            {
+                diagnostic = Error(errorLocation, Diag.Class_0_used_before_its_declaration, declarationName);
+            }
+            else if ((result.Flags & SymbolFlags.RegularEnum) != 0)
+            {
+                diagnostic = Error(errorLocation, Diag.Enum_0_used_before_its_declaration, declarationName);
+            }
+            else
+            {
+                global::Ts.Core.Debug.Assert((result.Flags & SymbolFlags.ConstEnum) != 0);
+                if (compilerOptions.GetIsolatedModules())
+                {
+                    diagnostic = Error(errorLocation, Diag.Enum_0_used_before_its_declaration, declarationName);
+                }
+            }
+            if (diagnostic != null)
+            {
+                diagnostic.AddRelatedInfo(CreateDiagnosticForNode(declaration, Diag.X_0_is_declared_here, declarationName));
+            }
+        }
+    }
+
+    // checker.go:1908
+    internal bool IsBlockScopedNameDeclaredBeforeUse(Node declaration, Node usage)
+    {
+        var declarationFile = AstUtilities.GetSourceFileOfNode(declaration);
+        var useFile = AstUtilities.GetSourceFileOfNode(usage);
+        var declContainer = AstUtilities.GetEnclosingBlockScopeContainer(declaration);
+        if (declarationFile != useFile)
+        {
+            // nodes are in different files and order cannot be determined
+            return true;
+        }
+        // deferred usage in a type context is always OK regardless of the usage position:
+        if ((usage.Flags & NodeFlags.JSDoc) != 0 || IsInTypeQuery(usage) || IsInAmbientOrTypeNode(usage))
+        {
+            return true;
+        }
+        if (declaration.Pos <= usage.Pos && !(NodeTests.IsPropertyDeclaration(declaration) && IsThisProperty(usage.Parent!) && declaration.Initializer() == null && !IsExclamationToken(declaration.PostfixToken())))
+        {
+            // declaration is before usage
+            switch (declaration.Kind)
+            {
+                case SyntaxKind.BindingElement:
+                    // still might be illegal if declaration and usage are both binding elements (eg var [a = b, b = b] = [1, 2])
+                    var errorBindingElement = AstUtilities.FindAncestorKind(usage, SyntaxKind.BindingElement);
+                    if (errorBindingElement != null)
+                    {
+                        return AstUtilities.FindAncestor(errorBindingElement, NodeTests.IsBindingElement) != AstUtilities.FindAncestor(declaration, NodeTests.IsBindingElement) || declaration.Pos < errorBindingElement.Pos;
+                    }
+                    // or it might be illegal if usage happens before parent variable is declared (eg var [a] = a)
+                    return IsBlockScopedNameDeclaredBeforeUse(AstUtilities.FindAncestorKind(declaration, SyntaxKind.VariableDeclaration)!, usage);
+                case SyntaxKind.VariableDeclaration:
+                    // still might be illegal if usage is in the initializer of the variable declaration (eg var a = a)
+                    return !IsImmediatelyUsedInInitializerOfBlockScopedVariable(declaration, usage, declContainer);
+            }
+            if (AstUtilities.IsClassLike(declaration))
+            {
+                // still might be illegal if the usage is within a computed property name in the class (eg class A { static p = "a"; [A.p]() {} })
+                // or when used within a decorator in the class (e.g. `@dec(A.x) class A { static x = "x" }`),
+                // except when used in a function that is not an IIFE (e.g., `@dec(() => A.x) class A { ... }`)
+                var container = usage;
+                while (container != null && container != declaration)
+                {
+                    if ((NodeTests.IsComputedPropertyName(container) && container.Parent!.Parent == declaration) ||
+                        (!legacyDecorators && NodeTests.IsDecorator(container) && (container.Parent == declaration ||
+                            (NodeTests.IsMethodDeclaration(container.Parent!) && container.Parent!.Parent == declaration) ||
+                            (AstUtilities.IsAccessor(container.Parent!) && container.Parent!.Parent == declaration) ||
+                            (NodeTests.IsPropertyDeclaration(container.Parent!) && container.Parent!.Parent == declaration) ||
+                            (NodeTests.IsParameterDeclaration(container.Parent!) && container.Parent!.Parent!.Parent == declaration))))
+                    {
+                        break;
+                    }
+                    container = container.Parent;
+                }
+                if (container == null || container == declaration)
+                {
+                    return true;
+                }
+                if (!legacyDecorators && NodeTests.IsDecorator(container))
+                {
+                    var n = usage;
+                    while (n != null && n != container)
+                    {
+                        if (AstUtilities.IsFunctionLike(n) && AstUtilities.GetImmediatelyInvokedFunctionExpression(n) == null)
+                        {
+                            break;
+                        }
+                        n = n.Parent;
+                    }
+                    return n != null && n != container;
+                }
+                return false;
+            }
+            if (NodeTests.IsPropertyDeclaration(declaration))
+            {
+                // still might be illegal if a self-referencing property initializer (eg private x = this.x)
+                return !IsPropertyImmediatelyReferencedWithinDeclaration(declaration, usage, false /*stopAtAnyPropertyDeclaration*/);
+            }
+            if (AstUtilities.IsParameterPropertyDeclaration(declaration, declaration.Parent!))
+            {
+                // foo = this.bar is illegal in emitStandardClassFields when bar is a parameter property
+                return !(emitStandardClassFields && AstUtilities.GetContainingClass(declaration) == AstUtilities.GetContainingClass(usage) && IsUsedInFunctionOrInstanceProperty(usage, declaration, declContainer));
+            }
+            return true;
+        }
+        // declaration is after usage, but it can still be legal if usage is deferred:
+        // 1. inside an export specifier
+        // 2. inside a function
+        // 3. inside an instance property initializer, a reference to a non-instance property
+        //    (except when emitStandardClassFields: true and the reference is to a parameter property)
+        // 4. inside a static property initializer, a reference to a static method in the same class
+        // 5. inside a TS export= declaration (since we will move the export statement during emit to avoid TDZ)
+        if (NodeTests.IsExportSpecifier(usage.Parent!) || (NodeTests.IsExportAssignment(usage.Parent!) && usage.Parent!.AsExportAssignment().IsExportEquals))
+        {
+            // export specifiers do not use the variable, they only make it available for use
+            return true;
+        }
+        // When resolving symbols for exports, the `usage` location passed in can be the export site directly
+        if (NodeTests.IsExportAssignment(usage) && usage.AsExportAssignment().IsExportEquals)
+        {
+            return true;
+        }
+        if (IsUsedInFunctionOrInstanceProperty(usage, declaration, declContainer))
+        {
+            if (emitStandardClassFields && AstUtilities.GetContainingClass(declaration) != null && (NodeTests.IsPropertyDeclaration(declaration) || AstUtilities.IsParameterPropertyDeclaration(declaration, declaration.Parent!)))
+            {
+                return !IsPropertyImmediatelyReferencedWithinDeclaration(declaration, usage, true /*stopAtAnyPropertyDeclaration*/);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // checker.go:1997
+    internal bool IsUsedInFunctionOrInstanceProperty(Node usage, Node declaration, Node? declContainer)
+    {
+        return AstUtilities.FindAncestorOrQuit(usage, current =>
+        {
+            if (current == declContainer)
+            {
+                return FindAncestorResult.Quit;
+            }
+            if (AstUtilities.IsFunctionLike(current))
+            {
+                return AstUtilities.ToFindAncestorResult(AstUtilities.GetImmediatelyInvokedFunctionExpression(current) == null);
+            }
+            if (NodeTests.IsClassStaticBlockDeclaration(current))
+            {
+                return AstUtilities.ToFindAncestorResult(declaration.Pos < usage.Pos);
+            }
+
+            if (current.Parent != null && NodeTests.IsPropertyDeclaration(current.Parent))
+            {
+                var propertyDeclaration = current.Parent;
+                var initializerOfProperty = propertyDeclaration.Initializer() == current;
+                if (initializerOfProperty)
+                {
+                    if (AstUtilities.IsStatic(current.Parent))
+                    {
+                        if (NodeTests.IsMethodDeclaration(declaration))
+                        {
+                            return FindAncestorResult.True;
+                        }
+                        if (NodeTests.IsPropertyDeclaration(declaration) && AstUtilities.GetContainingClass(usage) == AstUtilities.GetContainingClass(declaration))
+                        {
+                            var propName = declaration.Name()!;
+                            if (NodeTests.IsIdentifier(propName) || NodeTests.IsPrivateIdentifier(propName))
+                            {
+                                var t = GetTypeOfSymbol(GetSymbolOfDeclaration(declaration)!);
+                                var staticBlocks = CoreUtil.Filter(declaration.Parent!.Members(), NodeTests.IsClassStaticBlockDeclaration);
+                                if (IsPropertyInitializedInStaticBlocks(propName, t, staticBlocks.OrEmpty(), declaration.Parent!.Pos, current.Pos))
+                                {
+                                    return FindAncestorResult.True;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var isDeclarationInstanceProperty = NodeTests.IsPropertyDeclaration(declaration) && !AstUtilities.IsStatic(declaration);
+                        if (!isDeclarationInstanceProperty || AstUtilities.GetContainingClass(usage) != AstUtilities.GetContainingClass(declaration))
+                        {
+                            return FindAncestorResult.True;
+                        }
+                    }
+                }
+            }
+
+            if (current.Parent != null && NodeTests.IsDecorator(current.Parent))
+            {
+                var decorator = current.Parent.AsDecorator();
+                if (decorator.Expression == current)
+                {
+                    if (NodeTests.IsParameterDeclaration(current.Parent.Parent!))
+                    {
+                        if (IsUsedInFunctionOrInstanceProperty(current.Parent.Parent!.Parent!.Parent!, declaration, declContainer))
+                        {
+                            return FindAncestorResult.True;
+                        }
+                        return FindAncestorResult.Quit;
+                    }
+                    if (NodeTests.IsMethodDeclaration(current.Parent.Parent!))
+                    {
+                        if (IsUsedInFunctionOrInstanceProperty(current.Parent.Parent!.Parent!, declaration, declContainer))
+                        {
+                            return FindAncestorResult.True;
+                        }
+                        return FindAncestorResult.Quit;
+                    }
+                }
+            }
+
+            return FindAncestorResult.False;
+        }) != null;
+    }
+
+    // checker.go:2058
+    internal static bool IsImmediatelyUsedInInitializerOfBlockScopedVariable(Node declaration, Node usage, Node? declContainer)
+    {
+        switch (declaration.Parent!.Parent!.Kind)
+        {
+            case SyntaxKind.VariableStatement:
+            case SyntaxKind.ForStatement:
+            case SyntaxKind.ForOfStatement:
+                // variable statement/for/for-of statement case,
+                // use site should not be inside variable declaration (initializer of declaration or binding element)
+                if (IsSameScopeDescendentOf(usage, declaration, declContainer))
+                {
+                    return true;
+                }
+                break;
+        }
+        // ForIn/ForOf case - use site should not be used in expression part
+        var grandparent = declaration.Parent!.Parent!;
+        return AstUtilities.IsForInOrOfStatement(grandparent) && IsSameScopeDescendentOf(usage, grandparent.Expression(), declContainer);
+    }
+
+    // Starting from 'initial' node walk up the parent chain until 'stopAt' node is reached.
+    // If at any point current node is equal to 'parent' node - return true.
+    // If current node is an IIFE, continue walking up.
+    // Return false if 'stopAt' node is reached or isFunctionLike(current) === true.
+    // checker.go:2076
+    internal static bool IsSameScopeDescendentOf(Node initial, Node? parent, Node? stopAt)
+    {
+        if (parent == null)
+        {
+            return false;
+        }
+        for (var n = initial; n != null; n = n.Parent)
+        {
+            if (n == parent)
+            {
+                return true;
+            }
+            if (n == stopAt || (AstUtilities.IsFunctionLike(n) && (AstUtilities.GetImmediatelyInvokedFunctionExpression(n) == null || (AstUtilities.GetFunctionFlags(n) & FunctionFlags.AsyncGenerator) != 0)))
+            {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    // isPropertyImmediatelyReferencedWithinDeclaration is used for detecting ES-standard class field use-before-def errors
+    // checker.go:2092
+    internal static bool IsPropertyImmediatelyReferencedWithinDeclaration(Node declaration, Node usage, bool stopAtAnyPropertyDeclaration)
+    {
+        // always legal if usage is after declaration
+        if (usage.End > declaration.End)
+        {
+            return false;
+        }
+        // still might be legal if usage is deferred (e.g. x: any = () => this.x)
+        // otherwise illegal if immediately referenced within the declaration (e.g. x: any = this.x)
+        for (var node = usage; node != null && node != declaration; node = node.Parent)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.ArrowFunction:
+                    return false;
+                case SyntaxKind.PropertyDeclaration:
+                    // even when stopping at any property declaration, they need to come from the same class
+                    return stopAtAnyPropertyDeclaration &&
+                        ((NodeTests.IsPropertyDeclaration(declaration) && node.Parent == declaration.Parent) ||
+                            (AstUtilities.IsParameterPropertyDeclaration(declaration, declaration.Parent!) && node.Parent == declaration.Parent!.Parent));
+                case SyntaxKind.Block:
+                    switch (node.Parent!.Kind)
+                    {
+                        case SyntaxKind.MethodDeclaration:
+                        case SyntaxKind.GetAccessor:
+                        case SyntaxKind.SetAccessor:
+                            return false;
+                    }
+                    break;
+            }
+        }
+        return true;
+    }
+
     // checker.go:11635-11642
     internal bool CheckAndReportErrorForExtendingInterface(Node errorLocation)
     {

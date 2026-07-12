@@ -546,6 +546,128 @@ public partial class Checker
         CheckObjectTypeForDuplicateDeclarations(node, false /*checkPrivateNames*/);
     }
 
+    // checker.go:3128
+    internal void CheckObjectTypeForDuplicateDeclarations(Node node, bool checkPrivateNames)
+    {
+        Dictionary<string, int>? instanceNames = null;
+        Dictionary<string, int>? staticNames = null;
+        Dictionary<string, int>? privateNames = null;
+        var nodeInAmbientContext = (node.Flags & NodeFlags.Ambient) != 0;
+        void CheckPropertyOrAccessor(Symbol symbol, int kind, bool isStatic)
+        {
+            if (symbol.Declarations.Len() > 1)
+            {
+                Dictionary<string, int> names;
+                if (isStatic)
+                {
+                    staticNames ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                    names = staticNames;
+                }
+                else
+                {
+                    instanceNames ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                    names = instanceNames;
+                }
+                var state = names.GetValueOrDefault(symbol.Name);
+                switch (state)
+                {
+                    case 0:
+                        // On first occurrence just record the kind
+                        names[symbol.Name] = kind;
+                        break;
+                    default:
+                        if (state == 1 || (state == 2 && kind != 2))
+                        {
+                            // Error on second property or combination of property and accessor
+                            ReportDuplicateMemberErrors(node, symbol.Name, true, isStatic, Diag.Duplicate_identifier_0);
+                            // Record that errors have been reported
+                            names[symbol.Name] = 3;
+                        }
+                        break;
+                }
+            }
+        }
+        foreach (var member in node.Members().OrEmpty())
+        {
+            if (NodeTests.IsConstructorDeclaration(member))
+            {
+                foreach (var param in member.Parameters().OrEmpty())
+                {
+                    if (AstUtilities.IsParameterPropertyDeclaration(param, member) && !AstUtilities.IsBindingPattern(param.Name()))
+                    {
+                        CheckPropertyOrAccessor(GetSymbolOfDeclaration(param)!, 1, false /*isStatic*/);
+                    }
+                }
+            }
+            else
+            {
+                var symbol = GetSymbolOfDeclaration(member);
+                var isStatic = AstUtilities.HasStaticModifier(member);
+                // In non-ambient contexts, check that static members are not named 'prototype'.
+                if (!nodeInAmbientContext && isStatic && symbol != null && symbol.Name == "prototype")
+                {
+                    Error(member.Name(), Diag.Static_property_0_conflicts_with_built_in_property_Function_0_of_constructor_function_1, symbol.Name, SymbolToString(GetSymbolOfDeclaration(node)));
+                }
+                // Check that this object type declaration doesn't contain multiple declarations of the same property,
+                // or accessor and property declarations with the same name.
+                if ((NodeTests.IsPropertyDeclaration(member) && !AstUtilities.HasAccessorModifier(member)) || NodeTests.IsPropertySignatureDeclaration(member))
+                {
+                    CheckPropertyOrAccessor(symbol!, 1, isStatic);
+                }
+                else if (AstUtilities.IsAccessor(member) || (NodeTests.IsPropertyDeclaration(member) && AstUtilities.HasAccessorModifier(member)))
+                {
+                    CheckPropertyOrAccessor(symbol!, 2, isStatic);
+                }
+                // Check that each private identifier is used only for instance members or only for static members. It is an
+                // error for an instance and a static member to have the same private identifier.
+                if (checkPrivateNames && member.Name() != null && NodeTests.IsPrivateIdentifier(member.Name()!))
+                {
+                    var flags = privateNames?.GetValueOrDefault(symbol!.Name) ?? 0;
+                    if (flags != 3)
+                    {
+                        flags |= CoreUtil.IfElse(AstUtilities.IsStatic(member), 2, 1);
+                        privateNames ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                        privateNames[symbol!.Name] = flags;
+                        if (flags == 3)
+                        {
+                            ReportDuplicateMemberErrors(node, symbol.Name, false, false, Diag.Duplicate_identifier_0_Static_and_instance_elements_cannot_share_the_same_private_name);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // checker.go:3199
+    internal void ReportDuplicateMemberErrors(Node node, string name, bool checkStatic, bool isStatic, global::Ts.Diagnostics.Message message)
+    {
+        foreach (var member in node.Members().OrEmpty())
+        {
+            if (NodeTests.IsConstructorDeclaration(member))
+            {
+                foreach (var param in member.Parameters().OrEmpty())
+                {
+                    if (AstUtilities.IsParameterPropertyDeclaration(param, member) && !AstUtilities.IsBindingPattern(param.Name()))
+                    {
+                        var symbol = GetSymbolOfDeclaration(param);
+                        if (symbol != null && symbol.Name == name)
+                        {
+                            Error(param.Name(), message, SymbolToString(symbol));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var symbol = GetSymbolOfDeclaration(member);
+                if (symbol != null && symbol.Name == name && (!checkStatic || isStatic == AstUtilities.IsStatic(member)))
+                {
+                    Error(member.Name(), message, SymbolToString(symbol));
+                }
+            }
+        }
+    }
+
     // checker.go:3215
     internal void CheckArrayType(Node node)
     {
@@ -658,6 +780,37 @@ public partial class Checker
             }
         }
         RegisterForUnusedIdentifiersCheck(node);
+    }
+
+    // checker.go:4376
+    internal void CheckClassForStaticPropertyNameConflicts(Node node)
+    {
+        if (compilerOptions.GetUseDefineForClassFields())
+        {
+            return;
+        }
+        foreach (var member in node.Members().OrEmpty())
+        {
+            var memberNameNode = member.Name();
+            var isStaticMember = AstUtilities.IsStatic(member);
+            if (isStaticMember && memberNameNode != null)
+            {
+                var (memberName, _) = GetEffectivePropertyNameForPropertyNameNode(memberNameNode);
+                switch (memberName)
+                {
+                    case "name":
+                    case "length":
+                    case "caller":
+                    case "arguments":
+                        Error(
+                            memberNameNode,
+                            Diag.Static_property_0_conflicts_with_built_in_property_Function_0_of_constructor_function_1,
+                            memberName,
+                            SymbolToString(GetSymbolOfDeclaration(node)));
+                        break;
+                }
+            }
+        }
     }
 
     // checker.go:4399
@@ -1858,6 +2011,398 @@ public partial class Checker
             if (IsDeprecatedSymbol(targetSymbol) && targetSymbol.Declarations != null)
             {
                 AddDeprecatedSuggestion(node, targetSymbol.Declarations, targetSymbol.Name);
+            }
+        }
+    }
+
+    // checker.go:4687
+    internal void CheckMembersForOverrideModifier(Node node, Type t, Type typeWithThis, Type staticType)
+    {
+        Type? baseWithThis = null;
+        var baseTypeNode = AstUtilities.GetExtendsHeritageClauseElement(node);
+        if (baseTypeNode != null)
+        {
+            var baseTypes = GetBaseTypes(t);
+            if (baseTypes.Len() > 0)
+            {
+                baseWithThis = GetTypeWithThisArgument(CoreUtil.FirstOrNil(baseTypes)!, t.AsInterfaceType()!.thisType, false);
+            }
+        }
+        var baseStaticType = GetBaseConstructorTypeOfClass(t);
+        foreach (var member in node.Members().OrEmpty())
+        {
+            if (!AstUtilities.HasAmbientModifier(member))
+            {
+                if (NodeTests.IsConstructorDeclaration(member))
+                {
+                    foreach (var param in member.Parameters().OrEmpty())
+                    {
+                        if (AstUtilities.IsParameterPropertyDeclaration(param, member))
+                        {
+                            CheckMemberForOverrideModifier(node, staticType, baseStaticType, baseWithThis, t, typeWithThis, param);
+                        }
+                    }
+                }
+                else
+                {
+                    CheckMemberForOverrideModifier(node, staticType, baseStaticType, baseWithThis, t, typeWithThis, member);
+                }
+            }
+        }
+    }
+
+    // checker.go:4712
+    internal void CheckMemberForOverrideModifier(Node node, Type staticType, Type baseStaticType, Type? baseWithThis, Type t, Type typeWithThis, Node member)
+    {
+        var isJs = AstUtilities.IsInJSFile(node);
+        var memberHasOverrideModifier = HasOverrideModifier(member);
+        if (baseWithThis == null)
+        {
+            if (memberHasOverrideModifier)
+            {
+                Error(member, CoreUtil.IfElse(isJs, Diag.This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_its_containing_class_0_does_not_extend_another_class, Diag.This_member_cannot_have_an_override_modifier_because_its_containing_class_0_does_not_extend_another_class), TypeToString(t));
+            }
+            return;
+        }
+        var sym = member.Symbol();
+        if (memberHasOverrideModifier && sym != null && sym.ValueDeclaration != null && AstUtilities.IsClassElement(member) && member.Name() != null && IsNonBindableDynamicName(member.Name()!))
+        {
+            Error(member, CoreUtil.IfElse(isJs, Diag.This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_its_name_is_dynamic, Diag.This_member_cannot_have_an_override_modifier_because_its_name_is_dynamic));
+            return;
+        }
+        if (!memberHasOverrideModifier && !compilerOptions.NoImplicitOverride.IsTrue())
+        {
+            return;
+        }
+        // Here we have a base class and also an override modifier or no override modifier in noImplicitOverride mode
+        var symbol = GetSymbolOfDeclaration(member);
+        if (symbol == null)
+        {
+            return;
+        }
+        var memberIsStatic = AstUtilities.IsStatic(member);
+        var thisType = CoreUtil.IfElse(memberIsStatic, staticType, typeWithThis);
+        var prop = GetPropertyOfType(thisType, symbol.Name);
+        if (prop == null)
+        {
+            return;
+        }
+        var baseType = CoreUtil.IfElse(memberIsStatic, baseStaticType, baseWithThis);
+        var baseProp = GetPropertyOfType(baseType, symbol.Name);
+        if (baseProp == null && memberHasOverrideModifier)
+        {
+            var suggestion = GetSuggestedSymbolForNonexistentClassMember(AstUtilities.SymbolName(symbol), baseType);
+            if (suggestion != null)
+            {
+                Error(member, CoreUtil.IfElse(isJs, Diag.This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_it_is_not_declared_in_the_base_class_0_Did_you_mean_1, Diag.This_member_cannot_have_an_override_modifier_because_it_is_not_declared_in_the_base_class_0_Did_you_mean_1), TypeToString(baseWithThis), SymbolToString(suggestion));
+                return;
+            }
+            Error(member, CoreUtil.IfElse(isJs, Diag.This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_it_is_not_declared_in_the_base_class_0, Diag.This_member_cannot_have_an_override_modifier_because_it_is_not_declared_in_the_base_class_0), TypeToString(baseWithThis));
+            return;
+        }
+        if (baseProp != null && baseProp.Declarations.Len() != 0 && !memberHasOverrideModifier && compilerOptions.NoImplicitOverride.IsTrue() && (node.Flags & NodeFlags.Ambient) == 0)
+        {
+            var baseHasAbstract = CoreUtil.Some(baseProp.Declarations, AstUtilities.HasAbstractModifier);
+            if (!baseHasAbstract)
+            {
+                var message = CoreUtil.IfElse(NodeTests.IsParameterDeclaration(member),
+                    CoreUtil.IfElse(isJs, Diag.This_parameter_property_must_have_a_JSDoc_comment_with_an_override_tag_because_it_overrides_a_member_in_the_base_class_0, Diag.This_parameter_property_must_have_an_override_modifier_because_it_overrides_a_member_in_base_class_0),
+                    CoreUtil.IfElse(isJs, Diag.This_member_must_have_a_JSDoc_comment_with_an_override_tag_because_it_overrides_a_member_in_the_base_class_0, Diag.This_member_must_have_an_override_modifier_because_it_overrides_a_member_in_the_base_class_0));
+                Error(member, message, TypeToString(baseWithThis));
+                return;
+            }
+            if (AstUtilities.HasAbstractModifier(member) && baseHasAbstract)
+            {
+                Error(member, Diag.This_member_must_have_an_override_modifier_because_it_overrides_an_abstract_method_that_is_declared_in_the_base_class_0, TypeToString(baseWithThis));
+            }
+        }
+    }
+
+    // checker.go:4765
+    internal Symbol? GetSuggestedSymbolForNonexistentClassMember(string name, Type baseType)
+    {
+        return GetSpellingSuggestionForName(name, GetPropertiesOfType(baseType), SymbolFlags.ClassMember);
+    }
+
+    // checker.go:4769
+    internal void CheckIndexConstraints(Type t, Symbol symbol, bool isStaticIndex)
+    {
+        var indexInfos = GetIndexInfosOfType(t);
+        if (indexInfos.Len() == 0)
+        {
+            return;
+        }
+        foreach (var prop in GetPropertiesOfObjectType(t))
+        {
+            if (!(isStaticIndex && (prop.Flags & SymbolFlags.Prototype) != 0))
+            {
+                CheckIndexConstraintForProperty(t, prop, GetLiteralTypeFromProperty(prop, TypeFlags.StringOrNumberLiteralOrUnique, true /*includeNonPublic*/), GetNonMissingTypeOfSymbol(prop));
+            }
+        }
+        var typeDeclaration = symbol.ValueDeclaration;
+        if (typeDeclaration != null && AstUtilities.IsClassLike(typeDeclaration))
+        {
+            foreach (var member in typeDeclaration.Members().OrEmpty())
+            {
+                // Only process instance properties against instance index signatures and static properties against static index signatures
+                if (AstUtilities.IsStatic(member) == isStaticIndex && !HasBindableName(member))
+                {
+                    var memberSymbol = GetSymbolOfDeclaration(member);
+                    CheckIndexConstraintForProperty(t, memberSymbol!, GetTypeOfExpression(member.Name()!.Expression()!), GetNonMissingTypeOfSymbol(memberSymbol!));
+                }
+            }
+        }
+        if (indexInfos.Len() > 1)
+        {
+            foreach (var info in indexInfos)
+            {
+                CheckIndexConstraintForIndexSignature(t, info);
+            }
+        }
+    }
+
+    // checker.go:4796
+    internal void CheckIndexConstraintForProperty(Type t, Symbol prop, Type propNameType, Type propType)
+    {
+        var declaration = prop.ValueDeclaration;
+        var name = AstUtilities.GetNameOfDeclaration(declaration);
+        if (name != null && NodeTests.IsPrivateIdentifier(name))
+        {
+            return;
+        }
+        var indexInfos = GetApplicableIndexInfos(t, propNameType);
+        if (indexInfos.Len() == 0)
+        {
+            return;
+        }
+        Node? interfaceDeclaration = null;
+        if ((t.objectFlags & ObjectFlags.Interface) != 0)
+        {
+            interfaceDeclaration = AstUtilities.GetDeclarationOfKind(t.symbol!, SyntaxKind.InterfaceDeclaration);
+        }
+        Node? propDeclaration = null;
+        if ((declaration != null && NodeTests.IsBinaryExpression(declaration)) || (name != null && NodeTests.IsComputedPropertyName(name)))
+        {
+            propDeclaration = declaration;
+        }
+        Node? localPropDeclaration = null;
+        if (GetParentOfSymbol(prop) == t.symbol)
+        {
+            localPropDeclaration = declaration;
+        }
+        foreach (var info in indexInfos.OrEmpty())
+        {
+            Node? localIndexDeclaration = null;
+            if (info.declaration != null && GetParentOfSymbol(GetSymbolOfDeclaration(info.declaration)!) == t.symbol)
+            {
+                localIndexDeclaration = info.declaration;
+            }
+            // We check only when (a) the property is declared in the containing type, or (b) the applicable index signature is declared
+            // in the containing type, or (c) the containing type is an interface and no base interface contains both the property and
+            // the index signature (i.e. property and index signature are declared in separate inherited interfaces).
+            var errorNode = CoreUtil.OrElse(localPropDeclaration, localIndexDeclaration);
+            if (errorNode == null && interfaceDeclaration != null && !CoreUtil.Some(GetBaseTypes(t), @base =>
+                GetPropertyOfObjectType(@base, prop.Name) != null && GetIndexTypeOfType(@base, info.keyType) != null))
+            {
+                errorNode = interfaceDeclaration;
+            }
+            if (errorNode != null && !IsTypeAssignableTo(propType, info.valueType))
+            {
+                var diagnostic = NewDiagnosticForNode(errorNode, Diag.Property_0_of_type_1_is_not_assignable_to_2_index_type_3, SymbolToString(prop), TypeToString(propType), TypeToString(info.keyType), TypeToString(info.valueType));
+                if (propDeclaration != null && errorNode != propDeclaration)
+                {
+                    diagnostic.AddRelatedInfo(NewDiagnosticForNode(propDeclaration, Diag.X_0_is_declared_here, SymbolToString(prop)));
+                }
+                AddDiagnostic(diagnostic);
+            }
+        }
+    }
+
+    // checker.go:4842
+    internal void CheckIndexConstraintForIndexSignature(Type t, IndexInfo checkInfo)
+    {
+        var declaration = checkInfo.declaration;
+        var indexInfos = GetApplicableIndexInfos(t, checkInfo.keyType);
+        if (indexInfos.Len() == 0)
+        {
+            return;
+        }
+        Node? interfaceDeclaration = null;
+        if ((t.objectFlags & ObjectFlags.Interface) != 0)
+        {
+            interfaceDeclaration = AstUtilities.GetDeclarationOfKind(t.symbol!, SyntaxKind.InterfaceDeclaration);
+        }
+        Node? localCheckDeclaration = null;
+        if (declaration != null && GetParentOfSymbol(GetSymbolOfDeclaration(declaration)!) == t.symbol)
+        {
+            localCheckDeclaration = declaration;
+        }
+        foreach (var info in indexInfos.OrEmpty())
+        {
+            if (info == checkInfo)
+            {
+                continue;
+            }
+            Node? localIndexDeclaration = null;
+            if (info.declaration != null && GetParentOfSymbol(GetSymbolOfDeclaration(info.declaration)!) == t.symbol)
+            {
+                localIndexDeclaration = info.declaration;
+            }
+            // We check only when (a) the check index signature is declared in the containing type, or (b) the applicable index
+            // signature is declared in the containing type, or (c) the containing type is an interface and no base interface contains
+            // both index signatures (i.e. the index signatures are declared in separate inherited interfaces).
+            var errorNode = CoreUtil.OrElse(localCheckDeclaration, localIndexDeclaration);
+            if (errorNode == null && interfaceDeclaration != null && !CoreUtil.Some(GetBaseTypes(t), @base =>
+                GetIndexInfoOfType(@base, checkInfo.keyType) != null && GetIndexTypeOfType(@base, info.keyType) != null))
+            {
+                errorNode = interfaceDeclaration;
+            }
+            if (errorNode != null && !IsTypeAssignableTo(checkInfo.valueType, info.valueType))
+            {
+                Error(errorNode, Diag.X_0_index_type_1_is_not_assignable_to_2_index_type_3, TypeToString(checkInfo.keyType), TypeToString(checkInfo.valueType), TypeToString(info.keyType), TypeToString(info.valueType));
+            }
+        }
+    }
+
+    // checker.go:4879
+    internal void CheckClassOrInterfaceForDuplicateIndexSignatures(Node node)
+    {
+        // Only check the type once
+        var links = declaredTypeLinks.Get(GetSymbolOfDeclaration(node)!);
+        if (!links.indexSignaturesChecked)
+        {
+            links.indexSignaturesChecked = true;
+            CheckTypeForDuplicateIndexSignatures(node);
+        }
+    }
+
+    // checker.go:4887
+    internal void CheckTypeForDuplicateIndexSignatures(Node node)
+    {
+        // TypeScript 1.0 spec (April 2014)
+        // 3.7.4: An object type can contain at most one string index signature and one numeric index signature.
+        // 8.5: A class declaration can have at most one string index member declaration and one numeric index member declaration
+        var indexSymbol = GetIndexSymbol(GetSymbolOfDeclaration(node)!);
+        if (indexSymbol == null || indexSymbol.Declarations.Len() <= 1)
+        {
+            return;
+        }
+        var indexSignatureMap = new Dictionary<Type, List<Node>>(ReferenceEqualityComparer<Type>.Instance);
+        foreach (var declaration in indexSymbol.Declarations.OrEmpty())
+        {
+            if (NodeTests.IsIndexSignatureDeclaration(declaration))
+            {
+                var parameters = declaration.Parameters();
+                if (parameters.Len() == 1 && parameters![0].Type() != null)
+                {
+                    foreach (var t in GetTypeFromTypeNode(parameters[0].Type()!).Distributed())
+                    {
+                        (indexSignatureMap.TryGetValue(t, out var list) ? list : indexSignatureMap[t] = []).Add(declaration);
+                    }
+                }
+            }
+            // Do nothing for late-bound index signatures: allow these to duplicate one another and explicit indexes
+        }
+        // map-iter: 序无关 — each duplicate emits an independent diagnostic; the diagnostic sorter fixes final order.
+        foreach (var (t, declarations) in indexSignatureMap)
+        {
+            if (declarations.Count > 1)
+            {
+                foreach (var declaration in declarations)
+                {
+                    Error(declaration, Diag.Duplicate_index_signature_for_type_0, TypeToString(t));
+                }
+            }
+        }
+    }
+
+    // checker.go:4916
+    internal void CheckPropertyInitialization(Node node)
+    {
+        if (!strictNullChecks || !strictPropertyInitialization || (node.Flags & NodeFlags.Ambient) != 0)
+        {
+            return;
+        }
+        var constructor = AstUtilities.FindConstructorDeclaration(node);
+        foreach (var member in node.Members().OrEmpty())
+        {
+            if ((member.ModifierFlags() & ModifierFlags.Ambient) != 0)
+            {
+                continue;
+            }
+            if (!AstUtilities.IsStatic(member) && IsPropertyWithoutInitializer(member))
+            {
+                var propName = member.Name()!;
+                if (NodeTests.IsIdentifier(propName) || NodeTests.IsPrivateIdentifier(propName) || NodeTests.IsComputedPropertyName(propName))
+                {
+                    var t = GetTypeOfSymbol(GetSymbolOfDeclaration(member)!);
+                    if (!((t.flags & TypeFlags.AnyOrUnknown) != 0 || ContainsUndefinedType(this, t)))
+                    {
+                        if (constructor == null || !IsPropertyInitializedInConstructor(propName, t, constructor))
+                        {
+                            Error(member.Name(), Diag.Property_0_has_no_initializer_and_is_not_definitely_assigned_in_the_constructor, global::Ts.Scanner.Scanner.DeclarationNameToString(propName));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // checker.go:4943
+    internal bool IsPropertyInitializedInStaticBlocks(Node propName, Type propType, Node[] staticBlocks, int startPos, int endPos)
+    {
+        foreach (var staticBlock in staticBlocks)
+        {
+            // static block must be within the provided range as they are evaluated in document order (unlike constructors)
+            if (staticBlock.Pos >= startPos && staticBlock.Pos <= endPos)
+            {
+                var reference = factory.NewPropertyAccessExpression(factory.NewKeywordExpression(KeywordExpressionSyntaxKind.ThisKeyword), null, propName, NodeFlags.None);
+                reference.Expression()!.Parent = reference;
+                reference.Parent = staticBlock;
+                reference.FlowNodeData()!.FlowNode = staticBlock.AsClassStaticBlockDeclaration().ReturnFlowNode;
+                var flowType = GetFlowTypeOfReferenceEx(reference, propType, GetOptionalType(propType, false), null, null);
+                if (!ContainsUndefinedType(this, flowType))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // checker.go:4960
+    internal bool IsPropertyInitializedInConstructor(Node propName, Type propType, Node constructor)
+    {
+        Node reference;
+        if (NodeTests.IsComputedPropertyName(propName))
+        {
+            reference = factory.NewElementAccessExpression(factory.NewKeywordExpression(KeywordExpressionSyntaxKind.ThisKeyword), null, propName.Expression(), NodeFlags.None);
+        }
+        else
+        {
+            reference = factory.NewPropertyAccessExpression(factory.NewKeywordExpression(KeywordExpressionSyntaxKind.ThisKeyword), null, propName, NodeFlags.None);
+        }
+        reference.Expression()!.Parent = reference;
+        reference.Parent = constructor;
+        reference.FlowNodeData()!.FlowNode = constructor.AsConstructorDeclaration().ReturnFlowNode;
+        var flowType = GetFlowTypeOfReferenceEx(reference, propType, GetOptionalType(propType, false), null, null);
+        return !ContainsUndefinedType(this, flowType);
+    }
+
+    // checker.go:10503
+    internal void SetNodeLinksForPrivateIdentifierScope(Node node)
+    {
+        var name = node.Name()!;
+        if (NodeTests.IsPrivateIdentifier(name))
+        {
+            if (languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.PrivateNamesAndClassStaticBlocks ||
+                languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.ClassAndClassElementDecorators ||
+                !compilerOptions.GetUseDefineForClassFields())
+            {
+                for (var lexicalScope = AstUtilities.GetEnclosingBlockScopeContainer(node); lexicalScope != null; lexicalScope = AstUtilities.GetEnclosingBlockScopeContainer(lexicalScope))
+                {
+                    nodeLinks.Get(lexicalScope).flags |= NodeCheckFlags.ContainsClassWithPrivateIdentifiers;
+                }
             }
         }
     }

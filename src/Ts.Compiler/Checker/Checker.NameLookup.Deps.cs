@@ -32,9 +32,7 @@ public partial class Checker
     // ---- block-scoped-variable use-before-declaration (checker.go:1874) ----
     // checkResolvedBlockScopedVariable: reports "used before its declaration" for let/const/class/enum. Only
     // reached from onSuccessfullyResolvedSymbol's block-scoped branch (errorLocation present + variable/class/
-    // enum meaning). Deferred — depends on isBlockScopedNameDeclaredBeforeUse (flow analysis) which is owned
-    // by a later wave.
-    internal void CheckResolvedBlockScopedVariable(Symbol result, Node errorLocation) => throw new NotImplementedException("checkResolvedBlockScopedVariable");
+    // CheckResolvedBlockScopedVariable is now REAL in Checker.NameLookup.cs (checker.go:1874).
 }
 
 // AST-layer predicates that Go places in internal/ast (utilities.go) but the Ts.Ast port has not yet landed.

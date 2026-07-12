@@ -1150,6 +1150,54 @@ public partial class Checker
         }
     }
 
+    // checker.go:20762
+    internal Signature[] GetDefaultConstructSignatures(Type classType)
+    {
+        var baseConstructorType = GetBaseConstructorTypeOfClass(classType);
+        var baseSignatures = GetSignaturesOfType(baseConstructorType, SignatureKind.Construct);
+        var declaration = AstUtilities.GetClassLikeDeclarationOfSymbol(classType.symbol!);
+        var isAbstract = declaration != null && AstUtilities.HasSyntacticModifier(declaration, ModifierFlags.Abstract);
+        if (baseSignatures.Length == 0)
+        {
+            var flags = CoreUtil.IfElse(isAbstract, SignatureFlags.Construct | SignatureFlags.Abstract, SignatureFlags.Construct);
+            return [NewSignature(flags, null, classType.AsInterfaceType()!.LocalTypeParameters(), null, null, classType, null, 0)];
+        }
+        var baseTypeNode = GetBaseTypeNodeOfClass(classType);
+        var isJavaScript = declaration != null && AstUtilities.IsInJSFile(declaration);
+        var typeArguments = GetTypeArgumentsFromNode(baseTypeNode!);
+        var typeArgCount = typeArguments.Len();
+        List<Signature>? result = null;
+        foreach (var baseSig in baseSignatures)
+        {
+            var minTypeArgumentCount = GetMinTypeArgumentCount(baseSig.typeParameters);
+            var typeParamCount = baseSig.typeParameters.Len();
+            if (isJavaScript || (typeArgCount >= minTypeArgumentCount && typeArgCount <= typeParamCount))
+            {
+                Signature sig;
+                if (typeParamCount != 0)
+                {
+                    sig = CreateSignatureInstantiation(baseSig, FillMissingTypeArguments(typeArguments, baseSig.typeParameters, minTypeArgumentCount, isJavaScript));
+                }
+                else
+                {
+                    sig = CloneSignature(baseSig);
+                }
+                sig.typeParameters = classType.AsInterfaceType()!.LocalTypeParameters();
+                sig.resolvedReturnType = classType;
+                if (isAbstract)
+                {
+                    sig.flags |= SignatureFlags.Abstract;
+                }
+                else
+                {
+                    sig.flags &= ~SignatureFlags.Abstract;
+                }
+                (result ??= []).Add(sig);
+            }
+        }
+        return result?.ToArray() ?? [];
+    }
+
     // checker.go:20634-20643
     internal SymbolTable? CreateInstantiatedSymbolTable(Symbol[] symbols, TypeMapper m)
     {

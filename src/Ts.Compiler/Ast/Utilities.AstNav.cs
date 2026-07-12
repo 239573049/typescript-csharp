@@ -40,6 +40,42 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.JsxText && node.AsJsxText().ContainsOnlyTriviaWhiteSpaces;
     }
 
+    // utilities.go:2152
+    public static Node? GetEnclosingBlockScopeContainer(Node node)
+    {
+        return FindAncestor(node.Parent, current => IsBlockScope(current, current.Parent));
+    }
+
+    // utilities.go:2158
+    public static bool IsBlockScope(Node node, Node? parentNode)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.SourceFile:
+            case SyntaxKind.CaseBlock:
+            case SyntaxKind.CatchClause:
+            case SyntaxKind.ModuleDeclaration:
+            case SyntaxKind.ForStatement:
+            case SyntaxKind.ForInStatement:
+            case SyntaxKind.ForOfStatement:
+            case SyntaxKind.Constructor:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.ClassStaticBlockDeclaration:
+                return true;
+            case SyntaxKind.Block:
+                // function block is not considered block-scope container
+                // see comment in binder.ts: bind(...), case for SyntaxKind.Block
+                return !IsFunctionLikeOrClassStaticBlockDeclaration(parentNode);
+        }
+        return false;
+    }
+
     // utilities.go:2988
     public static bool ForEachChildAndJSDoc(Node node, SourceFile sourceFile, Visitor v)
     {

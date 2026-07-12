@@ -300,8 +300,7 @@ public partial class Checker
         }
         return GetTypeOfExpression(left);
     }
-    // checker.go:30312 — property-of-contextual-type over intersections/mapped types (large; deferred).
-    private Type? GetTypeOfPropertyOfContextualTypeEx(Type t, string name, Type? nameType) => throw new NotImplementedException("getTypeOfPropertyOfContextualTypeEx");
+    // GetTypeOfPropertyOfContextualTypeEx (+ its contextual-property helpers) are now REAL in Checker.ContextualType.cs (checker.go:30312).
     // checker.go:30469 — object-literal discrimination of union contextual types (discriminant cluster).
     private Type DiscriminateContextualTypeByObjectMembers(Node node, Type contextualType) => throw new NotImplementedException("discriminateContextualTypeByObjectMembers");
     // getAwaitedTypeNoAlias (31215): stub already declared in Checker.MembersSignatures.Deps.cs.

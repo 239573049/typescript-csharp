@@ -1663,7 +1663,7 @@ public partial class Checker
                 {
                     if (!HasParseDiagnostics(sourceFile))
                     {
-                        if (!IsEffectiveExternalModule(sourceFile, compilerOptions))
+                        if (!AstUtilities.IsEffectiveExternalModule(sourceFile, compilerOptions))
                         {
                             AddDiagnostic(CreateDiagnosticForNode(forInOrOfStatement.AwaitModifier, Diag.X_for_await_loops_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module));
                         }
@@ -2316,7 +2316,7 @@ public partial class Checker
                 {
                     TextRange span = default;
                     var spanCalculated = false;
-                    if (!IsEffectiveExternalModule(sourceFile, compilerOptions))
+                    if (!AstUtilities.IsEffectiveExternalModule(sourceFile, compilerOptions))
                     {
                         span = global::Ts.Scanner.Scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos);
                         spanCalculated = true;

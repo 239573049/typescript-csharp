@@ -53,23 +53,42 @@ public sealed class CallResolutionTests
     // signatures, and produce the "not callable" invocation error via invocationError/invocationErrorDetails.
     // This path exercises the trunk without needing argument assignability (no args), so it should not hit
     // the checkExpressionWithContextualType stub.
-    [Fact]
+    //
+    // The fixture declares the required global interfaces because the harness runs with NoLib. Without
+    // them tsgo's isUntypedFunctionCall sees globalFunctionType == emptyObjectType, `number` is assignable
+    // to `{}`, and the call is treated as an untyped call producing NO file diagnostic (verified against
+    // tsgo: `tsgo --noLib --noEmit` on the bare two-line fixture emits only global TS2318s). With the
+    // globals declared, tsgo emits exactly one file diagnostic:
+    //   TS2349 This expression is not callable. / Type 'Number' has no call signatures.
+    // Chain progress: checkInheritedPropertiesAreIdentical ✓ (compareProperties/isPropertyIdenticalTo
+    // ported) → the probe now reaches invocationErrorDetails, which consults getAwaitedType (the
+    // "maybe missing await" hint) — the #22 awaited-types subsystem (getAwaitedTypeNoAliasEx/
+    // getPromisedTypeOfPromiseEx/createAwaitedTypeIfNeeded). Un-skip when that wave lands.
+    [Fact(Skip = "TS2349 reporting reaches invocationErrorDetails → blocked on getAwaitedType (#22 awaited-types wave)")]
     public void CallResolutionTrunk_RunsEndToEnd_AndRoutesThroughResolveCall()
     {
         // Exercise the call-resolution trunk end-to-end over a real bound program: `n()` where `n` is a
-        // `number` drives checkCallExpression → getResolvedSignature → resolveCallExpression, proving the
-        // trunk is wired into the pipeline. If it reaches a deferred leaf stub (NotImplementedException)
-        // the trunk still compiled and routed — that is expected this wave. If it completes, a "not
-        // callable" invocation diagnostic must be produced.
-        try
-        {
-            var diags = CheckFile("const n: number = 0;\nn();\n");
-            Assert.NotEmpty(diags);
-        }
-        catch (System.NotImplementedException)
-        {
-            // Deferred leaf reached (e.g. checkExpressionWithContextualType) — trunk is wired and routes.
-        }
+        // `number` drives checkCallExpression → getResolvedSignature → resolveCallExpression →
+        // resolveErrorCall, and invocationError must report TS2349 for real (no stub-catch masking).
+        var diags = CheckFile(
+            "interface Array<T> {}\n" +
+            "interface Boolean {}\n" +
+            "interface CallableFunction {}\n" +
+            "interface Function { prototype: object; }\n" +
+            "interface IArguments {}\n" +
+            "interface NewableFunction {}\n" +
+            "interface Number {}\n" +
+            "interface Object {}\n" +
+            "interface RegExp {}\n" +
+            "interface String { charAt(pos: number): string; }\n" +
+            "const n: number = 0;\n" +
+            "n();\n");
+        var diag = Assert.Single(diags);
+        Assert.Equal(2349, diag.Code()); // This expression is not callable.
+        var chain = diag.MessageChain();
+        Assert.NotNull(chain);
+        var detail = Assert.Single(chain);
+        Assert.Equal(2757, detail.Code()); // Type '{0}' has no call signatures.
     }
 
     // A single-signature zero-argument function call resolves and yields its return type. Kept Skip for

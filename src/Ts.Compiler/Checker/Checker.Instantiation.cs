@@ -1145,8 +1145,73 @@ public partial class Checker
     // checker.go:22648-22664
     internal Type InstantiateReverseMappedType(Type t, TypeMapper m) => throw new NotImplementedException("instantiateReverseMappedType");
 
-    // checker.go:22309-22362
-    internal bool IsTypeParameterPossiblyReferenced(Type tp, Node node) => throw new NotImplementedException("isTypeParameterPossiblyReferenced");
+    // checker.go:22309
+    internal bool IsTypeParameterPossiblyReferenced(Type tp, Node node)
+    {
+        bool ContainsReference(Node node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.ThisType:
+                    return tp.AsTypeParameter().isThisType;
+                case SyntaxKind.TypeReference:
+                    // use worker because we're looking for === equality
+                    if (!tp.AsTypeParameter().isThisType && node.TypeArguments().Len() == 0 && GetSymbolFromTypeReference(node) == tp.symbol)
+                    {
+                        return true;
+                    }
+                    break;
+                case SyntaxKind.TypeQuery:
+                    var entityName = node.AsTypeQueryNode().ExprName;
+                    var firstIdentifier = GetFirstIdentifier(entityName!);
+                    if (!JSDocReparseAstGaps.IsThisIdentifier(firstIdentifier))
+                    {
+                        var firstIdentifierSymbol = GetResolvedSymbol(firstIdentifier);
+                        var tpDeclaration = tp.symbol!.Declarations![0]; // There is exactly one declaration, otherwise `containsReference` is not called
+                        Node? tpScope = null;
+                        if (NodeTests.IsTypeParameterDeclaration(tpDeclaration))
+                        {
+                            tpScope = tpDeclaration.Parent; // Type parameter is a regular type parameter, e.g. foo<T>
+                        }
+                        else if (tp.AsTypeParameter().isThisType)
+                        {
+                            tpScope = tpDeclaration; // Type parameter is the this type, and its declaration is the class declaration.
+                        }
+                        if (tpScope != null)
+                        {
+                            return CoreUtil.Some(firstIdentifierSymbol.Declarations, d => AstUtilities.IsNodeDescendantOf(d, tpScope)) ||
+                                CoreUtil.Some(node.TypeArguments(), ContainsReference);
+                        }
+                    }
+                    return true;
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.MethodSignature:
+                    var returnType = node.Type();
+                    return (returnType == null && node.Body() != null) ||
+                        CoreUtil.Some(node.TypeParameters(), ContainsReference) ||
+                        CoreUtil.Some(node.Parameters(), ContainsReference) ||
+                        (returnType != null && ContainsReference(returnType));
+            }
+            return node.ForEachChild(ContainsReference);
+        }
+        // If the type parameter doesn't have exactly one declaration, if there are intervening statement blocks
+        // between the node and the type parameter declaration, if the node contains actual references to the
+        // type parameter, or if the node contains type queries that we can't prove couldn't contain references to the type parameter,
+        // we consider the type parameter possibly referenced.
+        if (tp.symbol != null && tp.symbol.Declarations.Len() == 1)
+        {
+            var container = tp.symbol.Declarations![0].Parent;
+            for (var n = node; n != container; n = n!.Parent)
+            {
+                if (n == null || NodeTests.IsBlock(n) || (NodeTests.IsConditionalTypeNode(n) && ContainsReference(n.AsConditionalTypeNode().ExtendsType!)))
+                {
+                    return true;
+                }
+            }
+            return ContainsReference(node);
+        }
+        return true;
+    }
 
     // checker.go:20926-20955 — deferred: needs getKnownKeysOfTupleType / mapTypeEx (not yet ported).
     // Referenced by #18 (getIndexType/keyof); stub keeps the dependent cluster compiling.

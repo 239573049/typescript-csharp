@@ -1680,6 +1680,10 @@ public partial class Checker
         return defaultType;
     }
 
+    // checker.go:31835
+    internal IndexInfo[]? GetApplicableIndexInfos(Type t, Type keyType) =>
+        CoreUtil.Filter(GetIndexInfosOfType(t), info => IsApplicableIndexType(keyType, info.keyType));
+
     // checker.go:18913-18915
     internal IndexInfo? GetApplicableIndexInfo(Type t, Type keyType) => FindApplicableIndexInfo(GetIndexInfosOfType(t), keyType);
 

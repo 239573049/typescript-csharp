@@ -16,7 +16,9 @@ public partial class Checker
 
     // Free functions used by Types.cs / TypeMapper.cs / Keys.cs.
     // isTupleType (checker.go:23397) implemented in Checker.TypeNodes.cs (#15).
-    internal static bool IsThisTypeParameter(Type type) => throw new NotImplementedException("isThisTypeParameter");
+    // utilities.go:990
+    internal static bool IsThisTypeParameter(Type type) =>
+        (type.flags & TypeFlags.TypeParameter) != 0 && type.AsTypeParameter().isThisType;
 
     // clearCachedInferences (inference.go:1609) implemented in Checker.Inference.cs (inference wave).
 

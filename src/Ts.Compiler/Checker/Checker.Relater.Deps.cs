@@ -45,7 +45,45 @@ public partial class Checker
     internal bool TypeHasCallOrConstructSignatures(Type type) => throw new NotImplementedException("typeHasCallOrConstructSignatures");
     // GetBaseTypeOfEnumLikeType is now REAL in Checker.Widening.cs (checker.go:25378).
     internal bool IsFunctionObjectType(Type type) => throw new NotImplementedException("isFunctionObjectType");
-    internal Ternary CompareProperties(Symbol sourceProp, Symbol targetProp, Func<Type, Type, Ternary> compareTypes) => throw new NotImplementedException("compareProperties");
+    // compareProperties (checker.go:27538) — two members are identical when they are public
+    // properties with identical names, optionality, and types, or private/protected properties
+    // originating in the same declaration and having identical types.
+    internal Ternary CompareProperties(Symbol sourceProp, Symbol targetProp, Func<Type, Type, Ternary> compareTypes)
+    {
+        if (sourceProp == targetProp)
+        {
+            return Ternary.True;
+        }
+        var sourcePropAccessibility = GetDeclarationModifierFlagsFromSymbol(sourceProp) & ModifierFlags.NonPublicAccessibilityModifier;
+        var targetPropAccessibility = GetDeclarationModifierFlagsFromSymbol(targetProp) & ModifierFlags.NonPublicAccessibilityModifier;
+        if (sourcePropAccessibility != targetPropAccessibility)
+        {
+            return Ternary.False;
+        }
+        if (sourcePropAccessibility != ModifierFlags.None)
+        {
+            if (GetTargetSymbol(sourceProp) != GetTargetSymbol(targetProp))
+            {
+                return Ternary.False;
+            }
+        }
+        else
+        {
+            if ((sourceProp.Flags & SymbolFlags.Optional) != (targetProp.Flags & SymbolFlags.Optional))
+            {
+                return Ternary.False;
+            }
+        }
+        if (IsReadonlySymbol(sourceProp) != IsReadonlySymbol(targetProp))
+        {
+            return Ternary.False;
+        }
+        return compareTypes(GetNonMissingTypeOfSymbol(sourceProp), GetNonMissingTypeOfSymbol(targetProp));
+    }
+
+    // isPropertyIdenticalTo (checker.go)
+    internal bool IsPropertyIdenticalTo(Symbol sourceProp, Symbol targetProp) =>
+        CompareProperties(sourceProp, targetProp, CompareTypesIdentical) != Ternary.False;
     // isNonGenericObjectType / getBaseTypeOfLiteralType / isReadonlySymbol stubbed in Checker.Inference.Deps.cs.
     // getSimplifiedTypeOrConstraint is real in Checker.Constraints.cs.
 

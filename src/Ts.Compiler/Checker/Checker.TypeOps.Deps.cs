@@ -18,7 +18,7 @@ public partial class Checker
     // ---- misc type predicates (checker.go, later waves) ----
     internal bool IsPrimitiveOrObjectOrEmptyType(Type t) => throw new NotImplementedException("isPrimitiveOrObjectOrEmptyType");
     internal bool ContainsMissingType(Type t) => throw new NotImplementedException("containsMissingType");
-    internal bool IsStringIndexSignatureOnlyType(Type t) => throw new NotImplementedException("isStringIndexSignatureOnlyType");
+    // isStringIndexSignatureOnlyType is a memoized Func<Type,bool> field (Checker.cs) bound to IsStringIndexSignatureOnlyTypeWorker; callers invoke the field.
     internal static bool IsObjectOrArrayLiteralType(Type t) => throw new NotImplementedException("isObjectOrArrayLiteralType");
 
     // forEachMappedTypePropertyKeyTypeAndIndexSignatureKeyType / getLowerBoundOfKeyType provided by
