@@ -58,7 +58,7 @@ public partial class Checker
     internal Type GetApparentMappedTypeKeys(Type nameType, Type targetType) => throw new NotImplementedException("getApparentMappedTypeKeys");
 
     // ---- facts (flow.go) ----
-    internal TypeFacts GetTypeFacts(Type type, TypeFacts facts) => throw new NotImplementedException("getTypeFacts");
+    // getTypeFacts 30731: real body landed in Checker.TypeFacts.cs.
 
     // ---- suggestions / jsx (services / jsx waves) ----
     // getSuggestedSymbolForNonexistentJSXAttribute: real body landed in Checker.Jsx.cs (jsx wave).

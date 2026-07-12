@@ -1871,8 +1871,8 @@ internal sealed class Relater
     // relater.go:4263-4325
     internal Ternary PropertyRelatedTo(Type source, Type target, Symbol sourceProp, Symbol targetProp, Func<Symbol, Type> getTypeOfSourceProperty, bool reportErrors, IntersectionState intersectionState, bool skipOptional)
     {
-        var sourcePropFlags = c.GetDeclarationModifierFlagsFromSymbol(sourceProp);
-        var targetPropFlags = c.GetDeclarationModifierFlagsFromSymbol(targetProp);
+        var sourcePropFlags = Checker.GetDeclarationModifierFlagsFromSymbol(sourceProp);
+        var targetPropFlags = Checker.GetDeclarationModifierFlagsFromSymbol(targetProp);
         if ((sourcePropFlags & ModifierFlags.Private) != 0 || (targetPropFlags & ModifierFlags.Private) != 0)
         {
             if (sourceProp.ValueDeclaration != targetProp.ValueDeclaration)

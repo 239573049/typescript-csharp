@@ -1102,7 +1102,8 @@ public partial class Checker
     private static bool IsShorthandAmbientModuleSymbol(Symbol moduleSymbol) => throw new NotImplementedException("isShorthandAmbientModuleSymbol");
 
 
-    private static bool IsTypeAny(Type? t) => throw new NotImplementedException("IsTypeAny");
+    // utilities.go:264-266
+    private static bool IsTypeAny(Type? t) => t != null && (t.flags & TypeFlags.Any) != 0;
 
     // utilities.go:276-278
     private static bool IsOptionalDeclaration(Node declaration) => AstUtilities.HasQuestionToken(declaration);

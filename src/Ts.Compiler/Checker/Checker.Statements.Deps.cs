@@ -123,23 +123,23 @@ public partial class Checker
     // CheckIteratedTypeOrElementType already stubbed in Checker.MembersSignatures.Deps.cs (iteration family, deferred).
 
     // ---- containers / global types (construction / global resolution) ----
-    internal Node? GetContainingFunctionOrClassStaticBlock(Node node) => throw new NotImplementedException("getContainingFunctionOrClassStaticBlock");
+    // utilities.go:842
+    internal static Node? GetContainingFunctionOrClassStaticBlock(Node node) => AstUtilities.FindAncestor(node.Parent, AstUtilities.IsFunctionLikeOrClassStaticBlockDeclaration);
     internal Type GetGlobalDisposableType() => throw new NotImplementedException("getGlobalDisposableType");
     internal Type GetGlobalAsyncDisposableType() => throw new NotImplementedException("getGlobalAsyncDisposableType");
     internal void CheckExternalEmitHelpers(Node location, ExternalEmitHelpers helpers) => throw new NotImplementedException("checkExternalEmitHelpers");
 
     // ---- non-null / property helpers (members/type ops) ----
-    internal Type CheckNonNullNonVoidType(Type t, Node node) => throw new NotImplementedException("checkNonNullNonVoidType");
-    internal void MarkPropertyAsReferenced(Symbol prop, Node? nodeForCheckWriteOnly, bool isSelfTypeAccess) => throw new NotImplementedException("markPropertyAsReferenced");
-    internal bool CheckPropertyAccessibility(Node node, bool isSuper, bool writing, Type type, Symbol prop) => throw new NotImplementedException("checkPropertyAccessibility");
+    // checkNonNullNonVoidType 7414: real body landed in Checker.PropertyAccess.cs (non-null cluster).
+    // markPropertyAsReferenced 27572 / checkPropertyAccessibility 11722: real bodies landed in Checker.PropertyAccess.cs.
 
     // ---- contextual / implicit-any / signatures (#21 / signatures) ----
     // getContextualCallSignature (10281): real body landed in Checker.ContextualType.cs.
 
     // ---- function/constructor symbol checks (owned by later statements pass) ----
-    internal void CheckFunctionOrConstructorSymbol(Symbol symbol) => throw new NotImplementedException("checkFunctionOrConstructorSymbol");
-    internal void CheckAllCodePathsInNonVoidFunctionReturnOrThrow(Node fn, Type? returnType) => throw new NotImplementedException("checkAllCodePathsInNonVoidFunctionReturnOrThrow");
-    internal bool IsUnwrappedReturnTypeUndefinedVoidOrAny(Node fn, Type returnType) => throw new NotImplementedException("isUnwrappedReturnTypeUndefinedVoidOrAny");
+    // checkFunctionOrConstructorSymbol 3447: real body landed in Checker.FunctionOrConstructorSymbol.cs.
+    // checkAllCodePathsInNonVoidFunctionReturnOrThrow 3714 / isUnwrappedReturnTypeUndefinedVoidOrAny 3766:
+    // real bodies landed in Checker.FunctionOrConstructorSymbol.cs.
 
     // ---- deferred node worker (deferred-check cluster) ----
     internal void CheckDeferredNodeWorker(Node node) => throw new NotImplementedException("checkDeferredNodeWorker");

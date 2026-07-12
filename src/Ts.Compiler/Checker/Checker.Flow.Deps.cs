@@ -18,7 +18,7 @@ public partial class Checker
     // are stubbed by other Members/Signatures/Stubs dedup surfaces (already present).
     // getContextFreeTypeOfExpression (checker.go:7519) — real body landed in Checker.Expressions.cs (#7 wave).
     internal Type GetContextFreeTypeOfExpression(Node node) => GetContextFreeTypeOfExpressionCore(node);
-    internal Type CheckNonNullType(Type t, Node node) => throw new NotImplementedException("checkNonNullType");
+    // checkNonNullType 7386: real body landed in Checker.PropertyAccess.cs (non-null cluster).
     internal Type GetOptionalExpressionType(Type exprType, Node expression) => throw new NotImplementedException("getOptionalExpressionType");
     internal Type CheckSuperExpression(Node node) => throw new NotImplementedException("checkSuperExpression");
     // getResolvedSignature (8383): real body landed in Checker.CallResolution.cs (candidatesOutArray

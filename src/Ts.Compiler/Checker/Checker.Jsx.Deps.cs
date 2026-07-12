@@ -77,8 +77,7 @@ public partial class Checker
     // resolveCall (8819), resolveErrorCall (9899), resolveUntypedCall (9878), isUntypedFunctionCall
     // (9909): real bodies landed in Checker.CallResolution.cs / Checker.CallResolution.Applicability.cs.
 
-    // checker.go:8340
-    internal void CheckDeprecatedSignature(Signature sig, Node node) => throw new NotImplementedException("checkDeprecatedSignature");
+    // checkDeprecatedSignature 8340: real body landed in Checker.Deprecation.cs.
 
     // ---- external module resolution (checker.go:15067) ----
 

@@ -1219,6 +1219,17 @@ public partial class Checker
         return null;
     }
 
+    // checker.go:14326
+    internal Symbol? GetSymbolOfNode(Node node)
+    {
+        var data = node.DeclarationData();
+        if (data != null && data.Symbol != null)
+        {
+            return GetMergedSymbol(GetLateBoundSymbol(data.Symbol));
+        }
+        return null;
+    }
+
     // checker.go:14334
     internal Symbol GetLateBoundSymbol(Symbol symbol)
     {
@@ -1302,7 +1313,7 @@ public partial class Checker
         return symbol.ValueDeclaration != null && IsDeprecatedDeclaration(symbol.ValueDeclaration) || symbol.Declarations.Len() != 0 && CoreUtil.Every(symbol.Declarations, IsDeprecatedDeclaration);
     }
 
-    internal void AddDeprecatedSuggestion(Node? location, Node[] declarations, string deprecatedEntity) => throw new NotImplementedException("addDeprecatedSuggestion");
+    // addDeprecatedSuggestion 13897: real body landed in Checker.Deprecation.cs.
 
     // getCannotFindNameDiagnosticForName (13839) / getResolvedSymbolOrNil (13827): real bodies landed
     // in Checker.OperatorExpressions.cs (#8 wave).
@@ -1350,9 +1361,29 @@ public partial class Checker
         return null;
     }
 
-    private bool IsTypeUsableAsPropertyName(Type type) => throw new NotImplementedException("isTypeUsableAsPropertyName");
+    // utilities.go:856
+    private static bool IsTypeUsableAsPropertyName(Type t)
+    {
+        return (t.flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0;
+    }
 
-    private static string GetPropertyNameFromType(Type type) => throw new NotImplementedException("getPropertyNameFromType");
+    // utilities.go:863 — Gets the symbolic name for a member from its type.
+    private static string GetPropertyNameFromType(Type t)
+    {
+        if ((t.flags & TypeFlags.StringLiteral) != 0)
+        {
+            return GetStringLiteralValue(t);
+        }
+        if ((t.flags & TypeFlags.NumberLiteral) != 0)
+        {
+            return GetNumberLiteralValue(t).ToString();
+        }
+        if ((t.flags & TypeFlags.UniqueESSymbol) != 0)
+        {
+            return t.AsUniqueESSymbolType().name;
+        }
+        throw new global::System.InvalidOperationException("Unhandled case in getPropertyNameFromType");
+    }
 
     // checker.go:14213
     private static SymbolFlags GetExcludedSymbolFlags(SymbolFlags flags)

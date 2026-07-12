@@ -155,8 +155,7 @@ public partial class Checker
 
     // isCommonJSRequire (8320): stub already declared in Checker.SymbolResolution.cs — not redeclared.
 
-    // checker.go:8487 — null/undefined-invocation guard with custom reporter (flow/null cluster).
-    private Type CheckNonNullTypeWithReporter(Type type, Node node, global::System.Action<Node, TypeFacts> reportError) => throw new NotImplementedException("checkNonNullTypeWithReporter");
+    // checkNonNullTypeWithReporter 7390: real body landed in Checker.PropertyAccess.cs (non-null cluster).
 
     // checker.go:8435/8438/8442 — remaining resolveSignature dispatch targets (tagged-template / decorator
     // / instanceof waves). resolveJsxOpeningLikeElement is REAL (jsx wave).

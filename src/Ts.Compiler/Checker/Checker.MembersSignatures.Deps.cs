@@ -75,15 +75,16 @@ public partial class Checker
         }
         return null;
     }
-    internal Symbol? GetSymbolOfNode(Node node) => throw new NotImplementedException("getSymbolOfNode");
+    // getSymbolOfNode 14326: real body landed in Checker.SymbolResolution.cs.
     // symbolIsValueEx / createSymbolWithType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal bool IsNamedMember(Symbol symbol, string id) => throw new NotImplementedException("isNamedMember");
     internal Symbol GetSpreadSymbol(Symbol prop, bool isReadonly) => throw new NotImplementedException("getSpreadSymbol");
-    internal ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => throw new NotImplementedException("getDeclarationModifierFlagsFromSymbol");
+    // utilities.go:690 — delegates to the Ex form landed in Checker.PropertyAccess.cs.
+    internal static ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => GetDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/);
     // getFlowTypeInConstructor: owned by flow.go — real body in Checker.Flow.cs.
     internal Type? GetTypeOfPropertyInBaseClass(Symbol symbol) => throw new NotImplementedException("getTypeOfPropertyInBaseClass");
     // getTypeOfInitializer: owned by flow.go — real body in Checker.Flow.cs.
-    internal Node? GetDeclaringConstructor(Symbol symbol) => throw new NotImplementedException("getDeclaringConstructor");
+    // getDeclaringConstructor 27211: real body landed in Checker.PropertyAccess.cs.
     internal bool IsSpreadableProperty(Symbol prop) => throw new NotImplementedException("isSpreadableProperty");
     // isSymbolAssigned: owned by flow.go — real body in Checker.Flow.cs.
     internal bool IsKnownSymbol(Symbol symbol) => throw new NotImplementedException("IsKnownSymbol");
@@ -130,7 +131,7 @@ public partial class Checker
     internal Type GetNonUndefinedType(Type t) => throw new NotImplementedException("getNonUndefinedType");
 
     // ---- facts / assignability (flow, relater) ----
-    internal bool HasTypeFacts(Type t, TypeFacts facts) => throw new NotImplementedException("hasTypeFacts");
+    // hasTypeFacts 30735: real body landed in Checker.TypeFacts.cs.
     internal Type GetTypeWithFacts(Type t, TypeFacts include) => throw new NotImplementedException("getTypeWithFacts");
     internal Type GetAdjustedTypeWithFacts(Type t, TypeFacts facts) => throw new NotImplementedException("getAdjustedTypeWithFacts");
     // isTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
@@ -178,7 +179,8 @@ public partial class Checker
     // AstUtilities.GetThisParameter directly.
     internal static Node? GetSetAccessorValueParameter(Node accessor) => throw new NotImplementedException("GetSetAccessorValueParameter");
     internal static string GetPropertyNameForPropertyNameNode(Node name) => throw new NotImplementedException("ast.GetPropertyNameForPropertyNameNode");
-    internal static bool IsImportCall(Node node) => throw new NotImplementedException("ast.IsImportCall");
+    // ast/utilities.go:2074 — delegates to the ast utility now that it has landed.
+    internal static bool IsImportCall(Node node) => AstUtilities.IsImportCall(node);
     internal static bool IsLateBoundName(string name) => throw new NotImplementedException("isLateBoundName");
     internal bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions options) => throw new NotImplementedException("ast.IsCheckJSEnabledForFile");
     // ForEachReturnStatement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1138).

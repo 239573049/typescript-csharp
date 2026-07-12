@@ -86,7 +86,7 @@ public partial class Checker
     // checker.go:6938
     internal DeclarationSpaces GetDeclarationSpaces(Node node) => throw new NotImplementedException("getDeclarationSpaces");
     // checker.go:3687
-    internal ModifierFlags GetEffectiveDeclarationFlags(Node n, ModifierFlags flagsToCheck) => throw new NotImplementedException("getEffectiveDeclarationFlags");
+    // getEffectiveDeclarationFlags 3687: real body landed in Checker.FunctionOrConstructorSymbol.cs.
 
     // ---- private-identifier / accessor / async-return-type checks (deferred) ----
     // checker.go:10503
@@ -177,7 +177,7 @@ public partial class Checker
     // ast/utilities.go:4054
     internal static bool IsImportOrImportEqualsDeclaration(Node node) => throw new NotImplementedException("ast.IsImportOrImportEqualsDeclaration");
     // ast/utilities.go:4113
-    internal static bool HasModifier(Node node, ModifierFlags flags) => throw new NotImplementedException("ast.HasModifier");
+    internal static bool HasModifier(Node node, ModifierFlags flags) => (node.ModifierFlags() & flags) != 0;
     // ast/utilities.go:1705 — delegates to the ast utility.
     internal static Node[] GetImplementsHeritageClauseElements(Node node) => AstUtilities.GetImplementsHeritageClauseElements(node);
     // ast/utilities.go:3548

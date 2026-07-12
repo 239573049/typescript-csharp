@@ -115,6 +115,51 @@ public static partial class AstUtilities
         throw new InvalidOperationException("Unhandled case in GetElementOrPropertyAccessName");
     }
 
+    // Go: utilities.go:3718-3720
+    public static bool IsCallOrNewExpression(Node node)
+    {
+        return IsCallExpression(node) || IsNewExpression(node);
+    }
+
+    // Go: utilities.go:3703-3716
+    public static Node? GetInvokedExpression(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.TaggedTemplateExpression:
+                return node.AsTaggedTemplateExpression().Tag;
+            case SyntaxKind.JsxOpeningElement:
+            case SyntaxKind.JsxSelfClosingElement:
+                return node.TagName();
+            case SyntaxKind.BinaryExpression:
+                return node.AsBinaryExpression().Right;
+            case SyntaxKind.JsxOpeningFragment:
+                return node;
+            default:
+                return node.Expression();
+        }
+    }
+
+    // Go: utilities.go:1365-1372
+    public static bool IsPrototypeAccess(Node node)
+    {
+        if (IsBindableStaticAccessExpression(node, false /*excludeThisKeyword*/))
+        {
+            var name = GetElementOrPropertyAccessName(node);
+            if (name != null)
+            {
+                return name.Text() == "prototype";
+            }
+        }
+        return false;
+    }
+
+    // Go: utilities.go:2870-2872
+    public static bool IsPlainJSFile(SourceFile? file, Tristate checkJs)
+    {
+        return file != null && (file.ScriptKind == ScriptKind.JS || file.ScriptKind == ScriptKind.Jsx) && file.CheckJsDirective == null && checkJs.IsUnknown();
+    }
+
     // Go: utilities.go:1428-1440
     public static Node? GetNameOfDeclaration(Node? declaration)
     {

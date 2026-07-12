@@ -23,14 +23,6 @@ namespace Ts.Checker;
 
 public partial class Checker
 {
-    // checker.go:11435 — whether a property access is the callee of a call/new (peels parentheses).
-    // Reached only on the widened-apparent-type branch of markPropertyAliasReferenced.
-    internal bool IsMethodAccessForCall(Node node) => throw new NotImplementedException("isMethodAccessForCall");
-
-    // checker.go:11443 — lexical lookup of a `#private` identifier declaration up the class chain
-    // (needs binder.GetSymbolNameForPrivateIdentifier + getContainingClassExcludingClassDecorators).
-    internal Symbol? LookupSymbolForPrivateIdentifierDeclaration(string propName, Node location) => throw new NotImplementedException("lookupSymbolForPrivateIdentifierDeclaration");
-
-    // checker.go:11459 — resolves a `#private` property on a type from its lexically scoped symbol.
-    internal Symbol? GetPrivateIdentifierPropertyOfType(Type leftType, Symbol lexicallyScopedIdentifier) => throw new NotImplementedException("getPrivateIdentifierPropertyOfType");
+    // checker.go:11435 isMethodAccessForCall / 11443 lookupSymbolForPrivateIdentifierDeclaration /
+    // 11459 getPrivateIdentifierPropertyOfType: real bodies landed in Checker.PropertyAccess.cs.
 }
