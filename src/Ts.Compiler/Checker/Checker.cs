@@ -85,7 +85,7 @@ internal sealed class IterationTypesResolver
     internal Func<Type> getGlobalIteratorObjectType = null!;
     internal Func<Type> getGlobalGeneratorType = null!;
     internal Func<Type[]> getGlobalBuiltinIteratorTypes = null!;
-    internal Func<Type, Node?, Type> resolveIterationType = null!;
+    internal Func<Type, Node?, Type?> resolveIterationType = null!; // checker.go:530 — nullable per Go (*Type)
     internal global::Ts.Diagnostics.Message mustHaveANextMethodDiagnostic = null!;
     internal global::Ts.Diagnostics.Message mustBeAMethodDiagnostic = null!;
     internal global::Ts.Diagnostics.Message mustHaveAValueDiagnostic = null!;

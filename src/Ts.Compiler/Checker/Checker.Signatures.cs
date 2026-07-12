@@ -789,8 +789,8 @@ public partial class Checker
     {
         var resolver = CoreUtil.IfElse(isAsyncGenerator, asyncIterationTypesResolver!, syncIterationTypesResolver!);
         var globalGeneratorType = resolver.getGlobalGeneratorType();
-        yieldType = CoreUtil.OrElse(resolver.resolveIterationType(yieldType, null /*errorNode*/), unknownType!);
-        returnType = CoreUtil.OrElse(resolver.resolveIterationType(returnType, null /*errorNode*/), unknownType!);
+        yieldType = CoreUtil.OrElse(resolver.resolveIterationType(yieldType, null /*errorNode*/), unknownType!)!;
+        returnType = CoreUtil.OrElse(resolver.resolveIterationType(returnType, null /*errorNode*/), unknownType!)!;
         if (globalGeneratorType == emptyGenericType)
         {
             // Fall back to the global IterableIterator type.

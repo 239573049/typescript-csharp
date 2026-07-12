@@ -56,8 +56,8 @@ public partial class Checker
 
     // ---- signatures / first-parameter fallback (checker.go signature wave) ----
 
-    // checker.go:28762
-    internal Type GetTypeOfFirstParameterOfSignatureWithFallback(Signature signature, Type fallbackType) => throw new NotImplementedException("getTypeOfFirstParameterOfSignatureWithFallback");
+    // checker.go:28762 — getTypeOfFirstParameterOfSignatureWithFallback: real body landed in
+    // Checker.AwaitedTypes.cs (#22 awaited-types wave).
 
     // checker.go:21017
     internal Signature[] GetUnionSignatures(Signature[][] signatureLists) => throw new NotImplementedException("getUnionSignatures");

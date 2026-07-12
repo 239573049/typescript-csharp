@@ -61,10 +61,10 @@ public sealed class CallResolutionTests
     // globals declared, tsgo emits exactly one file diagnostic:
     //   TS2349 This expression is not callable. / Type 'Number' has no call signatures.
     // Chain progress: checkInheritedPropertiesAreIdentical ✓ (compareProperties/isPropertyIdenticalTo
-    // ported) → the probe now reaches invocationErrorDetails, which consults getAwaitedType (the
-    // "maybe missing await" hint) — the #22 awaited-types subsystem (getAwaitedTypeNoAliasEx/
-    // getPromisedTypeOfPromiseEx/createAwaitedTypeIfNeeded). Un-skip when that wave lands.
-    [Fact(Skip = "TS2349 reporting reaches invocationErrorDetails → blocked on getAwaitedType (#22 awaited-types wave)")]
+    // ported) → invocationErrorDetails ✓ — getAwaitedType and the full awaited chain landed in
+    // Checker.AwaitedTypes.cs (#22 awaited-types wave), and NewDiagnosticChainForNode is real, so the
+    // TS2349 head + TS2757 chain detail are produced end-to-end.
+    [Fact]
     public void CallResolutionTrunk_RunsEndToEnd_AndRoutesThroughResolveCall()
     {
         // Exercise the call-resolution trunk end-to-end over a real bound program: `n()` where `n` is a

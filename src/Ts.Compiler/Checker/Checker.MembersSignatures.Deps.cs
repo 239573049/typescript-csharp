@@ -184,17 +184,15 @@ public partial class Checker
     internal Type? InstantiateContextualType(Type? contextualType, Node node, ContextFlags contextFlags) => contextualType;
 
     // ---- awaited / iteration (#22) ----
-    internal Type UnwrapAwaitedType(Type t) => throw new NotImplementedException("unwrapAwaitedType");
-    internal Type CheckAwaitedType(Type t, bool withAlias, Node? errorNode, global::Ts.Diagnostics.Message diagnosticMessage) => throw new NotImplementedException("checkAwaitedType");
-    internal Type? GetAwaitedTypeNoAlias(Type t) => throw new NotImplementedException("getAwaitedTypeNoAlias");
-    internal Type? GetPromisedTypeOfPromise(Type t) => throw new NotImplementedException("getPromisedTypeOfPromise");
+    // unwrapAwaitedType / checkAwaitedType / getAwaitedTypeNoAlias / getPromisedTypeOfPromise: real
+    // bodies landed in Checker.AwaitedTypes.cs (#22 awaited-types wave).
     internal Type? GetContextualIterationType(IterationTypeKind kind, Node functionDecl) => throw new NotImplementedException("getContextualIterationType");
     // getIterationTypeOfGeneratorFunctionReturnType (6195) / getIterationTypesOfIterable (6244):
     // real bodies landed in Checker.IterationTypes.cs (iteration wave).
     // isResolvingReturnTypeOfSignature owned by the relater wave (Checker.Relater.cs).
 
     // ---- signatures / parameters (helpers in adjacent waves) ----
-    internal Type GetTypeOfFirstParameterOfSignature(Signature signature) => throw new NotImplementedException("getTypeOfFirstParameterOfSignature");
+    // getTypeOfFirstParameterOfSignature: real body landed in Checker.AwaitedTypes.cs (#22).
     // getTypeAtPosition / getRestTypeAtPosition / newTypePredicate owned by the relater wave.
     // GetDefaultConstructSignatures is now REAL in Checker.Signatures.cs (checker.go:20762).
 
@@ -206,7 +204,16 @@ public partial class Checker
     }
     // TypeToStringEx: real implementation in Checker.TypeToString.cs (phase-5 type-display wave).
     // elaborateNeverIntersection implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
-    internal Diagnostic? NewDiagnosticChainForNode(Diagnostic? details, Node? node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("NewDiagnosticChainForNode");
+    // utilities.go:32-37 — PORT-NOTE: Go's checker-package free function NewDiagnosticChainForNode is
+    // hosted on Checker (same as NewDiagnosticForNode); it never returns nil, so non-nullable return.
+    internal Diagnostic NewDiagnosticChainForNode(Diagnostic? chain, Node? node, global::Ts.Diagnostics.Message message, params object?[] args)
+    {
+        if (chain != null)
+        {
+            return Diagnostic.NewDiagnosticChain(chain, message, args);
+        }
+        return NewDiagnosticForNode(node, message, args);
+    }
 
     // ---- ast helpers with no C# home yet ----
     // GetClassLikeDeclarationOfSymbol is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:2926).

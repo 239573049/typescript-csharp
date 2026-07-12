@@ -170,8 +170,7 @@ public partial class Checker
     // checker.go:10289 — intersected contextual call signatures (implicit-any combine cluster).
     private Signature? GetIntersectedSignatures(Signature[] signatures) => throw new NotImplementedException("getIntersectedSignatures");
 
-    // checker.go:31010 — awaited type (single-arg; awaited cluster).
-    private Type? GetAwaitedType(Type t) => throw new NotImplementedException("getAwaitedType");
+    // checker.go:31010 — getAwaitedType: real body landed in Checker.AwaitedTypes.cs (#22).
 
     // ---- global-type resolvers reached from call/contextual paths (global-type bootstrap cluster) ----
     private Type GetGlobalImportCallOptionsType() => throw new NotImplementedException("getGlobalImportCallOptionsType");

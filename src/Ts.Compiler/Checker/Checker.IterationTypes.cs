@@ -622,7 +622,7 @@ public partial class Checker
             else if (methodName == "return")
             {
                 // The value of `return(value)` *is* awaited by async generators
-                var resolvedMethodParameterType = CoreUtil.OrElse(resolver.resolveIterationType(methodParameterType, errorNode), anyType!);
+                var resolvedMethodParameterType = CoreUtil.OrElse(resolver.resolveIterationType(methodParameterType, errorNode), anyType!)!;
                 (returnTypes ??= new List<Type>()).Add(resolvedMethodParameterType);
             }
         }
@@ -637,7 +637,7 @@ public partial class Checker
         {
             methodReturnType = neverType!;
         }
-        var resolvedMethodReturnType = CoreUtil.OrElse(resolver.resolveIterationType(methodReturnType, errorNode), anyType!);
+        var resolvedMethodReturnType = CoreUtil.OrElse(resolver.resolveIterationType(methodReturnType, errorNode), anyType!)!;
         var iterationTypes = GetIterationTypesOfIteratorResult(resolvedMethodReturnType);
         if (!iterationTypes.HasTypes())
         {
@@ -736,11 +736,9 @@ public partial class Checker
         {
             getGlobalAwaitedSymbol();
         }
-        // PORT-NOTE: Go passes nil for the diagnosticMessage; the GetAwaitedTypeEx stub (owned by the
-        // awaited wave) declares it non-nullable, so we pass null! to preserve Go's nil intent.
         return new IterationTypes(
-            CoreUtil.OrElse(GetAwaitedTypeEx(iterationTypes.YieldType!, errorNode, null!), anyType!),
-            CoreUtil.OrElse(GetAwaitedTypeEx(iterationTypes.ReturnType!, errorNode, null!), anyType!),
+            CoreUtil.OrElse(GetAwaitedTypeEx(iterationTypes.YieldType!, errorNode, null /*diagnosticMessage*/), anyType!),
+            CoreUtil.OrElse(GetAwaitedTypeEx(iterationTypes.ReturnType!, errorNode, null /*diagnosticMessage*/), anyType!),
             iterationTypes.NextType);
     }
 

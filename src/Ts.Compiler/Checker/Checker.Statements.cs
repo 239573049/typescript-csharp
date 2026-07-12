@@ -476,13 +476,50 @@ public partial class Checker
             case SyntaxKind.JsxOpeningElement:
                 // These node kinds are deferred checked when overload resolution fails. To save on work,
                 // we ensure the arguments are checked just once in a deferred way.
-                CheckDeferredNodeWorker(node);
+                // checker.go:2499-2502 — direct translation: resolveUntypedCall.
+                ResolveUntypedCall(node);
+                break;
+            case SyntaxKind.TypeParameter:
+                // checker.go:2510-2511
+                CheckTypeParameterDeferred(node);
                 break;
             default:
+                // Remaining kinds (function/arrow/method deferred bodies, accessors, class expressions,
+                // JSX, assertions, void/instanceof operands) still route to the deferred-check cluster's
+                // worker stub (checker.go:2503-2524).
                 CheckDeferredNodeWorker(node);
                 break;
         }
         currentNode = saveCurrentNode;
+    }
+
+    // checker.go:2615 — variance-annotation (in/out) check for a deferred type parameter. A type
+    // parameter without in/out modifiers is a no-op here.
+    internal void CheckTypeParameterDeferred(Node node)
+    {
+        if (NodeTests.IsInterfaceDeclaration(node.Parent!) || AstUtilities.IsClassLike(node.Parent!) || IsTypeOrJSTypeAliasDeclaration(node.Parent!))
+        {
+            var typeParameter = GetDeclaredTypeOfTypeParameter(GetSymbolOfDeclaration(node)!);
+            var modifiers = GetTypeParameterModifiers(typeParameter) & (ModifierFlags.In | ModifierFlags.Out);
+            if (modifiers != 0)
+            {
+                var symbol = GetSymbolOfDeclaration(node.Parent!)!;
+                if (IsTypeOrJSTypeAliasDeclaration(node.Parent!) && (GetDeclaredTypeOfSymbol(symbol).objectFlags & (ObjectFlags.Anonymous | ObjectFlags.Mapped)) == 0)
+                {
+                    Error(node, Diag.Variance_annotations_are_only_supported_in_type_aliases_for_object_function_constructor_and_mapped_types);
+                }
+                else if (modifiers == ModifierFlags.In || modifiers == ModifierFlags.Out)
+                {
+                    // !!! tracing: defer tr.Push(...) omitted at skeleton level.
+                    var source = CreateMarkerType(symbol, typeParameter, CoreUtil.IfElse(modifiers == ModifierFlags.Out, markerSubTypeForCheck!, markerSuperTypeForCheck!));
+                    var target = CreateMarkerType(symbol, typeParameter, CoreUtil.IfElse(modifiers == ModifierFlags.Out, markerSuperTypeForCheck!, markerSubTypeForCheck!));
+                    var saveVarianceTypeParameter = typeParameter;
+                    varianceTypeParameter = typeParameter;
+                    CheckTypeAssignableTo(source, target, node, Diag.Type_0_is_not_assignable_to_type_1_as_implied_by_variance_annotation);
+                    varianceTypeParameter = saveVarianceTypeParameter;
+                }
+            }
+        }
     }
 
     // ===== Statements =====

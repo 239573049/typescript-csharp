@@ -291,6 +291,5 @@ public partial class Checker
     // getContextualType and family: real bodies landed in Checker.ContextualType.cs (#21 wave).
 
     // ===== #22 awaited types =====
-
-    internal Type GetAwaitedTypeEx(Type type, Node? errorNode, global::Ts.Diagnostics.Message diagnosticMessage) => throw new NotImplementedException("getAwaitedTypeEx");
+    // getAwaitedTypeEx and the full awaited chain: real bodies landed in Checker.AwaitedTypes.cs.
 }

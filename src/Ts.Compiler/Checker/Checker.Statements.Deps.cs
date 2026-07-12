@@ -133,7 +133,7 @@ public partial class Checker
 
     // ---- type comparison / awaited / iteration (relater/#22/iteration) ----
     // IsTypeEqualityComparableTo owned by the operator-expressions cluster.
-    internal Type? GetAwaitedTypeOfPromise(Type t) => throw new NotImplementedException("getAwaitedTypeOfPromise");
+    // getAwaitedTypeOfPromise: real body landed in Checker.AwaitedTypes.cs (#22).
     // CheckIteratedTypeOrElementType already stubbed in Checker.MembersSignatures.Deps.cs (iteration family, deferred).
 
     // ---- containers / global types (construction / global resolution) ----
