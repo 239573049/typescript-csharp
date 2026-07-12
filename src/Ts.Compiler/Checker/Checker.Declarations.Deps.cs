@@ -178,8 +178,8 @@ public partial class Checker
     internal static bool IsImportOrImportEqualsDeclaration(Node node) => throw new NotImplementedException("ast.IsImportOrImportEqualsDeclaration");
     // ast/utilities.go:4113
     internal static bool HasModifier(Node node, ModifierFlags flags) => throw new NotImplementedException("ast.HasModifier");
-    // ast/utilities.go:1705
-    internal static Node[] GetImplementsHeritageClauseElements(Node node) => throw new NotImplementedException("ast.GetImplementsHeritageClauseElements");
+    // ast/utilities.go:1705 — delegates to the ast utility.
+    internal static Node[] GetImplementsHeritageClauseElements(Node node) => AstUtilities.GetImplementsHeritageClauseElements(node);
     // ast/utilities.go:3548
     internal static bool IsExternalModuleAugmentation(Node node) => throw new NotImplementedException("ast.IsExternalModuleAugmentation");
     // ast/utilities.go:2442 — implemented by the EmitResolver wave (markLinkedAliases dependency).

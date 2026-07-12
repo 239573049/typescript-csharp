@@ -1689,6 +1689,61 @@ public static partial class AstUtilities
     {
         return node != null && (node.Flags & NodeFlags.JavaScriptFile) != 0;
     }
+
+    // utilities.go:1701-1703
+    public static Node[] GetExtendsHeritageClauseElements(Node node)
+    {
+        return GetHeritageElements(node, SyntaxKind.ExtendsKeyword);
+    }
+
+    // utilities.go:1705-1707
+    public static Node[] GetImplementsHeritageClauseElements(Node node)
+    {
+        return GetHeritageElements(node, SyntaxKind.ImplementsKeyword);
+    }
+
+    // utilities.go:1709-1715
+    public static Node[] GetHeritageElements(Node node, SyntaxKind kind)
+    {
+        Node? clause = GetHeritageClause(node, kind);
+        if (clause != null)
+        {
+            return clause.AsHeritageClause().Types!.Nodes;
+        }
+        return [];
+    }
+
+    // utilities.go:1717-1727
+    public static Node? GetHeritageClause(Node node, SyntaxKind kind)
+    {
+        HeritageClauseList? clauses = GetHeritageClauses(node);
+        if (clauses != null)
+        {
+            foreach (Node clause in clauses.Nodes)
+            {
+                if (clause.AsHeritageClause().Token == kind)
+                {
+                    return clause;
+                }
+            }
+        }
+        return null;
+    }
+
+    // utilities.go:1729-1739
+    public static HeritageClauseList? GetHeritageClauses(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ClassDeclaration:
+                return node.AsClassDeclaration().HeritageClauses;
+            case SyntaxKind.ClassExpression:
+                return node.AsClassExpression().HeritageClauses;
+            case SyntaxKind.InterfaceDeclaration:
+                return node.AsInterfaceDeclaration().HeritageClauses;
+        }
+        return null;
+    }
 }
 
 // utilities.go:772-788

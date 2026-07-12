@@ -1121,7 +1121,8 @@ public partial class Checker
 
     private static bool IsJsonSourceFile(SourceFile file) => throw new NotImplementedException("ast.IsJsonSourceFile");
 
-    private static Node[] GetExtendsHeritageClauseElements(Node node) => throw new NotImplementedException("ast.GetExtendsHeritageClauseElements");
+    // ast.GetExtendsHeritageClauseElements (utilities.go:1701) — delegates to the ast utility.
+    private static Node[] GetExtendsHeritageClauseElements(Node node) => AstUtilities.GetExtendsHeritageClauseElements(node);
 
     // append(typeParameters, x) on Type[]? (Go slice append semantics).
     private static Type[] AppendType(Type[]? types, Type extra)

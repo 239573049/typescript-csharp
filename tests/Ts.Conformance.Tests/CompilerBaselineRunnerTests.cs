@@ -23,7 +23,9 @@ public sealed class CompilerBaselineRunnerTests
         "commaOperatorInvalidAssignmentType",
         "invalidAssignmentsToVoid",
         "invalidVoidAssignments",
-        "boolInsteadOfBoolean",
+        // boolInsteadOfBoolean now byte-matches: default-lib loading via triple-slash
+        // reference directives resolves global types (Boolean/Array/...), so the checker
+        // emits the correct TS2304 baseline instead of location-less TS2318 false errors.
         "nonPrimitiveAssignError",
         "assignmentToParenthesizedIdentifiers",
         "assignmentCompatWithObjectMembersOptionality",
