@@ -559,6 +559,315 @@ public static partial class AstUtilities
         return IsExpressionKind(SkipPartiallyEmittedExpressions(node).Kind);
     }
 
+    // utilities.go:1319-1326
+    public static bool IsJsxTagName(Node node)
+    {
+        var parent = node.Parent;
+        switch (parent!.Kind)
+        {
+            case SyntaxKind.JsxOpeningElement:
+            case SyntaxKind.JsxClosingElement:
+            case SyntaxKind.JsxSelfClosingElement:
+                return parent.TagName() == node;
+        }
+        return false;
+    }
+
+    // utilities.go:1929-1961
+    public static bool IsExpressionNode(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.SuperKeyword:
+            case SyntaxKind.NullKeyword:
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+            case SyntaxKind.RegularExpressionLiteral:
+            case SyntaxKind.ArrayLiteralExpression:
+            case SyntaxKind.ObjectLiteralExpression:
+            case SyntaxKind.PropertyAccessExpression:
+            case SyntaxKind.ElementAccessExpression:
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.NewExpression:
+            case SyntaxKind.TaggedTemplateExpression:
+            case SyntaxKind.AsExpression:
+            case SyntaxKind.TypeAssertionExpression:
+            case SyntaxKind.SatisfiesExpression:
+            case SyntaxKind.NonNullExpression:
+            case SyntaxKind.ParenthesizedExpression:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ClassExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.VoidExpression:
+            case SyntaxKind.DeleteExpression:
+            case SyntaxKind.TypeOfExpression:
+            case SyntaxKind.PrefixUnaryExpression:
+            case SyntaxKind.PostfixUnaryExpression:
+            case SyntaxKind.BinaryExpression:
+            case SyntaxKind.ConditionalExpression:
+            case SyntaxKind.SpreadElement:
+            case SyntaxKind.TemplateExpression:
+            case SyntaxKind.OmittedExpression:
+            case SyntaxKind.JsxElement:
+            case SyntaxKind.JsxSelfClosingElement:
+            case SyntaxKind.JsxFragment:
+            case SyntaxKind.YieldExpression:
+            case SyntaxKind.AwaitExpression:
+                return true;
+            case SyntaxKind.MetaProperty:
+                // `import.defer` in `import.defer(...)` is not an expression
+                return !IsImportCall(node.Parent!) || node.Parent!.Expression() != node;
+            case SyntaxKind.ExpressionWithTypeArguments:
+                return !IsHeritageClause(node.Parent!);
+            case SyntaxKind.QualifiedName:
+                while (node.Parent!.Kind == SyntaxKind.QualifiedName)
+                {
+                    node = node.Parent;
+                }
+                return IsTypeQueryNode(node.Parent) || IsJSDocLinkLike(node.Parent) || IsJSDocNameReference(node.Parent) || IsJsxTagName(node);
+            case SyntaxKind.PrivateIdentifier:
+                return IsBinaryExpression(node.Parent!) && node.Parent!.AsBinaryExpression().Left == node && node.Parent!.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.InKeyword;
+            case SyntaxKind.Identifier:
+                if (IsTypeQueryNode(node.Parent!) || IsJSDocLinkLike(node.Parent!) || IsJSDocNameReference(node.Parent!) || IsJsxTagName(node))
+                {
+                    return true;
+                }
+                goto case SyntaxKind.ThisKeyword;
+            case SyntaxKind.NumericLiteral:
+            case SyntaxKind.BigIntLiteral:
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+            case SyntaxKind.ThisKeyword:
+                return IsInExpressionContext(node);
+            default:
+                return false;
+        }
+    }
+
+    // utilities.go:1963-1988
+    public static bool IsInExpressionContext(Node node)
+    {
+        var parent = node.Parent;
+        switch (parent!.Kind)
+        {
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.EnumMember:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.BindingElement:
+                return parent.Initializer() == node;
+            case SyntaxKind.ExpressionStatement:
+            case SyntaxKind.IfStatement:
+            case SyntaxKind.DoStatement:
+            case SyntaxKind.WhileStatement:
+            case SyntaxKind.ReturnStatement:
+            case SyntaxKind.WithStatement:
+            case SyntaxKind.SwitchStatement:
+            case SyntaxKind.CaseClause:
+            case SyntaxKind.DefaultClause:
+            case SyntaxKind.ThrowStatement:
+            case SyntaxKind.TypeAssertionExpression:
+            case SyntaxKind.AsExpression:
+            case SyntaxKind.TemplateSpan:
+            case SyntaxKind.ComputedPropertyName:
+            case SyntaxKind.SatisfiesExpression:
+                return parent.Expression() == node;
+            case SyntaxKind.ForStatement:
+                {
+                    var s = parent.AsForStatement();
+                    return s.Initializer == node && s.Initializer!.Kind != SyntaxKind.VariableDeclarationList || s.Condition == node || s.Incrementor == node;
+                }
+            case SyntaxKind.ForInStatement:
+            case SyntaxKind.ForOfStatement:
+                {
+                    var s = parent.AsForInOrOfStatement();
+                    return s.Initializer == node && s.Initializer!.Kind != SyntaxKind.VariableDeclarationList || s.Expression == node;
+                }
+            case SyntaxKind.Decorator:
+            case SyntaxKind.JsxExpression:
+            case SyntaxKind.JsxSpreadAttribute:
+            case SyntaxKind.SpreadAssignment:
+                return true;
+            case SyntaxKind.ExpressionWithTypeArguments:
+                return parent.Expression() == node && !IsPartOfTypeNode(parent);
+            case SyntaxKind.ShorthandPropertyAssignment:
+                return parent.AsShorthandPropertyAssignment().ObjectAssignmentInitializer == node;
+            default:
+                return IsExpressionNode(parent);
+        }
+    }
+
+    // utilities.go:1990-2019
+    public static bool IsPartOfTypeNode(Node node)
+    {
+        var kind = node.Kind;
+        if (kind >= SyntaxKind.FirstTypeNode && kind <= SyntaxKind.LastTypeNode)
+        {
+            return true;
+        }
+        switch (node.Kind)
+        {
+            case SyntaxKind.AnyKeyword:
+            case SyntaxKind.UnknownKeyword:
+            case SyntaxKind.NumberKeyword:
+            case SyntaxKind.BigIntKeyword:
+            case SyntaxKind.StringKeyword:
+            case SyntaxKind.BooleanKeyword:
+            case SyntaxKind.SymbolKeyword:
+            case SyntaxKind.ObjectKeyword:
+            case SyntaxKind.UndefinedKeyword:
+            case SyntaxKind.NullKeyword:
+            case SyntaxKind.NeverKeyword:
+                return true;
+            case SyntaxKind.VoidKeyword:
+                return node.Parent!.Kind != SyntaxKind.VoidExpression;
+            case SyntaxKind.ExpressionWithTypeArguments:
+                return IsPartOfTypeExpressionWithTypeArguments(node);
+            case SyntaxKind.TypeParameter:
+                return node.Parent!.Kind == SyntaxKind.MappedType || node.Parent!.Kind == SyntaxKind.InferType;
+            case SyntaxKind.Identifier:
+                {
+                    var parent = node.Parent;
+                    if (IsQualifiedName(parent!) && parent!.AsQualifiedName().Right == node)
+                    {
+                        return IsPartOfTypeNodeInParent(parent);
+                    }
+                    if (IsPropertyAccessExpression(parent!) && parent!.AsPropertyAccessExpression().Name() == node)
+                    {
+                        return IsPartOfTypeNodeInParent(parent);
+                    }
+                    return IsPartOfTypeNodeInParent(node);
+                }
+            case SyntaxKind.QualifiedName:
+            case SyntaxKind.PropertyAccessExpression:
+            case SyntaxKind.ThisKeyword:
+                return IsPartOfTypeNodeInParent(node);
+        }
+        return false;
+    }
+
+    // utilities.go:2021-2053
+    private static bool IsPartOfTypeNodeInParent(Node node)
+    {
+        var parent = node.Parent;
+        if (parent!.Kind == SyntaxKind.TypeQuery)
+        {
+            return false;
+        }
+        if (parent.Kind == SyntaxKind.ImportType)
+        {
+            return !parent.AsImportTypeNode().IsTypeOf;
+        }
+
+        // Do not recursively call isPartOfTypeNode on the parent. In the example:
+        //
+        //     let a: A.B.C;
+        //
+        // Calling isPartOfTypeNode would consider the qualified name A.B a type node.
+        // Only C and A.B.C are type nodes.
+        if (parent.Kind >= SyntaxKind.FirstTypeNode && parent.Kind <= SyntaxKind.LastTypeNode)
+        {
+            return true;
+        }
+        switch (parent.Kind)
+        {
+            case SyntaxKind.ExpressionWithTypeArguments:
+                return IsPartOfTypeExpressionWithTypeArguments(parent);
+            case SyntaxKind.TypeParameter:
+                return node == parent.AsTypeParameterDeclaration().Constraint;
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.Constructor:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.MethodSignature:
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.CallSignature:
+            case SyntaxKind.ConstructSignature:
+            case SyntaxKind.IndexSignature:
+            case SyntaxKind.TypeAssertionExpression:
+                return node == parent.Type();
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.NewExpression:
+            case SyntaxKind.TaggedTemplateExpression:
+                {
+                    var typeArguments = parent.TypeArguments();
+                    return typeArguments != null && Array.IndexOf(typeArguments, node) >= 0;
+                }
+        }
+        return false;
+    }
+
+    // utilities.go:2055-2060
+    private static bool IsPartOfTypeExpressionWithTypeArguments(Node node)
+    {
+        var parent = node.Parent;
+        return IsHeritageClause(parent!) && (!IsClassLike(parent!.Parent!) || parent.AsHeritageClause().Token == SyntaxKind.ImplementsKeyword) ||
+            IsJSDocImplementsTag(parent!) ||
+            IsJSDocAugmentsTag(parent!);
+    }
+
+    // utilities.go:2074-2080
+    public static bool IsImportCall(Node node)
+    {
+        if (!IsCallExpression(node))
+        {
+            return false;
+        }
+        var e = node.Expression()!;
+        return e.Kind == SyntaxKind.ImportKeyword || IsMetaProperty(e) && e.AsMetaProperty().KeywordToken == SyntaxKind.ImportKeyword && e.Text() == "defer";
+    }
+
+    // utilities.go:2240-2242
+    public static bool IsPropertyAccessOrQualifiedName(Node node)
+    {
+        return node.Kind == SyntaxKind.PropertyAccessExpression || node.Kind == SyntaxKind.QualifiedName;
+    }
+
+    // ast.go:1901-1903
+    public static bool IsAnyExportAssignment(Node node)
+    {
+        return node.Kind == SyntaxKind.ExportAssignment;
+    }
+
+    // utilities.go:4200-4207
+    public static Node? GetFirstConstructorWithBody(Node node)
+    {
+        foreach (var member in node.Members() ?? [])
+        {
+            if (IsConstructorDeclaration(member) && NodeIsPresent(member.Body()))
+            {
+                return member;
+            }
+        }
+        return null;
+    }
+
+    // utilities.go:4432-4443
+    public static Node? GetRestParameterElementType(Node? node)
+    {
+        if (node == null)
+        {
+            return node;
+        }
+        if (node.Kind == SyntaxKind.ArrayType)
+        {
+            return node.AsArrayTypeNode().ElementType;
+        }
+        if (node.Kind == SyntaxKind.TypeReference && node.AsTypeReferenceNode().TypeArguments != null)
+        {
+            return CoreUtil.FirstOrNil(node.AsTypeReferenceNode().TypeArguments!.Nodes);
+        }
+        return null;
+    }
+
     // utilities.go:455-457
     public static bool IsCommaExpression(Node node)
     {

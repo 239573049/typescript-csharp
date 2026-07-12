@@ -156,10 +156,9 @@ public partial class Checker
     //
     // CheckDecorators is REAL in Checker.Statements.cs (checker.go:6001). Its deep decorator-emit
     // branches (checkDecorator / getFirstTransformableStaticClassElement) remain stubbed below —
-    // unreached for decorator-free inputs, which early-return at the guard. MarkLinkedReferences is
-    // called by the import/export validators but its landing belongs to the reference-marking cluster.
+    // unreached for decorator-free inputs, which early-return at the guard. MarkLinkedReferences is now
+    // REAL in Checker.AliasReferences.cs (alias-reference-marking wave).
     internal void CheckDecorator(Node node) => throw new NotImplementedException("checkDecorator");
-    internal void MarkLinkedReferences(Node location, ReferenceHint hint, Symbol? propSymbol, Type? parentType) => throw new NotImplementedException("markLinkedReferences");
     internal Node? GetFirstTransformableStaticClassElement(Node node) => throw new NotImplementedException("getFirstTransformableStaticClassElement");
 
     // ---- JSDoc comment checks (JSDoc cluster) ----

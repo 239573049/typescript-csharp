@@ -86,10 +86,7 @@ public partial class Checker
     // checker.go:15067
     internal Symbol? ResolveExternalModule(Node? location, string moduleReference, global::Ts.Diagnostics.Message? moduleNotFoundError, Node? errorNode, bool isForAugmentation) => throw new NotImplementedException("resolveExternalModule");
 
-    // ---- jsx alias reference marking (checker.go:28259, AliasReferences wave #20) ----
-
-    // checker.go:28259
-    internal void MarkJsxAliasReferenced(Node node /*JsxOpeningLikeElement | JsxOpeningFragment*/) => throw new NotImplementedException("markJsxAliasReferenced");
+    // ---- jsx alias reference marking (markJsxAliasReferenced is now REAL in Checker.AliasReferences.cs) ----
 
     // ---- JSX-runtime AST helpers (ast.GetPragmaFromSourceFile / GetSemanticJsxChildren) ----
     // Live in the transformer adapters today; the AST layer owns their permanent home. Stubbed here

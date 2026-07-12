@@ -41,7 +41,7 @@ public sealed class EmitTests
 
     // Simplest erasure: `const x: number = 1;` → `.js` drops the `: number` annotation and prints
     // `var x = 1;` (const→var downlevel for the default target). Proves transform+print+write is wired.
-    [Fact(Skip = "emit pipeline wired + verified with scaffold EmitResolver; real path blocked on markLinkedReferences (alias-reference-marking cluster) that ImportElision drives — un-skip once that wave lands")]
+    [Fact]
     public void EmitsTypeErasedJs()
     {
         var files = new Dictionary<string, string>
@@ -61,7 +61,7 @@ public sealed class EmitTests
     }
 
     // An interface is a pure type construct: it must be fully erased, leaving only the runtime const.
-    [Fact(Skip = "emit pipeline wired + verified with scaffold EmitResolver; real path blocked on markLinkedReferences (alias-reference-marking cluster) that ImportElision drives — un-skip once that wave lands")]
+    [Fact]
     public void ErasesInterfaceLeavesRuntimeStatement()
     {
         var files = new Dictionary<string, string>
