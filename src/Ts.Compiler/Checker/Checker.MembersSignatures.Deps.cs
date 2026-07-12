@@ -20,16 +20,61 @@ public partial class Checker
     // checkExpressionCachedEx (7494) / checkExpressionEx (7534): real bodies landed in
     // Checker.Expressions.cs (#7 wave) — stubs removed from here.
     internal Type CheckExpressionForMutableLocation(Node node, CheckMode checkMode) => throw new NotImplementedException("checkExpressionForMutableLocation");
-    internal Type CheckNonNullExpression(Node node) => throw new NotImplementedException("checkNonNullExpression");
+    // checker.go:29130 — checkNonNullType (checker.go:29134) still stubbed (Checker.Flow.Deps.cs).
+    internal Type CheckNonNullExpression(Node node) => CheckNonNullType(CheckExpression(node), node);
     // checkIteratedTypeOrElementType (6074): real body landed in Checker.IterationTypes.cs (iteration wave).
-    internal Type CheckDeclarationInitializer(Node declaration, CheckMode checkMode, Type? contextualType) => throw new NotImplementedException("checkDeclarationInitializer");
+    // checker.go:16710
+    internal Type CheckDeclarationInitializer(Node declaration, CheckMode checkMode, Type? contextualType)
+    {
+        var initializer = declaration.Initializer()!;
+        var t = GetQuickTypeOfExpression(initializer);
+        if (t == null)
+        {
+            if (contextualType != null)
+            {
+                t = CheckExpressionWithContextualType(initializer, contextualType, null /*inferenceContext*/, checkMode);
+            }
+            else
+            {
+                t = CheckExpressionCachedEx(initializer, checkMode);
+            }
+        }
+        if (NodeTests.IsParameterDeclaration(AstUtilities.GetRootDeclaration(declaration)))
+        {
+            var name = declaration.Name()!;
+            switch (name.Kind)
+            {
+                case SyntaxKind.ObjectBindingPattern:
+                    if (IsObjectLiteralType(t))
+                    {
+                        return PadObjectLiteralType(t, name);
+                    }
+                    break;
+                case SyntaxKind.ArrayBindingPattern:
+                    if (IsTupleType(t))
+                    {
+                        return PadTupleType(t, name);
+                    }
+                    break;
+            }
+        }
+        return t;
+    }
     internal bool IsConstContext(Node node) => throw new NotImplementedException("isConstContext");
     // isConstantReference: owned by flow.go — real body in Checker.Flow.cs.
     internal Type GetTypeOfExpression(Node node) => throw new NotImplementedException("getTypeOfExpression");
     internal Type GetYieldedTypeOfYieldExpression(Node node, Type yieldExprType, Type sentType, bool isAsync) => throw new NotImplementedException("getYieldedTypeOfYieldExpression");
 
     // ---- symbol resolution / symbol types (#10/#11) ----
-    internal Symbol? GetParentOfSymbol(Symbol symbol) => throw new NotImplementedException("getParentOfSymbol");
+    // checker.go:14292
+    internal Symbol? GetParentOfSymbol(Symbol symbol)
+    {
+        if (symbol.Parent != null)
+        {
+            return GetMergedSymbol(GetLateBoundSymbol(symbol.Parent));
+        }
+        return null;
+    }
     internal Symbol? GetSymbolOfNode(Node node) => throw new NotImplementedException("getSymbolOfNode");
     // symbolIsValueEx / createSymbolWithType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     internal bool IsNamedMember(Symbol symbol, string id) => throw new NotImplementedException("isNamedMember");
@@ -55,7 +100,9 @@ public partial class Checker
     // implemented in Checker.Inference.cs (inference wave). getEffectiveRestType owned by relater.
 
     // ---- type creation (#16) ----
-    internal Type CreateTypeReference(Type target, Type[]? typeArguments) => throw new NotImplementedException("createTypeReference");
+    // checker.go:25011-25013
+    internal Type CreateTypeReference(Type target, Type[]? typeArguments) =>
+        CreateTypeReferenceEx(target, typeArguments, ObjectFlags.None);
     internal Type CloneTypeReference(Type source) => throw new NotImplementedException("cloneTypeReference");
 
     // ---- union / intersection (#17) ----
@@ -71,6 +118,12 @@ public partial class Checker
     internal void ResolveIntersectionTypeMembers(Type t) => throw new NotImplementedException("resolveIntersectionTypeMembers");
 
     // ---- widening / initializer inference ----
+    // checkDeclarationInitializer (checker.go:16710) landed in this file; its parameter-binding-pattern
+    // branch reaches padObjectLiteralType (checker.go:16736) / padTupleType (checker.go:16776), stubbed
+    // here (owning wave: getPropertyNameFromBindingElement / getTypeFromBindingElement / newAnonymousType
+    // shapes). Only reachable when a parameter's binding pattern has defaulted elements.
+    internal Type PadObjectLiteralType(Type t, Node pattern) => throw new NotImplementedException("padObjectLiteralType");
+    internal Type PadTupleType(Type t, Node pattern) => throw new NotImplementedException("padTupleType");
     internal Type WidenTypeInferredFromInitializer(Node declaration, Type t) => throw new NotImplementedException("widenTypeInferredFromInitializer");
     // GetWidenedLiteralTypeForInitializer is now REAL in Checker.Widening.cs (checker.go:16810).
     // GetWidenedLiteralLikeTypeForContextualType is now REAL in Checker.Widening.cs (checker.go:25423).

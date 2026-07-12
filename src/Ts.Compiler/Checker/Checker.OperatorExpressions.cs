@@ -892,7 +892,7 @@ public partial class Checker
             if (!AstUtilities.NodeIsMissing(node))
             {
                 symbol = resolveName(node, node.Text(), SymbolFlags.Value | SymbolFlags.ExportValue,
-                    GetCannotFindNameDiagnosticForName(node), !IsWriteOnlyAccess(node), false /*excludeGlobals*/);
+                    GetCannotFindNameDiagnosticForName(node), !AstUtilities.IsWriteOnlyAccess(node), false /*excludeGlobals*/);
             }
             links.resolvedSymbol = CoreUtil.OrElse(symbol, unknownSymbol);
         }

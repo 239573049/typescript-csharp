@@ -68,9 +68,12 @@ public partial class Checker
     }
 
     // checker.go:2220
-    internal void CheckSourceElements(Node[] nodes)
+    // PORT-NOTE: Go `nodes []*ast.Node` is nil-tolerant (`range nil` is zero iterations); callers pass
+    // `node.TypeArguments()`/`node.Members()` etc. which can be nil. Signature made nullable and the loop
+    // uses OrEmpty() so the `range nil` semantics survive (05-conventions.md §6.1).
+    internal void CheckSourceElements(Node[]? nodes)
     {
-        foreach (var node in nodes)
+        foreach (var node in nodes.OrEmpty())
         {
             if (IsCanceled())
             {

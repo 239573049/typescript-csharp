@@ -23,13 +23,63 @@ public partial class Checker
     internal Type CheckSuperExpression(Node node) => throw new NotImplementedException("checkSuperExpression");
     // getResolvedSignature (8383): real body landed in Checker.CallResolution.cs (candidatesOutArray
     // modeled as List<Signature>? to match the Go *[]*Signature out-parameter).
-    internal AssignmentKind GetAssignmentTargetKind(Node node) => throw new NotImplementedException("getAssignmentTargetKind");
-    internal bool IsInCompoundLikeAssignment(Node node) => throw new NotImplementedException("isInCompoundLikeAssignment");
+    // utilities.go:90
+    internal static AssignmentKind GetAssignmentTargetKind(Node node)
+    {
+        var target = AstUtilities.GetAssignmentTarget(node);
+        if (target == null)
+        {
+            return AssignmentKind.None;
+        }
+        switch (target.Kind)
+        {
+            case SyntaxKind.BinaryExpression:
+                var binaryOperator = target.AsBinaryExpression().OperatorToken!.Kind;
+                if (binaryOperator == SyntaxKind.EqualsToken || NodeTests.IsLogicalOrCoalescingAssignmentOperator(binaryOperator))
+                {
+                    return AssignmentKind.Definite;
+                }
+                return AssignmentKind.Compound;
+            case SyntaxKind.PrefixUnaryExpression:
+            case SyntaxKind.PostfixUnaryExpression:
+                return AssignmentKind.Compound;
+            case SyntaxKind.ForInStatement:
+            case SyntaxKind.ForOfStatement:
+                return AssignmentKind.Definite;
+        }
+        throw new InvalidOperationException("Unhandled case in getAssignmentTargetKind");
+    }
+    // utilities.go:118
+    internal bool IsInCompoundLikeAssignment(Node node)
+    {
+        var target = AstUtilities.GetAssignmentTarget(node);
+        return target != null && AstUtilities.IsAssignmentExpression(target, true /*excludeCompoundAssignment*/) && IsCompoundLikeAssignment(target);
+    }
+    // utilities.go:123
+    private static bool IsCompoundLikeAssignment(Node assignment)
+    {
+        var right = AstUtilities.SkipParentheses(assignment.AsBinaryExpression().Right!);
+        return right.Kind == SyntaxKind.BinaryExpression && NodeTests.IsShiftOperatorOrHigher(right.AsBinaryExpression().OperatorToken!.Kind);
+    }
 
     // ---- symbol resolution / symbol predicates (#10/#11) ----
     // resolveSymbol / resolveEntityName / getExportSymbolOfValueSymbolIfExported / getSymbolOfDeclaration /
     // getResolvedSymbol / isConstantVariable / isReadonlySymbol already stubbed elsewhere.
-    internal bool IsParameterOrMutableLocalVariable(Symbol symbol) => throw new NotImplementedException("isParameterOrMutableLocalVariable");
+    // utilities.go:1021 — Return true if symbol is a parameter, a catch clause variable, or a mutable local variable
+    internal bool IsParameterOrMutableLocalVariable(Symbol symbol)
+    {
+        if (symbol.ValueDeclaration != null)
+        {
+            var declaration = AstUtilities.GetRootDeclaration(symbol.ValueDeclaration);
+            return declaration != null && (NodeTests.IsParameterDeclaration(declaration) || NodeTests.IsVariableDeclaration(declaration) && (NodeTests.IsCatchClause(declaration.Parent!) || IsMutableLocalVariableDeclaration(declaration)));
+        }
+        return false;
+    }
+    // utilities.go:1030 — Return true if symbol is a non-exported and non-global `let` variable
+    internal bool IsMutableLocalVariableDeclaration(Node declaration)
+    {
+        return (declaration.Parent!.Flags & NodeFlags.Let) != 0 && !((AstUtilities.GetCombinedModifierFlags(declaration) & ModifierFlags.Export) != 0 || declaration.Parent.Parent!.Kind == SyntaxKind.VariableStatement && AstUtilities.IsGlobalSourceFile(declaration.Parent.Parent.Parent!));
+    }
     internal bool IsSomeSymbolAssigned(Node rootDeclaration) => throw new NotImplementedException("isSomeSymbolAssigned");
     internal Symbol? GetSymbolForPrivateIdentifierExpression(Node privId) => throw new NotImplementedException("getSymbolForPrivateIdentifierExpression");
     internal Symbol? GetGlobalRecordSymbol() => throw new NotImplementedException("getGlobalRecordSymbol");
@@ -52,7 +102,40 @@ public partial class Checker
     internal Type RecombineUnknownType(Type t) => throw new NotImplementedException("recombineUnknownType");
     internal Type ExtractUnitType(Type t) => throw new NotImplementedException("extractUnitType");
     // getFreshTypeOfLiteralType is real in Checker.TypeCreation.cs.
-    internal Type GetNarrowableTypeForReference(Type t, Node reference, CheckMode checkMode) => throw new NotImplementedException("getNarrowableTypeForReference");
+    // checker.go:31248
+    internal Type GetNarrowableTypeForReference(Type t, Node reference, CheckMode checkMode)
+    {
+        if (IsNoInferType(t))
+        {
+            t = t.AsSubstitutionType()!.baseType;
+        }
+        // When the type of a reference is or contains an instantiable type with a union type constraint, and
+        // when the reference is in a constraint position (where it is known we'll obtain the apparent type) or
+        // has a contextual type containing no top-level instantiables (meaning constraints will determine
+        // assignability), we substitute constraints for all instantiables in the type of the reference to give
+        // control flow analysis an opportunity to narrow it further. For example, for a reference of a type
+        // parameter type 'T extends string | undefined' with a contextual type 'string', we substitute
+        // 'string | undefined' to give control flow analysis the opportunity to narrow to type 'string'.
+        bool substituteConstraints = (checkMode & CheckMode.Inferential) == 0 && SomeType(t, IsGenericTypeWithUnionConstraint) && (IsConstraintPosition(t, reference) || HasContextualTypeWithNoGenericTypes(reference, checkMode));
+        if (substituteConstraints)
+        {
+            return MapType(t, GetBaseConstraintOrType);
+        }
+        return t;
+    }
+    // checker.go:31276
+    internal bool IsGenericTypeWithUnionConstraint(Type t)
+    {
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            return CoreUtil.Some(t.AsIntersectionType()!.types, IsGenericTypeWithUnionConstraint);
+        }
+        return (t.flags & TypeFlags.Instantiable) != 0 && (GetBaseConstraintOrType(t).flags & (TypeFlags.Nullable | TypeFlags.Union)) != 0;
+    }
+    // checker.go:31294 / 31324 — constraint-substitution predicates; deferred (owning wave: constraint-position
+    // apparent-type analysis). Only reached when the reference type is a generic with a union constraint.
+    internal bool IsConstraintPosition(Type t, Node node) => throw new NotImplementedException("isConstraintPosition");
+    internal bool HasContextualTypeWithNoGenericTypes(Node node, CheckMode checkMode) => throw new NotImplementedException("hasContextualTypeWithNoGenericTypes");
     internal bool IsUnitLikeType(Type t) => throw new NotImplementedException("isUnitLikeType");
     internal Type GetFlowTypeOfProperty(Node reference, Symbol? prop) => throw new NotImplementedException("getFlowTypeOfProperty");
 

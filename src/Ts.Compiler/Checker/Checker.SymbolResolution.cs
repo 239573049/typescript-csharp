@@ -1250,7 +1250,15 @@ public partial class Checker
 
 
 
-    internal Symbol? GetExportSymbolOfValueSymbolIfExported(Symbol? symbol) => throw new NotImplementedException("getExportSymbolOfValueSymbolIfExported");
+    // checker.go:14309
+    internal Symbol? GetExportSymbolOfValueSymbolIfExported(Symbol? symbol)
+    {
+        if (symbol != null && (symbol.Flags & SymbolFlags.ExportValue) != 0 && symbol.ExportSymbol != null)
+        {
+            symbol = symbol.ExportSymbol;
+        }
+        return GetMergedSymbol(symbol);
+    }
 
     internal string SymbolToString(Symbol? symbol) => throw new NotImplementedException("symbolToString");
 
@@ -1262,9 +1270,37 @@ public partial class Checker
 
     internal SymbolTable? CombineSymbolTables(SymbolTable? first, SymbolTable? second) => throw new NotImplementedException("combineSymbolTables");
 
-    internal Symbol CloneSymbol(Symbol symbol) => throw new NotImplementedException("cloneSymbol");
+    // checker.go:14269
+    internal Symbol CloneSymbol(Symbol symbol)
+    {
+        var result = NewSymbol(symbol.Flags, symbol.Name);
+        // Force reallocation if anything is ever appended to declarations
+        result.Declarations = symbol.Declarations is null ? null : symbol.Declarations[..];
+        result.Parent = symbol.Parent;
+        result.ValueDeclaration = symbol.ValueDeclaration;
+        result.Members = symbol.Members is null ? null : new SymbolTable(symbol.Members);
+        result.Exports = symbol.Exports is null ? null : new SymbolTable(symbol.Exports);
+        RecordMergedSymbol(result, symbol);
+        return result;
+    }
 
-    internal bool IsDeprecatedSymbol(Symbol symbol) => throw new NotImplementedException("isDeprecatedSymbol");
+    // checker.go:13980
+    internal bool IsDeprecatedSymbol(Symbol symbol)
+    {
+        var parentSymbol = GetParentOfSymbol(symbol);
+        if (parentSymbol != null && symbol.Declarations.Len() > 1)
+        {
+            if ((parentSymbol.Flags & SymbolFlags.Interface) != 0)
+            {
+                return CoreUtil.Some(symbol.Declarations, IsDeprecatedDeclaration);
+            }
+            else
+            {
+                return CoreUtil.Every(symbol.Declarations, IsDeprecatedDeclaration);
+            }
+        }
+        return symbol.ValueDeclaration != null && IsDeprecatedDeclaration(symbol.ValueDeclaration) || symbol.Declarations.Len() != 0 && CoreUtil.Every(symbol.Declarations, IsDeprecatedDeclaration);
+    }
 
     internal void AddDeprecatedSuggestion(Node? location, Node[] declarations, string deprecatedEntity) => throw new NotImplementedException("addDeprecatedSuggestion");
 
@@ -1304,7 +1340,29 @@ public partial class Checker
 
     private static string GetPropertyNameFromType(Type type) => throw new NotImplementedException("getPropertyNameFromType");
 
-    private static SymbolFlags GetExcludedSymbolFlags(SymbolFlags flags) => throw new NotImplementedException("getExcludedSymbolFlags");
+    // checker.go:14213
+    private static SymbolFlags GetExcludedSymbolFlags(SymbolFlags flags)
+    {
+        SymbolFlags result = 0;
+        if ((flags & SymbolFlags.BlockScopedVariable) != 0) { result |= SymbolFlags.BlockScopedVariableExcludes; }
+        if ((flags & SymbolFlags.FunctionScopedVariable) != 0) { result |= SymbolFlags.FunctionScopedVariableExcludes; }
+        if ((flags & SymbolFlags.Property) != 0) { result |= SymbolFlags.PropertyExcludes; }
+        if ((flags & SymbolFlags.EnumMember) != 0) { result |= SymbolFlags.EnumMemberExcludes; }
+        if ((flags & SymbolFlags.Function) != 0) { result |= SymbolFlags.FunctionExcludes; }
+        if ((flags & SymbolFlags.Class) != 0) { result |= SymbolFlags.ClassExcludes; }
+        if ((flags & SymbolFlags.Interface) != 0) { result |= SymbolFlags.InterfaceExcludes; }
+        if ((flags & SymbolFlags.RegularEnum) != 0) { result |= SymbolFlags.RegularEnumExcludes; }
+        if ((flags & SymbolFlags.ConstEnum) != 0) { result |= SymbolFlags.ConstEnumExcludes; }
+        if ((flags & SymbolFlags.ValueModule) != 0) { result |= SymbolFlags.ValueModuleExcludes; }
+        if ((flags & SymbolFlags.Method) != 0) { result |= SymbolFlags.MethodExcludes; }
+        if ((flags & SymbolFlags.GetAccessor) != 0) { result |= SymbolFlags.GetAccessorExcludes; }
+        if ((flags & SymbolFlags.SetAccessor) != 0) { result |= SymbolFlags.SetAccessorExcludes; }
+        if ((flags & SymbolFlags.TypeParameter) != 0) { result |= SymbolFlags.TypeParameterExcludes; }
+        if ((flags & SymbolFlags.TypeAlias) != 0) { result |= SymbolFlags.TypeAliasExcludes; }
+        if ((flags & SymbolFlags.Alias) != 0) { result |= SymbolFlags.AliasExcludes; }
+        if ((flags & SymbolFlags.ReplaceableByMethod) != 0) { result &= ~SymbolFlags.Method; }
+        return result;
+    }
 
     // checker.go:14184-14186
     private Diagnostic CreateDiagnosticForNode(Node node, global::Ts.Diagnostics.Message message, params object?[] args) => NewDiagnosticForNode(node, message, args);

@@ -115,8 +115,14 @@ public partial class Checker
         throw new NotImplementedException("getGlobalPromiseConstructorSymbol");
 
     // checker.go:27683 — containsUndefinedType.
-    internal static bool ContainsUndefinedType(Checker c, Type t) =>
-        throw new NotImplementedException("containsUndefinedType");
+    internal static bool ContainsUndefinedType(Checker c, Type t)
+    {
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            t = t.Types()[0];
+        }
+        return (t.flags & TypeFlags.Undefined) != 0;
+    }
 
     // checker/utilities.go:280 — isOptionalParameter (depends on getSignatureFromDeclaration /
     // getMinArgumentCountEx / getEffectiveCallArguments from not-yet-ported waves).

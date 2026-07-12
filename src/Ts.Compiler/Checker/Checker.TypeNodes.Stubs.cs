@@ -15,7 +15,22 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // #16 type creation
-    internal Type CreateTypeReferenceEx(Type target, Type[]? typeArguments, ObjectFlags newObjectFlags) => throw new NotImplementedException("createTypeReferenceEx");
+    // checker.go:25015-25027
+    internal Type CreateTypeReferenceEx(Type target, Type[]? typeArguments, ObjectFlags newObjectFlags)
+    {
+        var id = GetTypeListKey(typeArguments);
+        var intf = target.AsInterfaceType()!;
+        if (intf.instantiations!.TryGetValue(id, out var cached))
+        {
+            return cached;
+        }
+        var t = NewObjectType(ObjectFlags.Reference | newObjectFlags | GetPropagatingFlagsOfTypes(typeArguments, TypeFlags.None), target.symbol);
+        var d = t.AsTypeReference()!;
+        d.target = target;
+        d.resolvedTypeArguments = typeArguments;
+        intf.instantiations[id] = t;
+        return t;
+    }
 
     internal Type CreateDeferredTypeReference(Type target, Node node, TypeMapper? mapper, TypeAlias? alias) => throw new NotImplementedException("createDeferredTypeReference");
 
@@ -51,7 +66,9 @@ public partial class Checker
 
     internal Type CheckExpressionWithTypeArguments(Node node) => throw new NotImplementedException("checkExpressionWithTypeArguments");
 
-    internal bool IsConstantVariable(Symbol symbol) => throw new NotImplementedException("isConstantVariable");
+    // utilities.go:1017
+    internal bool IsConstantVariable(Symbol symbol) =>
+        (symbol.Flags & SymbolFlags.Variable) != 0 && (GetDeclarationNodeFlagsFromSymbol(symbol) & NodeFlags.Constant) != 0;
 
     internal bool IsBlockScopedNameDeclaredBeforeUse(Node declaration, Node usage) => throw new NotImplementedException("isBlockScopedNameDeclaredBeforeUse");
 

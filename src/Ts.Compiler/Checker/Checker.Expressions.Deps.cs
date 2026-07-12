@@ -31,8 +31,7 @@ public partial class Checker
     // checker.go:7814 / 7823
     internal Type CheckPrivateIdentifierExpression(Node node) => throw new NotImplementedException("checkPrivateIdentifierExpression");
 
-    // checker.go:11014
-    internal Type CheckIdentifier(Node node, CheckMode checkMode) => throw new NotImplementedException("checkIdentifier");
+    // checkIdentifier (checker.go:11014) landed in Checker.CheckIdentifier.cs.
 
     // checker.go:12046
     internal Type CheckThisExpression(Node node) => throw new NotImplementedException("checkThisExpression");
@@ -153,8 +152,8 @@ public partial class Checker
     // checker.go — base-type-of-literal for relational comparison (type-facts cluster).
     internal Type GetBaseTypeOfLiteralTypeForComparison(Type type) => throw new NotImplementedException("getBaseTypeOfLiteralTypeForComparison");
 
-    // ast.go:1265 — write-only-access predicate (ast utilities; not yet on AstUtilities host).
-    internal static bool IsWriteOnlyAccess(Node node) => throw new NotImplementedException("ast.IsWriteOnlyAccess");
+    // IsWriteOnlyAccess (ast.go:1265) landed on AstUtilities (Utilities.AccessKind.cs); call sites use
+    // AstUtilities.IsWriteOnlyAccess directly.
 
     // checker.go/utilities.go:1041 — literal-expression-of-object predicate (utilities cluster free func).
     internal static bool IsLiteralExpressionOfObject(Node node) => throw new NotImplementedException("isLiteralExpressionOfObject");

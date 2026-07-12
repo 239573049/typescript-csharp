@@ -380,6 +380,63 @@ public partial class Checker
     // diagnostic), matching tsgo's NoLib behavior.
     internal void InitializeChecker()
     {
+        // Initialize global symbol table
+        // PORT-NOTE: ambient-module and module-augmentation merges (mergeModuleAugmentation) are deferred
+        // to the module-merge wave; ambient module symbols are collected but not yet merged. Clean global
+        // (lib) symbol merging — which populates c.globals with Array/Boolean/Object/... — is fully ported.
+        var ambientModuleSymbols = new List<Symbol>();
+        foreach (var file in files)
+        {
+            if (!AstUtilities.IsExternalOrCommonJSModule(file))
+            {
+                // It is an error for a non-external-module (i.e. script) to declare its own `globalThis`.
+                var fileGlobalThisSymbol = file.Locals?.GetValueOrDefault("globalThis");
+                if (fileGlobalThisSymbol != null)
+                {
+                    foreach (var d in fileGlobalThisSymbol.Declarations.OrEmpty())
+                    {
+                        AddDiagnostic(NewDiagnosticForNode(d, global::Ts.Diagnostics.Diagnostics.Declaration_name_conflicts_with_built_in_global_identifier_0, "globalThis"));
+                    }
+                }
+                // map-iter: 序无关 — each local is merged into c.globals keyed by name; the merge is
+                // order-independent for non-conflicting lib declarations (Go relies on the same).
+                foreach (var symbol in (file.Locals?.Values ?? System.Linq.Enumerable.Empty<Symbol>()))
+                {
+                    // We defer merging of global ambient module declarations since they may require other
+                    // global symbols and types to be resolved.
+                    if ((symbol.Flags & SymbolFlags.Module) != 0 && global::Ts.Ast.AstUtilities.IsAmbientModuleSymbolName(symbol.Name))
+                    {
+                        ambientModuleSymbols.Add(symbol);
+                    }
+                    else
+                    {
+                        MergeGlobalSymbol(symbol);
+                    }
+                }
+            }
+            patternAmbientModules = CoreUtil.Concatenate(patternAmbientModules, file.PatternAmbientModules);
+            if (file.Symbol != null)
+            {
+                // Merge in UMD exports with first-in-wins semantics (see #9771)
+                if (file.GlobalExports != null)
+                {
+                    foreach (var (name, symbol) in file.GlobalExports)
+                    {
+                        if (!globals.ContainsKey(name))
+                        {
+                            globals[name] = symbol;
+                        }
+                    }
+                }
+            }
+        }
+        // PORT-NOTE: global-scope module-augmentation merges (mergeModuleAugmentation) deferred to the
+        // module-merge wave.
+        AddUndefinedToGlobalsOrErrorOnRedeclaration();
+        valueSymbolLinks.Get(undefinedSymbol).resolvedType = undefinedWideningType;
+        valueSymbolLinks.Get(argumentsSymbol).resolvedType = GetGlobalType("IArguments", 0 /*arity*/, true /*reportErrors*/);
+        valueSymbolLinks.Get(unknownSymbol).resolvedType = errorType;
+        valueSymbolLinks.Get(globalThisSymbol).resolvedType = NewObjectType(ObjectFlags.Anonymous, globalThisSymbol);
         // Initialize special types
         globalArrayType = GetGlobalType("Array", 1 /*arity*/, true /*reportErrors*/);
         globalObjectType = GetGlobalType("Object", 0 /*arity*/, true /*reportErrors*/);

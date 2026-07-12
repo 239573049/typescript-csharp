@@ -259,7 +259,8 @@ public partial class Checker
 
     // ===== #10 symbol resolution =====
 
-    internal Symbol? ResolveSymbol(Symbol? symbol) => throw new NotImplementedException("resolveSymbol");
+    // checker.go:14354
+    internal Symbol? ResolveSymbol(Symbol? symbol) => ResolveSymbolEx(symbol, false /*dontResolveAlias*/);
 
     // ===== #11 symbol types =====
     // getDeclaredTypeOfSymbol (checker.go:23578) is in the #15 line-range (22713-24910), implemented

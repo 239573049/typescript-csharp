@@ -167,6 +167,11 @@ public partial class Checker
 
     // ---- misc helpers (utilities) ----
     // ContainerAllowsBlockScopedVariable is now REAL in Checker.Grammar.cs (grammar wave).
-    internal bool IsInAmbientOrTypeNode(Node node) => throw new NotImplementedException("isInAmbientOrTypeNode");
+    // utilities.go:106
+    internal bool IsInAmbientOrTypeNode(Node node)
+    {
+        return (node.Flags & NodeFlags.Ambient) != 0 || AstUtilities.FindAncestor(node, static n =>
+            NodeTests.IsInterfaceDeclaration(n) || NodeTests.IsTypeAliasDeclaration(n) || NodeTests.IsJSTypeAliasDeclaration(n) || NodeTests.IsTypeLiteralNode(n)) != null;
+    }
     // IsPrivateWithinAmbient is real in Checker.MembersSignatures.Support.cs.
 }

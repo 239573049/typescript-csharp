@@ -103,7 +103,10 @@ public partial class Checker
     // ---- JSDoc parameter matching / type-predicate parent (deferred) ----
     // checker.go:6999
     internal void CheckTypeParametersNotReferenced(Node root, Node[] typeParameters, int index) => throw new NotImplementedException("checkTypeParametersNotReferenced");
-    internal void CheckUnmatchedJSDocParameters(Node node) => throw new NotImplementedException("checkUnmatchedJSDocParameters");
+    // checkUnmatchedJSDocParameters (jsdoc.go:9) landed in Checker.JSDoc.cs; its JS-file branch calls
+    // containsArgumentsReference (checker.go:31875), stubbed here (owning wave: getResolvedSymbol /
+    // argumentsSymbol / nodeStartsNewLexicalEnvironment). Only reachable for JS files / @param JSDoc.
+    internal bool ContainsArgumentsReference(Node node) => throw new NotImplementedException("containsArgumentsReference");
     // checker.go:3085
     internal Node? GetTypePredicateParent(Node node) => throw new NotImplementedException("getTypePredicateParent");
     // checker.go:3097
@@ -113,7 +116,35 @@ public partial class Checker
     // checker.go:3318
     internal ResolutionMode GetResolutionModeOverride(ImportAttributes node, bool reportErrors) => throw new NotImplementedException("getResolutionModeOverride");
     // checker.go:2986
-    internal void CheckTypeReferenceOrImport(Node node) => throw new NotImplementedException("checkTypeReferenceOrImport");
+    internal void CheckTypeReferenceOrImport(Node node)
+    {
+        var t = GetTypeFromTypeNode(node);
+        if (!IsErrorType(t))
+        {
+            if (node.TypeArguments().Len() != 0)
+            {
+                var typeParameters = GetTypeParametersForTypeReferenceOrImport(node);
+                if (typeParameters.Len() != 0)
+                {
+                    CheckTypeArgumentConstraints(node, typeParameters!);
+                }
+            }
+            var symbol = GetResolvedSymbolOrNil(node);
+            if (symbol != null)
+            {
+                if (CoreUtil.Some(symbol.Declarations, d => AstUtilities.IsTypeDeclaration(d) && IsDeprecatedDeclaration(d)))
+                {
+                    AddDeprecatedSuggestion(GetDeprecatedSuggestionNode(node), symbol.Declarations!, symbol.Name);
+                }
+            }
+        }
+    }
+
+    // checker.go:13959
+    internal bool IsDeprecatedDeclaration(Node declaration) =>
+        AstUtilities.IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlagsCached(declaration));
+    // checker.go:3021 — deprecated suggestion target; deferred. Reached only on the deprecated path above.
+    internal Node? GetDeprecatedSuggestionNode(Node node) => throw new NotImplementedException("getDeprecatedSuggestionNode");
     // checker.go:8197
     internal Type CheckIndexedAccessIndexType(Type t, Node accessNode) => throw new NotImplementedException("checkIndexedAccessIndexType");
 

@@ -81,6 +81,102 @@ public static partial class AstUtilities
         return HasComment(node.Kind) && node.CommentList() != null && node.CommentList()!.Nodes.Length == 1;
     }
 
+    // utilities.go:1200
+    public static Node? GetJSDocDeprecatedTag(Node node)
+    {
+        foreach (var jsdoc in node.JSDoc(null) ?? System.Array.Empty<Node>())
+        {
+            var tags = jsdoc.AsJSDoc().Tags;
+            if (tags != null)
+            {
+                foreach (var tag in tags.Nodes)
+                {
+                    if (IsJSDocDeprecatedTag(tag))
+                    {
+                        return tag;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // utilities.go:1223 — core logic for IsDeprecatedDeclaration, parameterized on pre-computed combined
+    // flags so the checker can supply cached flags.
+    public static bool IsDeprecatedDeclarationWithCachedFlags(Node declaration, NodeFlags combinedFlags)
+    {
+        if ((combinedFlags & NodeFlags.PossiblyContainsDeprecatedTag) == 0)
+        {
+            return false;
+        }
+        // Walk up to find the node that directly has the flag, since JSDoc is
+        // attached to that node (e.g. VariableStatement, not VariableDeclaration).
+        for (var n = declaration; n != null; n = n.Parent)
+        {
+            if ((n.Flags & NodeFlags.PossiblyContainsDeprecatedTag) != 0)
+            {
+                return GetJSDocDeprecatedTag(n) != null;
+            }
+        }
+        return false;
+    }
+
+    // utilities.go:1637
+    public static bool IsAmbientModuleSymbolName(string s)
+    {
+        return s.StartsWith('"') && s.EndsWith('"');
+    }
+
+    // utilities.go:3566
+    public static bool IsTypeDeclaration(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.TypeParameter:
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.EnumDeclaration:
+                return true;
+            case SyntaxKind.ImportClause:
+                return node.IsTypeOnly();
+            case SyntaxKind.ImportSpecifier:
+            case SyntaxKind.ExportSpecifier:
+                return node.Parent!.Parent!.IsTypeOnly();
+            default:
+                return false;
+        }
+    }
+
+    // utilities.go:4039
+    public static Node? GetNextJSDocCommentLocation(Node node)
+    {
+        var parent = node.Parent;
+        if (parent != null)
+        {
+            switch (parent.Kind)
+            {
+                case SyntaxKind.PropertyAssignment:
+                case SyntaxKind.ExportAssignment:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.VariableDeclaration:
+                case SyntaxKind.SatisfiesExpression:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.VariableStatement:
+                case SyntaxKind.ExpressionStatement:
+                    return parent;
+                case SyntaxKind.VariableDeclarationList:
+                    if (ReferenceEquals(parent.AsVariableDeclarationList().Declarations!.Nodes[0], node))
+                    {
+                        return parent;
+                    }
+                    break;
+            }
+        }
+        return null;
+    }
+
     // utilities.go:3787
     internal static bool HasComment(SyntaxKind kind)
     {

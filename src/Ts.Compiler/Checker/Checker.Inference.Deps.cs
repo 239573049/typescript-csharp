@@ -19,6 +19,7 @@
 
 using System;
 using Ts.Ast;
+using Ts.Core;
 
 namespace Ts.Checker;
 
@@ -69,7 +70,47 @@ public partial class Checker
 
     // ---- const type variables / readonly symbols ----
     internal bool IsConstTypeVariable(Type? type, int depth) => throw new NotImplementedException("isConstTypeVariable");
-    internal bool IsReadonlySymbol(Symbol symbol) => throw new NotImplementedException("isReadonlySymbol");
+    // checker.go:13773 — The following symbols are considered read-only:
+    // Properties with a 'readonly' modifier; Variables declared with 'const'; Get accessors without matching
+    // set accessors; Enum members; Object.defineProperty assignments with writable false or no setter;
+    // Unions and intersections of the above (eagerly set isReadonly on creation).
+    internal bool IsReadonlySymbol(Symbol symbol) =>
+        (symbol.CheckFlags & CheckFlags.Readonly) != 0 ||
+        (symbol.Flags & SymbolFlags.Property) != 0 && (GetDeclarationModifierFlagsFromSymbol(symbol) & ModifierFlags.Readonly) != 0 ||
+        (symbol.Flags & SymbolFlags.Variable) != 0 && (GetDeclarationNodeFlagsFromSymbol(symbol) & NodeFlags.Constant) != 0 ||
+        (symbol.Flags & SymbolFlags.Accessor) != 0 && (symbol.Flags & SymbolFlags.SetAccessor) == 0 ||
+        (symbol.Flags & SymbolFlags.EnumMember) != 0 ||
+        CoreUtil.Some(symbol.Declarations, IsReadonlyAssignmentDeclaration);
+
+    // checker.go:13753
+    private bool IsReadonlyAssignmentDeclaration(Node node)
+    {
+        if (!NodeTests.IsCallExpression(node))
+        {
+            return false;
+        }
+        var propertyDescriptorType = CheckExpressionCached(node.Arguments()![2]);
+        var valueType = GetTypeOfPropertyOfType(propertyDescriptorType, "value");
+        if (valueType != null)
+        {
+            var writableProp = GetPropertyOfType(propertyDescriptorType, "writable");
+            if (writableProp != null)
+            {
+                Type writableType;
+                if (writableProp.ValueDeclaration != null && NodeTests.IsPropertyAssignment(writableProp.ValueDeclaration))
+                {
+                    writableType = CheckExpression(writableProp.ValueDeclaration.Initializer()!);
+                }
+                else
+                {
+                    writableType = GetTypeOfSymbol(writableProp);
+                }
+                return (writableType.flags & TypeFlags.BooleanLiteral) != 0 && GetBooleanLiteralValue(writableType) == false;
+            }
+            return true;
+        }
+        return GetTypeOfPropertyOfType(propertyDescriptorType, "set") == null;
+    }
 
     // ---- bigint literal type (checker.go, later wave) ----
     internal Type ParseBigIntLiteralType(string text) => throw new NotImplementedException("parseBigIntLiteralType");
