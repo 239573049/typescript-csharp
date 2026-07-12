@@ -568,7 +568,7 @@ public partial class Checker
         Type[]? aggregatedTypes = null;
         var hasReturnWithNoExpression = FunctionHasImplicitReturn(fn);
         var hasReturnOfTypeNever = false;
-        ForEachReturnStatement(fn.Body()!, returnStatement =>
+        AstUtilities.ForEachReturnStatement(fn.Body()!, returnStatement =>
         {
             var expr = returnStatement.Expression();
             if (expr is null)
@@ -936,7 +936,7 @@ public partial class Checker
         }
         else
         {
-            var bailedEarly = ForEachReturnStatement(body!, returnStatement =>
+            var bailedEarly = AstUtilities.ForEachReturnStatement(body!, returnStatement =>
             {
                 if (singleReturn is not null || returnStatement.Expression() is null)
                 {

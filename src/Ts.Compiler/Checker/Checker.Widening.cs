@@ -22,6 +22,26 @@ namespace Ts.Checker;
 
 public partial class Checker
 {
+    // checker.go:16795-16808
+    internal Type WidenTypeInferredFromInitializer(Node declaration, Type t)
+    {
+        var widened = GetWidenedLiteralTypeForInitializer(declaration, t);
+        if (AstUtilities.IsInJSFile(declaration))
+        {
+            if (IsEmptyLiteralType(widened))
+            {
+                ReportImplicitAny(declaration, anyType!, WideningKind.Normal);
+                return anyType!;
+            }
+            if (IsEmptyArrayLiteralType(widened))
+            {
+                ReportImplicitAny(declaration, anyArrayType!, WideningKind.Normal);
+                return anyArrayType!;
+            }
+        }
+        return widened;
+    }
+
     // checker.go:16810-16815
     internal Type GetWidenedLiteralTypeForInitializer(Node declaration, Type t)
     {

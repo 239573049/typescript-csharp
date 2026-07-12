@@ -62,7 +62,7 @@ public partial class Checker
     }
     internal bool IsConstContext(Node node) => throw new NotImplementedException("isConstContext");
     // isConstantReference: owned by flow.go — real body in Checker.Flow.cs.
-    internal Type GetTypeOfExpression(Node node) => throw new NotImplementedException("getTypeOfExpression");
+    // GetTypeOfExpression is now REAL in Checker.QuickType.cs (checker.go:7314).
     internal Type GetYieldedTypeOfYieldExpression(Node node, Type yieldExprType, Type sentType, bool isAsync) => throw new NotImplementedException("getYieldedTypeOfYieldExpression");
 
     // ---- symbol resolution / symbol types (#10/#11) ----
@@ -124,7 +124,7 @@ public partial class Checker
     // shapes). Only reachable when a parameter's binding pattern has defaulted elements.
     internal Type PadObjectLiteralType(Type t, Node pattern) => throw new NotImplementedException("padObjectLiteralType");
     internal Type PadTupleType(Type t, Node pattern) => throw new NotImplementedException("padTupleType");
-    internal Type WidenTypeInferredFromInitializer(Node declaration, Type t) => throw new NotImplementedException("widenTypeInferredFromInitializer");
+    // WidenTypeInferredFromInitializer is now REAL in Checker.Widening.cs (checker.go:16795).
     // GetWidenedLiteralTypeForInitializer is now REAL in Checker.Widening.cs (checker.go:16810).
     // GetWidenedLiteralLikeTypeForContextualType is now REAL in Checker.Widening.cs (checker.go:25423).
     internal Type GetNonUndefinedType(Type t) => throw new NotImplementedException("getNonUndefinedType");
@@ -172,8 +172,8 @@ public partial class Checker
     internal Diagnostic? NewDiagnosticChainForNode(Diagnostic? details, Node? node, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("NewDiagnosticChainForNode");
 
     // ---- ast helpers with no C# home yet ----
-    internal static Node? GetClassLikeDeclarationOfSymbol(Symbol symbol) => throw new NotImplementedException("ast.GetClassLikeDeclarationOfSymbol");
-    internal static Node? GetExtendsHeritageClauseElement(Node node) => throw new NotImplementedException("ast.GetExtendsHeritageClauseElement");
+    // GetClassLikeDeclarationOfSymbol is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:2926).
+    // GetExtendsHeritageClauseElement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1697).
     // GetThisParameter is now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs); call sites use
     // AstUtilities.GetThisParameter directly.
     internal static Node? GetSetAccessorValueParameter(Node accessor) => throw new NotImplementedException("GetSetAccessorValueParameter");
@@ -181,6 +181,6 @@ public partial class Checker
     internal static bool IsImportCall(Node node) => throw new NotImplementedException("ast.IsImportCall");
     internal static bool IsLateBoundName(string name) => throw new NotImplementedException("isLateBoundName");
     internal bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions options) => throw new NotImplementedException("ast.IsCheckJSEnabledForFile");
-    internal bool ForEachReturnStatement(Node body, Func<Node, bool> visitor) => throw new NotImplementedException("ast.ForEachReturnStatement");
-    internal void ForEachYieldExpression(Node body, Func<Node, bool> visitor) => throw new NotImplementedException("forEachYieldExpression");
+    // ForEachReturnStatement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1138).
+    // ForEachYieldExpression is now REAL in Checker.ContextSensitive.cs (internal/checker/utilities.go:1197).
 }

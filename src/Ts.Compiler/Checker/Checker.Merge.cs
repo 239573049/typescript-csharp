@@ -18,6 +18,23 @@ namespace Ts.Checker;
 
 public partial class Checker
 {
+    // checker.go:14022
+    internal SymbolTable? CombineSymbolTables(SymbolTable? first, SymbolTable? second)
+    {
+        if (first.Len() == 0)
+        {
+            return second;
+        }
+        if (second.Len() == 0)
+        {
+            return first;
+        }
+        var combined = new SymbolTable();
+        MergeSymbolTable(combined, first!, false, null);
+        MergeSymbolTable(combined, second!, false, null);
+        return combined;
+    }
+
     // checker.go:14035
     internal void MergeSymbolTable(SymbolTable target, SymbolTable source, bool unidirectional, Symbol? mergedParent)
     {

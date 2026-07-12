@@ -656,7 +656,7 @@ public partial class Checker
             SymbolTable? lateSymbols = null;
             foreach (var decl in symbol.Declarations.OrEmpty())
             {
-                foreach (var member in GetMembersOfDeclaration(decl))
+                foreach (var member in GetMembersOfDeclaration(decl).OrEmpty())
                 {
                     if (isStatic == HasStaticModifier(member))
                     {
@@ -1268,7 +1268,7 @@ public partial class Checker
 
     internal Symbol? GetImmediateAliasedSymbol(Symbol symbol) => throw new NotImplementedException("getImmediateAliasedSymbol");
 
-    internal SymbolTable? CombineSymbolTables(SymbolTable? first, SymbolTable? second) => throw new NotImplementedException("combineSymbolTables");
+    // CombineSymbolTables is now REAL in Checker.Merge.cs (checker.go:14022).
 
     // checker.go:14269
     internal Symbol CloneSymbol(Symbol symbol)
@@ -1334,7 +1334,21 @@ public partial class Checker
 
     private static string EntityNameToString(Node node) => throw new NotImplementedException("entityNameToString");
 
-    private static Node[] GetMembersOfDeclaration(Node node) => throw new NotImplementedException("getMembersOfDeclaration");
+    // utilities.go:1074-1082
+    private static Node[]? GetMembersOfDeclaration(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.ClassExpression:
+            case SyntaxKind.TypeLiteral:
+                return node.Members();
+            case SyntaxKind.ObjectLiteralExpression:
+                return node.Properties();
+        }
+        return null;
+    }
 
     private bool IsTypeUsableAsPropertyName(Type type) => throw new NotImplementedException("isTypeUsableAsPropertyName");
 

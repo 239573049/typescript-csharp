@@ -60,7 +60,7 @@ public partial class Checker
     // relations / contextual / checks
     // checkTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
 
-    internal bool IsContextSensitive(Node node) => throw new NotImplementedException("isContextSensitive");
+    // IsContextSensitive is now REAL in Checker.ContextSensitive.cs (checker.go:30654).
 
     // isGenericStringLikeType (26412) implemented in Checker.UnionIntersection.cs (#17).
 

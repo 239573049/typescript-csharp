@@ -62,8 +62,7 @@ public partial class Checker
     // checker.go:10010
     internal Type CheckTaggedTemplateExpression(Node node) => throw new NotImplementedException("checkTaggedTemplateExpression");
 
-    // checker.go:10019
-    internal Type CheckParenthesizedExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkParenthesizedExpression");
+    // checker.go:10019 — checkParenthesizedExpression: real body landed in Checker.Expressions.cs.
 
     // checker.go:10023
     internal Type CheckClassExpression(Node node) => throw new NotImplementedException("checkClassExpression");

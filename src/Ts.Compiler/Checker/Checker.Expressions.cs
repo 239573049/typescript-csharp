@@ -91,6 +91,12 @@ public partial class Checker
         return t;
     }
 
+    // checker.go:10019
+    internal Type CheckParenthesizedExpression(Node node, CheckMode checkMode)
+    {
+        return CheckExpressionEx(node.Expression()!, checkMode);
+    }
+
     // checker.go:7708-7812
     internal Type CheckExpressionWorker(Node node, CheckMode checkMode)
     {

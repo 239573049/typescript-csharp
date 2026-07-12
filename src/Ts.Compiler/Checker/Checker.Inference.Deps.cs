@@ -31,7 +31,9 @@ public partial class Checker
     // (Checker.Relater*.cs) — real implementations live there.
 
     // ---- misc type predicates / literal base (checker.go, later waves) ----
-    internal bool IsNonGenericObjectType(Type t) => throw new NotImplementedException("isNonGenericObjectType");
+    // checker.go:13458-13460
+    internal bool IsNonGenericObjectType(Type t) =>
+        (t.flags & TypeFlags.Object) != 0 && !IsGenericMappedType(t);
 
     // getBaseTypeOfLiteralType (checker.go): widen a literal/enum type to its base intrinsic type.
     internal Type GetBaseTypeOfLiteralType(Type t)

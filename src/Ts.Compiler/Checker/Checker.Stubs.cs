@@ -219,7 +219,7 @@ public partial class Checker
 
     // ===== #6 unused identifiers =====
 
-    internal void RegisterForUnusedIdentifiersCheck(Node node) => throw new NotImplementedException("registerForUnusedIdentifiersCheck");
+    // RegisterForUnusedIdentifiersCheck is now REAL in Checker.Statements.cs (checker.go:7017).
 
     // ===== #7 expressions =====
     // Dispatch trunk landed in Checker.Expressions.cs; these are the canonical entry wrappers

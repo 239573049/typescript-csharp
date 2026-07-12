@@ -67,6 +67,14 @@ public partial class Checker
         }
     }
 
+    // checker.go:7017-7021
+    internal void RegisterForUnusedIdentifiersCheck(Node node)
+    {
+        var sourceFile = AstUtilities.GetSourceFileOfNode(node);
+        var links = sourceFileLinks.Get(sourceFile!);
+        links.identifierCheckNodes = SlicesAppend(links.identifierCheckNodes, node);
+    }
+
     // checker.go:2220
     // PORT-NOTE: Go `nodes []*ast.Node` is nil-tolerant (`range nil` is zero iterations); callers pass
     // `node.TypeArguments()`/`node.Members()` etc. which can be nil. Signature made nullable and the loop

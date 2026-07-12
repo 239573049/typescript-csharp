@@ -2017,10 +2017,10 @@ public partial class Checker
     // checker.go:19172-19178
     internal static Node? GetBaseTypeNodeOfClass(Type t)
     {
-        var decl = GetClassLikeDeclarationOfSymbol(t.symbol!);
+        var decl = AstUtilities.GetClassLikeDeclarationOfSymbol(t.symbol!);
         if (decl is not null)
         {
-            return GetExtendsHeritageClauseElement(decl);
+            return AstUtilities.GetExtendsHeritageClauseElement(decl);
         }
         return null;
     }

@@ -10,11 +10,38 @@
 // that land with their owning waves.
 
 using Ts.Ast;
+using Ts.Core;
 
 namespace Ts.Checker;
 
 public partial class Checker
 {
+    // checker.go:7314
+    internal Type GetTypeOfExpression(Node node)
+    {
+        // Don't bother caching types that require no flow analysis and are quick to compute.
+        var quickType = GetQuickTypeOfExpression(node);
+        if (quickType != null)
+        {
+            return quickType;
+        }
+        // If a type has been cached for the node, return it.
+        var cachedType = flowTypeCache?.GetValueOrDefault(node);
+        if (cachedType != null)
+        {
+            return cachedType;
+        }
+        var startInvocationCount = flowInvocationCount;
+        var t = CheckExpressionEx(node, CheckMode.TypeOnly);
+        // If control flow analysis was required to determine the type, it is worth caching.
+        if (flowInvocationCount != startInvocationCount)
+        {
+            flowTypeCache ??= new(ReferenceEqualityComparer<Node>.Instance);
+            flowTypeCache[node] = t;
+        }
+        return t;
+    }
+
     // checker.go:7338
     internal Type? GetQuickTypeOfExpression(Node node)
     {

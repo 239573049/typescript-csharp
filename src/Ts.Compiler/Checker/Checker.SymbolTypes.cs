@@ -997,7 +997,7 @@ public partial class Checker
 
     // checkJsxAttribute: real body landed in Checker.Jsx.cs (jsx wave).
 
-    internal bool IsContextSensitiveFunctionOrObjectLiteralMethod(Node node) => throw new NotImplementedException("isContextSensitiveFunctionOrObjectLiteralMethod");
+    // IsContextSensitiveFunctionOrObjectLiteralMethod is now REAL in Checker.ContextSensitive.cs (checker.go:29253).
 
 
 

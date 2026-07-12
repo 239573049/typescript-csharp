@@ -325,7 +325,7 @@ public partial class Checker
         // Constructors of classes with no extends clause may not contain super calls, whereas
         // constructors of derived classes must contain at least one super call somewhere in their function body.
         var containingClassDecl = node.Parent!;
-        if (GetExtendsHeritageClauseElement(containingClassDecl) == null)
+        if (AstUtilities.GetExtendsHeritageClauseElement(containingClassDecl) == null)
         {
             return;
         }
@@ -781,7 +781,7 @@ public partial class Checker
             CheckClassForStaticPropertyNameConflicts(node);
         }
 
-        var baseTypeNode = GetExtendsHeritageClauseElement(node);
+        var baseTypeNode = AstUtilities.GetExtendsHeritageClauseElement(node);
         if (baseTypeNode != null)
         {
             CheckSourceElements(baseTypeNode.TypeArguments()!);

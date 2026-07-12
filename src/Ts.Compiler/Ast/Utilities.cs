@@ -975,6 +975,12 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.ClassDeclaration || node.Kind == SyntaxKind.ClassExpression || node.Kind == SyntaxKind.InterfaceDeclaration;
     }
 
+    // utilities.go:2926-2928
+    public static Node? GetClassLikeDeclarationOfSymbol(Symbol symbol)
+    {
+        return CoreUtil.Find(symbol.Declarations, IsClassLike);
+    }
+
     // utilities.go:3009-3016
     public static bool IsVariableLike(Node node)
     {
@@ -1690,6 +1696,12 @@ public static partial class AstUtilities
         return node != null && (node.Flags & NodeFlags.JavaScriptFile) != 0;
     }
 
+    // utilities.go:1697-1699
+    public static Node? GetExtendsHeritageClauseElement(Node node)
+    {
+        return CoreUtil.FirstOrNil(GetExtendsHeritageClauseElements(node));
+    }
+
     // utilities.go:1701-1703
     public static Node[] GetExtendsHeritageClauseElements(Node node)
     {
@@ -1743,6 +1755,62 @@ public static partial class AstUtilities
                 return node.AsInterfaceDeclaration().HeritageClauses;
         }
         return null;
+    }
+
+    // utilities.go:1138-1152
+    public static bool ForEachReturnStatement(Node body, Func<Node, bool> visitor)
+    {
+        bool Traverse(Node node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.ReturnStatement:
+                    return visitor(node);
+                case SyntaxKind.CaseBlock:
+                case SyntaxKind.Block:
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForInStatement:
+                case SyntaxKind.ForOfStatement:
+                case SyntaxKind.WithStatement:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.CaseClause:
+                case SyntaxKind.DefaultClause:
+                case SyntaxKind.LabeledStatement:
+                case SyntaxKind.TryStatement:
+                case SyntaxKind.CatchClause:
+                    return node.ForEachChild(Traverse);
+            }
+            return false;
+        }
+        return Traverse(body);
+    }
+
+    // utilities.go:4177-4194
+    public static bool HasContextSensitiveParameters(Node node)
+    {
+        // Functions with type parameters are not context sensitive.
+        if (node.TypeParameters() == null)
+        {
+            // Functions with any parameters that lack type annotations are context sensitive.
+            if (CoreUtil.Some(node.Parameters(), static p => p.Type() == null))
+            {
+                return true;
+            }
+            if (!IsArrowFunction(node))
+            {
+                // If the first parameter is not an explicit 'this' parameter, then the function has
+                // an implicit 'this' parameter which is subject to contextual typing.
+                var parameter = CoreUtil.FirstOrNil(node.Parameters());
+                if (parameter == null || !IsThisParameter(parameter))
+                {
+                    return (node.Flags & NodeFlags.ContainsThis) != 0;
+                }
+            }
+        }
+        return false;
     }
 }
 

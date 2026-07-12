@@ -214,7 +214,7 @@ public partial class Checker
             {
                 // In super call, the candidate signatures are the matching arity signatures of the base
                 // constructor function instantiated with the type arguments specified in the extends clause.
-                var baseTypeNode = GetExtendsHeritageClauseElement(AstUtilities.GetContainingClass(node)!);
+                var baseTypeNode = AstUtilities.GetExtendsHeritageClauseElement(AstUtilities.GetContainingClass(node)!);
                 if (baseTypeNode != null)
                 {
                     var baseConstructors = GetInstantiatedConstructorsForTypeArguments(superType, baseTypeNode.TypeArguments(), baseTypeNode);
@@ -352,7 +352,7 @@ public partial class Checker
             }
             if (expressionType.symbol != null)
             {
-                var valueDecl = GetClassLikeDeclarationOfSymbol(expressionType.symbol);
+                var valueDecl = AstUtilities.GetClassLikeDeclarationOfSymbol(expressionType.symbol);
                 if (valueDecl != null && HasModifier(valueDecl, ModifierFlags.Abstract))
                 {
                     Error(node, Diag.Cannot_create_an_instance_of_an_abstract_class);
