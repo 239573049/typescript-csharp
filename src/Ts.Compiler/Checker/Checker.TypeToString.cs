@@ -98,6 +98,12 @@ public sealed partial class Checker
         return result;
     }
 
+    // nodebuilderimpl.go:3176 — typeToTypeNode, exposed to the request-scoped NodeBuilder
+    // (NodeBuilder/NodeBuilderImpl.cs). Both the error-message serializer (TypeToStringEx above) and the
+    // .d.ts request builder share this one synthesis core; the request builder threads its own factory
+    // (the emit-context factory) rather than the type-to-string emit context's.
+    internal Node NodeBuilderTypeToTypeNode(Type t, global::Ts.Ast.NodeFactory f) => TypeToTypeNode(t, f);
+
     // nodebuilderimpl.go:3176 — typeToTypeNode (intrinsic / literal / union / intersection / named slice).
     // PORT-NOTE: the Go original threads a NodeBuilderContext (b.ctx) for expansion depth, truncation, and
     // encounteredError tracking. This breadth-first slice is context-free: it only needs the AST factory to

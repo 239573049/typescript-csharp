@@ -43,70 +43,10 @@ internal sealed class Relation
 // global::Ts.Printer.EmitResolver, faithful to the Go `EmitResolver` struct).
 
 // nodebuilder.go:279 — request-scoped type/symbol → node serializer (NewNodeBuilder(ch, e)).
-// The EmitResolver's .d.ts type-node synthesis half delegates to this builder's SerializeX/
-// TypeToTypeNode/SymbolToExpression/IndexInfoToIndexSignatureDeclaration entry points. The
-// NodeBuilder wave has only landed TypeToTypeNode's intrinsic core (NodeBuilder/TypeToTypeNode.cs);
-// the request-builder serialize surface below is a throwing shell until that wave completes, so the
-// EmitResolver Create* methods compile and light up when the real builder lands.
-public sealed class NodeBuilder
-{
-    private readonly Checker checker;
-    private readonly global::Ts.Printer.EmitContext emitContext;
-
-    internal NodeBuilder(Checker checker, global::Ts.Printer.EmitContext emitContext)
-    {
-        this.checker = checker;
-        this.emitContext = emitContext;
-    }
-
-    // nodebuilder.go:117
-    internal Node? SerializeReturnTypeForSignature(Node signatureDeclaration, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.SerializeReturnTypeForSignature");
-
-    // nodebuilder.go:126
-    internal Node[] SerializeTypeParametersForSignature(Node signatureDeclaration, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.SerializeTypeParametersForSignature");
-
-    // nodebuilder.go:134
-    internal Node? SerializeTypeForDeclaration(Node declaration, Symbol? symbol, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.SerializeTypeForDeclaration");
-
-    // nodebuilder.go:140
-    internal Node? SerializeTypeForExpression(Node expr, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.SerializeTypeForExpression");
-
-    // nodebuilder.go:231
-    internal Node? SymbolToExpression(Symbol symbol, SymbolFlags meaning, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.SymbolToExpression");
-
-    // nodebuilder.go:111
-    internal Node? IndexInfoToIndexSignatureDeclaration(IndexInfo info, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.IndexInfoToIndexSignatureDeclaration");
-
-    // nodebuilder.go:267
-    internal Node? TypeToTypeNode(Type type, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.TypeToTypeNode(request)");
-
-    // nodebuilder.go:272
-    internal Node? TryJSTypeNodeToTypeNode(Node node, Node? enclosingDeclaration,
-        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new System.NotImplementedException("NodeBuilder.TryJSTypeNodeToTypeNode");
-}
+// The real request-builder (NodeBuilder + its NodeBuilderContext + the breadth-first serialize
+// surface) now lives in src/Ts.Compiler/NodeBuilder/NodeBuilderImpl.cs (Go: package checker →
+// namespace Ts.Checker); the throwing shell that lived here was removed by the phase-6 NodeBuilder
+// request-builder wave.
 
 // tracer.go:13-31 — --generateTrace tracer (phase 9). Minimal shell + factory.
 public sealed class Tracer
