@@ -788,7 +788,15 @@ public partial class Checker
 
 
 
-    internal Type RemoveMissingType(Type type, bool isOptional) => throw new NotImplementedException("removeMissingType");
+    // checker.go — removeMissingType(t, isOptional)
+    internal Type RemoveMissingType(Type t, bool isOptional)
+    {
+        if (exactOptionalPropertyTypes && isOptional)
+        {
+            return RemoveType(t, missingType!);
+        }
+        return t;
+    }
 
     // Return the inferred type for a variable, parameter, or property declaration
     // checker.go:16565
@@ -989,7 +997,25 @@ public partial class Checker
 
     // GetWidenedLiteralType is now REAL in Checker.Widening.cs (checker.go:25395).
 
-    internal Type CheckPropertyAssignment(Node node, CheckMode checkMode) => throw new NotImplementedException("checkPropertyAssignment");
+    // checker.go:13303-13317
+    internal Type CheckPropertyAssignment(Node node, CheckMode checkMode)
+    {
+        // Do not use hasDynamicName here, because that returns false for well known symbols.
+        // We want to perform checkComputedPropertyName for all computed properties, including
+        // well known symbols.
+        if (NodeTests.IsComputedPropertyName(node.Name()!))
+        {
+            CheckComputedPropertyName(node.Name()!);
+        }
+        var initializerType = CheckExpressionForMutableLocation(node.Initializer()!, checkMode);
+        if (node.Type() != null)
+        {
+            var t = GetTypeFromTypeNode(node.Type()!);
+            CheckTypeAssignableToAndOptionallyElaborate(initializerType, t, node, node.Initializer(), null /*headMessage*/, null);
+            return t;
+        }
+        return initializerType;
+    }
 
     internal Type CheckShorthandPropertyAssignment(Node node, bool inDestructuringPattern, CheckMode checkMode) => throw new NotImplementedException("checkShorthandPropertyAssignment");
 
@@ -1099,7 +1125,8 @@ public partial class Checker
     // Free-function helpers (Go package-level). In-range ones real; others minimal stubs.
     // ===================================================================================
 
-    private static bool IsShorthandAmbientModuleSymbol(Symbol moduleSymbol) => throw new NotImplementedException("isShorthandAmbientModuleSymbol");
+    // utilities.go:175-177
+    private static bool IsShorthandAmbientModuleSymbol(Symbol moduleSymbol) => AstUtilities.IsShorthandAmbientModule(moduleSymbol.ValueDeclaration);
 
 
     // utilities.go:264-266

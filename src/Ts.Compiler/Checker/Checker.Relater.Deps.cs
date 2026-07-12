@@ -70,7 +70,7 @@ public partial class Checker
     // ---- expression checking / contextual (expressions, contextual waves) ----
     // pushContextualType / popContextualType (30633/30637): real bodies in Checker.ContextualType.cs.
     // getEffectiveCheckNode (9357): real body in Checker.CallResolution.Applicability.cs.
-    internal Type CheckArrayLiteral(Node node, CheckMode checkMode) => throw new NotImplementedException("checkArrayLiteral");
+    // checker.go:7998 — checkArrayLiteral: real body landed in Checker.ArrayLiteral.cs.
     // isExactOptionalPropertyMismatch (13076): real body landed in Checker.OperatorExpressions.cs (#8 wave).
 
     // isValidNumberString / isValidBigIntString stubbed in Checker.Inference.Deps.cs.

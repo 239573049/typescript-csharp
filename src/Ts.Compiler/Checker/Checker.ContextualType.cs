@@ -620,4 +620,48 @@ public partial class Checker
         }
         return (links.firstSpreadIndex, links.lastSpreadIndex);
     }
+
+    // checker.go:13547-13553
+    internal bool IsConstContext(Node node)
+    {
+        var parent = node.Parent!;
+        return AstUtilities.IsConstAssertion(parent) ||
+            IsValidConstAssertionArgument(node) && IsConstTypeVariable(GetContextualType(node, ContextFlags.None), 0) ||
+            (NodeTests.IsParenthesizedExpression(parent) || NodeTests.IsArrayLiteralExpression(parent) || NodeTests.IsSpreadElement(parent)) && IsConstContext(parent) ||
+            (NodeTests.IsPropertyAssignment(parent) || NodeTests.IsShorthandPropertyAssignment(parent) || NodeTests.IsTemplateSpan(parent)) && IsConstContext(parent.Parent!);
+    }
+
+    // checker.go:13555-13575
+    internal bool IsValidConstAssertionArgument(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+            case SyntaxKind.NumericLiteral:
+            case SyntaxKind.BigIntLiteral:
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+            case SyntaxKind.ArrayLiteralExpression:
+            case SyntaxKind.ObjectLiteralExpression:
+            case SyntaxKind.TemplateExpression:
+                return true;
+            case SyntaxKind.ParenthesizedExpression:
+                return IsValidConstAssertionArgument(node.Expression()!);
+            case SyntaxKind.PrefixUnaryExpression:
+                var op = node.AsPrefixUnaryExpression().Operator;
+                var arg = node.AsPrefixUnaryExpression().Operand!;
+                return op == SyntaxKind.MinusToken && (arg.Kind == SyntaxKind.NumericLiteral || arg.Kind == SyntaxKind.BigIntLiteral) || op == SyntaxKind.PlusToken && arg.Kind == SyntaxKind.NumericLiteral;
+            case SyntaxKind.PropertyAccessExpression:
+            case SyntaxKind.ElementAccessExpression:
+                var expr = AstUtilities.SkipParentheses(node.Expression()!);
+                Symbol? symbol = null;
+                if (AstUtilities.IsEntityNameExpression(expr))
+                {
+                    symbol = ResolveEntityName(expr, SymbolFlags.Value, true /*ignoreErrors*/, false, null);
+                }
+                return symbol != null && (symbol.Flags & SymbolFlags.Enum) != 0;
+        }
+        return false;
+    }
 }

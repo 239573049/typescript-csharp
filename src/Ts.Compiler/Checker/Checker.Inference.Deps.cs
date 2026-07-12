@@ -65,13 +65,67 @@ public partial class Checker
         return t;
     }
 
-    // getBaseTypeOfLiteralTypeUnion (checker.go) — deferred; not reached by the intrinsic-literal path.
-    internal Type GetBaseTypeOfLiteralTypeUnion(Type t) => throw new NotImplementedException("getBaseTypeOfLiteralTypeUnion");
+    // checker.go:25385-25393
+    internal Type GetBaseTypeOfLiteralTypeUnion(Type t)
+    {
+        var key = new CachedTypeKey(CachedTypeKind.LiteralUnionBaseType, t.id);
+        if (cachedTypes.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+        var result = MapType(t, GetBaseTypeOfLiteralType);
+        cachedTypes[key] = result;
+        return result;
+    }
 
     internal Type RemoveMissingOrUndefinedType(Type type) => throw new NotImplementedException("removeMissingOrUndefinedType");
 
     // ---- const type variables / readonly symbols ----
-    internal bool IsConstTypeVariable(Type? type, int depth) => throw new NotImplementedException("isConstTypeVariable");
+    // checker.go:27967-27994
+    internal bool IsConstTypeVariable(Type? t, int depth)
+    {
+        if (depth >= 5 || t is null)
+        {
+            return false;
+        }
+        if ((t.flags & TypeFlags.TypeParameter) != 0)
+        {
+            return t.symbol != null && CoreUtil.Some(t.symbol.Declarations, d => AstUtilities.HasSyntacticModifier(d, ModifierFlags.Const));
+        }
+        if ((t.flags & TypeFlags.UnionOrIntersection) != 0)
+        {
+            return CoreUtil.Some(t.Types(), s => IsConstTypeVariable(s, depth));
+        }
+        if ((t.flags & TypeFlags.IndexedAccess) != 0)
+        {
+            return IsConstTypeVariable(t.AsIndexedAccessType().objectType, depth + 1);
+        }
+        if ((t.flags & TypeFlags.Conditional) != 0)
+        {
+            return IsConstTypeVariable(GetConstraintOfConditionalType(t), depth + 1);
+        }
+        if ((t.flags & TypeFlags.Substitution) != 0)
+        {
+            return IsConstTypeVariable(t.AsSubstitutionType().baseType, depth);
+        }
+        if ((t.objectFlags & ObjectFlags.Mapped) != 0)
+        {
+            var typeVariable = GetHomomorphicTypeVariable(t);
+            return typeVariable != null && IsConstTypeVariable(typeVariable, depth);
+        }
+        if (IsGenericTupleType(t))
+        {
+            var elementTypes = GetElementTypes(t);
+            for (var i = 0; i < elementTypes.Length; i++)
+            {
+                if ((t.TargetTupleType().elementInfos![i].flags & ElementFlags.Variadic) != 0 && IsConstTypeVariable(elementTypes[i], depth))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     // checker.go:13773 — The following symbols are considered read-only:
     // Properties with a 'readonly' modifier; Variables declared with 'const'; Get accessors without matching
     // set accessors; Enum members; Object.defineProperty assignments with writable false or no setter;

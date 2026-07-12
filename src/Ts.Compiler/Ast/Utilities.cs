@@ -1696,6 +1696,12 @@ public static partial class AstUtilities
         return node != null && (node.Flags & NodeFlags.JavaScriptFile) != 0;
     }
 
+    // utilities.go:1880-1882
+    public static bool IsInJsonFile(Node? node)
+    {
+        return node != null && (node.Flags & NodeFlags.JsonFile) != 0;
+    }
+
     // utilities.go:1697-1699
     public static Node? GetExtendsHeritageClauseElement(Node node)
     {

@@ -112,7 +112,8 @@ public partial class Checker
     internal Type CheckTruthinessExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkTruthinessExpression");
     // CheckReferenceExpression owned by the operator-expressions cluster.
     internal Type CheckDestructuringAssignment(Node exprOrAssignment, Type rightType, CheckMode checkMode, bool rightIsThis) => throw new NotImplementedException("checkDestructuringAssignment");
-    internal bool IsTypeAssertion(Node node) => throw new NotImplementedException("isTypeAssertion");
+    // utilities.go:324-326
+    internal static bool IsTypeAssertion(Node node) => AstUtilities.IsAssertionExpression(AstUtilities.SkipParentheses(node));
 
     // ---- symbol / node location helpers (#10/#11 symbol resolution) ----
     internal Symbol? GetSymbolAtLocation(Node node, bool ignoreErrors) => throw new NotImplementedException("getSymbolAtLocation");

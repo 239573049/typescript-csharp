@@ -45,6 +45,12 @@ public partial class Checker
     // checker.go:13319
     internal Type GetSpreadType(Type left, Type right, Symbol? symbol, ObjectFlags objectFlags, bool @readonly) => throw new NotImplementedException("getSpreadType");
 
+    // checker.go:13462 — deferred; only reached from the object-literal spread path (getSpreadType wave).
+    internal Type TryMergeUnionOfObjectTypeAndEmptyObject(Type t, bool @readonly) => throw new NotImplementedException("tryMergeUnionOfObjectTypeAndEmptyObject");
+
+    // checker.go:13520 — pushContextualType(node, getContextualType(node, None), isCache: true).
+    internal void PushCachedContextualType(Node node) => PushContextualType(node, GetContextualType(node, ContextFlags.None), true /*isCache*/);
+
     // checker.go:13303
     internal void CheckSpreadPropOverrides(Type t, SymbolTable props, Node spread) => throw new NotImplementedException("checkSpreadPropOverrides");
 

@@ -54,7 +54,8 @@ public partial class Checker
 
     // ---- erasable-syntax / isolated-modules flags (options-driven checks, deferred) ----
     // checker.go:2638
-    internal bool ShouldCheckErasableSyntax(Node node) => throw new NotImplementedException("shouldCheckErasableSyntax");
+    // checker.go:2638-2640
+    internal bool ShouldCheckErasableSyntax(Node node) => compilerOptions.ErasableSyntaxOnly.IsTrue() && !AstUtilities.IsInJSFile(node);
     // checker.go:5217
     internal string GetIsolatedModulesLikeFlagName() => throw new NotImplementedException("getIsolatedModulesLikeFlagName");
 
@@ -83,8 +84,72 @@ public partial class Checker
     internal bool HasExportedMembersOfKind(Symbol moduleSymbol, SymbolFlags kind) => throw new NotImplementedException("hasExportedMembersOfKind");
     // checker.go:5726
     internal bool HasShadowedNamespace(Symbol symbol) => throw new NotImplementedException("hasShadowedNamespace");
-    // checker.go:6938
-    internal DeclarationSpaces GetDeclarationSpaces(Node node) => throw new NotImplementedException("getDeclarationSpaces");
+    // checker.go:6938-6977
+    internal DeclarationSpaces GetDeclarationSpaces(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.JSDocTypedefTag:
+            case SyntaxKind.JSDocCallbackTag:
+                return DeclarationSpaces.ExportType;
+            case SyntaxKind.ModuleDeclaration:
+                if (AstUtilities.IsAmbientModule(node) || AstUtilities.GetModuleInstanceState(node) != ModuleInstanceState.NonInstantiated)
+                {
+                    return DeclarationSpaces.ExportNamespace | DeclarationSpaces.ExportValue;
+                }
+                return DeclarationSpaces.ExportNamespace;
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.EnumDeclaration:
+            case SyntaxKind.EnumMember:
+                return DeclarationSpaces.ExportType | DeclarationSpaces.ExportValue;
+            case SyntaxKind.SourceFile:
+                return DeclarationSpaces.ExportType | DeclarationSpaces.ExportValue | DeclarationSpaces.ExportNamespace;
+            case SyntaxKind.ExportAssignment:
+            case SyntaxKind.BinaryExpression:
+                {
+                    Node expression;
+                    if (NodeTests.IsExportAssignment(node))
+                    {
+                        expression = node.Expression()!;
+                    }
+                    else
+                    {
+                        expression = node.AsBinaryExpression().Right!;
+                    }
+                    // Export assigned entity name expressions act as aliases and should fall through, otherwise they export values.
+                    if (!AstUtilities.IsEntityNameExpression(expression) || (GetSymbolOfDeclaration(node)!.Flags & SymbolFlags.Alias) == 0)
+                    {
+                        return DeclarationSpaces.ExportValue;
+                    }
+                    // The below options all declare an Alias, which is allowed to merge with other values within the importing module.
+                    goto case SyntaxKind.ImportEqualsDeclaration;
+                }
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.NamespaceImport:
+            case SyntaxKind.ImportClause:
+                {
+                    var result = DeclarationSpaces.None;
+                    var target = ResolveAliasCore(GetSymbolOfDeclaration(node)!);
+                    foreach (var d in target.Declarations ?? [])
+                    {
+                        result |= GetDeclarationSpaces(d);
+                    }
+                    return result;
+                }
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.ImportSpecifier:
+                return DeclarationSpaces.ExportValue;
+            case SyntaxKind.MethodSignature:
+            case SyntaxKind.PropertySignature:
+                return DeclarationSpaces.ExportType;
+        }
+        throw new global::System.InvalidOperationException("Unhandled case in getDeclarationSpaces: " + node.Kind);
+    }
     // checker.go:3687
     // getEffectiveDeclarationFlags 3687: real body landed in Checker.FunctionOrConstructorSymbol.cs.
 

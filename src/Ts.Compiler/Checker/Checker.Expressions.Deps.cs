@@ -42,8 +42,7 @@ public partial class Checker
     // checker.go:7989
     internal Type CheckRegularExpressionLiteral(Node node) => throw new NotImplementedException("checkRegularExpressionLiteral");
 
-    // checker.go:13094
-    internal Type CheckObjectLiteral(Node node, CheckMode checkMode) => throw new NotImplementedException("checkObjectLiteral");
+    // checker.go:13094 — checkObjectLiteral: real body landed in Checker.ObjectLiteral.cs.
 
     // checker.go:11216 — checkPropertyAccessExpression: real body landed in Checker.PropertyAccess.cs.
 

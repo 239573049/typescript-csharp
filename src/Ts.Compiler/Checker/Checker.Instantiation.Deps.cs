@@ -20,10 +20,11 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // ---- apparent type: global lib types (#construction / lib-resolution) ----
-    // checker.go:21654, 21658 — getGlobalBigIntType() / getGlobalESSymbolType().
-    internal Type GetGlobalBigIntType() => throw new NotImplementedException("getGlobalBigIntType");
+    // checker.go:21654, 21658 — getGlobalBigIntType() / getGlobalESSymbolType(): the resolver funcs are
+    // memoized in the constructor (Checker.Construction.cs); these wrappers invoke them.
+    internal Type GetGlobalBigIntType() => getGlobalBigIntType();
 
-    internal Type GetGlobalESSymbolType() => throw new NotImplementedException("getGlobalESSymbolType");
+    internal Type GetGlobalESSymbolType() => getGlobalESSymbolType();
 
     // ---- mapped types (#15 type nodes) ----
     // getModifiersTypeFromMappedType (27956) implemented in Checker.Constraints.cs (#19).

@@ -17,8 +17,6 @@ public sealed class CompilerBaselineRunnerTests
     // Removing a name makes a regression fail instead of silently broadening the gate.
     private static readonly HashSet<string> s_checkerWipAllowlist = new(StringComparer.Ordinal)
     {
-        "assignFromStringInterface",
-        "commaOperatorInvalidAssignmentType",
         "invalidAssignmentsToVoid",
         "invalidVoidAssignments",
         // boolInsteadOfBoolean now byte-matches: default-lib loading via triple-slash
@@ -29,7 +27,6 @@ public sealed class CompilerBaselineRunnerTests
         "assignmentCompatWithObjectMembersOptionality",
         "typeParameterAssignability",
         "callSignatureWithOptionalParameterAndInitializer",
-        "parserErrorRecovery_ArgumentList1",
         "trailingCommasInBindingPatterns",
     };
 

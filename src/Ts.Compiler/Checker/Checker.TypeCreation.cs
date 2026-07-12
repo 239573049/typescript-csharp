@@ -123,16 +123,74 @@ public partial class Checker
         data.indexInfos = indexInfos;
     }
 
-    // MINIMAL-BUILD: the real getNamedMembers (named-member filtering) is a later wave. During
-    // construction every caller passes null members, so [] is correct there.
-    internal Symbol[] GetNamedMembers(SymbolTable? members, Symbol? symbol)
+    // checker.go:21954-21979
+    internal Symbol[] GetNamedMembers(SymbolTable? members, Symbol? container)
     {
         if (members is null || members.Count == 0)
         {
             return [];
         }
-        // PORT-NOTE: skeleton placeholder; real getNamedMembers filters computed/reserved names.
-        return [.. members.Values];
+        // For classes and interfaces, we store explicitly declared members ahead of inherited members. This ensures we process
+        // explicitly declared members first in type relations, which is beneficial because explicitly declared members are more
+        // likely to contain discriminating differences. See for example https://github.com/microsoft/typescript-go/issues/1968.
+        List<Symbol> result = new(members.Count);
+        int containedCount = 0;
+        if (container != null && (container.Flags & (SymbolFlags.Class | SymbolFlags.Interface)) != 0)
+        {
+            // map-iter: 序无关 —— result is sorted below via sortSymbols(result[:containedCount]).
+            foreach (var (id, symbol) in members)
+            {
+                if (IsNamedMember(symbol, id) && IsDeclarationContainedBy(symbol, container))
+                {
+                    result.Add(symbol);
+                }
+            }
+            containedCount = result.Count;
+        }
+        // map-iter: 序无关 —— result is sorted below via sortSymbols(result[containedCount:]).
+        foreach (var (id, symbol) in members)
+        {
+            if (IsNamedMember(symbol, id) && (container == null || (container.Flags & (SymbolFlags.Class | SymbolFlags.Interface)) == 0 || !IsDeclarationContainedBy(symbol, container)))
+            {
+                result.Add(symbol);
+            }
+        }
+        SortSymbols(result, 0, containedCount);
+        SortSymbols(result, containedCount, result.Count);
+        return result.ToArray();
+    }
+
+    // checker.go:21981-21990
+    internal bool IsDeclarationContainedBy(Symbol symbol, Symbol container)
+    {
+        var declaration = symbol.ValueDeclaration;
+        if (declaration != null)
+        {
+            foreach (var d in container.Declarations ?? [])
+            {
+                if (declaration.Loc.ContainedBy(d.Loc))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // checker.go:21992-21994
+    internal bool IsNamedMember(Symbol symbol, string id) => !IsReservedMemberName(id) && SymbolIsValue(symbol);
+
+    // utilities.go:1599-1601
+    internal static bool IsReservedMemberName(string name) =>
+        name.Length >= 2 && name[0] == '\xFE' && name[1] != '@' && name[1] != '#';
+
+    // utilities.go:339-341 — sortSymbols over the [start, end) subrange (slices.SortFunc is non-stable).
+    private void SortSymbols(List<Symbol> symbols, int start, int end)
+    {
+        if (end - start > 1)
+        {
+            symbols.Sort(start, end - start, Comparer<Symbol>.Create((a, b) => compareSymbols(a, b)));
+        }
     }
 
     // checker.go:25076-25080

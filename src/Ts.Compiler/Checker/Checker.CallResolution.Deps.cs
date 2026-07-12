@@ -188,8 +188,118 @@ public partial class Checker
     // checker.go:29340/29369 — binding-element / static-property contextual type (binding/JS clusters).
     private Type? GetContextualTypeForBindingElement(Node declaration, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForBindingElement");
     private Type? GetContextualTypeForStaticPropertyDeclaration(Node declaration, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForStaticPropertyDeclaration");
-    // checker.go:29600 — assignment-expression contextual type (JS assignment-declaration cluster).
-    private Type? GetContextualTypeForAssignmentExpression(BinaryExpression binary) => throw new NotImplementedException("getContextualTypeForAssignmentExpression");
+    // checker.go:29600-29675 — assignment-expression contextual type (JS assignment-declaration cluster).
+    private Type? GetContextualTypeForAssignmentExpression(BinaryExpression binary)
+    {
+        var left = binary.Left!;
+        if (AstUtilities.IsAccessExpression(left))
+        {
+            var expr = left.Expression()!;
+            switch (expr.Kind)
+            {
+                case SyntaxKind.Identifier:
+                    {
+                        var symbol = GetExportSymbolOfValueSymbolIfExported(GetResolvedSymbol(expr))!;
+                        if ((symbol.Flags & SymbolFlags.ModuleExports) != 0)
+                        {
+                            // No contextual type for an expression of the form 'module.exports = expr'.
+                            return null;
+                        }
+                        if (binary.Symbol != null)
+                        {
+                            // We have an assignment declaration (a binary expression with a symbol assigned by the binder) of the form
+                            // 'F.id = expr' or 'F[xxx] = expr'. If 'F' is declared as a variable with a type annotation, we can obtain a
+                            // contextual type from the annotated type without triggering a circularity. Otherwise, the assignment
+                            // declaration has no contextual type.
+                            if (symbol.ValueDeclaration != null && NodeTests.IsVariableDeclaration(symbol.ValueDeclaration))
+                            {
+                                var typeNode = symbol.ValueDeclaration.Type();
+                                if (typeNode != null)
+                                {
+                                    if (NodeTests.IsPropertyAccessExpression(left))
+                                    {
+                                        return GetTypeOfPropertyOfContextualType(GetTypeFromTypeNode(typeNode), left.Name()!.Text());
+                                    }
+                                    var nameType = CheckExpressionCached(left.AsElementAccessExpression().ArgumentExpression!);
+                                    if (IsTypeUsableAsPropertyName(nameType))
+                                    {
+                                        return GetTypeOfPropertyOfContextualTypeEx(GetTypeFromTypeNode(typeNode), GetPropertyNameFromType(nameType), nameType);
+                                    }
+                                    return GetTypeOfExpression(left);
+                                }
+                            }
+                            return null;
+                        }
+                        break;
+                    }
+                case SyntaxKind.PropertyAccessExpression:
+                case SyntaxKind.ElementAccessExpression:
+                    if (binary.Symbol != null)
+                    {
+                        return null;
+                    }
+                    break;
+                case SyntaxKind.ThisKeyword:
+                    {
+                        Symbol? symbol = null;
+                        var thisType = GetTypeOfExpression(expr);
+                        if (NodeTests.IsPropertyAccessExpression(left))
+                        {
+                            var name = left.Name()!;
+                            if (NodeTests.IsPrivateIdentifier(name))
+                            {
+                                if (thisType.symbol != null)
+                                {
+                                    symbol = GetPropertyOfType(thisType, global::Ts.Binder.Binder.GetSymbolNameForPrivateIdentifier(thisType.symbol, name.Text()));
+                                }
+                            }
+                            else
+                            {
+                                symbol = GetPropertyOfType(thisType, name.Text());
+                            }
+                        }
+                        else
+                        {
+                            var propType = CheckExpressionCached(left.AsElementAccessExpression().ArgumentExpression!);
+                            if (IsTypeUsableAsPropertyName(propType))
+                            {
+                                symbol = GetPropertyOfType(thisType, GetPropertyNameFromType(propType));
+                            }
+                        }
+                        if (symbol != null)
+                        {
+                            var d = symbol.ValueDeclaration;
+                            if (d != null && (NodeTests.IsPropertyDeclaration(d) || NodeTests.IsPropertySignatureDeclaration(d)) && d.Type() == null && d.Initializer() == null)
+                            {
+                                // No contextual type for 'this.xxx = expr', where xxx is declared as a property with no type annotation or initializer.
+                                return null;
+                            }
+                        }
+                        if (binary.Symbol != null && binary.Symbol.ValueDeclaration != null && binary.Symbol.ValueDeclaration.Type() == null)
+                        {
+                            // We have an assignment declaration 'this.xxx = expr' with no (synthetic) type annotation
+                            if (!AstUtilities.IsObjectLiteralMethod(AstUtilities.GetThisContainer(expr, false, false)))
+                            {
+                                return null;
+                            }
+                            // and now for one single case of object literal methods
+                            var name = AstUtilities.GetElementOrPropertyAccessName(left);
+                            if (name == null)
+                            {
+                                return null;
+                            }
+                            else
+                            {
+                                // !!! contextual typing for `this` in object literals
+                                return null;
+                            }
+                        }
+                        break;
+                    }
+            }
+        }
+        return GetTypeOfExpression(left);
+    }
     // checker.go:30312 — property-of-contextual-type over intersections/mapped types (large; deferred).
     private Type? GetTypeOfPropertyOfContextualTypeEx(Type t, string name, Type? nameType) => throw new NotImplementedException("getTypeOfPropertyOfContextualTypeEx");
     // checker.go:30469 — object-literal discrimination of union contextual types (discriminant cluster).

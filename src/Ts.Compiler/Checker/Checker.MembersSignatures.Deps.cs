@@ -19,7 +19,20 @@ public partial class Checker
     // ---- expressions (#7/#8) ----
     // checkExpressionCachedEx (7494) / checkExpressionEx (7534): real bodies landed in
     // Checker.Expressions.cs (#7 wave) — stubs removed from here.
-    internal Type CheckExpressionForMutableLocation(Node node, CheckMode checkMode) => throw new NotImplementedException("checkExpressionForMutableLocation");
+    // checker.go:13077-13092
+    internal Type CheckExpressionForMutableLocation(Node node, CheckMode checkMode)
+    {
+        var t = CheckExpressionEx(node, checkMode);
+        if (IsConstContext(node))
+        {
+            return GetRegularTypeOfLiteralType(t);
+        }
+        if (IsTypeAssertion(node))
+        {
+            return t;
+        }
+        return GetWidenedLiteralLikeTypeForContextualType(t, InstantiateContextualType(GetContextualType(node, ContextFlags.None), node, ContextFlags.None));
+    }
     // checker.go:29130 — checkNonNullType (checker.go:29134) still stubbed (Checker.Flow.Deps.cs).
     internal Type CheckNonNullExpression(Node node) => CheckNonNullType(CheckExpression(node), node);
     // checkIteratedTypeOrElementType (6074): real body landed in Checker.IterationTypes.cs (iteration wave).
@@ -60,7 +73,7 @@ public partial class Checker
         }
         return t;
     }
-    internal bool IsConstContext(Node node) => throw new NotImplementedException("isConstContext");
+    // isConstContext / isValidConstAssertionArgument (checker.go) implemented in Checker.Inference.cs.
     // isConstantReference: owned by flow.go — real body in Checker.Flow.cs.
     // GetTypeOfExpression is now REAL in Checker.QuickType.cs (checker.go:7314).
     internal Type GetYieldedTypeOfYieldExpression(Node node, Type yieldExprType, Type sentType, bool isAsync) => throw new NotImplementedException("getYieldedTypeOfYieldExpression");
@@ -77,7 +90,7 @@ public partial class Checker
     }
     // getSymbolOfNode 14326: real body landed in Checker.SymbolResolution.cs.
     // symbolIsValueEx / createSymbolWithType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
-    internal bool IsNamedMember(Symbol symbol, string id) => throw new NotImplementedException("isNamedMember");
+    // isNamedMember (checker.go:21992) implemented in Checker.TypeCreation.cs alongside getNamedMembers.
     internal Symbol GetSpreadSymbol(Symbol prop, bool isReadonly) => throw new NotImplementedException("getSpreadSymbol");
     // utilities.go:690 — delegates to the Ex form landed in Checker.PropertyAccess.cs.
     internal static ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => GetDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/);
@@ -104,7 +117,15 @@ public partial class Checker
     // checker.go:25011-25013
     internal Type CreateTypeReference(Type target, Type[]? typeArguments) =>
         CreateTypeReferenceEx(target, typeArguments, ObjectFlags.None);
-    internal Type CloneTypeReference(Type source) => throw new NotImplementedException("cloneTypeReference");
+    // checker.go — cloneTypeReference(source)
+    internal Type CloneTypeReference(Type source)
+    {
+        var t = NewObjectType(ObjectFlags.Reference, source.symbol);
+        t.objectFlags = source.objectFlags & ~ObjectFlags.MembersResolved;
+        t.AsTypeReference()!.target = source.AsTypeReference()!.target;
+        t.AsTypeReference()!.resolvedTypeArguments = source.AsTypeReference()!.resolvedTypeArguments;
+        return t;
+    }
 
     // ---- union / intersection (#17) ----
     // getUnionTypeEx / getUnionOrIntersectionType / filterType / isEmptyObjectType / isPatternLiteralType
@@ -138,7 +159,12 @@ public partial class Checker
     // isTypeAssignableToKind (27507) implemented in Checker.Constraints.cs (#19).
     internal bool IsValidSpreadType(Type t) => throw new NotImplementedException("isValidSpreadType");
     // isMatchingReference: owned by flow.go — real body in Checker.Flow.cs.
-    internal bool HasDefaultValue(Node node) => throw new NotImplementedException("hasDefaultValue");
+    // checker.go:13540-13545
+    internal bool HasDefaultValue(Node node) =>
+        NodeTests.IsBindingElement(node) && node.Initializer() != null ||
+        NodeTests.IsPropertyAssignment(node) && HasDefaultValue(node.Initializer()!) ||
+        NodeTests.IsShorthandPropertyAssignment(node) && node.AsShorthandPropertyAssignment().ObjectAssignmentInitializer != null ||
+        NodeTests.IsBinaryExpression(node) && node.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.EqualsToken;
 
     // ---- flow ----
     // getFlowNodeOfNode / getFlowTypeOfReference / getFlowTypeOfReferenceEx / isReachableFlowNode /
@@ -178,7 +204,38 @@ public partial class Checker
     // GetThisParameter is now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs); call sites use
     // AstUtilities.GetThisParameter directly.
     internal static Node? GetSetAccessorValueParameter(Node accessor) => throw new NotImplementedException("GetSetAccessorValueParameter");
-    internal static string GetPropertyNameForPropertyNameNode(Node name) => throw new NotImplementedException("ast.GetPropertyNameForPropertyNameNode");
+    // ast/utilities.go:3141-3161
+    internal static string GetPropertyNameForPropertyNameNode(Node name)
+    {
+        switch (name.Kind)
+        {
+            case SyntaxKind.Identifier:
+            case SyntaxKind.PrivateIdentifier:
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+            case SyntaxKind.NumericLiteral:
+            case SyntaxKind.BigIntLiteral:
+            case SyntaxKind.JsxNamespacedName:
+                return name.Text();
+            case SyntaxKind.ComputedPropertyName:
+                var nameExpression = name.Expression()!;
+                if (AstUtilities.IsStringOrNumericLiteralLike(nameExpression))
+                {
+                    return nameExpression.Text();
+                }
+                if (AstUtilities.IsSignedNumericLiteral(nameExpression))
+                {
+                    var text = nameExpression.AsPrefixUnaryExpression().Operand!.Text();
+                    if (nameExpression.AsPrefixUnaryExpression().Operator == SyntaxKind.MinusToken)
+                    {
+                        text = "-" + text;
+                    }
+                    return text;
+                }
+                return InternalSymbolName.Missing;
+        }
+        throw new global::System.InvalidOperationException("Unhandled case in getPropertyNameForPropertyNameNode");
+    }
     // ast/utilities.go:2074 — delegates to the ast utility now that it has landed.
     internal static bool IsImportCall(Node node) => AstUtilities.IsImportCall(node);
     internal static bool IsLateBoundName(string name) => throw new NotImplementedException("isLateBoundName");
