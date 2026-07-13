@@ -5,7 +5,6 @@ namespace Ts.Cli;
 internal static class Program
 {
     // Mirrors cmd/tsgo/main.go: one binary dispatching on --lsp / --api / default tsc CLI.
-    // The tsc path is the type-check-and-report subset (Ts.Execute); --lsp / --api land in later phases.
     private static int Main(string[] args)
     {
         // cmd/tsgo/main.go:20-27 — mode dispatch.
@@ -14,8 +13,17 @@ internal static class Program
             switch (args[0])
             {
                 case "--lsp":
-                    Console.Error.WriteLine("tscs: '--lsp' is not implemented yet (language service is a later phase).");
-                    return 1;
+                    var lspSystem = global::Ts.Execute.OsSystem.New();
+                    var server = new global::Ts.Lsp.Server(new global::Ts.Lsp.ServerOptions
+                    {
+                        In = Console.OpenStandardInput(),
+                        Out = Console.OpenStandardOutput(),
+                        Err = Console.Error,
+                        Cwd = lspSystem.GetCurrentDirectory(),
+                        FileSystem = lspSystem.FS(),
+                        DefaultLibraryPath = lspSystem.DefaultLibraryPath(),
+                    });
+                    return server.Run();
                 case "--api":
                     Console.Error.WriteLine("tscs: '--api' is not implemented yet (API server is a later phase).");
                     return 1;

@@ -64,14 +64,44 @@ public static partial class CompilerBaselineRunner
         new("es7/trailingCommasInBindingPatterns.ts", "trailingCommasInBindingPatterns.errors.txt"),
     ];
 
+    // Go harnessutil.HarnessOptions field set (harnessutil.go:62-77): these directives are routed
+    // to harness options by SetOptionsFromTestConfig and must never reach the compiler option
+    // parser (an unknown-option diagnostic would corrupt the errors baseline). Options that only
+    // affect types/js baselines (noTypesAndSymbols, fullEmitPaths, ...) are ignorable for the
+    // errors.txt wave; behavior-affecting ones (useCaseSensitiveFileNames, libFiles, ...) simply
+    // stay non-matching and land in failingCases.txt until honored.
     private static readonly HashSet<string> s_harnessOnlyOptions = new(StringComparer.Ordinal)
     {
+        "baselinefile",
+        "capturesuggestions",
         "currentdirectory",
         "filename",
+        "fullemitpaths",
+        "includebuiltfile",
+        "libfiles",
         "link",
         "noimplicitreferences",
+        "notypesandsymbols",
+        "reportdiagnostics",
         "symlink",
+        "typescriptversion",
+        "usecasesensitivefilenames",
     };
+
+    // The bundled lib texts are identical for every case; reading the ~90 files from disk once
+    // keeps the multi-hundred-case corpus wave IO-bound on test inputs only.
+    private static readonly Lazy<IReadOnlyDictionary<string, string>> s_bundledLibContents = new(
+        () =>
+        {
+            string bundledLibRoot = Path.Combine(RepoPaths.RootPath, "src", "Ts.Compiler", "Bundled", "libs");
+            var contents = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (string libName in global::Ts.Bundled.Bundled.LibNames)
+            {
+                contents[libName] = File.ReadAllText(Path.Combine(bundledLibRoot, libName), Encoding.UTF8);
+            }
+            return contents;
+        },
+        LazyThreadSafetyMode.ExecutionAndPublication);
 
     public static ConformanceRunSummary RunCurated()
     {
@@ -104,8 +134,32 @@ public static partial class CompilerBaselineRunner
                 Matched: false,
                 referencePresent,
                 DiagnosticCount: 0,
-                Failure: exception.GetType().Name + ": " + exception.Message);
+                Failure: DescribeException(exception));
         }
+    }
+
+    // Failure text used for root-cause clustering: exception type + message + the first Ts.* stack
+    // frame (NotImplementedException stub messages are otherwise indistinguishable). The frame is
+    // located by substring so localized stack-trace prefixes ("at"/"在") do not matter.
+    public static string DescribeException(Exception exception)
+    {
+        string head = exception.GetType().Name + ": " + exception.Message.ReplaceLineEndings(" ");
+        string? trace = exception.StackTrace;
+        if (trace is not null)
+        {
+            foreach (string line in trace.Split('\n'))
+            {
+                int start = line.IndexOf("Ts.", StringComparison.Ordinal);
+                if (start < 0)
+                {
+                    continue;
+                }
+                int paren = line.IndexOf('(', start);
+                string frame = paren > start ? line[start..paren] : line[start..].TrimEnd();
+                return head + " @ " + frame;
+            }
+        }
+        return head;
     }
 
     private static ConformanceCaseResult RunOneCore(
@@ -144,12 +198,10 @@ public static partial class CompilerBaselineRunner
 
         // The product-side bundled.WrapFS equivalent is not exported yet. Load the generated lib
         // copies into this test VFS so Program sees the same `/.lib` namespace as the Go harness.
-        string bundledLibRoot = Path.Combine(RepoPaths.RootPath, "src", "Ts.Compiler", "Bundled", "libs");
-        foreach (string libName in global::Ts.Bundled.Bundled.LibNames)
+        // map-iter: 序无关 — dictionary insertion into the VFS map; VFS lookup is by path.
+        foreach ((string libName, string libContent) in s_bundledLibContents.Value)
         {
-            string diskPath = Path.Combine(bundledLibRoot, libName);
-            vfsEntries[global::Ts.TsPath.TsPath.CombinePaths(LibraryFolder, libName)] =
-                File.ReadAllText(diskPath, Encoding.UTF8);
+            vfsEntries[global::Ts.TsPath.TsPath.CombinePaths(LibraryFolder, libName)] = libContent;
         }
 
         // map-iter: 已排序 — symlink creation order is deterministic and has no output effect.
@@ -208,7 +260,7 @@ public static partial class CompilerBaselineRunner
             // The checker is being ported concurrently. Preserve and baseline every completed
             // compiler stage instead of losing syntactic diagnostics when a later checker stub
             // throws; the result remains non-matching and is Skip-gated with this precise reason.
-            checkerFailure = exception.GetType().Name + ": " + exception.Message;
+            checkerFailure = DescribeException(exception);
         }
         Diagnostic[] sortedDiagnostics = Program.SortAndDeduplicateDiagnostics(diagnostics.ToArray());
 

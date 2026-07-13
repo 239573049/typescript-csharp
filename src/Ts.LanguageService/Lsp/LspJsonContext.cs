@@ -1,0 +1,38 @@
+using System.Text.Json.Serialization;
+
+namespace Ts.LsProto;
+
+[JsonSourceGenerationOptions(
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    GenerationMode = JsonSourceGenerationMode.Serialization,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(InitializeParams))]
+[JsonSerializable(typeof(InitializeResult))]
+[JsonSerializable(typeof(DidOpenTextDocumentParams))]
+[JsonSerializable(typeof(DidChangeTextDocumentParams))]
+[JsonSerializable(typeof(DidCloseTextDocumentParams))]
+[JsonSerializable(typeof(HoverParams))]
+[JsonSerializable(typeof(Hover))]
+[JsonSerializable(typeof(DefinitionParams))]
+[JsonSerializable(typeof(Definition))]
+[JsonSerializable(typeof(CompletionParams))]
+[JsonSerializable(typeof(CompletionList))]
+[JsonSerializable(typeof(CompletionItem))]
+[JsonSerializable(typeof(PublishDiagnosticsParams))]
+[JsonSerializable(typeof(Diagnostic))]
+[JsonSerializable(typeof(Position))]
+[JsonSerializable(typeof(Range))]
+[JsonSerializable(typeof(Location))]
+[JsonSerializable(typeof(Location[]))]
+[JsonSerializable(typeof(TextDocumentSyncOptions))]
+[JsonSerializable(typeof(SaveOptions))]
+[JsonSerializable(typeof(HoverOptions))]
+[JsonSerializable(typeof(DefinitionOptions))]
+[JsonSerializable(typeof(TextDocumentContentChangePartial))]
+[JsonSerializable(typeof(TextDocumentContentChangeWholeDocument))]
+[JsonSerializable(typeof(MarkupContent))]
+[JsonSerializable(typeof(MarkedStringWithLanguage))]
+[JsonSerializable(typeof(StringOrMarkedStringWithLanguage[]))]
+public sealed partial class LspJsonContext : JsonSerializerContext
+{
+}
