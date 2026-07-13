@@ -1,9 +1,9 @@
 // Ported from tsgo internal/execute/tsc/diagnostics.go (the reporter surface).
 //
 // SCOPE (type-check-and-report): CreateDiagnosticReporter, CreateReportErrorSummary, the pretty/plain
-// selection (shouldBePretty/defaultIsPretty), and getFormatOptsOfSys are ported. The colors struct
-// (bold/blue/blueBackground/brightWhite) and the build/watch status reporters are out of scope for
-// this wave (they serve --build / --watch, which are stubbed) and are not ported here.
+// selection (shouldBePretty/defaultIsPretty), getFormatOptsOfSys, and the build/watch status
+// reporters are ported. The colors struct (bold/blue/blueBackground/brightWhite) remains deferred;
+// the status formatters themselves already own the color/no-color rendering used here.
 //
 // §1.5: the diagnosticwriter is a sibling namespace; its static class is fully qualified with global::.
 // PORT-NOTE: tsgo wraps ast.Diagnostic via diagnosticwriter.WrapASTDiagnostic; the C# diagnosticwriter
@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Ts.Ast;
 using Ts.Core;
 using Ts.DiagnosticWriter;
@@ -103,5 +104,63 @@ public static class DiagnosticReporters
             };
         }
         return QuietDiagnosticsReporter;
+    }
+
+    // diagnostics.go:144-160
+    public static DiagnosticReporter CreateBuilderStatusReporter(
+        ISystem sys,
+        System.IO.TextWriter w,
+        global::Ts.Locale.Locale locale,
+        CompilerOptions options,
+        ICommandLineTesting? testing)
+    {
+        if (options.Quiet.IsTrue())
+        {
+            return QuietDiagnosticReporter;
+        }
+
+        var formatOpts = GetFormatOptsOfSys(sys, locale);
+        return diagnostic =>
+        {
+            testing?.OnBuildStatus(diagnostic.Localize(locale));
+            string time = sys.Now().ToString("hh:mm:ss tt", CultureInfo.InvariantCulture);
+            if (ShouldBePretty(sys, options))
+            {
+                global::Ts.DiagnosticWriter.DiagnosticWriter.FormatDiagnosticsStatusWithColorAndTime(w, time, diagnostic, formatOpts);
+            }
+            else
+            {
+                global::Ts.DiagnosticWriter.DiagnosticWriter.FormatDiagnosticsStatusAndTime(w, time, diagnostic, formatOpts);
+            }
+            w.Write(formatOpts.NewLine);
+            w.Write(formatOpts.NewLine);
+        };
+    }
+
+    // diagnostics.go:162-178
+    public static DiagnosticReporter CreateWatchStatusReporter(
+        ISystem sys,
+        global::Ts.Locale.Locale locale,
+        CompilerOptions options,
+        ICommandLineTesting? testing)
+    {
+        var formatOpts = GetFormatOptsOfSys(sys, locale);
+        return diagnostic =>
+        {
+            testing?.OnWatchStatus(diagnostic.Localize(locale));
+            var writer = sys.Writer();
+            global::Ts.DiagnosticWriter.DiagnosticWriter.TryClearScreen(writer, diagnostic, options);
+            string time = sys.Now().ToString("hh:mm:ss tt", CultureInfo.InvariantCulture);
+            if (ShouldBePretty(sys, options))
+            {
+                global::Ts.DiagnosticWriter.DiagnosticWriter.FormatDiagnosticsStatusWithColorAndTime(writer, time, diagnostic, formatOpts);
+            }
+            else
+            {
+                global::Ts.DiagnosticWriter.DiagnosticWriter.FormatDiagnosticsStatusAndTime(writer, time, diagnostic, formatOpts);
+            }
+            writer.Write(formatOpts.NewLine);
+            writer.Write(formatOpts.NewLine);
+        };
     }
 }

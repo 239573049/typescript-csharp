@@ -18,9 +18,16 @@ public enum ExitStatus
     NotImplemented = 5,
 }
 
-// tsc.go:45-48 — the CommandLine driver's result. The Watcher surface is out of scope for the
-// type-check-and-report wave, so this carries only the status.
+// compile.go:45-48 — watcher returned by watch-mode command lines. Go exposes DoCycle to the
+// deterministic watch tests; IDisposable is the C# lifetime equivalent of closing all watches.
+public interface IExecuteWatcher : System.IDisposable
+{
+    void DoCycle();
+}
+
+// tsc.go:45-48 — the CommandLine driver's result.
 public sealed class CommandLineResult
 {
     public ExitStatus Status;
+    public IExecuteWatcher? Watcher;
 }

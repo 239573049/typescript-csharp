@@ -1,220 +1,397 @@
-// Ported from tsgo internal/execute/tsc.go (CommandLine / tscCompilation / performCompilation) and
-// internal/execute/tsc/emit.go (EmitFilesAndReportErrors / EmitAndReportStatistics).
+// Ported from tsgo internal/execute/tsc.go (CommandLine, tscCompilation,
+// tscBuildCompilation, performCompilation) and internal/execute/tsc/emit.go.
 //
-// SCOPE (CLI wave — tsc type-check-and-report subset, phase 7): this drives the `tscs file.ts` path:
-// parse argv → build a Program from the command-line file names → collect syntactic + program + global
-// + semantic diagnostics → format them through the diagnosticwriter → report a summary → set the exit
-// code. This is exactly the --noEmit behaviour (type-check and report only).
-//
-// DELIBERATELY OUT OF SCOPE (stubbed with PORT-NOTE, this wave does type-check-and-report only):
-//   * emit (Program.Emit is a phase 6 deliverable — printer/transformers). We never call Emit; the
-//     result is treated as EmitSkipped, i.e. the --noEmit path.
-//   * --watch / -b|--build / incremental / .tsbuildinfo — the watcher, build orchestrator and
-//     incremental program are not ported. `tscs --build` and `tscs --watch` report "not implemented".
-//   * tsconfig.json loading (GetParsedCommandLineOfConfigFile is a phase 4 stub) — the config-file
-//     compilation path is stubbed; only the command-line-file path runs.
-//   * --init / --showConfig / pprof / tracing / statistics.
-//
-// §1.5 (namespace shadowing): sibling-namespace static classes / types are fully qualified with global::.
+// This file owns the CLI dispatcher and shared full-compilation primitive. Watch-session mechanics
+// live in Watcher.cs; the dependency graph and --build orchestration live in Build.cs.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Ts.Ast;
-using Ts.Compiler;
-using Ts.Core;
 
 namespace Ts.Execute;
 
-// Named Tsc (not Execute) to avoid the §1.5 namespace-shadowing trap: a static class named `Execute`
-// inside namespace `Ts.Execute` shadows against the namespace tail, so unqualified `Execute.CommandLine`
-// resolves the namespace instead of the class. Tsc mirrors Go's `execute.CommandLine` entry point.
+internal sealed class CompilationOutcome
+{
+    internal global::Ts.Compiler.Program Program = null!;
+    internal global::Ts.Ast.Diagnostic[] Diagnostics = Array.Empty<global::Ts.Ast.Diagnostic>();
+    internal ExitStatus Status;
+}
+
+// Named Tsc (not Execute) to avoid the plan/05 §1.5 namespace-tail shadowing trap.
 public static class Tsc
 {
-    // tsc.go:52-63 — the entry dispatcher. -b/--build routes to the (stubbed) build path; everything
-    // else routes to tsc compilation.
     public static CommandLineResult CommandLine(ISystem sys, string[] commandLineArgs)
+    {
+        return CommandLine(sys, commandLineArgs, testing: null);
+    }
+
+    // tsc.go:52-63 — entry dispatcher. The large-stack boundary covers argv/config parsing and every
+    // parse/bind/check/emit path, including the production watch loop.
+    public static CommandLineResult CommandLine(
+        ISystem sys,
+        string[] commandLineArgs,
+        ICommandLineTesting? testing)
+    {
+        return global::Ts.Core.LargeStackExecutor.Run(() => CommandLineWorker(sys, commandLineArgs, testing));
+    }
+
+    private static CommandLineResult CommandLineWorker(
+        ISystem sys,
+        string[] commandLineArgs,
+        ICommandLineTesting? testing)
     {
         if (commandLineArgs.Length > 0)
         {
-            // Go: switch strings.ToLower(commandLineArgs[0]). These flags are ASCII, so an
-            // ordinal-ignore-case comparison is exact and avoids the banned culture-sensitive ToLower.
             string first = commandLineArgs[0];
             if (EqualsOrdinalIgnoreCase(first, "-b") ||
                 EqualsOrdinalIgnoreCase(first, "--b") ||
                 EqualsOrdinalIgnoreCase(first, "-build") ||
                 EqualsOrdinalIgnoreCase(first, "--build"))
             {
-                // PORT-NOTE (deferred): the build orchestrator (execute/build) is out of scope for the
-                // type-check-and-report wave.
-                sys.Writer().Write("tscs: --build is not implemented in this build (type-check-and-report only).\n");
-                return new CommandLineResult { Status = ExitStatus.NotImplemented };
+                return TscBuildCompilation(
+                    sys,
+                    global::Ts.TsOptions.CommandLineParser.ParseBuildCommandLine(commandLineArgs, sys),
+                    testing);
             }
         }
 
-        return TscCompilation(sys, global::Ts.TsOptions.CommandLineParser.ParseCommandLine(commandLineArgs, sys));
+        return TscCompilation(
+            sys,
+            global::Ts.TsOptions.CommandLineParser.ParseCommandLine(commandLineArgs, sys),
+            testing);
     }
 
-    // tsc.go:121-264 — the tsc compilation driver, reduced to the type-check-and-report subset.
-    private static CommandLineResult TscCompilation(ISystem sys, global::Ts.TsOptions.ParsedCommandLine commandLine)
+    // tsc.go:90-119
+    private static CommandLineResult TscBuildCompilation(
+        ISystem sys,
+        global::Ts.TsOptions.ParsedBuildCommandLine buildCommand,
+        ICommandLineTesting? testing)
     {
-        var locale = global::Ts.Locale.Locale.Default; // PORT-NOTE: commandLine.Locale() is not ported; default tag.
-        var compilerOptions = commandLine.CompilerOptions() ?? new CompilerOptions();
-        var reportDiagnostic = DiagnosticReporters.CreateDiagnosticReporter(sys, sys.Writer(), locale, compilerOptions);
+        // PORT-NOTE: ParsedBuildCommandLine.Locale() is still an explicit phase-9 stub in the
+        // landed TsOptions surface. Default is Go's language.Und and therefore preserves the
+        // English diagnostics used by this build-tail wave.
+        var compilerOptions = buildCommand.CompilerOptions!;
+        var reportDiagnostic = DiagnosticReporters.CreateDiagnosticReporter(
+            sys,
+            sys.Writer(),
+            global::Ts.Locale.Locale.Default,
+            compilerOptions);
 
-        // tsc.go:126-131 — command-line parse errors are unrecoverable.
+        if (buildCommand.Errors is not null && buildCommand.Errors.Length > 0)
+        {
+            foreach (var error in buildCommand.Errors)
+            {
+                reportDiagnostic(error);
+            }
+            return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
+        }
+
+        if (IsTrue(compilerOptions.Help))
+        {
+            PrintVersion(sys);
+            PrintBuildHelp(sys);
+            return new CommandLineResult { Status = ExitStatus.Success };
+        }
+
+        return new BuildOrchestrator(sys, buildCommand, testing).Start();
+    }
+
+    // tsc.go:121-264 — ordinary tsc compilation driver, including config discovery/loading and
+    // watch-mode dispatch.
+    private static CommandLineResult TscCompilation(
+        ISystem sys,
+        global::Ts.TsOptions.ParsedCommandLine commandLine,
+        ICommandLineTesting? testing)
+    {
+        var locale = global::Ts.Locale.Locale.Default;
+        var compilerOptions = commandLine.CompilerOptions()!;
+        var reportDiagnostic = DiagnosticReporters.CreateDiagnosticReporter(
+            sys,
+            sys.Writer(),
+            locale,
+            compilerOptions);
+
         if (commandLine.Errors is not null && commandLine.Errors.Length > 0)
         {
-            foreach (var e in commandLine.Errors)
+            foreach (var error in commandLine.Errors)
             {
-                reportDiagnostic(e);
+                reportDiagnostic(error);
             }
             return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
         }
 
-        // tsc.go:144-147
-        if (compilerOptions.Version.IsTrue())
+        if (IsTrue(compilerOptions.Version))
         {
             PrintVersion(sys);
             return new CommandLineResult { Status = ExitStatus.Success };
         }
 
-        // tsc.go:149-152
-        if (compilerOptions.Help.IsTrue() || compilerOptions.All.IsTrue())
+        if (IsTrue(compilerOptions.Help) || IsTrue(compilerOptions.All))
         {
             PrintVersion(sys);
             PrintHelp(sys);
             return new CommandLineResult { Status = ExitStatus.Success };
         }
 
-        // tsc.go:154-157
-        if (compilerOptions.Watch.IsTrue())
+        if (IsTrue(compilerOptions.Watch) && IsTrue(compilerOptions.ListFilesOnly))
         {
-            // PORT-NOTE (deferred): the watcher (execute/watcher.go) is out of scope for this wave.
-            sys.Writer().Write("tscs: --watch is not implemented in this build (type-check-and-report only).\n");
-            return new CommandLineResult { Status = ExitStatus.NotImplemented };
-        }
-
-        // tsc.go:159-197 — tsconfig.json discovery / --project. GetParsedCommandLineOfConfigFile is a
-        // phase 4 stub, so the config-file compilation path can't run yet. If no files were given on the
-        // command line and no config path was requested, print version + help (mirrors tsc.go:188-195's
-        // "no inputs" fallthrough).
-        var fileNames = commandLine.FileNames() ?? [];
-        if (compilerOptions.Project != "")
-        {
-            // PORT-NOTE (deferred): --project needs GetParsedCommandLineOfConfigFile (phase 4 stub).
-            sys.Writer().Write("tscs: --project / tsconfig.json compilation is not implemented in this build (command-line files only).\n");
-            return new CommandLineResult { Status = ExitStatus.NotImplemented };
-        }
-        if (fileNames.Length == 0)
-        {
-            // PORT-NOTE: tsgo searches for tsconfig.json here (tsc.go:179-196). With config loading deferred,
-            // "no command-line files" prints version + help, matching tsc's no-inputs behaviour.
-            PrintVersion(sys);
-            PrintHelp(sys);
+            reportDiagnostic(global::Ts.Ast.Diagnostic.NewCompilerDiagnostic(
+                global::Ts.Diagnostics.Diagnostics.Options_0_and_1_cannot_be_combined,
+                "watch",
+                "listFilesOnly"));
             return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
         }
 
-        var reportErrorSummary = DiagnosticReporters.CreateReportErrorSummary(sys, locale, compilerOptions);
-        return PerformCompilation(sys, commandLine, reportDiagnostic, reportErrorSummary);
+        string configFileName = "";
+        string[] fileNames = commandLine.FileNames() ?? Array.Empty<string>();
+        if (compilerOptions.Project != "")
+        {
+            if (fileNames.Length != 0)
+            {
+                reportDiagnostic(global::Ts.Ast.Diagnostic.NewCompilerDiagnostic(
+                    global::Ts.Diagnostics.Diagnostics.Option_project_cannot_be_mixed_with_source_files_on_a_command_line));
+                return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
+            }
+
+            string fileOrDirectory = global::Ts.TsPath.TsPath.NormalizePath(compilerOptions.Project);
+            if (sys.FS().DirectoryExists(fileOrDirectory))
+            {
+                configFileName = global::Ts.TsPath.TsPath.CombinePaths(fileOrDirectory, "tsconfig.json");
+                if (!sys.FS().FileExists(configFileName))
+                {
+                    reportDiagnostic(global::Ts.Ast.Diagnostic.NewCompilerDiagnostic(
+                        global::Ts.Diagnostics.Diagnostics.Cannot_find_a_tsconfig_json_file_at_the_current_directory_Colon_0,
+                        configFileName));
+                    return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
+                }
+            }
+            else
+            {
+                configFileName = fileOrDirectory;
+                if (!sys.FS().FileExists(configFileName))
+                {
+                    reportDiagnostic(global::Ts.Ast.Diagnostic.NewCompilerDiagnostic(
+                        global::Ts.Diagnostics.Diagnostics.The_specified_path_does_not_exist_Colon_0,
+                        fileOrDirectory));
+                    return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
+                }
+            }
+        }
+        else if (!IsTrue(compilerOptions.IgnoreConfig) || fileNames.Length == 0)
+        {
+            string searchPath = global::Ts.TsPath.TsPath.NormalizePath(sys.GetCurrentDirectory());
+            configFileName = FindConfigFile(searchPath, sys.FS().FileExists, "tsconfig.json");
+            if (fileNames.Length != 0)
+            {
+                if (configFileName != "")
+                {
+                    reportDiagnostic(global::Ts.Ast.Diagnostic.NewCompilerDiagnostic(
+                        global::Ts.Diagnostics.Diagnostics.X_tsconfig_json_is_present_but_will_not_be_loaded_if_files_are_specified_on_commandline_Use_ignoreConfig_to_skip_this_error));
+                    return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
+                }
+            }
+            else if (configFileName == "")
+            {
+                PrintVersion(sys);
+                PrintHelp(sys);
+                return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
+            }
+        }
+
+        var compilerOptionsFromCommandLine = compilerOptions;
+        var configForCompilation = commandLine;
+        global::Ts.Collections.OrderedMap<string, object?>? commandLineRaw = null;
+        if (configFileName != "")
+        {
+            if (commandLine.Raw is global::Ts.Collections.OrderedMap<string, object?> raw)
+            {
+                commandLineRaw = new global::Ts.Collections.OrderedMap<string, object?>();
+                commandLineRaw.Set("compilerOptions", raw);
+            }
+
+            var (configParseResult, errors) = global::Ts.TsOptions.TsConfigParsing.GetParsedCommandLineOfConfigFile(
+                configFileName,
+                compilerOptionsFromCommandLine,
+                commandLineRaw,
+                sys,
+                extendedConfigCache: null);
+            if (errors is not null && errors.Length > 0)
+            {
+                foreach (var error in errors)
+                {
+                    reportDiagnostic(error);
+                }
+                return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsGenerated };
+            }
+
+            // Go unconditionally assigns configParseResult after the no-errors branch; retain the
+            // same invariant with null-forgiving rather than adding a divergent fallback.
+            configForCompilation = configParseResult!;
+            reportDiagnostic = DiagnosticReporters.CreateDiagnosticReporter(
+                sys,
+                sys.Writer(),
+                locale,
+                compilerOptions);
+        }
+
+        var reportErrorSummary = DiagnosticReporters.CreateReportErrorSummary(
+            sys,
+            locale,
+            configForCompilation.CompilerOptions()!);
+        if (IsTrue(configForCompilation.CompilerOptions()!.Watch))
+        {
+            var watchSession = new WatchSession(
+                sys,
+                configForCompilation,
+                compilerOptionsFromCommandLine,
+                commandLineRaw,
+                reportDiagnostic,
+                reportErrorSummary,
+                testing);
+            watchSession.Start();
+            return new CommandLineResult
+            {
+                Status = ExitStatus.Success,
+                Watcher = watchSession,
+            };
+        }
+
+        return new CommandLineResult
+        {
+            Status = PerformCompilationOutcome(
+                sys,
+                configForCompilation,
+                reportDiagnostic,
+                reportErrorSummary,
+                testing).Status,
+        };
     }
 
-    // tsc.go:333-371 — build the Program (NewCompilerHost → NewProgram) and hand off to the emit /
-    // report shell. For the type-check-and-report wave, emit is skipped (--noEmit behaviour).
-    private static CommandLineResult PerformCompilation(
+    // tsc.go:333-371 — build Program and hand off to the shared emit/report shell.
+    internal static CompilationOutcome PerformCompilationOutcome(
         ISystem sys,
         global::Ts.TsOptions.ParsedCommandLine config,
         DiagnosticReporter reportDiagnostic,
-        DiagnosticsReporter reportErrorSummary)
+        DiagnosticsReporter reportErrorSummary,
+        ICommandLineTesting? testing)
     {
-        var host = CompilerHosts.NewCachedFSCompilerHost(
+        testing?.OnCompilation(config);
+        var host = global::Ts.Compiler.CompilerHosts.NewCachedFSCompilerHost(
             sys.GetCurrentDirectory(),
             sys.FS(),
             sys.DefaultLibraryPath(),
             extendedConfigCache: null,
             trace: null);
-
-        var program = new Program(new ProgramOptions
+        var program = new global::Ts.Compiler.Program(new global::Ts.Compiler.ProgramOptions
         {
             Host = host,
             Config = config,
         });
-
-        var status = EmitFilesAndReportErrors(sys, program, config, reportDiagnostic, reportErrorSummary);
-        return new CommandLineResult { Status = status };
+        var outcome = EmitFilesAndReportErrors(program, reportDiagnostic, reportErrorSummary);
+        testing?.OnCompilationComplete(config, outcome.Diagnostics.Length);
+        return outcome;
     }
 
-    // emit.go:73-132 — collect all diagnostics, (skip) emit, report them + summary, compute status.
-    private static ExitStatus EmitFilesAndReportErrors(
-        ISystem sys,
-        Program program,
-        global::Ts.TsOptions.ParsedCommandLine config,
+    // emit.go:73-132 — collect diagnostics, emit, report diagnostics/summary, compute status.
+    private static CompilationOutcome EmitFilesAndReportErrors(
+        global::Ts.Compiler.Program program,
         DiagnosticReporter reportDiagnostic,
         DiagnosticsReporter reportErrorSummary)
     {
         var ctx = CancellationToken.None;
+        var allDiagnostics = new List<global::Ts.Ast.Diagnostic>(
+            global::Ts.Compiler.Program.GetDiagnosticsOfAnyProgram(
+                ctx,
+                program,
+                file: null,
+                skipNoEmitCheckForDtsDiagnostics: false,
+                getBindDiagnostics: (c, f) => program.GetBindDiagnostics(c, f),
+                getSemanticDiagnostics: (c, f) => program.GetSemanticDiagnostics(c, f)));
 
-        // emit.go:77-103 — bind + check diagnostics via the program's aggregation shell.
-        var allDiagnostics = new List<Diagnostic>(Program.GetDiagnosticsOfAnyProgram(
-            ctx,
-            program,
-            file: null,
-            skipNoEmitCheckForDtsDiagnostics: false,
-            getBindDiagnostics: (c, f) => program.GetBindDiagnostics(c, f),
-            getSemanticDiagnostics: (c, f) => program.GetSemanticDiagnostics(c, f)));
-
-        // emit.go:105-118 — run the emit pipeline (unless --listFilesOnly). The result carries emit
-        // diagnostics (declaration transform) and the EmitSkipped flag; both feed the exit status.
-        var emitResult = new EmitResult { EmitSkipped = true, Diagnostics = [] };
-        if (!program.Options().ListFilesOnly.IsTrue())
+        var emitResult = new global::Ts.Compiler.EmitResult
         {
-            emitResult = program.Emit(ctx, new EmitOptions());
+            EmitSkipped = true,
+            Diagnostics = Array.Empty<global::Ts.Ast.Diagnostic>(),
+        };
+        if (!IsTrue(program.Options().ListFilesOnly))
+        {
+            emitResult = program.Emit(ctx, new global::Ts.Compiler.EmitOptions());
         }
         if (emitResult.Diagnostics is not null)
         {
             allDiagnostics.AddRange(emitResult.Diagnostics);
         }
-        bool emitSkipped = emitResult.EmitSkipped;
 
-        // emit.go:120-123 — sort + dedupe, then report each diagnostic.
-        var sorted = Program.SortAndDeduplicateDiagnostics(allDiagnostics.ToArray());
+        var sorted = global::Ts.Compiler.Program.SortAndDeduplicateDiagnostics(allDiagnostics.ToArray());
         foreach (var diagnostic in sorted)
         {
             reportDiagnostic(diagnostic);
         }
-
-        // emit.go:127 — error summary.
         reportErrorSummary(sorted);
 
-        // emit.go:65-69 (from EmitAndReportStatistics) — status from diagnostic presence + emit-skipped.
-        if (emitSkipped && sorted.Length > 0)
+        ExitStatus status;
+        if (emitResult.EmitSkipped && sorted.Length > 0)
         {
-            return ExitStatus.DiagnosticsPresent_OutputsSkipped;
+            status = ExitStatus.DiagnosticsPresent_OutputsSkipped;
         }
-        if (sorted.Length > 0)
+        else if (sorted.Length > 0)
         {
-            return ExitStatus.DiagnosticsPresent_OutputsGenerated;
+            status = ExitStatus.DiagnosticsPresent_OutputsGenerated;
         }
-        return ExitStatus.Success;
+        else
+        {
+            status = ExitStatus.Success;
+        }
+
+        return new CompilationOutcome
+        {
+            Program = program,
+            Diagnostics = sorted,
+            Status = status,
+        };
     }
 
-    // PORT-NOTE: tsgo prints the version via tsc.PrintVersion (help.go, localized). Minimal port here
-    // (task: keep --version smoke). Format mirrors `Version <n>`.
+    private static string FindConfigFile(string searchPath, Func<string, bool> fileExists, string configName)
+    {
+        string current = searchPath;
+        while (true)
+        {
+            string candidate = global::Ts.TsPath.TsPath.CombinePaths(current, configName);
+            if (fileExists(candidate))
+            {
+                return candidate;
+            }
+            string parent = global::Ts.TsPath.TsPath.GetDirectoryPath(current);
+            if (parent == current)
+            {
+                return "";
+            }
+            current = parent;
+        }
+    }
+
     private static void PrintVersion(ISystem sys)
     {
         string version = global::Ts.Core.TsVersion.Value;
         sys.Writer().Write($"Version {version}\n");
     }
 
-    // Ordinal case-insensitive equality (ASCII flags). Avoids culture-sensitive ToLower (banned by the
-    // InvariantGlobalization analyzer, plan/07 §7).
     private static bool EqualsOrdinalIgnoreCase(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
-    // PORT-NOTE: the full localized help table (execute/tsc/help.go, ~16k) is out of scope for this wave.
+    private static bool IsTrue(global::Ts.Core.Tristate value) =>
+        value == global::Ts.Core.Tristate.True;
+
+    // PORT-NOTE: the full localized help tables in execute/tsc/help.go are outside this tail port.
     private static void PrintHelp(ISystem sys)
     {
         sys.Writer().Write("tscs — type-check a TypeScript program and report diagnostics.\n");
         sys.Writer().Write("Usage: tscs [options] file.ts...\n");
+    }
+
+    // PORT-NOTE: the full localized build-help table is deferred with the main help table.
+    private static void PrintBuildHelp(ISystem sys)
+    {
+        sys.Writer().Write("Usage: tscs --build [options] [projects...]\n");
     }
 }

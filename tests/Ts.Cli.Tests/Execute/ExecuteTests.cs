@@ -83,26 +83,6 @@ public sealed class ExecuteTests
         Assert.Contains("Usage", sys.Output);
     }
 
-    [Fact]
-    public void Build_IsNotImplemented()
-    {
-        var sys = NewSystem();
-        var result = Tsc.CommandLine(sys, ["--build"]);
-
-        Assert.Equal(ExitStatus.NotImplemented, result.Status);
-        Assert.Contains("not implemented", sys.Output);
-    }
-
-    [Fact]
-    public void Watch_IsNotImplemented()
-    {
-        var sys = NewSystem(new Dictionary<string, string> { ["/src/only.ts"] = "export const x = 1;\n" });
-        var result = Tsc.CommandLine(sys, ["--watch", "/src/only.ts"]);
-
-        Assert.Equal(ExitStatus.NotImplemented, result.Status);
-        Assert.Contains("not implemented", sys.Output);
-    }
-
     [Fact(Skip = "checker path WIP: CheckSourceFile throws NotImplementedException (checkDecorators) for legal programs; un-skip when the semantic report path is real")]
     public void LegalFile_TypeChecks_ExitsZero()
     {
