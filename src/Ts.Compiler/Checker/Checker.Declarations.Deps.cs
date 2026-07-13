@@ -269,8 +269,7 @@ public partial class Checker
         AstUtilities.IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlagsCached(declaration));
     // checker.go:3021 — deprecated suggestion target; deferred. Reached only on the deprecated path above.
     internal Node? GetDeprecatedSuggestionNode(Node node) => throw new NotImplementedException("getDeprecatedSuggestionNode");
-    // checker.go:8197
-    internal Type CheckIndexedAccessIndexType(Type t, Node accessNode) => throw new NotImplementedException("checkIndexedAccessIndexType");
+    // checker.go:8197 — checkIndexedAccessIndexType: real body landed in Checker.Expressions.cs.
 
     // ---- package-level ast/checker helpers not yet landed on a host class (deferred) ----
     // utilities.go:64

@@ -48,8 +48,7 @@ public partial class Checker
     // checker.go:8099
     internal Type CheckQualifiedName(Node node, CheckMode checkMode) => throw new NotImplementedException("checkQualifiedName");
 
-    // checker.go:8110
-    internal Type CheckIndexedAccess(Node node, CheckMode checkMode) => throw new NotImplementedException("checkIndexedAccess");
+    // checker.go:8110 — checkIndexedAccess: real body landed in Checker.Expressions.cs.
 
     // checker.go:8244
     internal Type CheckImportCallExpression(Node node) => throw new NotImplementedException("checkImportCallExpression");

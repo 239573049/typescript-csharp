@@ -745,6 +745,180 @@ public partial class Checker
             (t.flags & TypeFlags.InstantiableNonPrimitive) != 0 && MaybeTypeOfKind(GetBaseConstraintOfType(t) ?? unknownType!, TypeFlags.StringLike);
     }
 
+    // checker.go:8110
+    internal Type CheckIndexedAccess(Node node, CheckMode checkMode)
+    {
+        if ((node.Flags & NodeFlags.OptionalChain) != 0)
+        {
+            return CheckElementAccessChain(node, checkMode);
+        }
+        return CheckElementAccessExpression(node, CheckNonNullExpression(node.Expression()!), checkMode);
+    }
+
+    // checker.go:8117
+    internal Type CheckElementAccessChain(Node node, CheckMode checkMode)
+    {
+        var exprType = CheckExpression(node.Expression()!);
+        var nonOptionalType = GetOptionalExpressionType(exprType, node.Expression()!);
+        return PropagateOptionalTypeMarker(CheckElementAccessExpression(node, CheckNonNullType(nonOptionalType, node.Expression()!), checkMode), node, nonOptionalType != exprType);
+    }
+
+    // checker.go:8123
+    internal Type CheckElementAccessExpression(Node node, Type exprType, CheckMode checkMode)
+    {
+        var objectType = exprType;
+        if (GetAssignmentTargetKind(node) != AssignmentKind.None || IsMethodAccessForCall(node))
+        {
+            objectType = GetWidenedType(objectType);
+        }
+        var indexExpression = node.AsElementAccessExpression().ArgumentExpression!;
+        var indexType = CheckExpression(indexExpression);
+        if (IsErrorType(objectType) || objectType == silentNeverType)
+        {
+            return objectType;
+        }
+        if (IsConstEnumObjectType(objectType) && !AstUtilities.IsStringLiteralLike(indexExpression))
+        {
+            Error(indexExpression, global::Ts.Diagnostics.Diagnostics.A_const_enum_member_can_only_be_accessed_using_a_string_literal);
+            return errorType!;
+        }
+        var effectiveIndexType = indexType;
+        if (IsForInVariableForNumericPropertyNames(indexExpression))
+        {
+            effectiveIndexType = numberType!;
+        }
+        var assignmentTargetKind = GetAssignmentTargetKind(node);
+        AccessFlags accessFlags;
+        if (assignmentTargetKind == AssignmentKind.None)
+        {
+            accessFlags = AccessFlags.ExpressionPosition;
+        }
+        else
+        {
+            accessFlags = AccessFlags.Writing |
+                (assignmentTargetKind == AssignmentKind.Compound ? AccessFlags.ExpressionPosition : 0) |
+                (IsGenericObjectType(objectType) && !IsThisTypeParameter(objectType) ? AccessFlags.NoIndexSignatures : 0);
+        }
+        var indexedAccessType = GetIndexedAccessTypeOrUndefined(objectType, effectiveIndexType, accessFlags, node, null) ?? errorType!;
+        return CheckIndexedAccessIndexType(GetFlowTypeOfAccessExpression(node, GetResolvedSymbolOrNil(node), indexedAccessType, indexExpression, checkMode), node);
+    }
+
+    // Return true if given node is an expression consisting of an identifier (possibly parenthesized)
+    // that references a for-in variable for an object with numeric property names.
+    // checker.go:8156
+    internal bool IsForInVariableForNumericPropertyNames(Node expr)
+    {
+        var e = AstUtilities.SkipParentheses(expr);
+        if (NodeTests.IsIdentifier(e))
+        {
+            var symbol = GetResolvedSymbol(e);
+            if ((symbol.Flags & SymbolFlags.Variable) != 0)
+            {
+                var child = expr;
+                var node = expr.Parent;
+                while (node is not null)
+                {
+                    if (NodeTests.IsForInStatement(node) && child == node.AsForInOrOfStatement().Statement && GetForInVariableSymbol(node) == symbol && HasNumericPropertyNames(GetTypeOfExpression(node.Expression()!)))
+                    {
+                        return true;
+                    }
+                    child = node;
+                    node = node.Parent;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Return the symbol of the for-in variable declared or referenced by the given for-in statement.
+    // checker.go:8176
+    internal Symbol? GetForInVariableSymbol(Node node)
+    {
+        var initializer = node.Initializer()!;
+        if (NodeTests.IsVariableDeclarationList(initializer))
+        {
+            var declarations = initializer.AsVariableDeclarationList().Declarations!.Nodes;
+            if (declarations.Length > 0)
+            {
+                var variable = declarations[0];
+                if (variable is not null && !AstUtilities.IsBindingPattern(variable.Name()!))
+                {
+                    return GetSymbolOfDeclaration(variable);
+                }
+            }
+        }
+        else if (NodeTests.IsIdentifier(initializer))
+        {
+            return GetResolvedSymbol(initializer);
+        }
+        return null;
+    }
+
+    // Return true if the given type is considered to have numeric property names.
+    // checker.go:8193
+    internal bool HasNumericPropertyNames(Type t) =>
+        GetIndexInfosOfType(t).Length == 1 && GetIndexInfoOfType(t, numberType!) is not null;
+
+    // checker.go:8197
+    internal Type CheckIndexedAccessIndexType(Type t, Node accessNode)
+    {
+        if ((t.flags & TypeFlags.IndexedAccess) == 0)
+        {
+            return t;
+        }
+        // Check if the index type is assignable to 'keyof T' for the object type.
+        var objectType = t.AsIndexedAccessType().objectType;
+        var indexType = t.AsIndexedAccessType().indexType;
+        // skip index type deferral on remapping mapped types
+        Type objectIndexType;
+        if (IsGenericMappedType(objectType) && GetMappedTypeNameTypeKind(objectType) == MappedTypeNameTypeKind.Remapping)
+        {
+            objectIndexType = GetIndexTypeForMappedType(objectType, IndexFlags.None);
+        }
+        else
+        {
+            objectIndexType = GetIndexTypeEx(objectType, IndexFlags.None);
+        }
+        var hasNumberIndexInfo = GetIndexInfoOfType(objectType, numberType!) is not null;
+        if (EveryType(indexType, t2 => IsTypeAssignableTo(t2, objectIndexType) || hasNumberIndexInfo && IsApplicableIndexType(t2, numberType!)))
+        {
+            if (accessNode.Kind == SyntaxKind.ElementAccessExpression && AstUtilities.IsAssignmentTarget(accessNode) && (objectType.objectFlags & ObjectFlags.Mapped) != 0 && (GetMappedTypeModifiers(objectType) & MappedTypeModifiers.IncludeReadonly) != 0)
+            {
+                Error(accessNode, global::Ts.Diagnostics.Diagnostics.Index_signature_in_type_0_only_permits_reading, TypeToString(objectType));
+            }
+            return t;
+        }
+        if (IsGenericObjectType(objectType))
+        {
+            var propertyName = GetPropertyNameFromIndex(indexType, accessNode);
+            if (propertyName != InternalSymbolName.Missing)
+            {
+                var propertySymbol = GetConstituentProperty(objectType, propertyName);
+                if (propertySymbol is not null && (GetDeclarationModifierFlagsFromSymbol(propertySymbol) & ModifierFlags.NonPublicAccessibilityModifier) != 0)
+                {
+                    Error(accessNode, global::Ts.Diagnostics.Diagnostics.Private_or_protected_member_0_cannot_be_accessed_on_a_type_parameter, propertyName);
+                    return errorType!;
+                }
+            }
+        }
+        Error(accessNode, global::Ts.Diagnostics.Diagnostics.Type_0_cannot_be_used_to_index_type_1, TypeToString(indexType), TypeToString(objectType));
+        return errorType!;
+    }
+
+    // checker.go:8234
+    internal Symbol? GetConstituentProperty(Type objectType, string propertyName)
+    {
+        foreach (var t in GetApparentType(objectType).Distributed())
+        {
+            var prop = GetPropertyOfType(t, propertyName);
+            if (prop is not null)
+            {
+                return prop;
+            }
+        }
+        return null;
+    }
+
     // checker.go:10829
     internal Type CheckPrefixUnaryExpression(Node node)
     {

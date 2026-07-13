@@ -1,10 +1,9 @@
 // Ported from tsgo internal/checker/checker.go (section: index type (keyof) & indexed-access type
 // construction, lines 26551-27301). plan/03 §4.2 #18.
 //
-// Breadth-first scope: the mainline index / indexed-access machinery is real. The deep property-lookup
-// leaf getPropertyTypeForIndexType (26867-27079) — ~210 lines of error/suggestion/deprecation
-// reporting into ~40 not-yet-landed cross-cluster methods — is left as a stub here (its private leaf
-// helpers are consequently unported); getIndexedAccessType's shallow/deferred paths are real.
+// getPropertyTypeForIndexType (26867-27079) is REAL, as are its leaf helpers typeHasStaticProperty
+// (27081) and getSuggestionForNonexistentIndexSignature (27097). getSuggestionForNonexistentProperty
+// (27089) remains a stub in Checker.Relater.Deps.cs (spelling-suggestion engine not yet landed).
 
 using System.Collections.Generic;
 using Ts.Ast;
@@ -407,11 +406,342 @@ public partial class Checker
         return GetPropertyTypeForIndexType(objectType, apparentObjectType, indexType, indexType, accessNode, accessFlags | AccessFlags.CacheSymbol | AccessFlags.ReportDeprecated);
     }
 
-    // checker.go:26867-27079 — deep property-lookup + error/suggestion/deprecation machinery.
-    // BREADTH-FIRST STUB: routes into ~40 not-yet-landed cross-cluster methods; landed by a later
-    // pass. getIndexedAccessType's shallow/deferred paths above are real.
-    internal Type? GetPropertyTypeForIndexType(Type originalObjectType, Type objectType, Type indexType, Type fullIndexType, Node? accessNode, AccessFlags accessFlags) =>
-        throw new NotImplementedException("getPropertyTypeForIndexType");
+    // checker.go:26867-27079
+    internal Type? GetPropertyTypeForIndexType(Type originalObjectType, Type objectType, Type indexType, Type fullIndexType, Node? accessNode, AccessFlags accessFlags)
+    {
+        Node? accessExpression = null;
+        if (accessNode is not null && NodeTests.IsElementAccessExpression(accessNode))
+        {
+            accessExpression = accessNode;
+        }
+        var propName = "";
+        var hasPropName = false;
+        if (!(accessNode is not null && NodeTests.IsPrivateIdentifier(accessNode)))
+        {
+            propName = GetPropertyNameFromIndex(indexType, accessNode);
+            hasPropName = propName != InternalSymbolName.Missing;
+        }
+        if (hasPropName)
+        {
+            if ((accessFlags & AccessFlags.Contextual) != 0)
+            {
+                var t = GetTypeOfPropertyOfContextualType(objectType, propName);
+                if (t is null)
+                {
+                    t = anyType;
+                }
+                return t;
+            }
+            var prop = GetPropertyOfType(objectType, propName);
+            if (prop is not null)
+            {
+                if ((accessFlags & AccessFlags.ReportDeprecated) != 0 && accessNode is not null && prop.Declarations is not null && prop.Declarations.Length != 0 && IsDeprecatedSymbol(prop) && IsUncalledFunctionReference(accessNode, prop))
+                {
+                    Node? deprecatedNode;
+                    if (accessExpression is not null)
+                    {
+                        deprecatedNode = accessExpression.AsElementAccessExpression().ArgumentExpression;
+                    }
+                    else if (NodeTests.IsIndexedAccessTypeNode(accessNode))
+                    {
+                        deprecatedNode = accessNode.AsIndexedAccessTypeNode().IndexType;
+                    }
+                    else
+                    {
+                        deprecatedNode = accessNode;
+                    }
+                    AddDeprecatedSuggestion(deprecatedNode, prop.Declarations, propName);
+                }
+                if (accessExpression is not null)
+                {
+                    MarkPropertyAsReferenced(prop, accessExpression, IsSelfTypeAccess(accessExpression.Expression()!, objectType.symbol));
+                    if (IsAssignmentToReadonlyEntity(accessExpression, prop, GetAssignmentTargetKind(accessExpression)))
+                    {
+                        Error(accessExpression.AsElementAccessExpression().ArgumentExpression, global::Ts.Diagnostics.Diagnostics.Cannot_assign_to_0_because_it_is_a_read_only_property, SymbolToString(prop));
+                        return null;
+                    }
+                    if ((accessFlags & AccessFlags.CacheSymbol) != 0)
+                    {
+                        symbolNodeLinks.Get(accessNode!).resolvedSymbol = prop;
+                    }
+                    if (IsThisPropertyAccessInConstructor(accessExpression, prop))
+                    {
+                        return autoType;
+                    }
+                }
+                Type propType;
+                if ((accessFlags & AccessFlags.Writing) != 0)
+                {
+                    propType = GetWriteTypeOfSymbol(prop);
+                }
+                else
+                {
+                    propType = GetTypeOfSymbol(prop);
+                }
+                if (accessExpression is not null && GetAssignmentTargetKind(accessExpression) != AssignmentKind.Definite)
+                {
+                    return GetFlowTypeOfReference(accessExpression, propType);
+                }
+                if (accessNode is not null && NodeTests.IsIndexedAccessTypeNode(accessNode) && ContainsMissingType(propType))
+                {
+                    return GetUnionType([propType, undefinedType!]);
+                }
+                return propType;
+            }
+            if (EveryType(objectType, IsTupleType) && IsNumericLiteralName(propName))
+            {
+                var index = Ts.JsNum.JsNum.FromString(propName);
+                if (accessNode is not null && EveryType(objectType, t =>
+                        (t.TargetTupleType().combinedFlags & ElementFlags.Variable) == 0) && (accessFlags & AccessFlags.AllowMissing) == 0)
+                {
+                    var indexNode = GetIndexNodeForAccessExpression(accessNode);
+                    if (IsTupleType(objectType))
+                    {
+                        if (index < new Ts.JsNum.Number(0))
+                        {
+                            Error(indexNode, global::Ts.Diagnostics.Diagnostics.A_tuple_type_cannot_be_indexed_with_a_negative_value);
+                            return undefinedType;
+                        }
+                        Error(indexNode, global::Ts.Diagnostics.Diagnostics.Tuple_type_0_of_length_1_has_no_element_at_index_2, TypeToString(objectType), GetTypeReferenceArity(objectType), propName);
+                    }
+                    else
+                    {
+                        Error(indexNode, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, propName, TypeToString(objectType));
+                    }
+                }
+                if (index >= new Ts.JsNum.Number(0))
+                {
+                    ErrorIfWritingToReadonlyIndex(GetIndexInfoOfType(objectType, numberType!), objectType, accessExpression);
+                    return GetTupleElementTypeOutOfStartCount(objectType, index, (accessFlags & AccessFlags.IncludeUndefined) != 0 ? missingType : null);
+                }
+            }
+        }
+        if ((indexType.flags & TypeFlags.Nullable) == 0 && IsTypeAssignableToKind(indexType, TypeFlags.StringLike | TypeFlags.NumberLike | TypeFlags.ESSymbolLike))
+        {
+            if ((objectType.flags & (TypeFlags.Any | TypeFlags.Never)) != 0)
+            {
+                return objectType;
+            }
+            // If no index signature is applicable, we default to the string index signature. In effect, this means the string
+            // index signature applies even when accessing with a symbol-like type.
+            var indexInfo = GetApplicableIndexInfo(objectType, indexType);
+            if (indexInfo is null)
+            {
+                indexInfo = GetIndexInfoOfType(objectType, stringType!);
+            }
+            if (indexInfo is not null)
+            {
+                if ((accessFlags & AccessFlags.NoIndexSignatures) != 0 && indexInfo.keyType != numberType)
+                {
+                    if (accessExpression is not null)
+                    {
+                        if ((accessFlags & AccessFlags.Writing) != 0)
+                        {
+                            Error(accessExpression, global::Ts.Diagnostics.Diagnostics.Type_0_is_generic_and_can_only_be_indexed_for_reading, TypeToString(originalObjectType));
+                        }
+                        else
+                        {
+                            Error(accessExpression, global::Ts.Diagnostics.Diagnostics.Type_0_cannot_be_used_to_index_type_1, TypeToString(indexType), TypeToString(originalObjectType));
+                        }
+                    }
+                    return null;
+                }
+                if (accessNode is not null && indexInfo.keyType == stringType && !IsTypeAssignableToKind(indexType, TypeFlags.String | TypeFlags.Number))
+                {
+                    var indexNode = GetIndexNodeForAccessExpression(accessNode);
+                    Error(indexNode, global::Ts.Diagnostics.Diagnostics.Type_0_cannot_be_used_as_an_index_type, TypeToString(indexType));
+                    if ((accessFlags & AccessFlags.IncludeUndefined) != 0)
+                    {
+                        return GetUnionType([indexInfo.valueType, missingType!]);
+                    }
+                    else
+                    {
+                        return indexInfo.valueType;
+                    }
+                }
+                ErrorIfWritingToReadonlyIndex(indexInfo, objectType, accessExpression);
+                // When accessing an enum object with its own type,
+                // e.g. E[E.A] for enum E { A }, undefined shouldn't
+                // be included in the result type
+                if ((accessFlags & AccessFlags.IncludeUndefined) != 0 &&
+                    !(objectType.symbol is not null &&
+                        (objectType.symbol.Flags & (SymbolFlags.RegularEnum | SymbolFlags.ConstEnum)) != 0 &&
+                        (indexType.symbol is not null &&
+                            (indexType.flags & TypeFlags.EnumLiteral) != 0 &&
+                            GetParentOfSymbol(indexType.symbol) == objectType.symbol)))
+                {
+                    return GetUnionType([indexInfo.valueType, missingType!]);
+                }
+                return indexInfo.valueType;
+            }
+            if ((indexType.flags & TypeFlags.Never) != 0)
+            {
+                return neverType;
+            }
+            if (IsJSLiteralType(objectType))
+            {
+                return anyType;
+            }
+            if (accessExpression is not null && !IsConstEnumObjectType(objectType))
+            {
+                if (IsObjectLiteralType(objectType))
+                {
+                    if (noImplicitAny && (indexType.flags & (TypeFlags.StringLiteral | TypeFlags.NumberLiteral)) != 0)
+                    {
+                        AddDiagnostic(CreateDiagnosticForNode(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, indexType.AsLiteralType().value, TypeToString(objectType)));
+                        return undefinedType;
+                    }
+                    else if ((indexType.flags & (TypeFlags.Number | TypeFlags.String)) != 0)
+                    {
+                        var types = CoreUtil.Map(objectType.AsStructuredType()!.properties, p => GetTypeOfSymbol(p)) ?? [];
+                        return GetUnionType([.. types, undefinedType!]);
+                    }
+                }
+                if (objectType.symbol == globalThisSymbol && hasPropName && globalThisSymbol!.Exports?.GetValueOrDefault(propName) is not null && (globalThisSymbol.Exports.GetValueOrDefault(propName)!.Flags & SymbolFlags.BlockScoped) != 0)
+                {
+                    Error(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, propName, TypeToString(objectType));
+                }
+                else if (noImplicitAny && (accessFlags & AccessFlags.SuppressNoImplicitAnyError) == 0)
+                {
+                    if (hasPropName && TypeHasStaticProperty(propName, objectType))
+                    {
+                        var typeName = TypeToString(objectType);
+                        Error(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1_Did_you_mean_to_access_the_static_member_2_instead, propName /* as string */, typeName, typeName + "[" + global::Ts.Scanner.Scanner.GetTextOfNode(accessExpression.AsElementAccessExpression().ArgumentExpression!) + "]");
+                    }
+                    else if (GetIndexTypeOfType(objectType, numberType!) is not null)
+                    {
+                        Error(accessExpression.AsElementAccessExpression().ArgumentExpression, global::Ts.Diagnostics.Diagnostics.Element_implicitly_has_an_any_type_because_index_expression_is_not_of_type_number);
+                    }
+                    else
+                    {
+                        var suggestion = "";
+                        if (hasPropName)
+                        {
+                            suggestion = GetSuggestionForNonexistentProperty(propName, objectType);
+                        }
+                        if (suggestion != "")
+                        {
+                            Error(accessExpression.AsElementAccessExpression().ArgumentExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1_Did_you_mean_2, propName /* as string */, TypeToString(objectType), suggestion);
+                        }
+                        else
+                        {
+                            suggestion = GetSuggestionForNonexistentIndexSignature(objectType, accessExpression, indexType);
+                            if (suggestion != "")
+                            {
+                                Error(accessExpression, global::Ts.Diagnostics.Diagnostics.Element_implicitly_has_an_any_type_because_type_0_has_no_index_signature_Did_you_mean_to_call_1, TypeToString(objectType), suggestion);
+                            }
+                            else
+                            {
+                                Diagnostic? diagnostic = null;
+                                if ((indexType.flags & TypeFlags.EnumLiteral) != 0)
+                                {
+                                    diagnostic = NewDiagnosticForNode(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, "[" + TypeToString(indexType) + "]", TypeToString(objectType));
+                                }
+                                else if ((indexType.flags & TypeFlags.UniqueESSymbol) != 0)
+                                {
+                                    var symbolName = GetFullyQualifiedName(indexType.symbol!, accessExpression);
+                                    diagnostic = NewDiagnosticForNode(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, "[" + symbolName + "]", TypeToString(objectType));
+                                }
+                                else if ((indexType.flags & TypeFlags.StringLiteral) != 0)
+                                {
+                                    diagnostic = NewDiagnosticForNode(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, indexType.AsLiteralType().value, TypeToString(objectType));
+                                }
+                                else if ((indexType.flags & TypeFlags.NumberLiteral) != 0)
+                                {
+                                    diagnostic = NewDiagnosticForNode(accessExpression, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, indexType.AsLiteralType().value, TypeToString(objectType));
+                                }
+                                else if ((indexType.flags & (TypeFlags.Number | TypeFlags.String)) != 0)
+                                {
+                                    diagnostic = NewDiagnosticForNode(accessExpression, global::Ts.Diagnostics.Diagnostics.No_index_signature_with_a_parameter_of_type_0_was_found_on_type_1, TypeToString(indexType), TypeToString(objectType));
+                                }
+                                AddDiagnostic(NewDiagnosticChainForNode(diagnostic, accessExpression, global::Ts.Diagnostics.Diagnostics.Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1, TypeToString(fullIndexType), TypeToString(objectType)));
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+        }
+        if ((accessFlags & AccessFlags.AllowMissing) != 0 && IsObjectLiteralType(objectType))
+        {
+            return undefinedType;
+        }
+        if (IsJSLiteralType(objectType))
+        {
+            return anyType;
+        }
+        if (accessNode is not null)
+        {
+            var indexNode = GetIndexNodeForAccessExpression(accessNode);
+            if (indexNode.Kind != SyntaxKind.BigIntLiteral && (indexType.flags & (TypeFlags.StringLiteral | TypeFlags.NumberLiteral)) != 0)
+            {
+                Error(indexNode, global::Ts.Diagnostics.Diagnostics.Property_0_does_not_exist_on_type_1, indexType.AsLiteralType().value, TypeToString(objectType));
+            }
+            else if ((indexType.flags & (TypeFlags.String | TypeFlags.Number)) != 0)
+            {
+                Error(indexNode, global::Ts.Diagnostics.Diagnostics.Type_0_has_no_matching_index_signature_for_type_1, TypeToString(objectType), TypeToString(indexType));
+            }
+            else
+            {
+                string typeString;
+                if (indexNode.Kind == SyntaxKind.BigIntLiteral)
+                {
+                    typeString = "bigint";
+                }
+                else
+                {
+                    typeString = TypeToString(indexType);
+                }
+                Error(indexNode, global::Ts.Diagnostics.Diagnostics.Type_0_cannot_be_used_as_an_index_type, typeString);
+            }
+        }
+        if (IsTypeAny(indexType))
+        {
+            return indexType;
+        }
+        return null;
+    }
+
+    // checker.go:27081-27087
+    internal bool TypeHasStaticProperty(string propName, Type containingType)
+    {
+        if (containingType.symbol is not null)
+        {
+            var prop = GetPropertyOfType(GetTypeOfSymbol(containingType.symbol), propName);
+            return prop is not null && prop.ValueDeclaration is not null && AstUtilities.IsStatic(prop.ValueDeclaration);
+        }
+        return false;
+    }
+
+    // checker.go:27089-27095 getSuggestionForNonexistentProperty lives as a stub in
+    // Checker.Relater.Deps.cs (depends on the not-yet-landed spelling-suggestion engine).
+
+    // checker.go:27097-27115
+    internal string GetSuggestionForNonexistentIndexSignature(Type objectType, Node expr, Type keyedType)
+    {
+        // check if object type has setter or getter
+        bool HasProp(string name)
+        {
+            var prop = GetPropertyOfObjectType(objectType, name);
+            if (prop is not null)
+            {
+                var s = GetSingleCallSignature(GetTypeOfSymbol(prop));
+                return s is not null && GetMinArgumentCount(s) >= 1 && IsTypeAssignableTo(keyedType, GetTypeAtPosition(s, 0));
+            }
+            return false;
+        }
+        var suggestedMethod = AstUtilities.IsAssignmentTarget(expr) ? "set" : "get";
+        if (!HasProp(suggestedMethod))
+        {
+            return "";
+        }
+        var suggestion = TryGetPropertyAccessOrIdentifierToString(expr.Expression()!);
+        if (suggestion == "")
+        {
+            return suggestedMethod;
+        }
+        return suggestion + "." + suggestedMethod;
+    }
 
     // checker.go:27123-27133
     internal static Node GetIndexNodeForAccessExpression(Node accessNode)
