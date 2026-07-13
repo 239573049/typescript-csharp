@@ -19,7 +19,19 @@ public partial class Checker
     // getContextFreeTypeOfExpression (checker.go:7519) — real body landed in Checker.Expressions.cs (#7 wave).
     internal Type GetContextFreeTypeOfExpression(Node node) => GetContextFreeTypeOfExpressionCore(node);
     // checkNonNullType 7386: real body landed in Checker.PropertyAccess.cs (non-null cluster).
-    internal Type GetOptionalExpressionType(Type exprType, Node expression) => throw new NotImplementedException("getOptionalExpressionType");
+    // checker.go:28821 — getOptionalExpressionType.
+    internal Type GetOptionalExpressionType(Type exprType, Node expression)
+    {
+        if (AstUtilities.IsExpressionOfOptionalChainRoot(expression))
+        {
+            return GetNonNullableType(exprType);
+        }
+        if (AstUtilities.IsOptionalChain(expression))
+        {
+            return RemoveOptionalTypeMarker(exprType);
+        }
+        return exprType;
+    }
     internal Type CheckSuperExpression(Node node) => throw new NotImplementedException("checkSuperExpression");
     // getResolvedSignature (8383): real body landed in Checker.CallResolution.cs (candidatesOutArray
     // modeled as List<Signature>? to match the Go *[]*Signature out-parameter).

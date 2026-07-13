@@ -21,6 +21,7 @@
 // namespaces are `global::`-qualified where referenced.
 
 using System;
+using System.Collections.Generic;
 using Ts.Ast;
 using Ts.Core;
 
@@ -42,7 +43,150 @@ public partial class Checker
     // ---- AST-layer gaps (ast.* utilities, not yet in Ts.Ast) ----
     // NodeCanBeDecorated / HasDecorators are now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs);
     // call sites use AstUtilities.NodeCanBeDecorated / AstUtilities.HasDecorators directly.
-    internal static AllAccessorDeclarations GetAllAccessorDeclarationsForDeclaration(Node accessor, Node[] declarationsOfSymbol) => throw new NotImplementedException("ast.GetAllAccessorDeclarationsForDeclaration");
+    // ast/utilities.go:4344 — GetAllAccessorDeclarationsForDeclaration.
+    internal static AllAccessorDeclarations GetAllAccessorDeclarationsForDeclaration(Node accessor, Node[] declarationsOfSymbol)
+    {
+        SyntaxKind otherKind;
+        if (accessor.Kind == SyntaxKind.SetAccessor)
+        {
+            otherKind = SyntaxKind.GetAccessor;
+        }
+        else if (accessor.Kind == SyntaxKind.GetAccessor)
+        {
+            otherKind = SyntaxKind.SetAccessor;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unexpected node kind {accessor.Kind}");
+        }
+        // otherAccessor := GetDeclarationOfKind(c.getSymbolOfDeclaration(accessor), otherKind)
+        Node? otherAccessor = null;
+        foreach (var d in declarationsOfSymbol)
+        {
+            if (d.Kind == otherKind)
+            {
+                otherAccessor = d;
+                break;
+            }
+        }
+
+        Node? firstAccessor;
+        Node? secondAccessor;
+        if (otherAccessor != null && otherAccessor.Pos < accessor.Pos)
+        {
+            firstAccessor = otherAccessor;
+            secondAccessor = accessor;
+        }
+        else
+        {
+            firstAccessor = accessor;
+            secondAccessor = otherAccessor;
+        }
+
+        Node? setAccessor = null;
+        Node? getAccessor = null;
+        if (accessor.Kind == SyntaxKind.SetAccessor)
+        {
+            setAccessor = accessor;
+            if (otherAccessor != null)
+            {
+                getAccessor = otherAccessor;
+            }
+        }
+        else
+        {
+            getAccessor = accessor;
+            if (otherAccessor != null)
+            {
+                setAccessor = otherAccessor;
+            }
+        }
+
+        return new AllAccessorDeclarations
+        {
+            FirstAccessor = firstAccessor,
+            SecondAccessor = secondAccessor,
+            SetAccessor = setAccessor,
+            GetAccessor = getAccessor,
+        };
+    }
+
+    // ast/utilities.go:4394 — GetAllAccessorDeclarations.
+    internal static AllAccessorDeclarations GetAllAccessorDeclarations(Node[]? parentDeclarations, Node accessor)
+    {
+        if (AstUtilities.HasDynamicName(accessor))
+        {
+            // dynamic names can only be match up via checker symbol lookup, just return an object with just this accessor
+            return GetAllAccessorDeclarationsForDeclaration(accessor, [accessor]);
+        }
+
+        var accessorName = GetPropertyNameForPropertyNameNode(accessor.Name()!);
+        var accessorStatic = AstUtilities.IsStatic(accessor);
+        var matches = new List<Node>();
+        foreach (var member in parentDeclarations.OrEmpty())
+        {
+            if (!AstUtilities.IsAccessor(member) || AstUtilities.IsStatic(member) != accessorStatic)
+            {
+                continue;
+            }
+            var memberName = GetPropertyNameForPropertyNameNode(member.Name()!);
+            if (memberName == accessorName)
+            {
+                matches.Add(member);
+            }
+        }
+        return GetAllAccessorDeclarationsForDeclaration(accessor, matches.ToArray());
+    }
+
+    // ast/utilities.go:4277 — ClassElementOrClassElementParameterIsDecorated.
+    internal static bool ClassElementOrClassElementParameterIsDecorated(bool useLegacyDecorators, Node node, Node parent)
+    {
+        Node[]? parameters = null;
+        if (AstUtilities.IsAccessor(node))
+        {
+            var decls = GetAllAccessorDeclarations(parent.Members(), node);
+            Node? firstAccessorWithDecorators = null;
+            if (AstUtilities.HasDecorators(decls.FirstAccessor!))
+            {
+                firstAccessorWithDecorators = decls.FirstAccessor;
+            }
+            else if (decls.SecondAccessor != null && AstUtilities.HasDecorators(decls.SecondAccessor))
+            {
+                firstAccessorWithDecorators = decls.SecondAccessor;
+            }
+            if (firstAccessorWithDecorators == null || node != firstAccessorWithDecorators)
+            {
+                return false;
+            }
+            if (decls.SetAccessor != null)
+            {
+                parameters = decls.SetAccessor.Parameters();
+            }
+        }
+        else if (NodeTests.IsMethodDeclaration(node))
+        {
+            parameters = node.Parameters();
+        }
+        if (AstUtilities.NodeIsDecorated(useLegacyDecorators, node, parent, null))
+        {
+            return true;
+        }
+        if (parameters != null && parameters.Length > 0)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (AstUtilities.IsThisParameter(parameter))
+                {
+                    continue;
+                }
+                if (AstUtilities.NodeIsDecorated(useLegacyDecorators, parameter, node, parent))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     // ast/utilities.go:1081 — CanHaveModifiers.
     internal static bool CanHaveModifiers(Node node)
     {

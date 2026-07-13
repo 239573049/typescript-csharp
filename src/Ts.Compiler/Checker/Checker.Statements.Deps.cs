@@ -188,11 +188,11 @@ public partial class Checker
     // are single-dedup stubbed in Checker.Declarations.Deps.cs.
     //
     // CheckDecorators is REAL in Checker.Statements.cs (checker.go:6001). Its deep decorator-emit
-    // branches (checkDecorator / getFirstTransformableStaticClassElement) remain stubbed below —
-    // unreached for decorator-free inputs, which early-return at the guard. MarkLinkedReferences is now
-    // REAL in Checker.AliasReferences.cs (alias-reference-marking wave).
+    // branch (checkDecorator) remains stubbed below — unreached for decorator-free inputs, which
+    // early-return at the guard. MarkLinkedReferences is now REAL in Checker.AliasReferences.cs
+    // (alias-reference-marking wave). GetFirstTransformableStaticClassElement (checker.go:10031) is
+    // now REAL in Checker.Expressions.cs (class-expression cluster).
     internal void CheckDecorator(Node node) => throw new NotImplementedException("checkDecorator");
-    internal Node? GetFirstTransformableStaticClassElement(Node node) => throw new NotImplementedException("getFirstTransformableStaticClassElement");
 
     // ---- JSDoc comment checks (JSDoc cluster) ----
     // CheckJSDocComments/CheckJSDocComment/ResolveJSDocMemberName are now REAL in

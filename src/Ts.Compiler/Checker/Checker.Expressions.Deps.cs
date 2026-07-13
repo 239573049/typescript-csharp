@@ -60,8 +60,73 @@ public partial class Checker
 
     // checker.go:10019 — checkParenthesizedExpression: real body landed in Checker.Expressions.cs.
 
-    // checker.go:10023
-    internal Type CheckClassExpression(Node node) => throw new NotImplementedException("checkClassExpression");
+    // checkClassExpression (checker.go:10023) + getFirstTransformableStaticClassElement (10031) +
+    // checkClassExpressionExternalHelpers (10057) + checkClassExpressionDeferred (10085) landed in
+    // Checker.Expressions.cs.
+
+    // ---- AST-layer gaps needed by the class-expression cluster (ast/utilities.go, not yet in Ts.Ast) ----
+
+    // checker/utilities.go:1829
+    internal static Node? WalkUpOuterExpressions(Node node)
+    {
+        var parent = node.Parent;
+        while (parent != null && AstUtilities.IsOuterExpression(parent, OuterExpressionKinds.All))
+        {
+            parent = parent.Parent;
+        }
+        return parent;
+    }
+
+    // ast/utilities.go:4534
+    internal static bool IsNamedEvaluationSource(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.PropertyAssignment:
+                return !IsProtoSetter(node.AsPropertyAssignment().Name()!);
+            case SyntaxKind.ShorthandPropertyAssignment:
+                return node.AsShorthandPropertyAssignment().ObjectAssignmentInitializer != null;
+            case SyntaxKind.VariableDeclaration:
+                return NodeTests.IsIdentifier(node.AsVariableDeclaration().Name()!) && node.Initializer() != null;
+            case SyntaxKind.Parameter:
+                return NodeTests.IsIdentifier(node.AsParameterDeclaration().Name()!) && node.Initializer() != null && node.AsParameterDeclaration().DotDotDotToken == null;
+            case SyntaxKind.BindingElement:
+                return NodeTests.IsIdentifier(node.AsBindingElement().Name()!) && node.Initializer() != null && node.AsBindingElement().DotDotDotToken == null;
+            case SyntaxKind.PropertyDeclaration:
+                return node.Initializer() != null;
+            case SyntaxKind.BinaryExpression:
+                switch (node.AsBinaryExpression().OperatorToken!.Kind)
+                {
+                    case SyntaxKind.EqualsToken:
+                    case SyntaxKind.AmpersandAmpersandEqualsToken:
+                    case SyntaxKind.BarBarEqualsToken:
+                    case SyntaxKind.QuestionQuestionEqualsToken:
+                        return NodeTests.IsIdentifier(node.AsBinaryExpression().Left!);
+                }
+                break;
+            case SyntaxKind.ExportAssignment:
+                return true;
+        }
+        return false;
+    }
+
+    // ast/utilities.go:4560
+    // Indicates whether a property name is the special `__proto__` property.
+    // Per the ECMA-262 spec, this only matters for property assignments whose name is
+    // the Identifier `__proto__`, or the string literal `"__proto__"`, but not for
+    // computed property names.
+    internal static bool IsProtoSetter(Node node)
+    {
+        return (NodeTests.IsIdentifier(node) || NodeTests.IsStringLiteral(node)) && node.Text() == "__proto__";
+    }
+
+    // ast/utilities.go:3740
+    // Gets a value indicating whether a class element is either a static or an instance property declaration with an initializer.
+    internal static bool IsInitializedProperty(Node member)
+    {
+        return member.Kind == SyntaxKind.PropertyDeclaration &&
+            member.Initializer() != null;
+    }
 
     // CheckFunctionExpressionOrObjectLiteralMethod (+ contextual/deferred/parameter-assignment family)
     // is now REAL in Checker.Expressions.cs (checker.go:10090-10433).
@@ -77,11 +142,10 @@ public partial class Checker
         return typeofType!;
     }
 
-    // checker.go:10598
-    internal Type CheckNonNullAssertion(Node node) => throw new NotImplementedException("checkNonNullAssertion");
+    // checkNonNullAssertion (checker.go:10598) + checkNonNullChain (checker.go:10605) landed in
+    // Checker.Expressions.cs.
 
-    // checker.go:10715
-    internal Type CheckSatisfiesExpression(Node node) => throw new NotImplementedException("checkSatisfiesExpression");
+    // checkSatisfiesExpression (checker.go:10715) landed in Checker.Expressions.cs.
 
     // checker.go:10727
     internal Type CheckMetaProperty(Node node) => throw new NotImplementedException("checkMetaProperty");
@@ -100,8 +164,7 @@ public partial class Checker
     // checker.go:10883
     internal Type CheckPostfixUnaryExpression(Node node) => throw new NotImplementedException("checkPostfixUnaryExpression");
 
-    // checker.go:10908
-    internal Type CheckConditionalExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkConditionalExpression");
+    // checkConditionalExpression (checker.go:10908) landed in Checker.Expressions.cs.
 
     // checker.go:10921
     internal Type CheckSpreadExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkSpreadExpression");

@@ -133,6 +133,100 @@ public partial class Checker
         return CheckExpressionEx(node.Expression()!, checkMode);
     }
 
+    // checker.go:10023
+    internal Type CheckClassExpression(Node node)
+    {
+        CheckClassLikeDeclaration(node);
+        CheckNodeDeferred(node);
+        CheckClassExpressionExternalHelpers(node);
+        return GetTypeOfSymbol(GetSymbolOfDeclaration(node)!);
+    }
+
+    // checker.go:10031
+    internal Node? GetFirstTransformableStaticClassElement(Node node)
+    {
+        var willTransformStaticElementsOfDecoratedClass = !legacyDecorators &&
+            languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.ClassAndClassElementDecorators &&
+            AstUtilities.ClassOrConstructorParameterIsDecorated(false, node);
+        var willTransformPrivateElementsOrClassStaticBlocks = languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.PrivateNamesAndClassStaticBlocks || languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.ClassAndClassElementDecorators;
+        var willTransformInitializers = !emitStandardClassFields;
+        if (willTransformStaticElementsOfDecoratedClass || willTransformPrivateElementsOrClassStaticBlocks)
+        {
+            foreach (var member in node.Members().OrEmpty())
+            {
+                if (willTransformStaticElementsOfDecoratedClass && ClassElementOrClassElementParameterIsDecorated(false, member, node))
+                {
+                    var firstDecorator = CoreUtil.Find(node.ModifierNodes(), NodeTests.IsDecorator);
+                    if (firstDecorator != null)
+                    {
+                        return firstDecorator;
+                    }
+                    return node;
+                }
+                else if (willTransformPrivateElementsOrClassStaticBlocks)
+                {
+                    if (NodeTests.IsClassStaticBlockDeclaration(member))
+                    {
+                        return member;
+                    }
+                    else if (AstUtilities.IsStatic(member) &&
+                        (AstUtilities.IsPrivateIdentifierClassElementDeclaration(member) ||
+                            willTransformInitializers && IsInitializedProperty(member)))
+                    {
+                        return member;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // checker.go:10057
+    internal void CheckClassExpressionExternalHelpers(Node node)
+    {
+        if (node.Name() != null)
+        {
+            return;
+        }
+        var parent = WalkUpOuterExpressions(node);
+        if (!IsNamedEvaluationSource(parent!))
+        {
+            return;
+        }
+
+        var willTransformESDecorators = !legacyDecorators && languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.ClassAndClassElementDecorators;
+        Node? location;
+        if (willTransformESDecorators && AstUtilities.ClassOrConstructorParameterIsDecorated(false, node))
+        {
+            location = node;
+            var firstDecorator = CoreUtil.Find(node.ModifierNodes(), NodeTests.IsDecorator);
+            if (firstDecorator != null)
+            {
+                location = firstDecorator;
+            }
+        }
+        else
+        {
+            location = GetFirstTransformableStaticClassElement(node);
+        }
+
+        if (location != null)
+        {
+            CheckExternalEmitHelpers(location, ExternalEmitHelpers.SetFunctionName);
+            if ((NodeTests.IsPropertyAssignment(parent!) || NodeTests.IsPropertyDeclaration(parent!) || NodeTests.IsBindingElement(parent!)) && NodeTests.IsComputedPropertyName(parent!.Name()!))
+            {
+                CheckExternalEmitHelpers(location, ExternalEmitHelpers.PropKey);
+            }
+        }
+    }
+
+    // checker.go:10085
+    internal void CheckClassExpressionDeferred(Node node)
+    {
+        CheckSourceElements(node.Members());
+        RegisterForUnusedIdentifiersCheck(node);
+    }
+
     // checker.go:7708-7812
     internal Type CheckExpressionWorker(Node node, CheckMode checkMode)
     {
@@ -568,6 +662,24 @@ public partial class Checker
         }
     }
 
+    // checker.go:10598
+    internal Type CheckNonNullAssertion(Node node)
+    {
+        if ((node.Flags & NodeFlags.OptionalChain) != 0)
+        {
+            return CheckNonNullChain(node);
+        }
+        return GetNonNullableType(CheckExpression(node.Expression()!));
+    }
+
+    // checker.go:10605
+    internal Type CheckNonNullChain(Node node)
+    {
+        var leftType = CheckExpression(node.Expression()!);
+        var nonOptionalType = GetOptionalExpressionType(leftType, node.Expression()!);
+        return PropagateOptionalTypeMarker(GetNonNullableType(nonOptionalType), node, nonOptionalType != leftType);
+    }
+
     // checker.go:10611
     internal Type CheckExpressionWithTypeArguments(Node node)
     {
@@ -693,6 +805,21 @@ public partial class Checker
             AddDiagnostic(Diagnostic.NewDiagnostic(sourceFile, loc, Diag.Type_0_has_no_signatures_for_which_the_type_argument_list_is_applicable, TypeToString(errorReportType)));
         }
         return instantiatedResult;
+    }
+
+    // checker.go:10715
+    internal Type CheckSatisfiesExpression(Node node)
+    {
+        var typeNode = node.Type()!;
+        CheckSourceElement(typeNode);
+        var exprType = CheckExpression(node.Expression()!);
+        var targetType = GetTypeFromTypeNode(typeNode);
+        if (IsErrorType(targetType))
+        {
+            return targetType;
+        }
+        CheckTypeAssignableToAndOptionallyElaborate(exprType, targetType, node, node.Expression(), Diag.Type_0_does_not_satisfy_the_expected_type_1, null);
+        return exprType;
     }
 
     // checker.go:7953
@@ -1003,6 +1130,17 @@ public partial class Checker
         }
         // If it's not a bigint type, implicit coercion will result in a number
         return numberType!;
+    }
+
+    // checker.go:10908
+    internal Type CheckConditionalExpression(Node node, CheckMode checkMode)
+    {
+        var cond = node.AsConditionalExpression();
+        var t = CheckTruthinessExpression(cond.Condition!, checkMode);
+        CheckTestingKnownTruthyCallableOrAwaitableOrEnumMemberType(cond.Condition!, t, cond.WhenTrue);
+        var type1 = CheckExpressionEx(cond.WhenTrue!, checkMode);
+        var type2 = CheckExpressionEx(cond.WhenFalse!, checkMode);
+        return GetUnionTypeEx([type1, type2], UnionReduction.Subtype, null, null);
     }
 
     // checker.go:10926

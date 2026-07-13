@@ -486,6 +486,10 @@ public partial class Checker
                 // checker.go:2503-2504
                 CheckFunctionExpressionOrObjectLiteralMethodDeferred(node);
                 break;
+            case SyntaxKind.ClassExpression:
+                // checker.go:2507-2508
+                CheckClassExpressionDeferred(node);
+                break;
             case SyntaxKind.TypeParameter:
                 // checker.go:2510-2511
                 CheckTypeParameterDeferred(node);
