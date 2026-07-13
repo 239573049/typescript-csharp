@@ -153,8 +153,7 @@ public partial class Checker
 
     // ---- facts / assignability (flow, relater) ----
     // hasTypeFacts 30735: real body landed in Checker.TypeFacts.cs.
-    internal Type GetTypeWithFacts(Type t, TypeFacts include) => throw new NotImplementedException("getTypeWithFacts");
-    internal Type GetAdjustedTypeWithFacts(Type t, TypeFacts facts) => throw new NotImplementedException("getAdjustedTypeWithFacts");
+    // getTypeWithFacts 30907 / getAdjustedTypeWithFacts 30916: real bodies landed in Checker.TypeFacts.cs.
     // isTypeAssignableTo owned by the relater wave (Checker.Relater.cs).
     // isTypeAssignableToKind (27507) implemented in Checker.Constraints.cs (#19).
     // checker.go:13436
@@ -186,7 +185,17 @@ public partial class Checker
     // ---- awaited / iteration (#22) ----
     // unwrapAwaitedType / checkAwaitedType / getAwaitedTypeNoAlias / getPromisedTypeOfPromise: real
     // bodies landed in Checker.AwaitedTypes.cs (#22 awaited-types wave).
-    internal Type? GetContextualIterationType(IterationTypeKind kind, Node functionDecl) => throw new NotImplementedException("getContextualIterationType");
+    // checker.go:29413
+    internal Type? GetContextualIterationType(IterationTypeKind kind, Node functionDecl)
+    {
+        var isAsync = (AstUtilities.GetFunctionFlags(functionDecl) & FunctionFlags.Async) != 0;
+        var contextualReturnType = GetContextualReturnType(functionDecl, ContextFlags.None);
+        if (contextualReturnType != null)
+        {
+            return GetIterationTypeOfGeneratorFunctionReturnType(kind, contextualReturnType, isAsync);
+        }
+        return null;
+    }
     // getIterationTypeOfGeneratorFunctionReturnType (6195) / getIterationTypesOfIterable (6244):
     // real bodies landed in Checker.IterationTypes.cs (iteration wave).
     // isResolvingReturnTypeOfSignature owned by the relater wave (Checker.Relater.cs).
@@ -220,7 +229,17 @@ public partial class Checker
     // GetExtendsHeritageClauseElement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1697).
     // GetThisParameter is now REAL in Ts.Ast (AstUtilities, Utilities.Decorators.cs); call sites use
     // AstUtilities.GetThisParameter directly.
-    internal static Node? GetSetAccessorValueParameter(Node accessor) => throw new NotImplementedException("GetSetAccessorValueParameter");
+    // utilities.go:1837
+    internal static Node? GetSetAccessorValueParameter(Node accessor)
+    {
+        var parameters = accessor.Parameters();
+        if ((parameters?.Length ?? 0) > 0)
+        {
+            var hasThis = parameters!.Length == 2 && AstUtilities.IsThisParameter(parameters[0]);
+            return parameters[hasThis ? 1 : 0];
+        }
+        return null;
+    }
     // ast/utilities.go:3141-3161
     internal static string GetPropertyNameForPropertyNameNode(Node name)
     {

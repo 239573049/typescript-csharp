@@ -72,7 +72,12 @@ public partial class Checker
     internal Type CheckAssertion(Node node, CheckMode checkMode) => throw new NotImplementedException("checkAssertion");
 
     // checker.go:10593
-    internal Type CheckTypeOfExpression(Node node) => throw new NotImplementedException("checkTypeOfExpression");
+    // checker.go:10593
+    internal Type CheckTypeOfExpression(Node node)
+    {
+        CheckExpression(node.Expression()!);
+        return typeofType!;
+    }
 
     // checker.go:10598
     internal Type CheckNonNullAssertion(Node node) => throw new NotImplementedException("checkNonNullAssertion");
@@ -140,15 +145,68 @@ public partial class Checker
     internal void ReportNonexistentProperty(Node propNode, Type containingType, bool isUncheckedJS) => throw new NotImplementedException("reportNonexistentProperty");
 
     // checker.go — unchecked-JS suggestion heuristic (utilities cluster).
-    internal bool IsUncheckedJSSuggestion(Node? node, Symbol? symbol, bool excludeClasses) => throw new NotImplementedException("isUncheckedJSSuggestion");
+    // utilities.go:1700
+    internal bool IsUncheckedJSSuggestion(Node? node, Symbol? suggestion, bool excludeClasses)
+    {
+        var file = AstUtilities.GetSourceFileOfNode(node);
+        if (file != null)
+        {
+            if (compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == null && (file.ScriptKind == global::Ts.Core.ScriptKind.JS || file.ScriptKind == global::Ts.Core.ScriptKind.Jsx))
+            {
+                SourceFile? declarationFile = null;
+                if (suggestion != null)
+                {
+                    var firstDeclaration = CoreUtil.FirstOrNil(suggestion.Declarations);
+                    if (firstDeclaration != null)
+                    {
+                        declarationFile = AstUtilities.GetSourceFileOfNode(firstDeclaration);
+                    }
+                }
+                var suggestionHasNoExtendsOrDecorators = suggestion == null ||
+                    suggestion.ValueDeclaration == null ||
+                    !AstUtilities.IsClassLike(suggestion.ValueDeclaration) ||
+                    AstUtilities.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration).Length != 0 ||
+                    AstUtilities.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration);
+                return !(file != declarationFile && declarationFile != null && AstUtilities.IsGlobalSourceFile(declarationFile.AsNode())) &&
+                    !(excludeClasses && suggestion != null && (suggestion.Flags & SymbolFlags.Class) != 0 && suggestionHasNoExtendsOrDecorators) &&
+                    !(node != null && excludeClasses && NodeTests.IsPropertyAccessExpression(node) && node.Expression()!.Kind == SyntaxKind.ThisKeyword && suggestionHasNoExtendsOrDecorators);
+            }
+        }
+        return false;
+    }
 
     // checker.go — definitely-falsy type extraction (type-facts cluster).
     internal Type ExtractDefinitelyFalsyTypes(Type type) => throw new NotImplementedException("extractDefinitelyFalsyTypes");
     // checker.go:28863
     internal Type RemoveDefinitelyFalsyTypes(Type t) => FilterType(t, x => HasTypeFacts(x, TypeFacts.Truthy));
 
-    // checker.go — base-type-of-literal for relational comparison (type-facts cluster).
-    internal Type GetBaseTypeOfLiteralTypeForComparison(Type type) => throw new NotImplementedException("getBaseTypeOfLiteralTypeForComparison");
+    // checker.go:25362
+    // This like getBaseTypeOfLiteralType, but instead treats enum literals as strings/numbers instead
+    // of returning their enum base type (which depends on the types of other literals in the enum).
+    internal Type GetBaseTypeOfLiteralTypeForComparison(Type t)
+    {
+        if ((t.flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping)) != 0)
+        {
+            return stringType!;
+        }
+        if ((t.flags & (TypeFlags.NumberLiteral | TypeFlags.Enum)) != 0)
+        {
+            return numberType!;
+        }
+        if ((t.flags & TypeFlags.BigIntLiteral) != 0)
+        {
+            return bigintType!;
+        }
+        if ((t.flags & TypeFlags.BooleanLiteral) != 0)
+        {
+            return booleanType!;
+        }
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            return MapType(t, GetBaseTypeOfLiteralTypeForComparison);
+        }
+        return t;
+    }
 
     // IsWriteOnlyAccess (ast.go:1265) landed on AstUtilities (Utilities.AccessKind.cs); call sites use
     // AstUtilities.IsWriteOnlyAccess directly.

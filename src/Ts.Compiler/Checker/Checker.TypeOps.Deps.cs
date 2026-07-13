@@ -21,7 +21,9 @@ public partial class Checker
     internal bool ContainsMissingType(Type t) =>
         t == missingType || (t.flags & TypeFlags.Union) != 0 && t.Types()[0] == missingType;
     // isStringIndexSignatureOnlyType is a memoized Func<Type,bool> field (Checker.cs) bound to IsStringIndexSignatureOnlyTypeWorker; callers invoke the field.
-    internal static bool IsObjectOrArrayLiteralType(Type t) => throw new NotImplementedException("isObjectOrArrayLiteralType");
+    // utilities.go:967
+    internal static bool IsObjectOrArrayLiteralType(Type t) =>
+        (t.objectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.ArrayLiteral)) != 0;
 
     // forEachMappedTypePropertyKeyTypeAndIndexSignatureKeyType / getLowerBoundOfKeyType provided by
     // a sibling (mapped-type) wave — not duplicated here.

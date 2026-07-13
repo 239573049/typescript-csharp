@@ -26,7 +26,27 @@ public partial class Checker
     // CheckClassForStaticPropertyNameConflicts is now REAL in Checker.Declarations.cs (checker.go:4376).
     // CheckBaseTypeAccessibility is now REAL in Checker.Declarations.cs (checker.go:4464).
     // checker.go:3004
-    internal bool CheckTypeArgumentConstraints(Node node, Type[]? typeParameters) => throw new NotImplementedException("checkTypeArgumentConstraints");
+    internal bool CheckTypeArgumentConstraints(Node node, Type[]? typeParameters)
+    {
+        Type[]? typeArguments = null;
+        TypeMapper? mapper = null;
+        var result = true;
+        for (var i = 0; i < (typeParameters?.Length ?? 0); i++)
+        {
+            var typeParameter = typeParameters![i];
+            var constraint = GetConstraintOfTypeParameter(typeParameter);
+            if (constraint != null)
+            {
+                if (typeArguments == null)
+                {
+                    typeArguments = GetEffectiveTypeArguments(node, typeParameters);
+                    mapper = TypeMapper.NewTypeMapper(typeParameters, typeArguments);
+                }
+                result = result && CheckTypeAssignableTo(typeArguments[i], InstantiateType(constraint, mapper), CoreUtil.ElementOrNil(node.TypeArguments(), i), Diag.Type_0_does_not_satisfy_the_constraint_1);
+            }
+        }
+        return result;
+    }
     // checker.go:4477
     internal void IssueMemberSpecificError(Node node, Type typeWithThis, Type baseWithThis, global::Ts.Diagnostics.Message broadDiag) => throw new NotImplementedException("issueMemberSpecificError");
     // GetTypeWithoutSignatures is now REAL in Checker.Declarations.cs (checker.go:4502).
@@ -295,6 +315,7 @@ public partial class Checker
         node.AsImportEqualsDeclaration().ModuleReference!.Kind != SyntaxKind.ExternalModuleReference;
     // checker.go: module kind display for diagnostics (ModuleKind.String())
     internal static string ModuleKindToString(ModuleKind moduleKind) => throw new NotImplementedException("ModuleKind.String");
-    // scanner.go:2516 — scanner.ScanTokenAtPosition not yet landed on the Scanner host.
-    internal static SyntaxKind ScanTokenAtPosition(SourceFile sourceFile, int pos) => throw new NotImplementedException("scanner.ScanTokenAtPosition");
+    // scanner.go:2516 — scanner.ScanTokenAtPosition (positions a fresh scanner at pos and returns the token kind).
+    internal static SyntaxKind ScanTokenAtPosition(SourceFile sourceFile, int pos) =>
+        global::Ts.Scanner.Scanner.GetScannerForSourceFile(sourceFile, pos).Token();
 }

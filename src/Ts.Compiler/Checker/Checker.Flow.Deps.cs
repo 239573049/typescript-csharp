@@ -100,7 +100,7 @@ public partial class Checker
         }
         return t;
     }
-    internal Type RecombineUnknownType(Type t) => throw new NotImplementedException("recombineUnknownType");
+    // recombineUnknownType 30958: real body landed in Checker.TypeFacts.cs.
     internal Type ExtractUnitType(Type t) => throw new NotImplementedException("extractUnitType");
     // getFreshTypeOfLiteralType is real in Checker.TypeCreation.cs.
     // checker.go:31248

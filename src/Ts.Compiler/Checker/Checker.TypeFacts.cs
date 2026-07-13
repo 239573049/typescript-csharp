@@ -259,4 +259,89 @@ public partial class Checker
     {
         return GetBigIntLiteralValue(t) == new global::Ts.JsNum.PseudoBigInt();
     }
+
+    // checker.go:30907
+    internal Type GetTypeWithFacts(Type t, TypeFacts include)
+    {
+        return FilterType(t, tt => HasTypeFacts(tt, include));
+    }
+
+    // checker.go:30916
+    // This function is similar to getTypeWithFacts, except that in strictNullChecks mode it replaces type
+    // unknown with the union {} | null | undefined (and reduces that accordingly), and it intersects remaining
+    // instantiable types with {}, {} | null, or {} | undefined in order to remove null and/or undefined.
+    internal Type GetAdjustedTypeWithFacts(Type t, TypeFacts facts)
+    {
+        var reduced = RecombineUnknownType(GetTypeWithFacts(CoreUtil.IfElse(strictNullChecks && (t.flags & TypeFlags.Unknown) != 0, unknownUnionType!, t), facts));
+        if (strictNullChecks)
+        {
+            switch (facts)
+            {
+                case TypeFacts.NEUndefined:
+                    return RemoveNullableByIntersection(reduced, TypeFacts.EQUndefined, TypeFacts.EQNull, TypeFacts.IsNull, nullType!);
+                case TypeFacts.NENull:
+                    return RemoveNullableByIntersection(reduced, TypeFacts.EQNull, TypeFacts.EQUndefined, TypeFacts.IsUndefined, undefinedType!);
+                case TypeFacts.NEUndefinedOrNull:
+                case TypeFacts.Truthy:
+                    return MapType(reduced, tt =>
+                    {
+                        if (HasTypeFacts(tt, TypeFacts.EQUndefinedOrNull))
+                        {
+                            return GetGlobalNonNullableTypeInstantiation(tt);
+                        }
+                        return tt;
+                    });
+            }
+        }
+        return reduced;
+    }
+
+    // checker.go:30936
+    internal Type RemoveNullableByIntersection(Type t, TypeFacts targetFacts, TypeFacts otherFacts, TypeFacts otherIncludesFacts, Type otherType)
+    {
+        var facts = GetTypeFacts(t, TypeFacts.EQUndefined | TypeFacts.EQNull | TypeFacts.IsUndefined | TypeFacts.IsNull);
+        // Simply return the type if it never compares equal to the target nullable.
+        if ((facts & targetFacts) == 0)
+        {
+            return t;
+        }
+        // By default we intersect with a union of {} and the opposite nullable.
+        var emptyAndOtherUnion = GetUnionType([emptyObjectType!, otherType]);
+        // For each constituent type that can compare equal to the target nullable, intersect with the above union
+        // if the type doesn't already include the opposite nullable and the constituent can compare equal to the
+        // opposite nullable; otherwise, just intersect with {}.
+        return MapType(t, tt =>
+        {
+            if (HasTypeFacts(tt, targetFacts))
+            {
+                if ((facts & otherIncludesFacts) == 0 && HasTypeFacts(tt, otherFacts))
+                {
+                    return GetIntersectionType([tt, emptyAndOtherUnion]);
+                }
+                return GetIntersectionType([tt, emptyObjectType!]);
+            }
+            return tt;
+        });
+    }
+
+    // checker.go:30958
+    internal Type RecombineUnknownType(Type t)
+    {
+        if (t == unknownUnionType)
+        {
+            return unknownType!;
+        }
+        return t;
+    }
+
+    // checker.go:30965
+    internal Type GetGlobalNonNullableTypeInstantiation(Type t)
+    {
+        var alias = getGlobalNonNullableTypeAliasOrNil();
+        if (alias != null)
+        {
+            return GetTypeAliasInstantiation(alias, [t], null);
+        }
+        return GetIntersectionType([t, emptyObjectType!]);
+    }
 }

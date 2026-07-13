@@ -8,6 +8,8 @@
 // Ast/ file is touched. Grep-confirmed absent from Ts.Ast before adding.
 #nullable enable
 
+using Ts.Core;
+
 namespace Ts.Ast;
 
 public static partial class AstUtilities
@@ -96,5 +98,45 @@ public static partial class AstUtilities
         }
 
         return false;
+    }
+
+    // ast/utilities.go:4269
+    public static bool ClassOrConstructorParameterIsDecorated(bool useLegacyDecorators, Node node)
+    {
+        if (NodeIsDecorated(useLegacyDecorators, node, null, null))
+        {
+            return true;
+        }
+        var constructor = GetFirstConstructorWithBody(node);
+        return constructor != null && ChildIsDecorated(useLegacyDecorators, constructor, node);
+    }
+
+    // ast/utilities.go:4312
+    public static bool NodeIsDecorated(bool useLegacyDecorators, Node node, Node? parent, Node? grandparent)
+    {
+        return HasDecorators(node) && NodeCanBeDecorated(useLegacyDecorators, node, parent, grandparent);
+    }
+
+    // ast/utilities.go:4316
+    public static bool NodeOrChildIsDecorated(bool useLegacyDecorators, Node node, Node? parent, Node? grandparent)
+    {
+        return NodeIsDecorated(useLegacyDecorators, node, parent, grandparent) || ChildIsDecorated(useLegacyDecorators, node, parent);
+    }
+
+    // ast/utilities.go:4320
+    public static bool ChildIsDecorated(bool useLegacyDecorators, Node node, Node? parent)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.ClassExpression:
+                return CoreUtil.Some(node.Members(), m => NodeOrChildIsDecorated(useLegacyDecorators, m, node, parent));
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.Constructor:
+                return CoreUtil.Some(node.Parameters(), p => NodeIsDecorated(useLegacyDecorators, p, node, parent));
+            default:
+                return false;
+        }
     }
 }

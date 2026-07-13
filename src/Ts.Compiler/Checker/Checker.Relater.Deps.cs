@@ -42,9 +42,23 @@ public partial class Checker
     internal Symbol? GetUnionOrIntersectionProperty(Type type, string name, bool skipObjectFunctionPropertyAugment) => throw new NotImplementedException("getUnionOrIntersectionProperty");
     internal Type? GetTypeOfPropertyOrIndexSignatureOfType(Type type, string name) => throw new NotImplementedException("getTypeOfPropertyOrIndexSignatureOfType");
     // GetRegularTypeOfObjectLiteral is now REAL in Checker.Widening.cs (checker.go:27988).
-    internal bool TypeHasCallOrConstructSignatures(Type type) => throw new NotImplementedException("typeHasCallOrConstructSignatures");
+    // checker.go:27690
+    internal bool TypeHasCallOrConstructSignatures(Type type) =>
+        (type.flags & TypeFlags.StructuredType) != 0 && (ResolveStructuredTypeMembers(type).signatures?.Length ?? 0) != 0;
     // GetBaseTypeOfEnumLikeType is now REAL in Checker.Widening.cs (checker.go:25378).
-    internal bool IsFunctionObjectType(Type type) => throw new NotImplementedException("isFunctionObjectType");
+    // checker.go:30897
+    internal bool IsFunctionObjectType(Type type)
+    {
+        if ((type.objectFlags & ObjectFlags.EvolvingArray) != 0)
+        {
+            return false;
+        }
+        // We do a quick check for a "bind" property before performing the more expensive subtype
+        // check. This gives us a quicker out in the common case where an object type is not a function.
+        var resolved = ResolveStructuredTypeMembers(type);
+        return (resolved.signatures?.Length ?? 0) != 0 ||
+            resolved.members?.GetValueOrDefault("bind") != null && IsTypeSubtypeOf(type, globalFunctionType!);
+    }
     // compareProperties (checker.go:27538) — two members are identical when they are public
     // properties with identical names, optionality, and types, or private/protected properties
     // originating in the same declaration and having identical types.

@@ -22,6 +22,7 @@
 using System;
 using Ts.Ast;
 using Ts.Core;
+using Diag = global::Ts.Diagnostics.Diagnostics;
 
 namespace Ts.Checker;
 
@@ -43,10 +44,26 @@ public partial class Checker
             AddSuggestionDiagnostic(suggestion);
         }
     }
-    internal void ErrorAndMaybeSuggestAwait(Node? location, bool maybeMissingAwait, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("errorAndMaybeSuggestAwait");
+    // checker.go:13941
+    internal Diagnostic ErrorAndMaybeSuggestAwait(Node? location, bool maybeMissingAwait, global::Ts.Diagnostics.Message message, params object?[] args)
+    {
+        var diagnostic = Error(location, message, args);
+        if (maybeMissingAwait)
+        {
+            diagnostic.AddRelatedInfo(CreateDiagnosticForNode(location!, Diag.Did_you_forget_to_use_await));
+        }
+        return diagnostic;
+    }
     internal Diagnostic? ErrorOrNil(Node? location, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("error");
     // CreateDiagnosticForNode is real in Checker.Relater.cs.
-    internal void AddRelatedInfo(Diagnostic diagnostic, params Diagnostic[] relatedInformation) => throw new NotImplementedException("addRelatedInfo");
+    // ast.Diagnostic.AddRelatedInfo (variadic helper form used by ported checker call sites).
+    internal void AddRelatedInfo(Diagnostic diagnostic, params Diagnostic[] relatedInformation)
+    {
+        foreach (var related in relatedInformation)
+        {
+            diagnostic.AddRelatedInfo(related);
+        }
+    }
 
     // ---- grammar checks (grammar cluster) ----
     // All CheckGrammar*/GrammarErrorOn*/GrammarErrorAtPos are now REAL in Checker.Grammar.cs (grammar wave).
@@ -122,7 +139,9 @@ public partial class Checker
 
     // ---- expressions (#7/#8) ----
     // CheckExpression / CheckExpressionCached already stubbed in Stubs.cs; GetResolvedSymbolOrNil elsewhere.
-    internal Type CheckTruthinessExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkTruthinessExpression");
+    // checker.go:10917
+    internal Type CheckTruthinessExpression(Node node, CheckMode checkMode) =>
+        CheckTruthinessOfType(CheckExpressionEx(node, checkMode), node);
     // CheckReferenceExpression owned by the operator-expressions cluster.
     internal Type CheckDestructuringAssignment(Node exprOrAssignment, Type rightType, CheckMode checkMode, bool rightIsThis) => throw new NotImplementedException("checkDestructuringAssignment");
     // utilities.go:324-326
