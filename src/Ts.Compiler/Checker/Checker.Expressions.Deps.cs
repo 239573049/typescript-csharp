@@ -147,27 +147,24 @@ public partial class Checker
 
     // checkSatisfiesExpression (checker.go:10715) landed in Checker.Expressions.cs.
 
-    // checker.go:10727
-    internal Type CheckMetaProperty(Node node) => throw new NotImplementedException("checkMetaProperty");
+    // checkMetaProperty (checker.go:10727) + checkNewTargetMetaProperty (checker.go:10743) +
+    // checkImportMetaProperty (checker.go:10756) landed in Checker.Expressions.cs
+    // (GetNewTargetContainer helper temporarily lives there too — see PORT NOTE).
 
-    // checker.go:10778
-    internal Type CheckDeleteExpression(Node node) => throw new NotImplementedException("checkDeleteExpression");
+    // checkDeleteExpression (checker.go:10778) + checkDeleteExpressionMustBeOptional (checker.go:10800)
+    // landed in Checker.Expressions.cs.
 
-    // checker.go:10814
-    internal Type CheckVoidExpression(Node node) => throw new NotImplementedException("checkVoidExpression");
+    // checkVoidExpression (checker.go:10814) landed in Checker.Expressions.cs.
 
-    // checker.go:10819
-    internal Type CheckAwaitExpression(Node node) => throw new NotImplementedException("checkAwaitExpression");
+    // checkAwaitExpression (checker.go:10819) landed in Checker.Expressions.cs.
 
     // checkPrefixUnaryExpression (checker.go:10829) + getUnaryResultType landed in Checker.Expressions.cs.
 
-    // checker.go:10883
-    internal Type CheckPostfixUnaryExpression(Node node) => throw new NotImplementedException("checkPostfixUnaryExpression");
+    // checkPostfixUnaryExpression (checker.go:10883) landed in Checker.Expressions.cs.
 
     // checkConditionalExpression (checker.go:10908) landed in Checker.Expressions.cs.
 
-    // checker.go:10921
-    internal Type CheckSpreadExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkSpreadExpression");
+    // checkSpreadExpression (checker.go:10921) landed in Checker.Expressions.cs.
 
     // checkYieldExpression (checker.go:10926) + getYieldedTypeOfYieldExpression (checker.go:10993)
     // landed in Checker.Expressions.cs.

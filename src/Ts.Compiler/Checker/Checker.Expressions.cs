@@ -822,6 +822,157 @@ public partial class Checker
         return exprType;
     }
 
+    // checker.go:10727
+    internal Type CheckMetaProperty(Node node)
+    {
+        CheckGrammarMetaProperty(node.AsMetaProperty());
+        switch (node.AsMetaProperty().KeywordToken)
+        {
+            case SyntaxKind.NewKeyword:
+                return CheckNewTargetMetaProperty(node);
+            case SyntaxKind.ImportKeyword:
+                if (node.Name()!.Text() == "defer")
+                {
+                    global::Ts.Core.Debug.Assert(!NodeTests.IsCallExpression(node.Parent!) || node.Parent!.Expression() != node, "Trying to get the type of `import.defer` in `import.defer(...)`");
+                    return errorType!;
+                }
+                return CheckImportMetaProperty(node);
+        }
+        throw new global::System.InvalidOperationException("Unhandled case in checkMetaProperty");
+    }
+
+    // checker.go:10743
+    internal Type CheckNewTargetMetaProperty(Node node)
+    {
+        var container = GetNewTargetContainer(node);
+        if (container == null)
+        {
+            Error(node, Diag.Meta_property_0_is_only_allowed_in_the_body_of_a_function_declaration_function_expression_or_constructor, "new.target");
+            return errorType!;
+        }
+        if (NodeTests.IsConstructorDeclaration(container))
+        {
+            var symbol = GetSymbolOfDeclaration(container.Parent!)!;
+            return GetTypeOfSymbol(symbol);
+        }
+        var containerSymbol = GetSymbolOfDeclaration(container)!;
+        return GetTypeOfSymbol(containerSymbol);
+    }
+
+    // utilities.go:2141 — ast.GetNewTargetContainer. PORT NOTE: belongs in Ast/AstUtilities
+    // (Utilities.BinderExtra.cs, next to GetThisContainer); placed here temporarily because Ast/
+    // files are owned by a parallel session. Move when that area is free.
+    internal static Node? GetNewTargetContainer(Node node)
+    {
+        Node? container = AstUtilities.GetThisContainer(node, false /*includeArrowFunctions*/, false /*includeClassComputedPropertyName*/);
+        if (container != null)
+        {
+            switch (container.Kind)
+            {
+                case SyntaxKind.Constructor:
+                case SyntaxKind.FunctionDeclaration:
+                case SyntaxKind.FunctionExpression:
+                    return container;
+            }
+        }
+        return null;
+    }
+
+    // checker.go:10756
+    internal Type CheckImportMetaProperty(Node node)
+    {
+        if (ModuleKind.Node16 <= moduleKind && moduleKind <= ModuleKind.NodeNext)
+        {
+            var sourceFileMetaData = program.GetSourceFileMetaData(AstUtilities.GetSourceFileOfNode(node)!.Path());
+            if (sourceFileMetaData.ImpliedNodeFormat != ModuleKind.ESNext)
+            {
+                Error(node, Diag.The_import_meta_meta_property_is_not_allowed_in_files_which_will_build_into_CommonJS_output);
+            }
+        }
+        else if (moduleKind < ModuleKind.ES2020 && moduleKind != ModuleKind.System)
+        {
+            Error(node, Diag.The_import_meta_meta_property_is_only_allowed_when_the_module_option_is_es2020_es2022_esnext_system_node16_node18_node20_or_nodenext);
+        }
+        var file = AstUtilities.GetSourceFileOfNode(node)!;
+        global::Ts.Core.Debug.Assert((file.Flags & NodeFlags.PossiblyContainsImportMeta) != 0, "Containing file is missing import meta node flag.");
+        if (node.Name()!.Text() == "meta")
+        {
+            return getGlobalImportMetaType();
+        }
+        return errorType!;
+    }
+
+    // checker.go:10778
+    internal Type CheckDeleteExpression(Node node)
+    {
+        CheckExpression(node.Expression()!);
+        var expr = AstUtilities.SkipParentheses(node.Expression()!);
+        if (!AstUtilities.IsAccessExpression(expr))
+        {
+            Error(expr, Diag.The_operand_of_a_delete_operator_must_be_a_property_reference);
+            return booleanType!;
+        }
+        if (NodeTests.IsPropertyAccessExpression(expr) && NodeTests.IsPrivateIdentifier(expr.Name()!))
+        {
+            Error(expr, Diag.The_operand_of_a_delete_operator_cannot_be_a_private_identifier);
+        }
+        var symbol = GetExportSymbolOfValueSymbolIfExported(GetResolvedSymbolOrNil(expr));
+        if (symbol != null)
+        {
+            if (IsReadonlySymbol(symbol))
+            {
+                Error(expr, Diag.The_operand_of_a_delete_operator_cannot_be_a_read_only_property);
+            }
+            else
+            {
+                CheckDeleteExpressionMustBeOptional(expr, symbol);
+            }
+        }
+        return booleanType!;
+    }
+
+    // checker.go:10800
+    internal void CheckDeleteExpressionMustBeOptional(Node expr, Symbol symbol)
+    {
+        var t = GetTypeOfSymbol(symbol);
+        if (strictNullChecks && (t.flags & (TypeFlags.AnyOrUnknown | TypeFlags.Never)) == 0)
+        {
+            bool isOptional;
+            if (exactOptionalPropertyTypes)
+            {
+                isOptional = (symbol.Flags & SymbolFlags.Optional) != 0;
+            }
+            else
+            {
+                isOptional = HasTypeFacts(t, TypeFacts.IsUndefined);
+            }
+            if (!isOptional)
+            {
+                Error(expr, Diag.The_operand_of_a_delete_operator_must_be_optional);
+            }
+        }
+    }
+
+    // checker.go:10814
+    internal Type CheckVoidExpression(Node node)
+    {
+        CheckNodeDeferred(node);
+        return undefinedWideningType!;
+    }
+
+    // checker.go:10819
+    internal Type CheckAwaitExpression(Node node)
+    {
+        CheckGrammarAwaitOrAwaitUsing(node);
+        var operandType = CheckExpression(node.Expression()!);
+        var awaitedType = CheckAwaitedType(operandType, true /*withAlias*/, node, Diag.Type_of_await_operand_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member);
+        if (awaitedType == operandType && !IsErrorType(awaitedType) && (operandType.flags & TypeFlags.AnyOrUnknown) == 0)
+        {
+            AddErrorOrSuggestion(false, CreateDiagnosticForNode(node, Diag.X_await_has_no_effect_on_the_type_of_this_expression));
+        }
+        return awaitedType;
+    }
+
     // checker.go:7953
     internal Type CheckTemplateExpression(Node node)
     {
@@ -1117,6 +1268,24 @@ public partial class Checker
         return errorType!;
     }
 
+    // checker.go:10883
+    internal Type CheckPostfixUnaryExpression(Node node)
+    {
+        var expr = node.AsPostfixUnaryExpression();
+        var operandType = CheckExpression(expr.Operand!);
+        if (operandType == silentNeverType)
+        {
+            return silentNeverType!;
+        }
+        var ok = CheckArithmeticOperandType(expr.Operand!, CheckNonNullType(operandType, expr.Operand!), Diag.An_arithmetic_operand_must_be_of_type_any_number_bigint_or_an_enum_type, false);
+        if (ok)
+        {
+            // run check only if former checks succeeded to avoid reporting cascading errors
+            CheckReferenceExpression(expr.Operand!, Diag.The_operand_of_an_increment_or_decrement_operator_must_be_a_variable_or_a_property_access, Diag.The_operand_of_an_increment_or_decrement_operator_may_not_be_an_optional_property_access);
+        }
+        return GetUnaryResultType(operandType);
+    }
+
     // checker.go:10898
     internal Type GetUnaryResultType(Type operandType)
     {
@@ -1141,6 +1310,13 @@ public partial class Checker
         var type1 = CheckExpressionEx(cond.WhenTrue!, checkMode);
         var type2 = CheckExpressionEx(cond.WhenFalse!, checkMode);
         return GetUnionTypeEx([type1, type2], UnionReduction.Subtype, null, null);
+    }
+
+    // checker.go:10921
+    internal Type CheckSpreadExpression(Node node, CheckMode checkMode)
+    {
+        var arrayOrIterableType = CheckExpressionEx(node.Expression()!, checkMode);
+        return CheckIteratedTypeOrElementType(IterationUse.Spread, arrayOrIterableType, undefinedType!, node.Expression());
     }
 
     // checker.go:10926

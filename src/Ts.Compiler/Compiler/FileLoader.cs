@@ -4,12 +4,10 @@
 // parallel filesParser, and assemble the processedFiles snapshot. Import resolution flows through
 // module.Resolver; binding is driven later by Program.BindSourceFiles.
 //
-// PORT-NOTE (phase 4/5): deferred sub-surfaces are marked inline: synthetic imports
-// (import-helpers), JSX runtime imports, and the type-only / import-syntax resolution-mode
-// overrides depend on ast helpers not yet ported (GetJSXRuntimeImport, GetJSXImplicitImportBase,
-// IsExclusivelyTypeOnlyImportOrExport, GetResolutionModeOverride, IsImportCall,
-// ShouldTransformImportCall). They throw where reached; the phase 4/5 milestone (relative imports,
-// non-JSX, default module resolution) never reaches them.
+// PORT-NOTE (phase 4/5): deferred sub-surfaces are marked inline: the type-only / import-syntax
+// resolution-mode overrides depend on ast helpers not yet ported (IsExclusivelyTypeOnlyImportOrExport,
+// GetResolutionModeOverride, IsImportCall, ShouldTransformImportCall). They throw where reached; the
+// phase 4/5 milestone (default module resolution) never reaches them.
 //
 // §1.5 (namespace shadowing): sibling-namespace static classes are fully qualified with global::.
 
@@ -143,6 +141,9 @@ internal sealed class FileLoader
 
     internal int TotalFileCount;
     internal int LibFileCount;
+
+    private readonly global::System.Threading.Lock factoryMu = new();
+    private readonly global::Ts.Ast.NodeFactory factory = new();
 
     internal ProjectReferenceFileMapper ProjectReferenceFileMapper = null!;
     internal readonly Set<global::Ts.TsPath.Path> DtsDirectories = new();
@@ -669,10 +670,17 @@ internal sealed class FileLoader
 
         if (file.ScriptKind == ScriptKind.Jsx || file.ScriptKind == ScriptKind.Tsx)
         {
-            // PORT-NOTE (phase 4/5): JSX runtime import resolution depends on ast.GetJSXRuntimeImport /
-            // GetJSXImplicitImportBase, which are not yet ported. Deferred; the phase 4/5 milestone uses
-            // non-JSX inputs.
-            throw new NotImplementedException("JSX runtime import resolution is deferred (GetJSXRuntimeImport/GetJSXImplicitImportBase not yet ported)");
+            var jsxImport = GetJSXRuntimeImport(GetJSXImplicitImportBase(optionsForFile, file), optionsForFile);
+            if (jsxImport != "")
+            {
+                var specifier = CreateSyntheticImport(jsxImport, file);
+                moduleNames.Add(specifier);
+                t.JsxRuntimeImportSpecifier = new JsxRuntimeImportSpecifier
+                {
+                    ModuleReference = jsxImport,
+                    Specifier = specifier,
+                };
+            }
         }
 
         var importsStart = moduleNames.Count;
@@ -763,14 +771,86 @@ internal sealed class FileLoader
         }
     }
 
+    // ast/utilities.go:2752-2773
+    internal static string GetJSXImplicitImportBase(CompilerOptions compilerOptions, SourceFile? file)
+    {
+        var jsxImportSourcePragma = GetPragmaFromSourceFile(file, "jsximportsource");
+        var jsxRuntimePragma = GetPragmaFromSourceFile(file, "jsxruntime");
+        if (GetPragmaArgument(jsxRuntimePragma, "factory") == "classic")
+        {
+            return "";
+        }
+        if (compilerOptions.Jsx == JsxEmit.ReactJSX ||
+            compilerOptions.Jsx == JsxEmit.ReactJSXDev ||
+            compilerOptions.JsxImportSource != "" ||
+            jsxImportSourcePragma is not null ||
+            GetPragmaArgument(jsxRuntimePragma, "factory") == "automatic")
+        {
+            var result = GetPragmaArgument(jsxImportSourcePragma, "factory");
+            if (result == "")
+            {
+                result = compilerOptions.JsxImportSource;
+            }
+            if (result == "")
+            {
+                result = "react";
+            }
+            return result;
+        }
+        return "";
+    }
+
+    // ast/utilities.go:2775-2780
+    internal static string GetJSXRuntimeImport(string @base, CompilerOptions options)
+    {
+        if (@base == "")
+        {
+            return @base;
+        }
+        return @base + "/" + (options.Jsx == JsxEmit.ReactJSXDev ? "jsx-dev-runtime" : "jsx-runtime");
+    }
+
+    // ast/utilities.go:2782-2792
+    private static Pragma? GetPragmaFromSourceFile(SourceFile? file, string name)
+    {
+        Pragma? result = null;
+        if (file is not null)
+        {
+            foreach (var pragma in file.Pragmas ?? [])
+            {
+                if (pragma.Name == name)
+                {
+                    result = pragma; // Last one wins
+                }
+            }
+        }
+        return result;
+    }
+
+    // ast/utilities.go:2794-2801
+    private static string GetPragmaArgument(Pragma? pragma, string name)
+    {
+        if (pragma is not null)
+        {
+            if (pragma.Value.Args is not null && pragma.Value.Args.TryGetValue(name, out var arg))
+            {
+                return arg.Value;
+            }
+        }
+        return "";
+    }
+
     // fileloader.go:634-642
     private Node CreateSyntheticImport(string text, SourceFile file)
     {
-        _ = text;
-        _ = file;
-        // PORT-NOTE (phase 4/5): synthetic import-helper specifiers require NodeFactory-built
-        // ImportDeclaration/StringLiteral nodes; reached only when ImportHelpers is enabled. Deferred.
-        throw new NotImplementedException("synthetic import-helper specifier creation is deferred (phase 4/5)");
+        lock (factoryMu)
+        {
+            var externalHelpersModuleReference = factory.NewStringLiteral(text, global::Ts.Ast.TokenFlags.None);
+            var importDecl = factory.NewImportDeclaration(null, null, externalHelpersModuleReference, null);
+            externalHelpersModuleReference.Parent = importDecl;
+            importDecl.Parent = file.AsNode();
+            return externalHelpersModuleReference;
+        }
     }
 
     // fileloader.go:644-668
