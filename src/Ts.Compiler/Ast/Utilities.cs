@@ -831,6 +831,12 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.PropertyAccessExpression || node.Kind == SyntaxKind.QualifiedName;
     }
 
+    // ast.go:1875-1877
+    public static bool IsImportDeclarationOrJSImportDeclaration(Node node)
+    {
+        return node.Kind == SyntaxKind.ImportDeclaration || node.Kind == SyntaxKind.JSImportDeclaration;
+    }
+
     // ast.go:1901-1903
     public static bool IsAnyExportAssignment(Node node)
     {

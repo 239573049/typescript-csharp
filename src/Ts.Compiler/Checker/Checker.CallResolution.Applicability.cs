@@ -825,7 +825,7 @@ public partial class Checker
         {
             // Check type arguments even though we will give an error that untyped calls may not accept type
             // arguments. This gets us diagnostics for the type arguments and marks them as referenced.
-            CheckSourceElements(node.TypeArguments()!);
+            CheckSourceElements(node.TypeArguments());
         }
         switch (node.Kind)
         {
@@ -841,7 +841,8 @@ public partial class Checker
                 break;
             case SyntaxKind.CallExpression:
             case SyntaxKind.NewExpression:
-                foreach (var argument in node.Arguments()!)
+                // Go: for range over node.Arguments() — a nil argument list (e.g. `new C`) is a no-op.
+                foreach (var argument in node.Arguments() ?? [])
                 {
                     CheckExpression(argument);
                 }

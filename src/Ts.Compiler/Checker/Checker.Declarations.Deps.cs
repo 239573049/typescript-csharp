@@ -209,8 +209,7 @@ public partial class Checker
     }
     // checker.go:14726
     internal bool IsOnlyImportableAsDefault(Node? usage, Symbol? resolvedModule) => throw new NotImplementedException("isOnlyImportableAsDefault");
-    // checker.go:15040
-    internal Symbol? ResolveExternalModuleNameWorker(Node location, Node? moduleReferenceExpression, global::Ts.Diagnostics.Message? moduleNotFoundError, bool ignoreErrors, bool isForAugmentation) => throw new NotImplementedException("resolveExternalModuleNameWorker");
+    // checker.go:15040 resolveExternalModuleNameWorker: real body landed in Checker.SymbolResolution.cs.
     // checker.go:5391
     internal void CheckImportAttributes(Node declaration) => throw new NotImplementedException("checkImportAttributes");
     // checker.go:5534

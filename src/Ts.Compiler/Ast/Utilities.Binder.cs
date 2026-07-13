@@ -935,6 +935,12 @@ public static partial class AstUtilities
         return IsVariableDeclarationInitializedWithRequireHelper(node, false /*allowAccessedRequire*/);
     }
 
+    // Go: utilities.go:2813-2815
+    public static bool IsVariableDeclarationInitializedToBareOrAccessedRequire(Node node)
+    {
+        return IsVariableDeclarationInitializedWithRequireHelper(node, true /*allowAccessedRequire*/);
+    }
+
     // Go: utilities.go:2817-2835
     private static bool IsVariableDeclarationInitializedWithRequireHelper(Node node, bool allowAccessedRequire)
     {
@@ -959,6 +965,24 @@ public static partial class AstUtilities
         return (node.Parent!.Parent!.ModifierFlags() & ModifierFlags.Export) == 0 &&
             node.Type() == null &&
             IsRequireCall(initializer, true /*requireStringLiteralLikeArgument*/);
+    }
+
+    // Go: utilities.go:2837-2847
+    public static Node? GetModuleSpecifierOfBareOrAccessedRequire(Node node)
+    {
+        if (IsVariableDeclarationInitializedWithRequireHelper(node, false /*allowAccessedRequire*/))
+        {
+            return node.Initializer()!.Arguments()![0];
+        }
+        if (IsVariableDeclarationInitializedWithRequireHelper(node, true /*allowAccessedRequire*/))
+        {
+            var leftmost = GetLeftmostAccessExpression(node.Initializer()!);
+            if (IsRequireCall(leftmost, true /*requireStringLiteralLikeArgument*/))
+            {
+                return leftmost.Arguments()![0];
+            }
+        }
+        return null;
     }
 
     // Go: utilities.go:2874-2879

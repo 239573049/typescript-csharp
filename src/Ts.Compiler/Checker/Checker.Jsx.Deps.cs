@@ -85,9 +85,8 @@ public partial class Checker
     // checkDeprecatedSignature 8340: real body landed in Checker.Deprecation.cs.
 
     // ---- external module resolution (checker.go:15067) ----
-
-    // checker.go:15067
-    internal Symbol? ResolveExternalModule(Node? location, string moduleReference, global::Ts.Diagnostics.Message? moduleNotFoundError, Node? errorNode, bool isForAugmentation) => throw new NotImplementedException("resolveExternalModule");
+    // resolveExternalModule: real body landed in Checker.SymbolResolution.cs (trunk; deep branches
+    // remain `// !!!` stubs there).
 
     // ---- jsx alias reference marking (markJsxAliasReferenced is now REAL in Checker.AliasReferences.cs) ----
 

@@ -376,6 +376,355 @@ public partial class Checker
         return links.typeOnlyDeclaration != null;
     }
 
+    // checker.go:15019
+    internal Symbol? ResolveExternalModuleName(Node location, Node? moduleReferenceExpression, bool ignoreErrors)
+    {
+        var errorMessage = GetCannotResolveModuleNameErrorForSpecificModule(moduleReferenceExpression);
+        if (errorMessage == null)
+        {
+            errorMessage = global::Ts.Diagnostics.Diagnostics.Cannot_find_module_0_or_its_corresponding_type_declarations;
+        }
+        ignoreErrors = ignoreErrors || compilerOptions.NoCheck.IsTrue();
+        return ResolveExternalModuleNameWorker(location, moduleReferenceExpression, ignoreErrors ? null : errorMessage, ignoreErrors, false /*isForAugmentation*/);
+    }
+
+    // checker.go:15028
+    private global::Ts.Diagnostics.Message? GetCannotResolveModuleNameErrorForSpecificModule(Node? moduleName)
+    {
+        if (IsStringLiteral(moduleName!))
+        {
+            if (global::Ts.Core.Core.NodeCoreModules.Value.Contains(moduleName!.Text()))
+            {
+                if (compilerOptions.UsesWildcardTypes())
+                {
+                    return global::Ts.Diagnostics.Diagnostics.Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_node_Try_npm_i_save_dev_types_Slashnode;
+                }
+                return global::Ts.Diagnostics.Diagnostics.Cannot_find_name_0_Do_you_need_to_install_type_definitions_for_node_Try_npm_i_save_dev_types_Slashnode_and_then_add_node_to_the_types_field_in_your_tsconfig;
+            }
+        }
+        return null;
+    }
+
+    // checker.go:15040
+    internal Symbol? ResolveExternalModuleNameWorker(Node location, Node? moduleReferenceExpression, global::Ts.Diagnostics.Message? moduleNotFoundError, bool ignoreErrors, bool isForAugmentation)
+    {
+        if (IsStringLiteralLike(moduleReferenceExpression!))
+        {
+            return ResolveExternalModule(location, moduleReferenceExpression!.Text(), moduleNotFoundError, !ignoreErrors ? moduleReferenceExpression : null, isForAugmentation);
+        }
+        return null;
+    }
+
+    // checker.go:15067
+    internal Symbol? ResolveExternalModule(Node? location, string moduleReference, global::Ts.Diagnostics.Message? moduleNotFoundError, Node? errorNode, bool isForAugmentation)
+    {
+        if (errorNode != null && moduleReference.StartsWith("@types/", StringComparison.Ordinal))
+        {
+            var withoutAtTypePrefix = moduleReference["@types/".Length..];
+            Error(errorNode, global::Ts.Diagnostics.Diagnostics.Cannot_import_type_declaration_files_Consider_importing_0_instead_of_1, withoutAtTypePrefix, moduleReference);
+        }
+        var ambientModule = TryFindAmbientModule(moduleReference, true /*withAugmentations*/);
+        if (ambientModule != null)
+        {
+            return ambientModule;
+        }
+
+        var importingSourceFile = GetSourceFileOfNode(location);
+        Node? contextSpecifier = null;
+        ResolutionMode mode;
+
+        if (IsStringLiteralLike(location!) || location!.Parent != null && IsModuleDeclaration(location.Parent) && location.Parent.Name() == location)
+        {
+            contextSpecifier = location;
+        }
+        else if (IsModuleDeclaration(location))
+        {
+            contextSpecifier = location.Name();
+        }
+        else if (IsLiteralImportTypeNode(location))
+        {
+            contextSpecifier = location.AsImportTypeNode().Argument!.AsLiteralTypeNode().Literal;
+        }
+        else if (IsVariableDeclarationInitializedToBareOrAccessedRequire(location))
+        {
+            contextSpecifier = GetModuleSpecifierOfBareOrAccessedRequire(location);
+        }
+        else
+        {
+            var ancestor = FindAncestor(location, IsImportCall);
+            if (ancestor != null)
+            {
+                contextSpecifier = ancestor.Arguments()![0];
+            }
+
+            if (ancestor == null)
+            {
+                ancestor = FindAncestor(location, IsImportDeclarationOrJSImportDeclaration);
+                if (ancestor != null)
+                {
+                    contextSpecifier = ancestor.ModuleSpecifier();
+                }
+            }
+            if (ancestor == null)
+            {
+                ancestor = FindAncestor(location, IsExportDeclaration);
+                if (ancestor != null)
+                {
+                    contextSpecifier = ancestor.ModuleSpecifier();
+                }
+            }
+            if (ancestor == null)
+            {
+                ancestor = FindAncestor(location, IsImportEqualsDeclaration);
+                if (ancestor != null)
+                {
+                    var moduleRefrence = ancestor.AsImportEqualsDeclaration().ModuleReference;
+                    if (moduleRefrence!.Kind == SyntaxKind.ExternalModuleReference)
+                    {
+                        contextSpecifier = moduleRefrence.Expression();
+                    }
+                }
+            }
+        }
+
+        if (contextSpecifier != null && IsStringLiteralLike(contextSpecifier))
+        {
+            mode = program.GetModeForUsageLocation(SourceFileAsHasFileName(importingSourceFile!), contextSpecifier);
+        }
+        else
+        {
+            mode = program.GetDefaultResolutionModeForFile(SourceFileAsHasFileName(importingSourceFile!));
+        }
+
+        var resolvedModule = program.GetResolvedModule(SourceFileAsHasFileName(importingSourceFile!), moduleReference, mode);
+
+        global::Ts.Diagnostics.Message? resolutionDiagnostic = null;
+        if (errorNode != null && global::Ts.Module.ResolvedModuleExtensions.IsResolved(resolvedModule))
+        {
+            resolutionDiagnostic = global::Ts.Module.Module.GetResolutionDiagnostic(compilerOptions, resolvedModule!, importingSourceFile!);
+        }
+
+        SourceFile? sourceFile = null;
+        if (global::Ts.Module.ResolvedModuleExtensions.IsResolved(resolvedModule) && (resolutionDiagnostic == null || resolutionDiagnostic == global::Ts.Diagnostics.Diagnostics.Module_0_was_resolved_to_1_but_jsx_is_not_set))
+        {
+            sourceFile = program.GetSourceFileForResolvedModule(resolvedModule!.ResolvedFileName);
+        }
+
+        if (sourceFile != null)
+        {
+            // If there's a resolutionDiagnostic we need to report it even if a sourceFile is found.
+            if (resolutionDiagnostic != null)
+            {
+                Error(errorNode, resolutionDiagnostic, moduleReference, resolvedModule!.ResolvedFileName);
+            }
+
+            if (errorNode != null)
+            {
+                if (resolvedModule!.ResolvedUsingTsExtension || compilerOptions.RewriteRelativeImportExtensions.IsTrue())
+                {
+                    // !!! checker.go:15142-15238 — resolvedUsingTsExtension / rewriteRelativeImportExtensions
+                    // error suite (declaration-file import suggestion via getSuggestedImportSource,
+                    // allowImportingTsExtensions gate, unsafe-rewrite + project-redirect outDir checks).
+                    // Needs ast.IsEmittableImport + core.ShouldRewriteModuleSpecifier (quarantined,
+                    // Core/Core.cs:887) + program redirect/commonSourceDirectory surface.
+                    throw new NotImplementedException("resolveExternalModule:resolvedUsingTsExtension");
+                }
+            }
+
+            if (sourceFile.Symbol != null)
+            {
+                if (errorNode != null)
+                {
+                    if (resolvedModule!.IsExternalLibraryImport && !ResolutionExtensionIsTSOrJson(resolvedModule.Extension))
+                    {
+                        ErrorOnImplicitAnyModule(false /*isError*/, errorNode, mode, resolvedModule, moduleReference);
+                    }
+                    if (moduleKind == ModuleKind.Node16 || moduleKind == ModuleKind.Node18)
+                    {
+                        // !!! checker.go:15252-15290 — Node16/Node18 sync-import-of-ESM interop errors
+                        // (require-of-ESM rejection, resolution-mode attribute suggestions). Needs
+                        // ast.IsResolutionModeOverrideHost / ast.HasResolutionModeOverride +
+                        // createModeMismatchDetails (checker.go:15442).
+                        throw new NotImplementedException("resolveExternalModule:node16InteropErrors");
+                    }
+                }
+                return GetMergedSymbol(sourceFile.Symbol);
+            }
+            if (errorNode != null && moduleNotFoundError != null && !IsSideEffectImport(errorNode))
+            {
+                Error(errorNode, global::Ts.Diagnostics.Diagnostics.File_0_is_not_a_module, resolvedModule!.ResolvedFileName);
+            }
+            return null;
+        }
+
+        if (patternAmbientModules.Len() != 0)
+        {
+            var pattern = global::Ts.Core.Core.FindBestPatternMatch(patternAmbientModules, static v => v.Pattern, moduleReference);
+            if (pattern != null)
+            {
+                var augmentation = patternAmbientModuleAugmentations?.GetValueOrDefault(moduleReference);
+                if (augmentation != null)
+                {
+                    return GetMergedSymbol(augmentation);
+                }
+                return GetMergedSymbol(pattern.Symbol);
+            }
+        }
+
+        if (errorNode == null)
+        {
+            return null;
+        }
+
+        if (global::Ts.Module.ResolvedModuleExtensions.IsResolved(resolvedModule) && !ResolutionExtensionIsTSOrJson(resolvedModule!.Extension) && resolutionDiagnostic == null || resolutionDiagnostic == global::Ts.Diagnostics.Diagnostics.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type)
+        {
+            if (isForAugmentation)
+            {
+                Error(errorNode, global::Ts.Diagnostics.Diagnostics.Invalid_module_name_in_augmentation_Module_0_resolves_to_an_untyped_module_at_1_which_cannot_be_augmented, moduleReference, resolvedModule!.ResolvedFileName);
+            }
+            else
+            {
+                ErrorOnImplicitAnyModule(noImplicitAny && moduleNotFoundError != null, errorNode, mode, resolvedModule!, moduleReference);
+            }
+            return null;
+        }
+
+        if (moduleNotFoundError != null)
+        {
+            // See if this was possibly a projectReference redirect
+            if (global::Ts.Module.ResolvedModuleExtensions.IsResolved(resolvedModule))
+            {
+                var redirect = program.GetProjectReferenceFromSource(global::Ts.TsPath.TsPath.ToPath(resolvedModule!.ResolvedFileName, program.GetCurrentDirectory(), program.UseCaseSensitiveFileNames()));
+                if (redirect != null && redirect.OutputDts != "")
+                {
+                    Error(errorNode, global::Ts.Diagnostics.Diagnostics.Output_file_0_has_not_been_built_from_source_file_1, redirect.OutputDts, resolvedModule.ResolvedFileName);
+                    return null;
+                }
+            }
+
+            if (resolutionDiagnostic != null)
+            {
+                Error(errorNode, resolutionDiagnostic, moduleReference, resolvedModule!.ResolvedFileName);
+            }
+            else
+            {
+                var isExtensionlessRelativePathImport = global::Ts.TsPath.TsPath.PathIsRelative(moduleReference) && !global::Ts.TsPath.TsPath.HasExtension(moduleReference);
+                var resolutionIsNode16OrNext = moduleResolutionKind == ModuleResolutionKind.Node16 || moduleResolutionKind == ModuleResolutionKind.NodeNext;
+                if (!compilerOptions.GetResolveJsonModule() && global::Ts.TsPath.TsPath.FileExtensionIs(moduleReference, global::Ts.TsPath.TsPath.ExtensionJson))
+                {
+                    Error(errorNode, global::Ts.Diagnostics.Diagnostics.Cannot_find_module_0_Consider_using_resolveJsonModule_to_import_module_with_json_extension, moduleReference);
+                }
+                else if (mode == global::Ts.Core.Core.ResolutionModeESM && resolutionIsNode16OrNext && isExtensionlessRelativePathImport)
+                {
+                    var absoluteRef = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(moduleReference, global::Ts.TsPath.TsPath.GetDirectoryPath(importingSourceFile!.FileName()));
+                    var suggestedExt = GetSuggestedImportExtension(absoluteRef);
+                    if (suggestedExt != "")
+                    {
+                        Error(errorNode, global::Ts.Diagnostics.Diagnostics.Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_node16_or_nodenext_Did_you_mean_0, moduleReference + suggestedExt);
+                    }
+                    else
+                    {
+                        Error(errorNode, global::Ts.Diagnostics.Diagnostics.Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_node16_or_nodenext_Consider_adding_an_extension_to_the_import_path);
+                    }
+                }
+                else if (resolvedModule != null && resolvedModule.AlternateResult != "")
+                {
+                    // !!! checker.go:15370-15372 — createModuleNotFoundChain over AlternateResult
+                    // (package.json exports/typesVersions suggestion chain, checker.go:15424).
+                    throw new NotImplementedException("resolveExternalModule:createModuleNotFoundChain");
+                }
+                else
+                {
+                    Error(errorNode, moduleNotFoundError, moduleReference);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // checker.go:15352
+    private static bool ResolutionExtensionIsTSOrJson(string ext)
+    {
+        return global::Ts.TsPath.TsPath.ExtensionIsTs(ext) || ext == global::Ts.TsPath.TsPath.ExtensionJson;
+    }
+
+    // checker.go:15381
+    private string GetSuggestedImportExtension(string extensionlessImportPath)
+    {
+        switch (true)
+        {
+            case true when program.FileExists(extensionlessImportPath + ".mts"):
+                return ".mjs";
+            case true when program.FileExists(extensionlessImportPath + ".ts"):
+                return ".js";
+            case true when program.FileExists(extensionlessImportPath + ".cts"):
+                return ".cjs";
+            case true when program.FileExists(extensionlessImportPath + ".mjs"):
+                return ".mjs";
+            case true when program.FileExists(extensionlessImportPath + ".js"):
+                return ".js";
+            case true when program.FileExists(extensionlessImportPath + ".cjs"):
+                return ".cjs";
+            case true when program.FileExists(extensionlessImportPath + ".tsx"):
+                return compilerOptions.Jsx == JsxEmit.Preserve ? ".jsx" : ".js";
+            case true when program.FileExists(extensionlessImportPath + ".jsx"):
+                return ".jsx";
+            case true when program.FileExists(extensionlessImportPath + ".json"):
+                return ".json";
+        }
+        return "";
+    }
+
+    // checker.go:15406
+    private void ErrorOnImplicitAnyModule(bool isError, Node errorNode, ResolutionMode mode, global::Ts.Module.ResolvedModule resolvedModule, string moduleReference)
+    {
+        if (IsSideEffectImport(errorNode))
+        {
+            return;
+        }
+
+        Diagnostic? errorInfo = null;
+        if (!global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(moduleReference) && !string.IsNullOrEmpty(resolvedModule.PackageId.Name))
+        {
+            // !!! checker.go:15414 — createModuleNotFoundChain(resolvedModule, errorNode,
+            // moduleReference, mode, resolvedModule.PackageId.Name) suggestion chain (checker.go:15424;
+            // needs the checker-level CreateModuleNotFoundChain machinery + repopulate info).
+            throw new NotImplementedException("errorOnImplicitAnyModule:createModuleNotFoundChain");
+        }
+        AddErrorOrSuggestion(
+            isError,
+            NewDiagnosticChainForNode(
+                errorInfo,
+                errorNode,
+                global::Ts.Diagnostics.Diagnostics.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type,
+                moduleReference,
+                resolvedModule.ResolvedFileName));
+    }
+
+    // checker/utilities.go:206
+    private static bool IsSideEffectImport(Node node)
+    {
+        var ancestor = FindAncestor(node, IsImportDeclaration);
+        return ancestor != null && ancestor.ImportClause() == null;
+    }
+
+    // checker.go:15451
+    internal Symbol? TryFindAmbientModule(string moduleName, bool withAugmentations)
+    {
+        if (global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(moduleName))
+        {
+            return null;
+        }
+        var symbol = GetSymbol(globals, "\"" + moduleName + "\"", SymbolFlags.ValueModule);
+        // merged symbol is module declaration symbol combined with all augmentations
+        if (withAugmentations)
+        {
+            return GetMergedSymbol(symbol);
+        }
+        return symbol;
+    }
+
     // checker.go:15474
     internal Symbol? ResolveExternalModuleSymbol(Symbol? moduleSymbol, bool dontResolveAlias)
     {
@@ -1178,9 +1527,8 @@ public partial class Checker
     // cluster lands a real version. `NotImplementedException("goName")`.
     // ===================================================================================
 
-    // #10 module-resolution machinery (heavy; program/module/tspath surface) — remaining.
-    internal Symbol? ResolveExternalModuleName(Node location, Node? moduleReferenceExpression, bool ignoreErrors) => throw new NotImplementedException("resolveExternalModuleName");
-
+    // #10 module-resolution machinery — resolveExternalModuleName/-Worker/resolveExternalModule
+    // trunk is now REAL above (checker.go:15019-15473); deep branches remain `// !!!` stubs there.
     internal Symbol? ResolveESModuleSymbol(Symbol? moduleSymbol, Node node, Node? moduleSpecifier) => throw new NotImplementedException("resolveESModuleSymbol");
 
     internal Symbol? GetTargetOfModuleDefault(Symbol moduleSymbol, Node node, bool dontResolveAlias) => throw new NotImplementedException("getTargetOfModuleDefault");
