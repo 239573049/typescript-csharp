@@ -193,7 +193,20 @@ public partial class Checker
         throw new InvalidOperationException("Unhandled case in getImportAttributes");
     }
     // checker.go:5359
-    internal void CheckImportBinding(Node node) => throw new NotImplementedException("checkImportBinding");
+    internal void CheckImportBinding(Node node)
+    {
+        CheckCollisionsForDeclarationName(node, node.Name());
+        CheckAliasSymbol(node);
+        if (NodeTests.IsImportSpecifier(node))
+        {
+            CheckModuleExportName(node.PropertyName(), true /*allowStringLiteral*/);
+            if (AstUtilities.ModuleExportNameIsDefault(node.PropertyNameOrName()!) &&
+                program.GetEmitModuleFormatOfFile(SourceFileAsHasFileName(AstUtilities.GetSourceFileOfNode(node)!)) == ModuleKind.CommonJS)
+            {
+                CheckExternalEmitHelpers(node, ExternalEmitHelpers.ImportDefault);
+            }
+        }
+    }
     // checker.go:14726
     internal bool IsOnlyImportableAsDefault(Node? usage, Symbol? resolvedModule) => throw new NotImplementedException("isOnlyImportableAsDefault");
     // checker.go:15040
@@ -203,7 +216,24 @@ public partial class Checker
     // checker.go:5534
     internal void CheckExportSpecifier(Node node) => throw new NotImplementedException("checkExportSpecifier");
     // checker.go:5371
-    internal void CheckModuleExportName(Node? name, bool allowStringLiteral) => throw new NotImplementedException("checkModuleExportName");
+    internal void CheckModuleExportName(Node? name, bool allowStringLiteral)
+    {
+        if (name == null || name.Kind != SyntaxKind.StringLiteral)
+        {
+            return;
+        }
+        if (!allowStringLiteral)
+        {
+            GrammarErrorOnNode(name, Diag.Identifier_expected);
+        }
+        else if (moduleKind == ModuleKind.ES2015 || moduleKind == ModuleKind.ES2020)
+        {
+            if (!AstUtilities.GetSourceFileOfNode(name)!.IsDeclarationFile)
+            {
+                GrammarErrorOnNode(name, Diag.String_literal_import_and_export_names_are_not_supported_when_the_module_flag_is_set_to_es2015_or_es2020);
+            }
+        }
+    }
     // checker.go:2129
     internal Node? GetTypeOnlyAliasDeclarationEx(Symbol symbol, SymbolFlags meaning) => throw new NotImplementedException("getTypeOnlyAliasDeclarationEx");
     // checker.go:2154

@@ -1134,7 +1134,7 @@ public partial class Checker
             return [];
         }
         var arguments = node.Arguments();
-        var spreadIndex = GetSpreadArgumentIndex(arguments!);
+        var spreadIndex = GetSpreadArgumentIndex(arguments);
         if (spreadIndex >= 0)
         {
             // Create synthetic arguments from spreads of tuple types.
@@ -1178,11 +1178,15 @@ public partial class Checker
             }
             return effectiveArgs.ToArray();
         }
-        return arguments!;
+        // PORT-NOTE: Go returns the possibly-nil `args` slice here (`new C` / `x.f` without an
+        // argument list yields node.Arguments() == nil). No consumer in checker.go distinguishes
+        // nil from empty — all uses are len/range/index — so per plan/05 §6.1 rule 1 the nullable
+        // accessor result normalizes to an empty array at this materialization boundary.
+        return arguments ?? [];
     }
 
     // checker.go:29865
-    private int GetSpreadArgumentIndex(Node[] args) => CoreUtil.FindIndex(args, IsSpreadArgument);
+    private int GetSpreadArgumentIndex(Node[]? args) => CoreUtil.FindIndex(args, IsSpreadArgument);
 
     // checker.go:29869
     private static bool IsSpreadArgument(Node arg) => NodeTests.IsSpreadElement(arg) || NodeTests.IsSyntheticExpression(arg) && arg.AsSyntheticExpression().IsSpread;
