@@ -185,6 +185,12 @@ public static partial class AstUtilities
         }
     }
 
+    // utilities.go:3997
+    public static bool IsJSDocNameReferenceContext(Node node)
+    {
+        return (node.Flags & NodeFlags.JSDoc) != 0 && FindAncestor(node, static n => IsJSDocNameReference(n) || IsJSDocLinkLike(n)) != null;
+    }
+
     // utilities.go:4039
     public static Node? GetNextJSDocCommentLocation(Node node)
     {

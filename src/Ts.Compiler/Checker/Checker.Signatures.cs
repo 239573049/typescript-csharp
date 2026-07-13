@@ -654,7 +654,8 @@ public partial class Checker
             {
                 yieldExprType = GetRegularTypeOfLiteralType(yieldExprType);
             }
-            yieldTypes = CoreUtil.AppendIfUnique(yieldTypes, GetYieldedTypeOfYieldExpression(yieldExpr, yieldExprType, anyType!, isAsync));
+            // Go appends the (possibly nil) yielded type verbatim (checker.go:20237); `!` keeps that shape.
+            yieldTypes = CoreUtil.AppendIfUnique(yieldTypes, GetYieldedTypeOfYieldExpression(yieldExpr, yieldExprType, anyType!, isAsync)!);
             Type? nextType;
             if (yieldExpr.AsYieldExpression().AsteriskToken is not null)
             {

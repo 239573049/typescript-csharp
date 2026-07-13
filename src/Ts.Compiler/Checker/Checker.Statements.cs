@@ -490,6 +490,11 @@ public partial class Checker
                 // checker.go:2510-2511
                 CheckTypeParameterDeferred(node);
                 break;
+            case SyntaxKind.TypeAssertionExpression:
+            case SyntaxKind.AsExpression:
+                // checker.go:2516-2517
+                CheckAssertionDeferred(node);
+                break;
             case SyntaxKind.VoidExpression:
                 // checker.go:2519-2520
                 CheckExpression(node.Expression()!);

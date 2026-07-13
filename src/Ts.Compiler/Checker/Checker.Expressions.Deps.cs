@@ -66,8 +66,8 @@ public partial class Checker
     // CheckFunctionExpressionOrObjectLiteralMethod (+ contextual/deferred/parameter-assignment family)
     // is now REAL in Checker.Expressions.cs (checker.go:10090-10433).
 
-    // checker.go:12256
-    internal Type CheckAssertion(Node node, CheckMode checkMode) => throw new NotImplementedException("checkAssertion");
+    // checkAssertion (checker.go:12256) + checkAssertionDeferred (checker.go:12277) landed in
+    // Checker.Expressions.cs.
 
     // checker.go:10593
     // checker.go:10593
@@ -106,8 +106,8 @@ public partial class Checker
     // checker.go:10921
     internal Type CheckSpreadExpression(Node node, CheckMode checkMode) => throw new NotImplementedException("checkSpreadExpression");
 
-    // checker.go:10926
-    internal Type CheckYieldExpression(Node node) => throw new NotImplementedException("checkYieldExpression");
+    // checkYieldExpression (checker.go:10926) + getYieldedTypeOfYieldExpression (checker.go:10993)
+    // landed in Checker.Expressions.cs.
 
     // checker.go:11006
     internal Type CheckSyntheticExpression(Node node) => throw new NotImplementedException("checkSyntheticExpression");
@@ -138,8 +138,8 @@ public partial class Checker
     // checker.go — global-symbol resolution (Construction / NameLookup clusters).
     internal Symbol? GetGlobalNaNSymbolOrNil() => throw new NotImplementedException("getGlobalNaNSymbolOrNil");
 
-    // checker.go:11499 — nonexistent-property diagnostics (property-access cluster, #7).
-    internal void ReportNonexistentProperty(Node propNode, Type containingType, bool isUncheckedJS) => throw new NotImplementedException("reportNonexistentProperty");
+    // reportNonexistentProperty (checker.go:11499) + its suggestion helpers landed in
+    // Checker.PropertyAccess.cs.
 
     // checker.go — unchecked-JS suggestion heuristic (utilities cluster).
     // utilities.go:1700

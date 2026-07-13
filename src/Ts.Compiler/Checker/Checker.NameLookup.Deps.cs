@@ -15,6 +15,7 @@
 
 using System;
 using Ts.Ast;
+using Ts.Core;
 
 namespace Ts.Checker;
 
@@ -22,12 +23,37 @@ public partial class Checker
 {
     // ---- spelling-suggestion machinery (checker.go:1749/1786; suggestion NameResolver pass) ----
     // getPrimitiveTypeAliasSuggestions (checker.go:1749) — yields the six primitive type-alias symbols for
-    // global spelling suggestions. getSpellingSuggestionForName (checker.go:1786) runs the Levenshtein-style
-    // spelling suggester over a symbol sequence. Both are reached only from GetSuggestionForSymbolNameLookup
-    // (the suggestion resolver's Lookup hook), which the NoLib pipeline does not drive. Deferred to the
+    // global spelling suggestions. Reached only from GetSuggestionForSymbolNameLookup (the suggestion
+    // resolver's Lookup hook), which the NoLib pipeline does not drive. Deferred to the
     // identifier-resolution diagnostics wave.
     internal System.Collections.Generic.IEnumerable<Symbol> GetPrimitiveTypeAliasSuggestions(SymbolTable? symbols) => throw new NotImplementedException("getPrimitiveTypeAliasSuggestions");
-    internal Symbol? GetSpellingSuggestionForName(string name, System.Collections.Generic.IEnumerable<Symbol> symbols, SymbolFlags meaning) => throw new NotImplementedException("getSpellingSuggestionForName");
+
+    // checker.go:1786
+    internal Symbol? GetSpellingSuggestionForName(string name, System.Collections.Generic.IEnumerable<Symbol> symbols, SymbolFlags meaning)
+    {
+        string GetCandidateName(Symbol candidate)
+        {
+            var candidateName = AstUtilities.SymbolName(candidate);
+            if (candidateName.Length == 0 || candidateName[0] == '"' || candidateName[0] == '\xFE')
+            {
+                return "";
+            }
+            if ((candidate.Flags & meaning) != 0)
+            {
+                return candidateName;
+            }
+            if ((candidate.Flags & SymbolFlags.Alias) != 0)
+            {
+                var alias = TryResolveAlias(candidate);
+                if (alias != null && (alias.Flags & meaning) != 0)
+                {
+                    return candidateName;
+                }
+            }
+            return "";
+        }
+        return CoreUtil.GetSpellingSuggestion(name, symbols, GetCandidateName, compareSymbols);
+    }
 
     // ---- block-scoped-variable use-before-declaration (checker.go:1874) ----
     // checkResolvedBlockScopedVariable: reports "used before its declaration" for let/const/class/enum. Only

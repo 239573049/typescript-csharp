@@ -22,6 +22,7 @@
 
 using System.Linq;
 using Ts.Ast;
+using Ts.Collections;
 using Ts.Core;
 
 using Diag = global::Ts.Diagnostics.Diagnostics;
@@ -363,6 +364,179 @@ public partial class Checker
             return true;
         }
         return false;
+    }
+
+    // checker.go:11499
+    internal void ReportNonexistentProperty(Node propNode, Type containingType, bool isUncheckedJS)
+    {
+        var key = new NonExistentPropertyKey(propNode, containingType, isUncheckedJS);
+        if (nonExistentProperties.Has(key))
+        {
+            return;
+        }
+        nonExistentProperties.Add(key);
+        var links = nodeLinks.Get(propNode);
+        if ((links.flags & NodeCheckFlags.TypeChecked) != 0)
+        {
+            return; // error already made/in progress
+        }
+        links.flags |= NodeCheckFlags.TypeChecked;
+        if (AstUtilities.IsJSDocNameReferenceContext(propNode))
+        {
+            return;
+        }
+        Diagnostic? diagnostic = null;
+        if (!NodeTests.IsPrivateIdentifier(propNode) && (containingType.flags & TypeFlags.Union) != 0 && (containingType.flags & TypeFlags.Primitive) == 0)
+        {
+            foreach (var subtype in containingType.Types())
+            {
+                if (GetPropertyOfType(subtype, propNode.Text()) == null && GetApplicableIndexInfoForName(subtype, propNode.Text()) == null)
+                {
+                    diagnostic = NewDiagnosticChainForNode(diagnostic, propNode, Diag.Property_0_does_not_exist_on_type_1, global::Ts.Scanner.Scanner.DeclarationNameToString(propNode), TypeToString(subtype));
+                    break;
+                }
+            }
+        }
+        if (TypeHasStaticProperty(propNode.Text(), containingType))
+        {
+            var propName = global::Ts.Scanner.Scanner.DeclarationNameToString(propNode);
+            var typeName = TypeToString(containingType);
+            diagnostic = NewDiagnosticChainForNode(diagnostic, propNode, Diag.Property_0_does_not_exist_on_type_1_Did_you_mean_to_access_the_static_member_2_instead, propName, typeName, typeName + "." + propName);
+        }
+        else
+        {
+            var promisedType = GetPromisedTypeOfPromise(containingType);
+            if (promisedType != null && GetPropertyOfType(promisedType, propNode.Text()) != null)
+            {
+                diagnostic = NewDiagnosticChainForNode(diagnostic, propNode, Diag.Property_0_does_not_exist_on_type_1, global::Ts.Scanner.Scanner.DeclarationNameToString(propNode), TypeToString(containingType));
+                diagnostic.AddRelatedInfo(NewDiagnosticForNode(propNode, Diag.Did_you_forget_to_use_await));
+            }
+            else
+            {
+                var missingProperty = global::Ts.Scanner.Scanner.DeclarationNameToString(propNode);
+                var container = TypeToString(containingType);
+                var libSuggestion = GetSuggestedLibForNonExistentProperty(missingProperty, containingType);
+                if (libSuggestion != "")
+                {
+                    diagnostic = NewDiagnosticChainForNode(diagnostic, propNode, Diag.Property_0_does_not_exist_on_type_1_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_2_or_later, missingProperty, container, libSuggestion);
+                }
+                else
+                {
+                    var suggestion = GetSuggestedSymbolForNonexistentProperty(propNode, containingType);
+                    if (suggestion != null)
+                    {
+                        var suggestedName = AstUtilities.SymbolName(suggestion);
+                        var message = CoreUtil.IfElse(isUncheckedJS, Diag.Property_0_may_not_exist_on_type_1_Did_you_mean_2, Diag.Property_0_does_not_exist_on_type_1_Did_you_mean_2);
+                        diagnostic = NewDiagnosticChainForNode(diagnostic, propNode, message, missingProperty, container, suggestedName);
+                        if (suggestion.ValueDeclaration != null)
+                        {
+                            diagnostic.AddRelatedInfo(NewDiagnosticForNode(suggestion.ValueDeclaration, Diag.X_0_is_declared_here, suggestedName));
+                        }
+                    }
+                    else
+                    {
+                        diagnostic = ElaborateNeverIntersection(diagnostic, propNode, containingType);
+                        global::Ts.Diagnostics.Message message;
+                        if (ContainerSeemsToBeEmptyDomElement(containingType))
+                        {
+                            message = Diag.Property_0_does_not_exist_on_type_1_Try_changing_the_lib_compiler_option_to_include_dom;
+                        }
+                        else
+                        {
+                            message = Diag.Property_0_does_not_exist_on_type_1;
+                        }
+                        diagnostic = NewDiagnosticChainForNode(diagnostic, propNode, message, missingProperty, container);
+                    }
+                }
+            }
+        }
+        AddErrorOrSuggestion(!isUncheckedJS || diagnostic.Code() != Diag.Property_0_may_not_exist_on_type_1_Did_you_mean_2.Code, diagnostic);
+    }
+
+    // checker.go:11565 — lib-feature suggestion for a non-existent property. Go looks up
+    // getApparentType(containingType).symbol.Name in the getFeatureMap() table (a large static
+    // es-lib feature index) which is deferred in this port (see GetSuggestedLibForNonExistentName in
+    // Checker.Stubs.cs); until it lands there is never a suggested lib, so "" is behaviorally faithful.
+    // PORT-NOTE: port getFeatureMap + the container-symbol lookup with the identifier-resolution
+    // diagnostics wave.
+    internal string GetSuggestedLibForNonExistentProperty(string missingProperty, Type containingType) => "";
+
+    // checker.go:11580
+    internal Symbol? GetSuggestedSymbolForNonexistentProperty(Node name, Type containingType)
+    {
+        var props = GetPropertiesOfType(containingType);
+        var parent = name.Parent!;
+        if (NodeTests.IsPropertyAccessExpression(parent))
+        {
+            props = CoreUtil.Filter(props, prop => IsValidPropertyAccessForCompletions(parent, containingType, prop)).OrEmpty();
+        }
+        return GetSpellingSuggestionForName(name.Text(), props, SymbolFlags.Value);
+    }
+
+    /**
+     * Checks if an existing property access is valid for completions purposes.
+     * @param node a property access-like node where we want to check if we can access a property.
+     * This node does not need to be an access of the property we are checking.
+     * e.g. in completions, this node will often be an incomplete property access node, as in `foo.`.
+     * Besides providing a location (i.e. scope) used to check property accessibility, we use this node for
+     * computing whether this is a `super` property access.
+     * @param type the type whose property we are checking.
+     * @param property the accessed property's symbol.
+     */
+    // checker.go:11609
+    internal bool IsValidPropertyAccessForCompletions(Node node, Type t, Symbol property)
+    {
+        return IsPropertyAccessible(node, NodeTests.IsPropertyAccessExpression(node) && node.Expression()!.Kind == SyntaxKind.SuperKeyword, false /*isWrite*/, t, property);
+        // Previously we validated the 'this' type of methods but this adversely affected performance. See #31377 for more context.
+    }
+
+    /**
+     * Checks if a property can be accessed in a location.
+     * The location is given by the `node` parameter.
+     * The node does not need to be a property access.
+     * @param node location where to check property accessibility
+     * @param isSuper whether to consider this a `super` property access, e.g. `super.foo`.
+     * @param isWrite whether this is a write access, e.g. `++foo.x`.
+     * @param containingType type where the property comes from.
+     * @param property property symbol.
+     */
+    // checker.go:11612
+    internal bool IsPropertyAccessible(Node node, bool isSuper, bool isWrite, Type containingType, Symbol property)
+    {
+        // Short-circuiting for improved performance.
+        if (IsTypeAny(containingType))
+        {
+            return true;
+        }
+        // A #private property access in an optional chain is an error dealt with by the parser.
+        // The checker does not check for it, so we need to do our own check here.
+        if (property.ValueDeclaration != null && AstUtilities.IsPrivateIdentifierClassElementDeclaration(property.ValueDeclaration))
+        {
+            var declClass = AstUtilities.GetContainingClass(property.ValueDeclaration);
+            return !AstUtilities.IsOptionalChain(node) && AstUtilities.IsNodeDescendantOf(node, declClass);
+        }
+        return CheckPropertyAccessibilityAtLocation(node, isSuper, isWrite, containingType, property, null);
+    }
+
+    // checker.go:11623
+    internal bool ContainerSeemsToBeEmptyDomElement(Type containingType)
+    {
+        // Go: slices.Contains(c.compilerOptions.Lib, "lib.dom.d.ts") — Contains on a nil slice is false.
+        return !(compilerOptions.Lib != null && System.Array.IndexOf(compilerOptions.Lib, "lib.dom.d.ts") >= 0) &&
+            EveryContainedType(containingType, HasCommonDomTypeName) &&
+            IsEmptyObjectType(containingType);
+    }
+
+    // checker.go:11627 (free func hasCommonDomTypeName)
+    internal static bool HasCommonDomTypeName(Type t)
+    {
+        if (t.symbol == null)
+        {
+            return false;
+        }
+        var name = t.symbol.Name;
+        return name == "EventTarget" || name == "Node" || name == "Element" ||
+            name.StartsWith("HTML", System.StringComparison.Ordinal) && name.EndsWith("Element", System.StringComparison.Ordinal);
     }
 
     // checker.go:11678

@@ -1005,6 +1005,139 @@ public partial class Checker
         return numberType!;
     }
 
+    // checker.go:10926
+    internal Type CheckYieldExpression(Node node)
+    {
+        CheckGrammarYieldExpression(node);
+        var fn = GetContainingFunction(node);
+        if (fn == null)
+        {
+            return anyType!;
+        }
+        var functionFlags = AstUtilities.GetFunctionFlags(fn);
+        if ((functionFlags & FunctionFlags.Generator) == 0)
+        {
+            // If the user's code is syntactically correct, the func should always have a star. After all, we are in a yield context.
+            return anyType!;
+        }
+        var isAsync = (functionFlags & FunctionFlags.Async) != 0;
+        if (node.AsYieldExpression().AsteriskToken != null)
+        {
+            // Async generator functions prior to ES2018 require the __await, __asyncDelegator,
+            // and __asyncValues helpers
+            if (isAsync && languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.AsyncGenerators)
+            {
+                CheckExternalEmitHelpers(node, ExternalEmitHelpers.AsyncDelegatorIncludes);
+            }
+        }
+        // There is no point in doing an assignability check if the function
+        // has no explicit return type because the return type is directly computed
+        // from the yield expressions.
+        var returnType = GetReturnTypeFromAnnotation(fn);
+        if (returnType != null && (returnType.flags & TypeFlags.Union) != 0)
+        {
+            returnType = FilterType(returnType, t => CheckGeneratorInstantiationAssignabilityToReturnType(t, functionFlags, null /*errorNode*/));
+        }
+        var iterationTypes = default(IterationTypes);
+        if (returnType != null)
+        {
+            iterationTypes = GetIterationTypesOfGeneratorFunctionReturnType(returnType, isAsync);
+        }
+        var signatureYieldType = CoreUtil.OrElse(iterationTypes.YieldType, anyType)!;
+        var signatureNextType = CoreUtil.OrElse(iterationTypes.NextType, anyType)!;
+        Type yieldExpressionType;
+        if (node.Expression() != null)
+        {
+            yieldExpressionType = CheckExpression(node.Expression()!);
+        }
+        else
+        {
+            yieldExpressionType = undefinedWideningType!;
+        }
+        var yieldedType = GetYieldedTypeOfYieldExpression(node, yieldExpressionType, signatureNextType, isAsync);
+        if (returnType != null && yieldedType != null)
+        {
+            CheckTypeAssignableToAndOptionallyElaborate(yieldedType, signatureYieldType, CoreUtil.OrElse(node.Expression(), node)!, node.Expression(), null, null);
+        }
+        if (node.AsYieldExpression().AsteriskToken != null)
+        {
+            var use = CoreUtil.IfElse(isAsync, IterationUse.AsyncYieldStar, IterationUse.YieldStar);
+            return CoreUtil.OrElse(GetIterationTypeOfIterable(use, IterationTypeKind.Return, yieldExpressionType, node.Expression()), anyType)!;
+        }
+        if (returnType != null)
+        {
+            return CoreUtil.OrElse(GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind.Next, returnType, isAsync), anyType)!;
+        }
+        var t = GetContextualIterationType(IterationTypeKind.Next, fn);
+        if (t == null)
+        {
+            t = anyType!;
+            if (noImplicitAny && !ExpressionResultIsUnused(node))
+            {
+                var contextualType = GetContextualType(node, ContextFlags.None);
+                if (contextualType == null || IsTypeAny(contextualType))
+                {
+                    Error(node, Diag.X_yield_expression_implicitly_results_in_an_any_type_because_its_containing_generator_lacks_a_return_type_annotation);
+                }
+            }
+        }
+        return t;
+    }
+
+    // checker.go:10993
+    internal Type? GetYieldedTypeOfYieldExpression(Node node, Type expressionType, Type sentType, bool isAsync)
+    {
+        var errorNode = CoreUtil.OrElse(node.Expression(), node)!;
+        var isYieldStar = node.AsYieldExpression().AsteriskToken != null;
+        // A `yield*` expression effectively yields everything that its operand yields
+        var yieldedType = expressionType;
+        if (isYieldStar)
+        {
+            yieldedType = CheckIteratedTypeOrElementType(CoreUtil.IfElse(isAsync, IterationUse.AsyncYieldStar, IterationUse.YieldStar), expressionType, sentType, errorNode);
+        }
+        if (!isAsync)
+        {
+            return yieldedType;
+        }
+        return GetAwaitedTypeEx(yieldedType, errorNode, CoreUtil.IfElse(isYieldStar,
+            Diag.Type_of_iterated_elements_of_a_yield_Asterisk_operand_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member,
+            Diag.Type_of_yield_operand_in_an_async_generator_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member));
+    }
+
+    // Indicates whether the result of an `Expression` will be unused.
+    // NOTE: This requires a node with a valid `parent` pointer.
+    // internal/checker/utilities.go:1136 (free func expressionResultIsUnused)
+    internal static bool ExpressionResultIsUnused(Node node)
+    {
+        while (true)
+        {
+            var parent = node.Parent!;
+            // walk up parenthesized expressions, but keep a pointer to the top-most parenthesized expression
+            if (NodeTests.IsParenthesizedExpression(parent))
+            {
+                node = parent;
+                continue;
+            }
+            // result is unused in an expression statement, `void` expression, or the initializer or incrementer of a `for` loop
+            if (NodeTests.IsExpressionStatement(parent) || NodeTests.IsVoidExpression(parent) || NodeTests.IsForStatement(parent) && (parent.Initializer() == node || parent.AsForStatement().Incrementor == node))
+            {
+                return true;
+            }
+            if (NodeTests.IsBinaryExpression(parent) && parent.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.CommaToken)
+            {
+                // left side of comma is always unused
+                if (node == parent.AsBinaryExpression().Left)
+                {
+                    return true;
+                }
+                // right side of comma is unused if parent is unused
+                node = parent;
+                continue;
+            }
+            return false;
+        }
+    }
+
     // checker.go:12046
     internal Type CheckThisExpression(Node node)
     {
@@ -1221,5 +1354,53 @@ public partial class Checker
         var classInstanceType = GetDeclaredTypeOfSymbol(classSymbol);
         var baseConstructorType = GetBaseConstructorTypeOfClass(classInstanceType);
         return baseConstructorType == nullWideningType;
+    }
+
+    // checker.go:12256
+    internal Type CheckAssertion(Node node, CheckMode checkMode)
+    {
+        if (node.Kind == SyntaxKind.TypeAssertionExpression)
+        {
+            if (ShouldCheckErasableSyntax(node))
+            {
+                AddDiagnostic(Diagnostic.NewDiagnostic(AstUtilities.GetSourceFileOfNode(node), new TextRange(global::Ts.Scanner.Scanner.SkipTrivia(AstUtilities.GetSourceFileOfNode(node)!.Text(), node.Pos), node.Expression()!.Pos), Diag.This_syntax_is_not_allowed_when_erasableSyntaxOnly_is_enabled));
+            }
+        }
+        var typeNode = node.Type()!;
+        var exprType = CheckExpressionEx(node.Expression()!, checkMode);
+        if (AstUtilities.IsConstTypeReference(typeNode))
+        {
+            if (!IsValidConstAssertionArgument(node.Expression()!))
+            {
+                Error(node.Expression(), Diag.A_const_assertion_can_only_be_applied_to_references_to_enum_members_or_string_number_boolean_array_or_object_literals);
+            }
+            return GetRegularTypeOfLiteralType(exprType);
+        }
+        var links = assertionLinks.Get(node);
+        links.exprType = exprType;
+        CheckSourceElement(typeNode);
+        CheckNodeDeferred(node);
+        return GetTypeFromTypeNode(typeNode);
+    }
+
+    // checker.go:12277
+    internal void CheckAssertionDeferred(Node node)
+    {
+        var typeNode = node.Type()!;
+        var exprType = GetRegularTypeOfObjectLiteral(GetBaseTypeOfLiteralType(assertionLinks.Get(node).exprType!));
+        var targetType = GetTypeFromTypeNode(typeNode);
+        if (!IsErrorType(targetType))
+        {
+            var widenedType = GetWidenedType(exprType);
+            if (!IsTypeComparableTo(targetType, widenedType))
+            {
+                var errNode = node;
+                if ((typeNode.Flags & NodeFlags.Reparsed) != 0)
+                {
+                    errNode = typeNode;
+                }
+                CheckTypeComparableTo(exprType, targetType, errNode, Diag.Conversion_of_type_0_to_type_1_may_be_a_mistake_because_neither_type_sufficiently_overlaps_with_the_other_If_this_was_intentional_convert_the_expression_to_unknown_first);
+            }
+        }
     }
 }

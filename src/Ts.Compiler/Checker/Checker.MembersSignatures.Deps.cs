@@ -76,7 +76,7 @@ public partial class Checker
     // isConstContext / isValidConstAssertionArgument (checker.go) implemented in Checker.Inference.cs.
     // isConstantReference: owned by flow.go — real body in Checker.Flow.cs.
     // GetTypeOfExpression is now REAL in Checker.QuickType.cs (checker.go:7314).
-    internal Type GetYieldedTypeOfYieldExpression(Node node, Type yieldExprType, Type sentType, bool isAsync) => throw new NotImplementedException("getYieldedTypeOfYieldExpression");
+    // GetYieldedTypeOfYieldExpression is now REAL in Checker.Expressions.cs (checker.go:10993).
 
     // ---- symbol resolution / symbol types (#10/#11) ----
     // checker.go:14292
