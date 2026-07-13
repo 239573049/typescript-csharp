@@ -19,6 +19,8 @@
 // CreateDiagnosticForNode). **Do NOT implement whole missing subsystems here.**
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using Ts.Ast;
 using Ts.Core;
 
@@ -172,18 +174,166 @@ public partial class Checker
     // checker.go:11006
     internal Type CheckSyntheticExpression(Node node) => throw new NotImplementedException("checkSyntheticExpression");
 
-    // checker.go:7576 — instantiate an expression's single generic call signature against its
-    // contextual type. The guard early-return (non-inferential, non-skip-generic check modes) is REAL;
-    // the deep inference-context body (getSingleSignature / getApparentTypeOfContextualType /
-    // getInferenceContext / applyToParameterTypes / …) is a large inference-engine surface reached only
-    // during type-argument inference and remains deferred (single stub below).
+    // checker.go:7576
     internal Type InstantiateTypeWithSingleGenericCallSignature(Node node, Type t, CheckMode checkMode)
     {
         if ((checkMode & (CheckMode.Inferential | CheckMode.SkipGenericFunctions)) == 0)
         {
             return t;
         }
-        throw new NotImplementedException("instantiateTypeWithSingleGenericCallSignature (inferential body)");
+        var callSignature = GetSingleSignature(t, SignatureKind.Call, true /*allowMembers*/);
+        var constructSignature = GetSingleSignature(t, SignatureKind.Construct, true /*allowMembers*/);
+        var signature = callSignature ?? constructSignature;
+        if (signature is null || (signature.typeParameters?.Length ?? 0) == 0)
+        {
+            return t;
+        }
+        var contextualType = GetApparentTypeOfContextualType(node, ContextFlags.NoConstraints);
+        if (contextualType is null)
+        {
+            return t;
+        }
+        var contextualSignature = GetSingleSignature(
+            GetNonNullableType(contextualType),
+            callSignature is not null ? SignatureKind.Call : SignatureKind.Construct,
+            false /*allowMembers*/);
+        if (contextualSignature is null || (contextualSignature.typeParameters?.Length ?? 0) != 0)
+        {
+            return t;
+        }
+        if ((checkMode & CheckMode.SkipGenericFunctions) != 0)
+        {
+            SkippedGenericFunction(node, checkMode);
+            return anyFunctionType!;
+        }
+        var context = GetInferenceContext(node);
+        // We have an expression that is an argument of a generic function for which we are performing
+        // type argument inference. The expression is of a function type with a single generic call
+        // signature and a contextual function type with a single non-generic call signature. Now check
+        // if the outer function returns a function type with a single non-generic call signature and
+        // if some of the outer function type parameters have no inferences so far. If so, we can
+        // potentially add inferred type parameters to the outer function return type.
+        Signature? returnSignature = null;
+        if (context!.signature is not null)
+        {
+            var returnType = GetReturnTypeOfSignature(context.signature);
+            if (returnType is not null)
+            {
+                returnSignature = GetSingleCallOrConstructSignature(returnType);
+            }
+        }
+        if (returnSignature is not null &&
+            (returnSignature.typeParameters?.Length ?? 0) == 0 &&
+            !CoreUtil.Every(context.inferences, HasInferenceCandidates))
+        {
+            // Instantiate the signature with its own type parameters as type arguments, possibly
+            // renaming the type parameters to ensure they have unique names.
+            var uniqueTypeParameters = GetUniqueTypeParameters(context, signature.typeParameters!);
+            var instantiatedSignature = GetSignatureInstantiationWithoutFillingInTypeArguments(signature, uniqueTypeParameters);
+            // Infer from the parameters of the instantiated signature to the parameters of the
+            // contextual signature starting with an empty set of inference candidates.
+            var inferences = CoreUtil.Map(context.inferences, info => NewInferenceInfo(info.typeParameter))!;
+            ApplyToParameterTypes(instantiatedSignature, contextualSignature, (source, target) =>
+                InferTypes(inferences, source, target, InferencePriority.None, true /*contravariant*/));
+            if (CoreUtil.Some(inferences, HasInferenceCandidates))
+            {
+                // We have inference candidates, indicating that one or more type parameters are referenced
+                // in the parameter types of the contextual signature. Now also infer from the return type.
+                ApplyToReturnTypes(instantiatedSignature, contextualSignature, (source, target) =>
+                    InferTypes(inferences, source, target, InferencePriority.None, false));
+                // If the type parameters for which we produced candidates do not have any inferences yet,
+                // we adopt the new inference candidates and add the type parameters of the expression type
+                // to the set of inferred type parameters for the outer function return type.
+                if (!HasOverlappingInferences(context.inferences, inferences))
+                {
+                    MergeInferences(context.inferences, inferences);
+                    context.inferredTypeParameters = CoreUtil.Concatenate(context.inferredTypeParameters, uniqueTypeParameters);
+                    return GetOrCreateTypeFromSignature(instantiatedSignature);
+                }
+            }
+        }
+        // TODO: The signature may reference any outer inference contexts, but we map pop off and then apply new inference contexts,
+        // and thus get different inferred types. That this is cached on the *first* such attempt is not currently an issue, since expression
+        // types *also* get cached on the first pass. If we ever properly speculate, though, the cached "isolatedSignatureType" signature
+        // field absolutely needs to be included in the list of speculative caches.
+        return GetOrCreateTypeFromSignature(InstantiateSignatureInContextOf(signature, contextualSignature, context, null));
+    }
+
+    // checker.go:7661
+    internal Type[] GetUniqueTypeParameters(InferenceContext context, Type[] typeParameters)
+    {
+        List<Type>? oldTypeParameters = null;
+        List<Type>? newTypeParameters = null;
+        var result = new List<Type>(typeParameters.Length);
+        foreach (var tp in typeParameters)
+        {
+            var name = tp.symbol!.Name;
+            if (HasTypeParameterByName(context.inferredTypeParameters, name) || HasTypeParameterByName(result, name))
+            {
+                var combined = new List<Type>();
+                if (context.inferredTypeParameters is not null)
+                {
+                    combined.AddRange(context.inferredTypeParameters);
+                }
+                combined.AddRange(result);
+                var newName = GetUniqueTypeParameterName(combined, name);
+                var symbol = NewSymbol(SymbolFlags.TypeParameter, newName);
+                var newTypeParameter = NewTypeParameter(symbol);
+                newTypeParameter.AsTypeParameter().target = tp;
+                (oldTypeParameters ??= []).Add(tp);
+                (newTypeParameters ??= []).Add(newTypeParameter);
+                result.Add(newTypeParameter);
+            }
+            else
+            {
+                result.Add(tp);
+            }
+        }
+        if (newTypeParameters is not null && newTypeParameters.Count != 0)
+        {
+            var mapper = TypeMapper.NewTypeMapper(oldTypeParameters!.ToArray(), newTypeParameters.ToArray());
+            foreach (var tp in newTypeParameters)
+            {
+                tp.AsTypeParameter().mapper = mapper;
+            }
+        }
+        return result.ToArray();
+    }
+
+    // checker.go:7688
+    internal static bool HasTypeParameterByName(IReadOnlyList<Type>? typeParameters, string name)
+    {
+        if (typeParameters is null)
+        {
+            return false;
+        }
+        foreach (var tp in typeParameters)
+        {
+            if (tp.symbol!.Name == name)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // checker.go:7694
+    internal static string GetUniqueTypeParameterName(IReadOnlyList<Type> typeParameters, string baseName)
+    {
+        while (baseName.Length > 1 && baseName[^1] >= '0' && baseName[^1] <= '9')
+        {
+            baseName = baseName[..^1];
+        }
+        var index = 1;
+        while (true)
+        {
+            var augmentedName = baseName + index.ToString(CultureInfo.InvariantCulture);
+            if (!HasTypeParameterByName(typeParameters, augmentedName))
+            {
+                return augmentedName;
+            }
+            index++;
+        }
     }
 
     // checker.go:7550 — const-enum access-site validation (needs program/verbatim-module wiring).

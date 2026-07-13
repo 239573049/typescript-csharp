@@ -124,7 +124,74 @@ public partial class Checker
     // checker.go:5221
     internal void CheckModuleAugmentationElement(Node node) => throw new NotImplementedException("checkModuleAugmentationElement");
     // checker.go:5316
-    internal bool CheckExternalImportOrExportDeclaration(Node node) => throw new NotImplementedException("checkExternalImportOrExportDeclaration");
+    internal bool CheckExternalImportOrExportDeclaration(Node node)
+    {
+        var moduleName = global::Ts.Printer.PrinterUtilities.GetExternalModuleName(node);
+        if (moduleName is null || AstUtilities.NodeIsMissing(moduleName))
+        {
+            // Should be a parse error.
+            return false;
+        }
+        if (!NodeTests.IsStringLiteral(moduleName))
+        {
+            Error(moduleName, Diag.String_literal_expected);
+            return false;
+        }
+        var inAmbientExternalModule = NodeTests.IsModuleBlock(node.Parent!) && AstUtilities.IsAmbientModule(node.Parent!.Parent!);
+        if (!NodeTests.IsSourceFile(node.Parent!) && !inAmbientExternalModule)
+        {
+            Error(moduleName, NodeTests.IsExportDeclaration(node)
+                ? Diag.Export_declarations_are_not_permitted_in_a_namespace
+                : Diag.Import_declarations_in_a_namespace_cannot_reference_a_module);
+            return false;
+        }
+        if (inAmbientExternalModule && global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(moduleName.Text()))
+        {
+            // we have already reported errors on top level imports/exports in external module augmentations in checkModuleDeclaration
+            // no need to do this again.
+            if (!IsTopLevelInExternalModuleAugmentation(node))
+            {
+                // TypeScript 1.0 spec (April 2013): 12.1.6
+                // An ExternalImportDeclaration in an AmbientExternalModuleDeclaration may reference
+                // other external modules only through top - level external module names.
+                // Relative external module names are not permitted.
+                Error(node, Diag.Import_or_export_declaration_in_an_ambient_module_declaration_cannot_reference_module_through_relative_module_name);
+                return false;
+            }
+        }
+        if (!NodeTests.IsImportEqualsDeclaration(node))
+        {
+            var attributes = GetImportAttributes(node);
+            if (attributes is not null)
+            {
+                var hasError = false;
+                foreach (var attr in attributes.AsImportAttributes().Attributes!.Nodes)
+                {
+                    if (!NodeTests.IsStringLiteral(attr.AsImportAttribute().Value!))
+                    {
+                        hasError = true;
+                        Error(attr.AsImportAttribute().Value, Diag.Import_attribute_values_must_be_string_literal_expressions);
+                    }
+                }
+                return !hasError;
+            }
+        }
+        return true;
+    }
+
+    // ast/utilities.go:1906
+    internal static Node? GetImportAttributes(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+                return node.AsImportDeclaration().Attributes;
+            case SyntaxKind.ExportDeclaration:
+                return node.AsExportDeclaration().Attributes;
+        }
+        throw new InvalidOperationException("Unhandled case in getImportAttributes");
+    }
     // checker.go:5359
     internal void CheckImportBinding(Node node) => throw new NotImplementedException("checkImportBinding");
     // checker.go:14726
@@ -286,7 +353,9 @@ public partial class Checker
     // checker.go:5208
     internal static Node? GetFirstNonAmbientClassOrFunctionDeclaration(Symbol symbol) => throw new NotImplementedException("getFirstNonAmbientClassOrFunctionDeclaration");
     // utilities.go:223
-    internal static bool IsTopLevelInExternalModuleAugmentation(Node node) => throw new NotImplementedException("isTopLevelInExternalModuleAugmentation");
+    internal static bool IsTopLevelInExternalModuleAugmentation(Node? node) =>
+        node is not null && node.Parent is not null &&
+        NodeTests.IsModuleBlock(node.Parent) && IsExternalModuleAugmentation(node.Parent.Parent!);
     // checker.go:5735
     internal static bool IsNotOverload(Node node) => throw new NotImplementedException("isNotOverload");
     // utilities.go:234
@@ -306,7 +375,8 @@ public partial class Checker
     // ast/utilities.go:1705 — delegates to the ast utility.
     internal static Node[] GetImplementsHeritageClauseElements(Node node) => AstUtilities.GetImplementsHeritageClauseElements(node);
     // ast/utilities.go:3548
-    internal static bool IsExternalModuleAugmentation(Node node) => throw new NotImplementedException("ast.IsExternalModuleAugmentation");
+    internal static bool IsExternalModuleAugmentation(Node node) =>
+        AstUtilities.IsAmbientModule(node) && AstUtilities.IsModuleAugmentationExternal(node);
     // ast/utilities.go:2442 — implemented by the EmitResolver wave (markLinkedAliases dependency).
     internal static bool IsInternalModuleImportEqualsDeclaration(Node node) =>
         NodeTests.IsImportEqualsDeclaration(node) &&
