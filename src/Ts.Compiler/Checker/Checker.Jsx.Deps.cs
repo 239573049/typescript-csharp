@@ -94,8 +94,8 @@ public partial class Checker
     // Live in the transformer adapters today; the AST layer owns their permanent home. Stubbed here
     // (JSX-specific) so the pragma/children paths compile until the AST helper lands cleanly.
 
-    // ast/utilities.go:2782 — ast.GetPragmaFromSourceFile.
-    internal static Pragma? GetPragmaFromSourceFile(SourceFile file, string name) => throw new NotImplementedException("ast.GetPragmaFromSourceFile");
+    // ast/utilities.go:2782 — ast.GetPragmaFromSourceFile: real body landed in
+    // Ast/Utilities.Binder.cs (AstUtilities.GetPragmaFromSourceFile); call sites use it directly.
 
     // ast — ast.GetSemanticJsxChildren.
     internal static Node[] GetSemanticJsxChildren(Node[]? children) => throw new NotImplementedException("ast.GetSemanticJsxChildren");

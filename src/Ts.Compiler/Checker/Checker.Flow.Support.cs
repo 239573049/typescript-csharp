@@ -261,7 +261,7 @@ public partial class Checker
     // flow.go:1232-1288
     internal FlowType GetTypeAtFlowBranchLabel(FlowState f, FlowNode flow, FlowList antecedents)
     {
-        var antecedentStart = antecedentTypes!.Length;
+        var antecedentStart = antecedentTypes.Length;
         var subtypeReduction = false;
         var seenIncomplete = false;
         FlowNode? bypassFlow = null;

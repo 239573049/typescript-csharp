@@ -327,7 +327,7 @@ public sealed partial class Checker
     internal Dictionary<FlowLoopKey, Type> flowLoopCache = null!;
     internal List<FlowLoopInfo> flowLoopStack = [];
     internal List<SharedFlow> sharedFlows = [];
-    internal Type[]? antecedentTypes;
+    internal Type[] antecedentTypes = []; // Go nil slice: len(nil)==0 / append OK — start empty, never null
     internal bool flowAnalysisDisabled;
     internal int flowInvocationCount;
     internal Dictionary<Node, Type> flowTypeCache = null!;

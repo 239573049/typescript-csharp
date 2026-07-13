@@ -102,7 +102,7 @@ public partial class Checker
         // by default, jsx:'react' will use jsxFactory = React.createElement and jsxFragmentFactory = React.Fragment
         // if jsxFactory compiler option is provided, ensure jsxFragmentFactory compiler option or @jsxFrag pragma is provided too
         var nodeSourceFile = AstUtilities.GetSourceFileOfNode(node);
-        if (compilerOptions.GetJSXTransformEnabled() && (compilerOptions.JsxFactory != "" || GetPragmaFromSourceFile(nodeSourceFile!, "jsx") != null) && compilerOptions.JsxFragmentFactory == "" && GetPragmaFromSourceFile(nodeSourceFile!, "jsxfrag") == null)
+        if (compilerOptions.GetJSXTransformEnabled() && (compilerOptions.JsxFactory != "" || AstUtilities.GetPragmaFromSourceFile(nodeSourceFile, "jsx") != null) && compilerOptions.JsxFragmentFactory == "" && AstUtilities.GetPragmaFromSourceFile(nodeSourceFile, "jsxfrag") == null)
         {
             var message = CoreUtil.IfElse(compilerOptions.JsxFactory != "",
                 Diag.The_jsxFragmentFactory_compiler_option_must_be_provided_to_use_JSX_fragments_with_the_jsxFactory_compiler_option,
@@ -1709,7 +1709,7 @@ public partial class Checker
                     {
                         return links.localJsxFragmentNamespace;
                     }
-                    var jsxFragmentPragma = GetPragmaFromSourceFile(file, "jsxfrag");
+                    var jsxFragmentPragma = AstUtilities.GetPragmaFromSourceFile(file, "jsxfrag");
                     if (jsxFragmentPragma != null)
                     {
                         links.localJsxFragmentFactory = ParseIsolatedEntityName(jsxFragmentPragma.Value.Args["factory"].Value);
@@ -1769,7 +1769,7 @@ public partial class Checker
         {
             return links.localJsxNamespace;
         }
-        var jsxPragma = GetPragmaFromSourceFile(file, "jsx");
+        var jsxPragma = AstUtilities.GetPragmaFromSourceFile(file, "jsx");
         if (jsxPragma != null)
         {
             links.localJsxFactory = ParseIsolatedEntityName(jsxPragma.Value.Args["factory"].Value);
@@ -1810,7 +1810,7 @@ public partial class Checker
                 {
                     return links.localJsxFragmentFactory;
                 }
-                var jsxFragPragma = GetPragmaFromSourceFile(file, "jsxfrag");
+                var jsxFragPragma = AstUtilities.GetPragmaFromSourceFile(file, "jsxfrag");
                 if (jsxFragPragma != null)
                 {
                     links.localJsxFragmentFactory = ParseIsolatedEntityName(jsxFragPragma.Value.Args["factory"].Value);

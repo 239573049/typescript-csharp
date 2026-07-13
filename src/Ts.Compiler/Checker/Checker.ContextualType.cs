@@ -296,6 +296,32 @@ public partial class Checker
         return GetIntersectedSignatures(applicableByArity);
     }
 
+    // checker.go:10290-10306
+    private Signature? GetIntersectedSignatures(Signature[] signatures)
+    {
+        if (!noImplicitAny)
+        {
+            return null;
+        }
+        Signature? combined = null;
+        foreach (var sig in signatures)
+        {
+            if (combined == sig || combined is null)
+            {
+                combined = sig;
+            }
+            else if (CompareTypeParametersIdentical(combined.typeParameters, sig.typeParameters))
+            {
+                combined = CombineUnionOrIntersectionMemberSignatures(combined, sig, false /*isUnion*/);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        return combined;
+    }
+
     // checker.go:10311 (isAritySmaller) — If the contextual signature has fewer parameters than the
     // function expression, do not use it.
     private bool IsAritySmaller(Signature signature, Node target)

@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Ts.Ast;
 using Ts.Core;
@@ -71,6 +72,164 @@ public partial class Checker
         resultLinks.mapper = m;
         resultLinks.nameType = links.nameType;
         return result;
+    }
+
+    // checker.go:21088-21123
+    internal Signature CombineUnionOrIntersectionMemberSignatures(Signature left, Signature right, bool isUnion)
+    {
+        var typeParams = left.typeParameters;
+        if (typeParams.Len() == 0)
+        {
+            typeParams = right.typeParameters;
+        }
+        TypeMapper? paramMapper = null;
+        if (left.typeParameters.Len() != 0 && right.typeParameters.Len() != 0)
+        {
+            // We just use the type parameter defaults from the first signature
+            paramMapper = TypeMapper.NewTypeMapper(right.typeParameters!, left.typeParameters!);
+        }
+        var flags = (left.flags | right.flags) & (SignatureFlags.PropagatingFlags & ~SignatureFlags.HasRestParameter);
+        var declaration = left.declaration;
+        var parameters = CombineUnionOrIntersectionParameters(left, right, paramMapper, isUnion);
+        var lastParam = CoreUtil.LastOrNil(parameters);
+        if (lastParam is not null && (lastParam.CheckFlags & CheckFlags.RestParameter) != 0)
+        {
+            flags |= SignatureFlags.HasRestParameter;
+        }
+        var thisParam = CombineUnionOrIntersectionThisParam(left.thisParameter, right.thisParameter, paramMapper, isUnion);
+        var minArgCount = Math.Max(left.minArgumentCount, right.minArgumentCount);
+        var result = NewSignature(flags, declaration, typeParams, thisParam, parameters, null /*resolvedReturnType*/, null /*resolvedTypePredicate*/, minArgCount);
+        Signature[] leftSignatures;
+        if (left.composite is not null && left.composite.isUnion)
+        {
+            leftSignatures = left.composite.signatures;
+        }
+        else
+        {
+            leftSignatures = [left];
+        }
+        result.composite = new CompositeSignature { isUnion = isUnion, signatures = [.. leftSignatures, right] };
+        if (paramMapper is not null)
+        {
+            if (left.composite is not null && left.composite.isUnion == isUnion && left.mapper is not null)
+            {
+                result.mapper = CombineTypeMappers(left.mapper, paramMapper);
+            }
+            else
+            {
+                result.mapper = paramMapper;
+            }
+        }
+        else if (left.composite is not null && left.composite.isUnion == isUnion)
+        {
+            result.mapper = left.mapper;
+        }
+        return result;
+    }
+
+    // checker.go:21125-21191
+    internal Symbol[] CombineUnionOrIntersectionParameters(Signature left, Signature right, TypeMapper? mapper, bool isUnion)
+    {
+        var leftCount = GetParameterCount(left);
+        var rightCount = GetParameterCount(right);
+        int longestCount;
+        Signature longest, shorter;
+        if (leftCount >= rightCount)
+        {
+            (longestCount, longest, shorter) = (leftCount, left, right);
+        }
+        else
+        {
+            (longestCount, longest, shorter) = (rightCount, right, left);
+        }
+        var eitherHasEffectiveRest = HasEffectiveRestParameter(left) || HasEffectiveRestParameter(right);
+        var needsExtraRestElement = eitherHasEffectiveRest && !HasEffectiveRestParameter(longest);
+        var parameters = new Symbol[longestCount + (needsExtraRestElement ? 1 : 0)];
+        for (int i = 0; i < longestCount; i++)
+        {
+            var longestParamType = TryGetTypeAtPosition(longest, i);
+            if (longest == right)
+            {
+                longestParamType = InstantiateType(longestParamType, mapper);
+            }
+            var shorterParamType = TryGetTypeAtPosition(shorter, i) ?? unknownType!;
+            if (shorter == right)
+            {
+                shorterParamType = InstantiateType(shorterParamType, mapper);
+            }
+            var combinedParamType = GetUnionOrIntersectionType([longestParamType!, shorterParamType], !isUnion, UnionReduction.Literal);
+            var isRestParam = eitherHasEffectiveRest && !needsExtraRestElement && i == (longestCount - 1);
+            var isOptional = i >= GetMinArgumentCount(longest) && i >= GetMinArgumentCount(shorter);
+            var leftName = "";
+            var rightName = "";
+            if (i < leftCount)
+            {
+                leftName = GetParameterNameAtPosition(left, i);
+            }
+            if (i < rightCount)
+            {
+                rightName = GetParameterNameAtPosition(right, i);
+            }
+            string paramName = "";
+            if (leftName == rightName)
+            {
+                paramName = leftName;
+            }
+            else if (leftName == "")
+            {
+                paramName = rightName;
+            }
+            else if (rightName == "")
+            {
+                paramName = leftName;
+            }
+            if (paramName == "")
+            {
+                paramName = "arg" + i.ToString(CultureInfo.InvariantCulture);
+            }
+            var paramSymbol = NewSymbolEx(SymbolFlags.FunctionScopedVariable | (isOptional && !isRestParam ? SymbolFlags.Optional : 0), paramName,
+                isRestParam ? CheckFlags.RestParameter : (isOptional ? CheckFlags.OptionalParameter : 0));
+            var links = valueSymbolLinks.Get(paramSymbol);
+            if (isRestParam)
+            {
+                links.resolvedType = CreateArrayType(combinedParamType);
+            }
+            else
+            {
+                links.resolvedType = combinedParamType;
+            }
+            parameters[i] = paramSymbol;
+        }
+        if (needsExtraRestElement)
+        {
+            var restParamSymbol = NewSymbolEx(SymbolFlags.FunctionScopedVariable, "args", CheckFlags.RestParameter);
+            var links = valueSymbolLinks.Get(restParamSymbol);
+            links.resolvedType = CreateArrayType(GetTypeAtPosition(shorter, longestCount));
+            if (shorter == right)
+            {
+                links.resolvedType = InstantiateType(links.resolvedType, mapper);
+            }
+            parameters[longestCount] = restParamSymbol;
+        }
+        return parameters;
+    }
+
+    // checker.go:21193-21207
+    internal Symbol? CombineUnionOrIntersectionThisParam(Symbol? left, Symbol? right, TypeMapper? mapper, bool isUnion)
+    {
+        if (left is null)
+        {
+            return right;
+        }
+        if (right is null)
+        {
+            return left;
+        }
+        // A signature `this` type might be a read or a write position... It's very possible that it should be invariant
+        // and we should refuse to merge signatures if there are `this` types and they do not match. However, so as to be
+        // permissive when calling, for now, we'll intersect the `this` types just like we do for param types in union signatures.
+        var thisType = GetUnionOrIntersectionType([GetTypeOfSymbol(left), InstantiateType(GetTypeOfSymbol(right), mapper)], !isUnion, UnionReduction.Literal);
+        return CreateSymbolWithType(left, thisType);
     }
 
     // checker.go:21634-21667 — For a type parameter, return the base constraint; for the string,

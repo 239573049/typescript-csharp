@@ -165,8 +165,8 @@ public partial class Checker
     private int GetDecoratorArgumentCount(Node node, Signature signature) => throw new NotImplementedException("getDecoratorArgumentCount");
     private Node[] GetEffectiveDecoratorArguments(Node node) => throw new NotImplementedException("getEffectiveDecoratorArguments");
 
-    // checker.go:10289 — intersected contextual call signatures (implicit-any combine cluster).
-    private Signature? GetIntersectedSignatures(Signature[] signatures) => throw new NotImplementedException("getIntersectedSignatures");
+    // checker.go:10289 — getIntersectedSignatures: real body landed in Checker.ContextualType.cs
+    // (combine helpers in Checker.Instantiation.cs, checker.go:21088-21207).
 
     // checker.go:31010 — getAwaitedType: real body landed in Checker.AwaitedTypes.cs (#22).
 

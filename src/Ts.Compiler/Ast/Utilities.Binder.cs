@@ -922,6 +922,33 @@ public static partial class AstUtilities
         return !requireStringLiteralLikeArgument || IsStringLiteralLike(call.Arguments!.Nodes[0]);
     }
 
+    // Go: utilities.go:2782-2793
+    public static Pragma? GetPragmaFromSourceFile(SourceFile? file, string name)
+    {
+        Pragma? result = null;
+        if (file != null && file.Pragmas != null)
+        {
+            for (int i = 0; i < file.Pragmas.Length; i++)
+            {
+                if (file.Pragmas[i].Name == name)
+                {
+                    result = file.Pragmas[i]; // Last one wins
+                }
+            }
+        }
+        return result;
+    }
+
+    // Go: utilities.go:2795-2802
+    public static string GetPragmaArgument(Pragma? pragma, string name)
+    {
+        if (pragma != null && pragma.Value.Args != null && pragma.Value.Args.TryGetValue(name, out var arg))
+        {
+            return arg.Value;
+        }
+        return "";
+    }
+
     // Of the form: `const x = require("x")` or `const { x } = require("x")` or with `var` or `let`
     // The variable must not be exported and must not have a type annotation, even a jsdoc one.
     // The initializer must be a call to `require` with a string literal or a string literal-like argument.
