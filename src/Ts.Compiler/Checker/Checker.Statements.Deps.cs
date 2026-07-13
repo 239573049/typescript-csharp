@@ -195,7 +195,11 @@ public partial class Checker
     internal Node? GetFirstTransformableStaticClassElement(Node node) => throw new NotImplementedException("getFirstTransformableStaticClassElement");
 
     // ---- JSDoc comment checks (JSDoc cluster) ----
-    internal void CheckJSDocComments(Node node) => throw new NotImplementedException("checkJSDocComments");
+    // CheckJSDocComments/CheckJSDocComment/ResolveJSDocMemberName are now REAL in
+    // Checker.Statements.cs (checker.go:2527-2565, checkJSDocComments wave). CheckJSDocType
+    // (checker.go:2568) remains stubbed below — it is only dispatched for JSDoc type-node kinds
+    // (JSDocNonNullableType/JSDocNullableType/...) and lands with the deep JSDoc type-resolution
+    // chain (checkJSDocTypeIsInJsFile + getNullableType wiring).
     internal void CheckJSDocType(Node node) => throw new NotImplementedException("checkJSDocType");
 
     // ---- misc helpers (utilities) ----

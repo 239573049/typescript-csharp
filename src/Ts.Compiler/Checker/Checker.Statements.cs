@@ -515,6 +515,66 @@ public partial class Checker
         currentNode = saveCurrentNode;
     }
 
+    // checker.go:2527
+    internal void CheckJSDocComments(Node node)
+    {
+        foreach (var comment in node.Comments().OrEmpty())
+        {
+            CheckJSDocComment(comment);
+        }
+    }
+
+    // checker.go:2533
+    internal void CheckJSDocComment(Node node)
+    {
+        // This performs minimal checking of JSDoc nodes to ensure that @link references to entities are recorded
+        // for purposes of checking unused identifiers.
+        switch (node.Kind)
+        {
+            case SyntaxKind.JSDocLink:
+            case SyntaxKind.JSDocLinkCode:
+            case SyntaxKind.JSDocLinkPlain:
+                ResolveJSDocMemberName(node.Name());
+                break;
+        }
+    }
+
+    // checker.go:2543
+    internal Symbol? ResolveJSDocMemberName(Node? name)
+    {
+        if (name != null && AstUtilities.IsEntityName(name))
+        {
+            var meaning = SymbolFlags.Type | SymbolFlags.Namespace | SymbolFlags.Value;
+            var symbol = ResolveEntityName(name, meaning, /*ignoreErrors*/ true, /*dontResolveAlias*/ true, AstUtilities.GetHostSignatureFromJSDoc(name));
+            if (symbol != null)
+            {
+                return symbol;
+            }
+            if (NodeTests.IsQualifiedName(name))
+            {
+                var leftSymbol = ResolveJSDocMemberName(name.AsQualifiedName().Left);
+                if (leftSymbol != null)
+                {
+                    Type? t = null;
+                    if ((leftSymbol.Flags & SymbolFlags.Value) != 0)
+                    {
+                        var proto = GetPropertyOfType(GetTypeOfSymbol(leftSymbol), "prototype");
+                        if (proto != null)
+                        {
+                            t = GetTypeOfSymbol(proto);
+                        }
+                    }
+                    if (t == null)
+                    {
+                        t = GetDeclaredTypeOfSymbol(leftSymbol);
+                    }
+                    return GetPropertyOfType(t, name.AsQualifiedName().Right!.Text());
+                }
+            }
+        }
+        return null;
+    }
+
     // checker.go:2615 — variance-annotation (in/out) check for a deferred type parameter. A type
     // parameter without in/out modifiers is a no-op here.
     internal void CheckTypeParameterDeferred(Node node)

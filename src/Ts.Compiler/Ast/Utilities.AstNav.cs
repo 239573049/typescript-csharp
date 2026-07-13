@@ -191,6 +191,47 @@ public static partial class AstUtilities
         return (node.Flags & NodeFlags.JSDoc) != 0 && FindAncestor(node, static n => IsJSDocNameReference(n) || IsJSDocLinkLike(n)) != null;
     }
 
+    // utilities.go:4004
+    // GetJSDocRoot returns the containing JSDoc node for a node inside a JSDoc comment.
+    public static Node? GetJSDocRoot(Node node)
+    {
+        return FindAncestor(node.Parent, static n => n.Kind == SyntaxKind.JSDoc);
+    }
+
+    // utilities.go:4010
+    // GetJSDocHost returns the declaration that the JSDoc comment containing the given node is attached to.
+    public static Node? GetJSDocHost(Node node)
+    {
+        var jsDoc = GetJSDocRoot(node);
+        if (jsDoc == null)
+        {
+            return null;
+        }
+        return jsDoc.Parent;
+    }
+
+    // utilities.go:4021
+    // GetHostSignatureFromJSDoc returns the function-like declaration that hosts the JSDoc comment
+    // containing the given node. This is used to resolve @link references to parameters.
+    public static Node? GetHostSignatureFromJSDoc(Node node)
+    {
+        var host = GetJSDocHost(node);
+        if (host == null)
+        {
+            return null;
+        }
+        // !!! Strada's getEffectiveJSDocHost applies JS assignment pattern transforms (getSourceOfAssignment, getSourceOfDefaultedAssignment, etc.) not yet ported
+        if (IsPropertySignatureDeclaration(host) && host.Type() != null && IsFunctionLike(host.Type()))
+        {
+            return host.Type();
+        }
+        if (IsFunctionLike(host))
+        {
+            return host;
+        }
+        return null;
+    }
+
     // utilities.go:4039
     public static Node? GetNextJSDocCommentLocation(Node node)
     {
