@@ -211,6 +211,12 @@ public partial class Checker
     // IsWriteOnlyAccess (ast.go:1265) landed on AstUtilities (Utilities.AccessKind.cs); call sites use
     // AstUtilities.IsWriteOnlyAccess directly.
 
-    // checker.go/utilities.go:1041 — literal-expression-of-object predicate (utilities cluster free func).
-    internal static bool IsLiteralExpressionOfObject(Node node) => throw new NotImplementedException("isLiteralExpressionOfObject");
+    // utilities.go:1041 — literal-expression-of-object predicate (utilities cluster free func).
+    internal static bool IsLiteralExpressionOfObject(Node node) => node.Kind switch
+    {
+        SyntaxKind.ObjectLiteralExpression or SyntaxKind.ArrayLiteralExpression or
+        SyntaxKind.RegularExpressionLiteral or SyntaxKind.FunctionExpression or
+        SyntaxKind.ClassExpression => true,
+        _ => false,
+    };
 }

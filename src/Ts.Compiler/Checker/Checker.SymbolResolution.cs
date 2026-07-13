@@ -663,12 +663,12 @@ public partial class Checker
                         if (HasLateBindableName(member))
                         {
                             lateSymbols ??= new SymbolTable();
-                            LateBindMember(symbol, earlySymbols!, lateSymbols, member);
+                            LateBindMember(symbol, earlySymbols, lateSymbols, member);
                         }
                         else if (HasLateBindableIndexSignature(member))
                         {
                             lateSymbols ??= new SymbolTable();
-                            LateBindIndexSignature(symbol, earlySymbols!, lateSymbols, member);
+                            LateBindIndexSignature(symbol, earlySymbols, lateSymbols, member);
                         }
                     }
                 }
@@ -683,7 +683,7 @@ public partial class Checker
                         if (HasLateBindableName(member))
                         {
                             lateSymbols ??= new SymbolTable();
-                            LateBindMember(symbol, earlySymbols!, lateSymbols, member);
+                            LateBindMember(symbol, earlySymbols, lateSymbols, member);
                         }
                     }
                 }
@@ -694,7 +694,7 @@ public partial class Checker
     }
 
     // checker.go:15918 — Performs late-binding of a dynamic member.
-    internal Symbol? LateBindMember(Symbol parent, SymbolTable earlySymbols, SymbolTable lateSymbols, Node decl)
+    internal Symbol? LateBindMember(Symbol parent, SymbolTable? earlySymbols, SymbolTable lateSymbols, Node decl)
     {
         Debug.Assert(decl.Symbol() != null, "The member is expected to have a symbol.");
         var links = symbolNodeLinks.Get(decl);
@@ -733,7 +733,7 @@ public partial class Checker
                     lateSymbols[memberName] = lateSymbol;
                 }
                 // Report an error if there's a symbol declaration with the same name and conflicting flags.
-                var earlySymbol = earlySymbols.GetValueOrDefault(memberName);
+                var earlySymbol = earlySymbols?.GetValueOrDefault(memberName); // Go nil-map read
                 if ((lateSymbol.Flags & GetExcludedSymbolFlags(symbolFlags)) != 0)
                 {
                     Node[] declarations;
@@ -774,13 +774,13 @@ public partial class Checker
     }
 
     // checker.go:15981
-    internal void LateBindIndexSignature(Symbol parent, SymbolTable earlySymbols, SymbolTable lateSymbols, Node decl)
+    internal void LateBindIndexSignature(Symbol parent, SymbolTable? earlySymbols, SymbolTable lateSymbols, Node decl)
     {
         // First, late bind the index symbol itself, if needed
         var indexSymbol = lateSymbols.GetValueOrDefault(InternalSymbolName.Index);
         if (indexSymbol == null)
         {
-            var early = earlySymbols.GetValueOrDefault(InternalSymbolName.Index);
+            var early = earlySymbols?.GetValueOrDefault(InternalSymbolName.Index); // Go nil-map read
             if (early == null)
             {
                 indexSymbol = NewSymbolEx(SymbolFlags.None, InternalSymbolName.Index, CheckFlags.Late);
