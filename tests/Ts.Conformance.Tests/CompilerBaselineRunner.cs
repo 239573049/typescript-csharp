@@ -31,7 +31,19 @@ public sealed record ConformanceCaseResult(
     bool Matched,
     bool ReferencePresent,
     int DiagnosticCount,
+    string? Failure,
+    ConformanceTypeSymbolResult? TypeSymbols = null);
+
+public sealed record ConformanceArtifactResult(
+    bool Attempted,
+    bool Matched,
+    bool ReferencePresent,
+    int QueryFailures,
     string? Failure);
+
+public sealed record ConformanceTypeSymbolResult(
+    ConformanceArtifactResult Types,
+    ConformanceArtifactResult Symbols);
 
 public sealed record ConformanceRunSummary(IReadOnlyList<ConformanceCaseResult> Results)
 {
@@ -45,6 +57,11 @@ public static partial class CompilerBaselineRunner
 {
     private const string SourceFolder = "/.src";
     private const string LibraryFolder = "/.lib";
+
+    public static bool TypesAndSymbolsEnabled => string.Equals(
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_TYPES"),
+        "1",
+        StringComparison.Ordinal);
 
     public static readonly CuratedConformanceCase[] CuratedCases =
     [
@@ -273,12 +290,116 @@ public static partial class CompilerBaselineRunner
             sortedDiagnostics,
             new Baseline.Options { Subfolder = Path.Combine("submodule", "conformance") });
 
+        bool errorsMatched = !context.Failed && checkerFailure is null;
+        ConformanceTypeSymbolResult? typeSymbols = null;
+        if (TypesAndSymbolsEnabled &&
+            errorsMatched &&
+            !NoTypesAndSymbols(parsed.GlobalOptions))
+        {
+            typeSymbols = RunTypeAndSymbolBaselines(
+                testCase,
+                program,
+                baselineFiles,
+                hasErrorBaseline: sortedDiagnostics.Length != 0);
+        }
+
         return new ConformanceCaseResult(
             name,
-            Matched: !context.Failed && checkerFailure is null,
+            Matched: errorsMatched,
             referencePresent,
             sortedDiagnostics.Length,
-            JoinFailures(checkerFailure, context.Failed ? string.Join(" | ", context.Errors) : null));
+            JoinFailures(checkerFailure, context.Failed ? string.Join(" | ", context.Errors) : null),
+            typeSymbols);
+    }
+
+    private static ConformanceTypeSymbolResult RunTypeAndSymbolBaselines(
+        CuratedConformanceCase testCase,
+        Program program,
+        IReadOnlyList<BaselineTestFile> baselineFiles,
+        bool hasErrorBaseline)
+    {
+        string baselinePath = Path.GetFileName(testCase.RelativePath);
+        string header = "tests/cases/conformance/" + testCase.RelativePath.Replace('\\', '/');
+        string baseName = GetCaseName(testCase.BaselineName);
+        string referenceFolder = Path.Combine(Baseline.ReferenceRoot, "submodule", "conformance");
+        string typeReference = Path.Combine(referenceFolder, baseName + ".types");
+        string symbolReference = Path.Combine(referenceFolder, baseName + ".symbols");
+        bool typeReferencePresent = File.Exists(typeReference);
+        bool symbolReferencePresent = File.Exists(symbolReference);
+        var typeContext = new BaselineTestContext();
+        var symbolContext = new BaselineTestContext();
+
+        try
+        {
+            TypeSymbolBaselineGeneration generation = TypeSymbolBaseline.Run(
+                typeContext,
+                symbolContext,
+                baselinePath,
+                header,
+                program,
+                baselineFiles,
+                new Baseline.Options { Subfolder = Path.Combine("submodule", "conformance") },
+                hasErrorBaseline);
+
+            string? typeFailure = ArtifactFailure(typeContext, generation.TypeQueryFailures, generation.QueryFailureExamples, "type");
+            string? symbolFailure = ArtifactFailure(symbolContext, generation.SymbolQueryFailures, generation.QueryFailureExamples, "symbol");
+            return new ConformanceTypeSymbolResult(
+                new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: !typeContext.Failed && generation.TypeQueryFailures == 0,
+                    typeReferencePresent,
+                    generation.TypeQueryFailures,
+                    typeFailure),
+                new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: !symbolContext.Failed && generation.SymbolQueryFailures == 0,
+                    symbolReferencePresent,
+                    generation.SymbolQueryFailures,
+                    symbolFailure));
+        }
+        catch (Exception exception)
+        {
+            string failure = DescribeException(exception);
+            return new ConformanceTypeSymbolResult(
+                new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: false,
+                    typeReferencePresent,
+                    QueryFailures: 1,
+                    failure),
+                new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: false,
+                    symbolReferencePresent,
+                    QueryFailures: 1,
+                    failure));
+        }
+    }
+
+    private static string? ArtifactFailure(
+        BaselineTestContext context,
+        int queryFailures,
+        IReadOnlyList<string> queryFailureExamples,
+        string kind)
+    {
+        string? baselineFailure = context.Failed ? string.Join(" | ", context.Errors) : null;
+        if (queryFailures == 0)
+        {
+            return baselineFailure;
+        }
+        string queryFailure = string.Create(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"{queryFailures} {kind} query fallback(s): {string.Join("; ", queryFailureExamples.Where(example => example.StartsWith(kind + " ", StringComparison.Ordinal)))}");
+        return JoinFailures(queryFailure, baselineFailure);
+    }
+
+    private static bool NoTypesAndSymbols(IReadOnlyDictionary<string, string> globalOptions)
+    {
+        if (!globalOptions.TryGetValue("notypesandsymbols", out string? value))
+        {
+            return false;
+        }
+        return !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase);
     }
 
     private static ParsedCommandLine ParseCompilerOptions(

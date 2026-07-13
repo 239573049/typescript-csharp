@@ -44,6 +44,25 @@ public sealed class CompilerBaselineRunnerTests
             Assert.Contains(name, s_checkerWipAllowlist);
             Assert.Skip($"checker WIP: {result.Failure ?? "errors.txt baseline mismatch"}");
         }
+        if (CompilerBaselineRunner.TypesAndSymbolsEnabled &&
+            result.TypeSymbols is not null &&
+            (!result.TypeSymbols.Types.Matched || !result.TypeSymbols.Symbols.Matched))
+        {
+            string failure =
+                $".types: {result.TypeSymbols.Types.Failure ?? "baseline mismatch"}; " +
+                $".symbols: {result.TypeSymbols.Symbols.Failure ?? "baseline mismatch"}";
+            if (FailingTypes.Names.Contains(name))
+            {
+                Assert.Skip($"listed in failingTypes.txt: {failure}");
+            }
+            if (CorpusRunner.UpdateFailingTypes)
+            {
+                Assert.Skip($"TSCS_CONFORMANCE_UPDATE_TYPES run: {failure}");
+            }
+            Assert.Fail(
+                $"conformance regression: '{name}' is not listed in failingTypes.txt but its " +
+                $".types/.symbols baselines do not both byte-match: {failure}");
+        }
     }
 
     [Fact]

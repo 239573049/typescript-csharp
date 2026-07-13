@@ -75,6 +75,11 @@ public static class CorpusRunner
         "1",
         StringComparison.Ordinal);
 
+    public static bool UpdateFailingTypes => string.Equals(
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_UPDATE_TYPES"),
+        "1",
+        StringComparison.Ordinal);
+
     private static readonly Lazy<CorpusSelection> s_selection = new(
         EnumerateCorpus,
         LazyThreadSafetyMode.ExecutionAndPublication);

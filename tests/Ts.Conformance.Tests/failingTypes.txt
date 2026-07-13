@@ -1,0 +1,7 @@
+# Conformance .types/.symbols failing-cases allowlist (checker semantic-query WIP).
+# One case name per line (= baseline name without .errors.txt). '#' and blank lines are ignored.
+# Only errors.txt-matching cases reach this gate. A listed case skips if either .types or .symbols
+# mismatches; an unlisted mismatch fails. A listed case whose two artifacts match passes normally.
+# Regenerate the current deterministic corpus wave (run from repo root):
+#   TSCS_CONFORMANCE_TYPES=1 TSCS_CONFORMANCE_UPDATE_TYPES=1 \
+#     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false

@@ -32,6 +32,7 @@ public sealed class CorpusRunnerTests
         ConformanceCaseResult result = s_resultsByName.Value[name];
         if (result.Matched)
         {
+            VerifyTypeAndSymbolBaselines(name, result);
             return;
         }
         if (FailingCases.Names.Contains(name))
@@ -82,5 +83,68 @@ public sealed class CorpusRunnerTests
         {
             Console.WriteLine($"  failing {count}: {cluster}");
         }
+
+        if (CompilerBaselineRunner.TypesAndSymbolsEnabled)
+        {
+            List<ConformanceCaseResult> attempted = summary.Results
+                .Where(result => result.Matched && result.TypeSymbols?.Types.Attempted == true)
+                .ToList();
+            if (CorpusRunner.UpdateFailingTypes)
+            {
+                FailingTypes.Save(attempted
+                    .Where(result => result.TypeSymbols is null ||
+                        !result.TypeSymbols.Types.Matched ||
+                        !result.TypeSymbols.Symbols.Matched)
+                    .Select(result => result.Name));
+            }
+
+            foreach (ConformanceCaseResult mismatch in attempted.Where(result =>
+                result.TypeSymbols is null ||
+                !result.TypeSymbols.Types.Matched ||
+                !result.TypeSymbols.Symbols.Matched))
+            {
+                if (!CorpusRunner.UpdateFailingTypes)
+                {
+                    Assert.Contains(mismatch.Name, FailingTypes.Names);
+                }
+            }
+
+            int typeMatches = attempted.Count(result => result.TypeSymbols!.Types.Matched);
+            int symbolMatches = attempted.Count(result => result.TypeSymbols!.Symbols.Matched);
+            int typeReferences = attempted.Count(result => result.TypeSymbols!.Types.ReferencePresent);
+            int symbolReferences = attempted.Count(result => result.TypeSymbols!.Symbols.ReferencePresent);
+            Console.WriteLine(
+                $"conformance corpus (.types byte-match over errors-matching subset): " +
+                $"{typeMatches}/{attempted.Count} matched; {typeReferences}/{attempted.Count} references present.");
+            Console.WriteLine(
+                $"conformance corpus (.symbols byte-match over errors-matching subset): " +
+                $"{symbolMatches}/{attempted.Count} matched; {symbolReferences}/{attempted.Count} references present.");
+        }
+    }
+
+    private static void VerifyTypeAndSymbolBaselines(string name, ConformanceCaseResult result)
+    {
+        if (!CompilerBaselineRunner.TypesAndSymbolsEnabled || result.TypeSymbols is null)
+        {
+            return;
+        }
+        if (result.TypeSymbols.Types.Matched && result.TypeSymbols.Symbols.Matched)
+        {
+            return;
+        }
+        string failure =
+            $".types: {result.TypeSymbols.Types.Failure ?? "baseline mismatch"}; " +
+            $".symbols: {result.TypeSymbols.Symbols.Failure ?? "baseline mismatch"}";
+        if (FailingTypes.Names.Contains(name))
+        {
+            Assert.Skip($"listed in failingTypes.txt: {failure}");
+        }
+        if (CorpusRunner.UpdateFailingTypes)
+        {
+            Assert.Skip($"TSCS_CONFORMANCE_UPDATE_TYPES run: {failure}");
+        }
+        Assert.Fail(
+            $"conformance regression: '{name}' is not listed in failingTypes.txt but its " +
+            $".types/.symbols baselines do not both byte-match: {failure}");
     }
 }
