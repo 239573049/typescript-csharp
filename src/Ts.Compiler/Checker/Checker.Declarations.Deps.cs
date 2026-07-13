@@ -216,8 +216,7 @@ public partial class Checker
 
     // ---- private-identifier / accessor / async-return-type checks (deferred) ----
     // SetNodeLinksForPrivateIdentifierScope is now REAL in Checker.Declarations.cs (checker.go:10503).
-    // checker.go:12249
-    internal bool ClassDeclarationExtendsNull(Node classDecl) => throw new NotImplementedException("classDeclarationExtendsNull");
+    // ClassDeclarationExtendsNull is now REAL in Checker.Expressions.cs (checker.go:12253).
     // checker.go:2877
     internal Node? FindFirstSuperCall(Node node) => throw new NotImplementedException("findFirstSuperCall");
     // checker.go:2770

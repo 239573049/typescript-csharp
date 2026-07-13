@@ -990,9 +990,93 @@ public partial class Checker
 
 
 
-    // Contextual parameter typing (#21 contextual-types cluster) — reached only by the KindParameter
-    // branch of getTypeForVariableLikeDeclaration, not by intrinsic-typed variable declarations.
-    internal Type? GetContextualThisParameterType(Node fn) => throw new NotImplementedException("getContextualThisParameterType");
+    // checker.go:11990
+    internal Type? GetContextualThisParameterType(Node fn)
+    {
+        if (NodeTests.IsArrowFunction(fn))
+        {
+            return null;
+        }
+        if (IsContextSensitiveFunctionOrObjectLiteralMethod(fn))
+        {
+            var contextualSignature = GetContextualSignature(fn);
+            if (contextualSignature != null)
+            {
+                var thisParameter = contextualSignature.thisParameter;
+                if (thisParameter != null)
+                {
+                    return GetTypeOfSymbol(thisParameter);
+                }
+            }
+        }
+        var inJs = AstUtilities.IsInJSFile(fn);
+        if (noImplicitThis || inJs)
+        {
+            var containingLiteral = GetContainingObjectLiteral(fn);
+            if (containingLiteral != null)
+            {
+                // We have an object literal method. Check if the containing object literal has a contextual type
+                // that includes a ThisType<T>. If so, T is the contextual type for 'this'. We continue looking in
+                // any directly enclosing object literals.
+                var contextualType = GetApparentTypeOfContextualType(containingLiteral, ContextFlags.None);
+                var thisType = GetThisTypeOfObjectLiteralFromContextualType(containingLiteral, contextualType);
+                if (thisType != null)
+                {
+                    return InstantiateType(thisType, GetMapperFromContext(GetInferenceContext(containingLiteral)));
+                }
+                // There was no contextual ThisType<T> for the containing object literal, so the contextual type
+                // for 'this' is the non-null form of the contextual type for the containing object literal or
+                // the type of the object literal itself.
+                if (contextualType != null)
+                {
+                    thisType = GetNonNullableType(contextualType);
+                }
+                else
+                {
+                    thisType = CheckExpressionCached(containingLiteral);
+                }
+                return GetWidenedType(thisType);
+            }
+            // In an assignment of the form 'obj.xxx = function(...)' or 'obj[xxx] = function(...)', the
+            // contextual type for 'this' is 'obj'.
+            var parent = AstUtilities.WalkUpParenthesizedExpressions(fn.Parent)!;
+            if (AstUtilities.IsAssignmentExpression(parent, false))
+            {
+                var target = parent.AsBinaryExpression().Left!;
+                if (AstUtilities.IsAccessExpression(target))
+                {
+                    var expression = target.Expression()!;
+                    // Don't contextually type `this` as `exports` in `exports.Point = function(x, y) { this.x = x; this.y = y; }`
+                    if (inJs && NodeTests.IsIdentifier(expression))
+                    {
+                        var sourceFile = AstUtilities.GetSourceFileOfNode(parent);
+                        if (sourceFile!.CommonJSModuleIndicator != null && (GetResolvedSymbol(expression).Flags & SymbolFlags.ModuleExports) != 0)
+                        {
+                            return null;
+                        }
+                    }
+                    return GetWidenedType(CheckExpressionCached(expression));
+                }
+            }
+        }
+        return null;
+    }
+
+    // utilities.go:1097
+    internal static Node? GetContainingObjectLiteral(Node f)
+    {
+        if ((f.Kind == SyntaxKind.MethodDeclaration ||
+            f.Kind == SyntaxKind.GetAccessor ||
+            f.Kind == SyntaxKind.SetAccessor) && f.Parent!.Kind == SyntaxKind.ObjectLiteralExpression)
+        {
+            return f.Parent;
+        }
+        else if (f.Kind == SyntaxKind.FunctionExpression && f.Parent!.Kind == SyntaxKind.PropertyAssignment)
+        {
+            return f.Parent.Parent;
+        }
+        return null;
+    }
     // checker.go:29215
     internal Type? GetContextuallyTypedParameterType(Node parameter)
     {

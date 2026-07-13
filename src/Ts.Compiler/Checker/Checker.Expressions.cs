@@ -694,4 +694,358 @@ public partial class Checker
         }
         return instantiatedResult;
     }
+
+    // checker.go:7953
+    internal Type CheckTemplateExpression(Node node)
+    {
+        var expr = node.AsTemplateExpression();
+        var length = expr.TemplateSpans!.Nodes!.Length;
+        var texts = new string[length + 1];
+        var types = new Type[length];
+        texts[0] = expr.Head!.Text();
+        for (var i = 0; i < length; i++)
+        {
+            var span = expr.TemplateSpans.Nodes[i];
+            var t = CheckExpression(span.Expression()!);
+            if (MaybeTypeOfKindConsideringBaseConstraint(t, TypeFlags.ESSymbolLike))
+            {
+                Error(span.Expression(), Diag.Implicit_conversion_of_a_symbol_to_a_string_will_fail_at_runtime_Consider_wrapping_this_expression_in_String);
+            }
+            texts[i + 1] = span.AsTemplateSpan().Literal!.Text();
+            types[i] = CoreUtil.IfElse(IsTypeAssignableTo(t, templateConstraintType!), t, stringType!);
+        }
+        object? evaluated = null;
+        if (!NodeTests.IsTaggedTemplateExpression(node.Parent!))
+        {
+            evaluated = evaluate(node, node).Value;
+        }
+        if (evaluated != null)
+        {
+            return GetFreshTypeOfLiteralType(GetStringLiteralType((string)evaluated));
+        }
+        if (IsConstContext(node) || IsTemplateLiteralContext(node) || SomeType(GetContextualType(node, ContextFlags.None) ?? unknownType!, IsTemplateLiteralContextualType))
+        {
+            return GetTemplateLiteralType(texts, types);
+        }
+        return stringType!;
+    }
+
+    // checker.go:7981
+    internal bool IsTemplateLiteralContext(Node node)
+    {
+        var parent = node.Parent!;
+        return NodeTests.IsParenthesizedExpression(parent) && IsTemplateLiteralContext(parent) ||
+            NodeTests.IsElementAccessExpression(parent) && parent.AsElementAccessExpression().ArgumentExpression == node;
+    }
+
+    // checker.go:7986
+    internal bool IsTemplateLiteralContextualType(Type t)
+    {
+        return (t.flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral)) != 0 ||
+            (t.flags & TypeFlags.InstantiableNonPrimitive) != 0 && MaybeTypeOfKind(GetBaseConstraintOfType(t) ?? unknownType!, TypeFlags.StringLike);
+    }
+
+    // checker.go:10829
+    internal Type CheckPrefixUnaryExpression(Node node)
+    {
+        var expr = node.AsPrefixUnaryExpression();
+        var operandType = CheckExpression(expr.Operand!);
+        if (operandType == silentNeverType)
+        {
+            return silentNeverType!;
+        }
+        switch (expr.Operand!.Kind)
+        {
+            case SyntaxKind.NumericLiteral:
+                switch (expr.Operator)
+                {
+                    case SyntaxKind.MinusToken:
+                        return GetFreshTypeOfLiteralType(GetNumberLiteralType(-Ts.JsNum.JsNum.FromString(expr.Operand.Text())));
+                    case SyntaxKind.PlusToken:
+                        return GetFreshTypeOfLiteralType(GetNumberLiteralType(Ts.JsNum.JsNum.FromString(expr.Operand.Text()) /* unary + is identity */));
+                }
+                break;
+            case SyntaxKind.BigIntLiteral:
+                if (expr.Operator == SyntaxKind.MinusToken)
+                {
+                    return GetFreshTypeOfLiteralType(GetBigIntLiteralType(new Ts.JsNum.PseudoBigInt(Ts.JsNum.JsNum.ParsePseudoBigInt(expr.Operand.Text()), true /*negative*/)));
+                }
+                break;
+        }
+        switch (expr.Operator)
+        {
+            case SyntaxKind.PlusToken:
+            case SyntaxKind.MinusToken:
+            case SyntaxKind.TildeToken:
+                CheckNonNullType(operandType, expr.Operand!);
+                if (MaybeTypeOfKindConsideringBaseConstraint(operandType, TypeFlags.ESSymbolLike))
+                {
+                    Error(expr.Operand, Diag.The_0_operator_cannot_be_applied_to_type_symbol, global::Ts.Scanner.Scanner.TokenToString(expr.Operator));
+                }
+                if (expr.Operator == SyntaxKind.PlusToken)
+                {
+                    if (MaybeTypeOfKindConsideringBaseConstraint(operandType, TypeFlags.BigIntLike))
+                    {
+                        Error(expr.Operand, Diag.Operator_0_cannot_be_applied_to_type_1, global::Ts.Scanner.Scanner.TokenToString(expr.Operator), TypeToString(GetBaseTypeOfLiteralType(operandType)));
+                    }
+                    return numberType!;
+                }
+                return GetUnaryResultType(operandType);
+            case SyntaxKind.ExclamationToken:
+                CheckTruthinessOfType(operandType, expr.Operand!);
+                var facts = GetTypeFacts(operandType, TypeFacts.Truthy | TypeFacts.Falsy);
+                if (facts == TypeFacts.Truthy)
+                {
+                    return falseType!;
+                }
+                if (facts == TypeFacts.Falsy)
+                {
+                    return trueType!;
+                }
+                return booleanType!;
+            case SyntaxKind.PlusPlusToken:
+            case SyntaxKind.MinusMinusToken:
+                var ok = CheckArithmeticOperandType(expr.Operand!, CheckNonNullType(operandType, expr.Operand!), Diag.An_arithmetic_operand_must_be_of_type_any_number_bigint_or_an_enum_type, false);
+                if (ok)
+                {
+                    // run check only if former checks succeeded to avoid reporting cascading errors
+                    CheckReferenceExpression(expr.Operand!, Diag.The_operand_of_an_increment_or_decrement_operator_must_be_a_variable_or_a_property_access, Diag.The_operand_of_an_increment_or_decrement_operator_may_not_be_an_optional_property_access);
+                }
+                return GetUnaryResultType(operandType);
+        }
+        return errorType!;
+    }
+
+    // checker.go:10898
+    internal Type GetUnaryResultType(Type operandType)
+    {
+        if (MaybeTypeOfKind(operandType, TypeFlags.BigIntLike))
+        {
+            if (IsTypeAssignableToKind(operandType, TypeFlags.AnyOrUnknown) || MaybeTypeOfKind(operandType, TypeFlags.NumberLike))
+            {
+                return numberOrBigIntType!;
+            }
+            return bigintType!;
+        }
+        // If it's not a bigint type, implicit coercion will result in a number
+        return numberType!;
+    }
+
+    // checker.go:12046
+    internal Type CheckThisExpression(Node node)
+    {
+        // Stop at the first arrow function so that we can
+        // tell whether 'this' needs to be captured.
+        var container = AstUtilities.GetThisContainer(node, true /*includeArrowFunctions*/, true /*includeClassComputedPropertyName*/);
+        var capturedByArrowFunction = false;
+        var thisInComputedPropertyName = false;
+        if (NodeTests.IsConstructorDeclaration(container))
+        {
+            CheckThisBeforeSuper(node, container, Diag.X_super_must_be_called_before_accessing_this_in_the_constructor_of_a_derived_class);
+        }
+        while (true)
+        {
+            // Now skip arrow functions to get the "real" owner of 'this'.
+            if (NodeTests.IsArrowFunction(container))
+            {
+                container = AstUtilities.GetThisContainer(container, false /*includeArrowFunctions*/, !thisInComputedPropertyName);
+                capturedByArrowFunction = true;
+            }
+            if (NodeTests.IsComputedPropertyName(container))
+            {
+                container = AstUtilities.GetThisContainer(container, !capturedByArrowFunction, false /*includeClassComputedPropertyName*/);
+                thisInComputedPropertyName = true;
+                continue;
+            }
+            break;
+        }
+        CheckThisInStaticClassFieldInitializerInDecoratedClass(node, container);
+        if (thisInComputedPropertyName)
+        {
+            Error(node, Diag.X_this_cannot_be_referenced_in_a_computed_property_name);
+        }
+        else
+        {
+            switch (container.Kind)
+            {
+                case SyntaxKind.ModuleDeclaration:
+                    Error(node, Diag.X_this_cannot_be_referenced_in_a_module_or_namespace_body);
+                    // do not return here so in case if lexical this is captured - it will be reflected in flags on NodeLinks
+                    break;
+                case SyntaxKind.EnumDeclaration:
+                    Error(node, Diag.X_this_cannot_be_referenced_in_current_location);
+                    // do not return here so in case if lexical this is captured - it will be reflected in flags on NodeLinks
+                    break;
+            }
+        }
+        var t = TryGetThisTypeAtEx(node, true /*includeGlobalThis*/, container);
+        if (noImplicitThis)
+        {
+            var globalThisType = GetTypeOfSymbol(globalThisSymbol);
+            if (t == globalThisType && capturedByArrowFunction)
+            {
+                Error(node, Diag.The_containing_arrow_function_captures_the_global_value_of_this);
+            }
+            else if (t == null)
+            {
+                // With noImplicitThis, functions may not reference 'this' if it has type 'any'
+                var diag = Error(node, Diag.X_this_implicitly_has_type_any_because_it_does_not_have_a_type_annotation);
+                if (!NodeTests.IsSourceFile(container))
+                {
+                    var outsideThis = TryGetThisTypeAt(container);
+                    if (outsideThis != null && outsideThis != globalThisType)
+                    {
+                        diag.AddRelatedInfo(CreateDiagnosticForNode(container, Diag.An_outer_value_of_this_is_shadowed_by_this_container));
+                    }
+                }
+            }
+        }
+        if (t == null)
+        {
+            return anyType!;
+        }
+        return t;
+    }
+
+    // checker.go:12103
+    internal Type? TryGetThisTypeAt(Node node)
+    {
+        return TryGetThisTypeAtEx(node, true /*includeGlobalThis*/, null /*container*/);
+    }
+
+    // checker.go:12108 — the EXPORTED Go wrapper TryGetThisTypeAtEx (JSDoc-reparse handling for the
+    // language service) is not ported here: its C# name would collide with the internal
+    // tryGetThisTypeAtEx below. The LS wave ports it (with GetReparsedNodeForNode) under its own name.
+
+    // checker.go:12115
+    internal Type? TryGetThisTypeAtEx(Node node, bool includeGlobalThis, Node? container)
+    {
+        if (container == null)
+        {
+            container = GetThisContainer(node, false /*includeArrowFunctions*/, false /*includeClassComputedPropertyName*/);
+        }
+        if (AstUtilities.IsFunctionLike(container) && (!IsInParameterInitializerBeforeContainingFunction(node) || AstUtilities.GetThisParameter(container) != null))
+        {
+            var sig = GetSignatureOfFullSignatureType(container);
+            if (sig == null)
+            {
+                sig = GetSignatureFromDeclaration(container);
+            }
+            var thisType = GetThisTypeOfSignature(sig);
+            // Note: a parameter initializer should refer to class-this unless function-this is explicitly annotated.
+            // If this is a function in a JS file, it might be a class method.
+            if (thisType == null)
+            {
+                thisType = GetContextualThisParameterType(container);
+            }
+            if (thisType != null)
+            {
+                return GetFlowTypeOfReference(node, thisType);
+            }
+        }
+        if (container.Parent != null && AstUtilities.IsClassLike(container.Parent))
+        {
+            var symbol = GetSymbolOfDeclaration(container.Parent)!;
+            Type t;
+            if (AstUtilities.IsStatic(container))
+            {
+                t = GetTypeOfSymbol(symbol);
+            }
+            else
+            {
+                t = GetDeclaredTypeOfSymbol(symbol).AsInterfaceType()!.thisType!;
+            }
+            return GetFlowTypeOfReference(node, t);
+        }
+        if (NodeTests.IsSourceFile(container))
+        {
+            // look up in the source file's locals or exports
+            if (container.AsSourceFile().ExternalModuleIndicator != null)
+            {
+                // TODO: Maybe issue a better error than 'object is possibly undefined'
+                return undefinedType;
+            }
+            if (includeGlobalThis)
+            {
+                return GetTypeOfSymbol(globalThisSymbol);
+            }
+        }
+        return null;
+    }
+
+    // checker.go:12161 — the checker carries its own getThisContainer in Go; its body is behaviorally
+    // identical to ast.GetThisContainer (utilities.go:1771, ported as AstUtilities.GetThisContainer),
+    // so we delegate.
+    internal Node GetThisContainer(Node node, bool includeArrowFunctions, bool includeClassComputedPropertyName)
+    {
+        return AstUtilities.GetThisContainer(node, includeArrowFunctions, includeClassComputedPropertyName);
+    }
+
+    // checker.go:12204
+    internal bool IsInParameterInitializerBeforeContainingFunction(Node node)
+    {
+        var inBindingInitializer = false;
+        while (node.Parent != null && !AstUtilities.IsFunctionLike(node.Parent))
+        {
+            if (NodeTests.IsParameterDeclaration(node.Parent))
+            {
+                if (inBindingInitializer || node.Parent.Initializer() == node)
+                {
+                    return true;
+                }
+            }
+
+            if (NodeTests.IsBindingElement(node.Parent) && node.Parent.Initializer() == node)
+            {
+                inBindingInitializer = true;
+            }
+
+            node = node.Parent;
+        }
+
+        return false;
+    }
+
+    // checker.go:12227
+    internal void CheckThisInStaticClassFieldInitializerInDecoratedClass(Node thisExpression, Node container)
+    {
+        if (NodeTests.IsPropertyDeclaration(container) && AstUtilities.HasStaticModifier(container) && legacyDecorators)
+        {
+            var initializer = container.Initializer();
+            if (initializer != null && initializer.Loc.ContainsInclusive(thisExpression.Pos) && AstUtilities.HasDecorators(container.Parent!))
+            {
+                Error(thisExpression, Diag.Cannot_use_this_in_a_static_property_initializer_of_a_decorated_class);
+            }
+        }
+    }
+
+    // checker.go:12237
+    internal void CheckThisBeforeSuper(Node node, Node container, global::Ts.Diagnostics.Message diagnosticMessage)
+    {
+        var containingClassDecl = container.Parent!;
+        var baseTypeNode = AstUtilities.GetExtendsHeritageClauseElement(containingClassDecl);
+        // If a containing class does not have extends clause or the class extends null
+        // skip checking whether super statement is called before "this" accessing.
+        if (baseTypeNode != null && !ClassDeclarationExtendsNull(containingClassDecl))
+        {
+            if (node.FlowNodeData() != null && !IsPostSuperFlowNode(node.FlowNodeData()!.FlowNode!, false /*noCacheCheck*/))
+            {
+                Error(node, diagnosticMessage);
+            }
+        }
+    }
+
+    /**
+     * Check if the given class-declaration extends null then return true.
+     * Otherwise, return false
+     * @param classDecl a class declaration to check if it extends null
+     */
+    // checker.go:12253
+    internal bool ClassDeclarationExtendsNull(Node classDecl)
+    {
+        var classSymbol = GetSymbolOfDeclaration(classDecl)!;
+        var classInstanceType = GetDeclaredTypeOfSymbol(classSymbol);
+        var baseConstructorType = GetBaseConstructorTypeOfClass(classInstanceType);
+        return baseConstructorType == nullWideningType;
+    }
 }

@@ -33,11 +33,10 @@ public partial class Checker
 
     // checkIdentifier (checker.go:11014) landed in Checker.CheckIdentifier.cs.
 
-    // checker.go:12046
-    internal Type CheckThisExpression(Node node) => throw new NotImplementedException("checkThisExpression");
+    // checkThisExpression (checker.go:12046) + tryGetThisTypeAt/Ex + checkThisBeforeSuper family
+    // landed in Checker.Expressions.cs.
 
-    // checker.go:7953
-    internal Type CheckTemplateExpression(Node node) => throw new NotImplementedException("checkTemplateExpression");
+    // checkTemplateExpression (checker.go:7953) landed in Checker.Expressions.cs.
 
     // checker.go:7989
     internal Type CheckRegularExpressionLiteral(Node node) => throw new NotImplementedException("checkRegularExpressionLiteral");
@@ -97,8 +96,7 @@ public partial class Checker
     // checker.go:10819
     internal Type CheckAwaitExpression(Node node) => throw new NotImplementedException("checkAwaitExpression");
 
-    // checker.go:10829
-    internal Type CheckPrefixUnaryExpression(Node node) => throw new NotImplementedException("checkPrefixUnaryExpression");
+    // checkPrefixUnaryExpression (checker.go:10829) + getUnaryResultType landed in Checker.Expressions.cs.
 
     // checker.go:10883
     internal Type CheckPostfixUnaryExpression(Node node) => throw new NotImplementedException("checkPostfixUnaryExpression");

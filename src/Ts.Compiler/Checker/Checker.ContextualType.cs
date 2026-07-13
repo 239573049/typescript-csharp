@@ -863,4 +863,60 @@ public partial class Checker
         }
         return false;
     }
+
+    // checker.go:31795
+    internal Type? GetThisTypeOfObjectLiteralFromContextualType(Node containingLiteral, Type? contextualType)
+    {
+        var literal = containingLiteral;
+        var t = contextualType;
+        while (t != null)
+        {
+            var thisType = GetThisTypeFromContextualType(t);
+            if (thisType != null)
+            {
+                return thisType;
+            }
+            if (literal.Parent!.Kind != SyntaxKind.PropertyAssignment)
+            {
+                break;
+            }
+            literal = literal.Parent.Parent!;
+            t = GetApparentTypeOfContextualType(literal, ContextFlags.None);
+        }
+        return null;
+    }
+
+    // checker.go:31812
+    internal Type? GetThisTypeFromContextualType(Type t)
+    {
+        return MapTypeEx(t, tt =>
+        {
+            if ((tt.flags & TypeFlags.Intersection) != 0)
+            {
+                foreach (var ti in tt.AsIntersectionType().types)
+                {
+                    var typeArg = GetThisTypeArgument(ti);
+                    if (typeArg != null)
+                    {
+                        return typeArg;
+                    }
+                }
+                return null;
+            }
+            else
+            {
+                return GetThisTypeArgument(tt);
+            }
+        }, false /*noReductions*/);
+    }
+
+    // checker.go:31827
+    internal Type? GetThisTypeArgument(Type t)
+    {
+        if ((t.objectFlags & ObjectFlags.Reference) != 0 && t.AsTypeReference()!.target == globalThisType)
+        {
+            return GetTypeArguments(t)[0];
+        }
+        return null;
+    }
 }

@@ -87,7 +87,7 @@ public partial class Checker
     private static HasFileName SourceFileAsHasFileName(SourceFile file) => new global::Ts.Compiler.CompilerHasFileName(file.FileName(), file.Path());
 
     // ---- checker-side, not-yet-landed (owned by other clusters) ----
-    internal bool IsInParameterInitializerBeforeContainingFunction(Node node) => throw new NotImplementedException("isInParameterInitializerBeforeContainingFunction");
+    // IsInParameterInitializerBeforeContainingFunction is now REAL in Checker.Expressions.cs (checker.go:12204).
     internal static global::Ts.Diagnostics.Message GetVerbatimModuleSyntaxErrorMessage(Node node) => throw new NotImplementedException("getVerbatimModuleSyntaxErrorMessage");
     // IsDeclarationReadonly is now REAL in Checker.Widening.cs (utilities.go:805).
     internal static bool HasAsyncModifier(Node node) => throw new NotImplementedException("hasAsyncModifier");
