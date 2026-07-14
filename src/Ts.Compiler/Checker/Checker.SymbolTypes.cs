@@ -778,8 +778,7 @@ public partial class Checker
     // ===================================================================================
 
     // #11 dispatch targets in other type-of clusters.
-    internal Type GetTypeOfMappedSymbol(Symbol symbol) => throw new NotImplementedException("getTypeOfMappedSymbol");
-
+    // getTypeOfMappedSymbol (20889) implemented in Checker.Instantiation.cs (#14).
     // getTypeOfReverseMappedSymbol (inference.go:1111) implemented in Checker.Inference.cs (inference wave).
 
 

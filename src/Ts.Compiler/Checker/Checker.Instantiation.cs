@@ -4,10 +4,8 @@
 // mapper stack, apparent/reduced-type resolution, type-argument defaults, and the mapped-type
 // accessor family. Heavy member-resolution functions that also fall in this line range are landed
 // here as they arrive (resolveUnionTypeMembers / getUnionSignatures / resolveIntersectionTypeMembers
-// / createUnionOrIntersectionProperty / …); resolveMappedTypeMembers / getTypeOfMappedSymbol remain
-// deferred breadth-first — their stubs stay in the Members/Signatures dedup surface and are
-// reported as remaining. A short DEFERRED region at the tail carries the #14 stubs this file's
-// implementations reference but do not yet implement.
+// / createUnionOrIntersectionProperty / resolveMappedTypeMembers / getTypeOfMappedSymbol /
+// getLowerBoundOfKeyType / the instantiateMappedType family / …).
 //
 // §1.5: cross-package types are `global::Ts.<Pkg>.<Class>.Member`; CoreUtil / NodeTests /
 // AstUtilities are used directly.
@@ -73,6 +71,203 @@ public partial class Checker
         resultLinks.mapper = m;
         resultLinks.nameType = links.nameType;
         return result;
+    }
+
+    // checker.go:20799-20887
+    internal void ResolveMappedTypeMembers(Type t)
+    {
+        var members = new SymbolTable();
+        IndexInfo[]? indexInfos = null;
+        // Resolve upfront such that recursive references see an empty object type.
+        SetStructuredTypeMembers(t, null, null, null, null);
+        // In { [P in K]: T }, we refer to P as the type parameter type, K as the constraint type,
+        // and T as the template type.
+        var typeParameter = GetTypeParameterFromMappedType(t);
+        var constraintType = GetConstraintTypeFromMappedType(t);
+        var mappedType = t.AsMappedType().target ?? t;
+        var nameType = GetNameTypeFromMappedType(mappedType);
+        var shouldLinkPropDeclarations = GetMappedTypeNameTypeKind(mappedType) != MappedTypeNameTypeKind.Remapping;
+        var templateType = GetTemplateTypeFromMappedType(mappedType);
+        var modifiersType = GetApparentType(GetModifiersTypeFromMappedType(t));
+        // The 'T' in 'keyof T'
+        var templateModifiers = GetMappedTypeModifiers(t);
+        var include = TypeFlags.StringOrNumberLiteralOrUnique;
+        void AddMemberForKeyTypeWorker(Type keyType, Type propNameType)
+        {
+            // If the current iteration type constituent is a string literal type, create a property.
+            // Otherwise, for type string create a string index signature.
+            if (IsTypeUsableAsPropertyName(propNameType))
+            {
+                var propName = GetPropertyNameFromType(propNameType);
+                // String enum members from separate enums with identical values
+                // are distinct types with the same property name. Make the resulting
+                // property symbol's name type be the union of those enum member types.
+                var existingProp = members.GetValueOrDefault(propName);
+                if (existingProp is not null)
+                {
+                    var valueLinks = valueSymbolLinks.Get(existingProp);
+                    valueLinks.nameType = GetUnionType([valueLinks.nameType!, propNameType]);
+                    var mappedLinks = mappedSymbolLinks.Get(existingProp);
+                    mappedLinks.keyType = GetUnionType([mappedLinks.keyType!, keyType]);
+                }
+                else
+                {
+                    Symbol? modifiersProp = null;
+                    if (IsTypeUsableAsPropertyName(keyType))
+                    {
+                        modifiersProp = GetPropertyOfType(modifiersType, GetPropertyNameFromType(keyType));
+                    }
+                    var isOptional = (templateModifiers & MappedTypeModifiers.IncludeOptional) != 0 || (templateModifiers & MappedTypeModifiers.ExcludeOptional) == 0 && modifiersProp is not null && (modifiersProp.Flags & SymbolFlags.Optional) != 0;
+                    var isReadonly = (templateModifiers & MappedTypeModifiers.IncludeReadonly) != 0 || (templateModifiers & MappedTypeModifiers.ExcludeReadonly) == 0 && modifiersProp is not null && IsReadonlySymbol(modifiersProp);
+                    var stripOptional = strictNullChecks && !isOptional && modifiersProp is not null && (modifiersProp.Flags & SymbolFlags.Optional) != 0;
+                    var lateFlag = CheckFlags.None;
+                    if (modifiersProp is not null)
+                    {
+                        lateFlag = modifiersProp.CheckFlags & CheckFlags.Late;
+                    }
+                    var prop = NewSymbol(SymbolFlags.Property | CoreUtil.IfElse(isOptional, SymbolFlags.Optional, SymbolFlags.None), propName);
+                    prop.CheckFlags = lateFlag | CheckFlags.Mapped | CoreUtil.IfElse(isReadonly, CheckFlags.Readonly, CheckFlags.None) | CoreUtil.IfElse(stripOptional, CheckFlags.StripOptional, CheckFlags.None);
+                    var valueLinks = valueSymbolLinks.Get(prop);
+                    valueLinks.containingType = t;
+                    valueLinks.nameType = propNameType;
+                    var mappedLinks = mappedSymbolLinks.Get(prop);
+                    mappedLinks.keyType = keyType;
+                    if (modifiersProp is not null)
+                    {
+                        mappedLinks.syntheticOrigin = modifiersProp;
+                        if (shouldLinkPropDeclarations)
+                        {
+                            prop.Declarations = modifiersProp.Declarations;
+                        }
+                    }
+                    members[propName] = prop;
+                }
+            }
+            else if (IsValidIndexKeyType(propNameType) || (propNameType.flags & (TypeFlags.Any | TypeFlags.Enum)) != 0)
+            {
+                var indexKeyType = propNameType;
+                if ((propNameType.flags & (TypeFlags.Any | TypeFlags.String)) != 0)
+                {
+                    indexKeyType = stringType!;
+                }
+                else if ((propNameType.flags & (TypeFlags.Number | TypeFlags.Enum)) != 0)
+                {
+                    indexKeyType = numberType!;
+                }
+                var propType = InstantiateType(templateType, TypeMapper.AppendTypeMapping(t.AsMappedType().mapper, typeParameter, keyType));
+                var modifiersIndexInfo = GetApplicableIndexInfo(modifiersType, propNameType);
+                var isReadonly = (templateModifiers & MappedTypeModifiers.IncludeReadonly) != 0 || (templateModifiers & MappedTypeModifiers.ExcludeReadonly) == 0 && modifiersIndexInfo is not null && modifiersIndexInfo.isReadonly;
+                var indexInfo = NewIndexInfo(indexKeyType, propType, isReadonly, null, null);
+                indexInfos = AppendIndexInfo(indexInfos, indexInfo, true /*union*/);
+            }
+        }
+        void AddMemberForKeyType(Type keyType)
+        {
+            var propNameType = keyType;
+            if (nameType is not null)
+            {
+                propNameType = InstantiateType(nameType, TypeMapper.AppendTypeMapping(t.AsMappedType().mapper, typeParameter, keyType));
+            }
+            ForEachType(propNameType, tt => AddMemberForKeyTypeWorker(keyType, tt));
+        }
+        if (IsMappedTypeWithKeyofConstraintDeclaration(t))
+        {
+            // We have a { [P in keyof T]: X }
+            ForEachMappedTypePropertyKeyTypeAndIndexSignatureKeyType(modifiersType, include, false /*stringsOnly*/, AddMemberForKeyType);
+        }
+        else
+        {
+            ForEachType(GetLowerBoundOfKeyType(constraintType), AddMemberForKeyType);
+        }
+        SetStructuredTypeMembers(t, members, null, null, indexInfos);
+    }
+
+    // checker.go:20889-20924
+    internal Type GetTypeOfMappedSymbol(Symbol symbol)
+    {
+        var links = valueSymbolLinks.Get(symbol);
+        if (links.resolvedType is null)
+        {
+            var mappedType = links.containingType!;
+            if (!PushTypeResolution(symbol, TypeSystemPropertyName.Type))
+            {
+                mappedType.AsMappedType().containsError = true;
+                return errorType!;
+            }
+            var templateType = GetTemplateTypeFromMappedType(mappedType.AsMappedType().target ?? mappedType);
+            var mapper = TypeMapper.AppendTypeMapping(mappedType.AsMappedType().mapper, GetTypeParameterFromMappedType(mappedType), mappedSymbolLinks.Get(symbol).keyType!);
+            var propType = InstantiateType(templateType, mapper);
+            // When creating an optional property in strictNullChecks mode, if 'undefined' isn't assignable to the
+            // type, we include 'undefined' in the type. Similarly, when creating a non-optional property in strictNullChecks
+            // mode, if the underlying property is optional we remove 'undefined' from the type.
+            if (strictNullChecks && (symbol.Flags & SymbolFlags.Optional) != 0 && !MaybeTypeOfKind(propType, TypeFlags.Undefined | TypeFlags.Void))
+            {
+                propType = GetOptionalType(propType, true /*isProperty*/);
+            }
+            else if ((symbol.CheckFlags & CheckFlags.StripOptional) != 0)
+            {
+                propType = RemoveMissingOrUndefinedType(propType);
+            }
+            if (PopTypeResolution())
+            {
+                if (links.resolvedType is null)
+                {
+                    links.resolvedType = propType;
+                }
+            }
+            else
+            {
+                if (links.resolvedType is null)
+                {
+                    links.resolvedType = errorType;
+                }
+                Error(currentNode, Diag.Type_of_property_0_circularly_references_itself_in_mapped_type_1, SymbolToString(symbol), TypeToString(mappedType));
+            }
+        }
+        return links.resolvedType!;
+    }
+
+    // checker.go:20926-20955
+    internal Type GetLowerBoundOfKeyType(Type t)
+    {
+        if ((t.flags & TypeFlags.Index) != 0)
+        {
+            var apparent = GetApparentType(t.AsIndexType().Target());
+            if (IsGenericTupleType(apparent))
+            {
+                return GetKnownKeysOfTupleType(apparent);
+            }
+            return GetIndexType(apparent);
+        }
+        if ((t.flags & TypeFlags.Conditional) != 0)
+        {
+            if (t.AsConditionalType().root.isDistributive)
+            {
+                var checkType = t.AsConditionalType().checkType!;
+                var constraint = GetLowerBoundOfKeyType(checkType);
+                if (constraint != checkType)
+                {
+                    return GetConditionalTypeInstantiation(t, TypeMapper.PrependTypeMapping(t.AsConditionalType().root.checkType!, constraint, t.AsConditionalType().mapper), false /*forConstraint*/, null);
+                }
+            }
+            return t;
+        }
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            return MapTypeEx(t, GetLowerBoundOfKeyType, true /*noReductions*/)!;
+        }
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            // Similarly to getTypeFromIntersectionTypeNode, we preserve the special string & {}, number & {},
+            // and bigint & {} intersections that are used to prevent subtype reduction in union types.
+            var types = t.Types();
+            if (types.Length == 2 && (types[0].flags & (TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt)) != 0 && types[1] == emptyTypeLiteralType)
+            {
+                return t;
+            }
+            return GetIntersectionType(CoreUtil.SameMap(t.Types(), GetLowerBoundOfKeyType));
+        }
+        return t;
     }
 
     // checker.go:20957-20975
@@ -1377,6 +1572,174 @@ public partial class Checker
         return null;
     }
 
+    // checker.go:22441-22484
+    internal Type InstantiateMappedType(Type t, TypeMapper? m, TypeAlias? alias)
+    {
+        // For a homomorphic mapped type { [P in keyof T]: X }, where T is some type variable, the mapping
+        // operation depends on T as follows:
+        // * If T is a primitive type no mapping is performed and the result is simply T.
+        // * If T is a union type we distribute the mapped type over the union.
+        // * If T is an array we map to an array where the element type has been transformed.
+        // * If T is a tuple we map to a tuple where the element types have been transformed.
+        // * If T is an intersection of array or tuple types we map to an intersection of transformed array or tuple types.
+        // * Otherwise we map to an object type where the type of each property has been transformed.
+        // For example, when T is instantiated to a union type A | B, we produce { [P in keyof A]: X } |
+        // { [P in keyof B]: X }, and when when T is instantiated to a union type A | undefined, we produce
+        // { [P in keyof A]: X } | undefined.
+        var d = t.AsMappedType();
+        var typeVariable = GetHomomorphicTypeVariable(t);
+        Type InstantiateConstituent(Type s)
+        {
+            if ((s.flags & (TypeFlags.AnyOrUnknown | TypeFlags.InstantiableNonPrimitive | TypeFlags.Object | TypeFlags.Intersection)) == 0 || s == wildcardType || IsErrorType(s))
+            {
+                return s;
+            }
+            if (d.declaration!.NameType is null)
+            {
+                if (IsArrayType(s) || (s.flags & TypeFlags.Any) != 0 && FindResolutionCycleStartIndex(typeVariable!, TypeSystemPropertyName.ResolvedBaseConstraint) < 0 && HasArrayOrTypeTypeConstraint(typeVariable!))
+                {
+                    return InstantiateMappedArrayType(s, t, TypeMapper.PrependTypeMapping(typeVariable!, s, m));
+                }
+                if (IsTupleType(s))
+                {
+                    return InstantiateMappedTupleType(s, t, typeVariable!, m);
+                }
+                if (IsArrayOrTupleOrIntersection(s))
+                {
+                    return GetIntersectionType(CoreUtil.Map(s.Types(), InstantiateConstituent));
+                }
+            }
+            return InstantiateAnonymousType(t, TypeMapper.PrependTypeMapping(typeVariable!, s, m), null);
+        }
+        if (typeVariable is not null)
+        {
+            var mappedTypeVariable = InstantiateType(typeVariable, m);
+            if (typeVariable != mappedTypeVariable)
+            {
+                return MapTypeWithAlias(GetReducedType(mappedTypeVariable), InstantiateConstituent, alias);
+            }
+        }
+        // If the constraint type of the instantiation is the wildcard type, return the wildcard type.
+        if (InstantiateType(GetConstraintTypeFromMappedType(t), m) == wildcardType)
+        {
+            return wildcardType!;
+        }
+        return InstantiateAnonymousType(t, m, alias);
+    }
+
+    // checker.go:22486-22489
+    internal bool HasArrayOrTypeTypeConstraint(Type typeVariable)
+    {
+        var constraint = GetConstraintOfTypeParameter(typeVariable);
+        return constraint is not null && EveryType(constraint, IsArrayOrTupleType);
+    }
+
+    // checker.go:22491-22497
+    internal Type InstantiateMappedArrayType(Type arrayType, Type mappedType, TypeMapper? m)
+    {
+        var elementType = InstantiateMappedTypeTemplate(mappedType, numberType!, true /*isOptional*/, m);
+        if (IsErrorType(elementType))
+        {
+            return errorType!;
+        }
+        return CreateArrayTypeEx(elementType, GetModifiedReadonlyState(IsReadonlyArrayType(arrayType), GetMappedTypeModifiers(mappedType)));
+    }
+
+    // checker.go:22499-22550
+    internal Type InstantiateMappedTupleType(Type tupleType, Type mappedType, Type typeVariable, TypeMapper? m)
+    {
+        // We apply the mapped type's template type to each of the fixed part elements. For variadic elements, we
+        // apply the mapped type itself to the variadic element type. For other elements in the variable part of the
+        // tuple, we surround the element type with an array type and apply the mapped type to that. This ensures
+        // that we get sequential property key types for the fixed part of the tuple, and property key type number
+        // for the remaining elements. For example
+        //
+        //   type Keys<T> = { [K in keyof T]: K };
+        //   type Foo<T extends any[]> = Keys<[string, string, ...T, string]>; // ["0", "1", ...Keys<T>, number]
+        //
+        var elementInfos = tupleType.TargetTupleType().elementInfos!;
+        var fixedLength = tupleType.TargetTupleType().fixedLength;
+        var fixedMapper = m;
+        if (fixedLength != 0)
+        {
+            fixedMapper = TypeMapper.PrependTypeMapping(typeVariable, tupleType, m);
+        }
+        var modifiers = GetMappedTypeModifiers(mappedType);
+        var elementTypes = GetElementTypes(tupleType);
+        var newElementTypes = new Type[elementTypes.Length];
+        var newElementInfos = (TupleElementInfo[])elementInfos.Clone();
+        for (var i = 0; i < elementTypes.Length; i++)
+        {
+            var e = elementTypes[i];
+            var flags = elementInfos[i].flags;
+            Type mapped;
+            if (i < fixedLength)
+            {
+                mapped = InstantiateMappedTypeTemplate(mappedType, GetStringLiteralType(i.ToString(CultureInfo.InvariantCulture)), (flags & ElementFlags.Optional) != 0, fixedMapper);
+            }
+            else if ((flags & ElementFlags.Variadic) != 0)
+            {
+                mapped = InstantiateType(mappedType, TypeMapper.PrependTypeMapping(typeVariable, e, m));
+            }
+            else
+            {
+                mapped = GetElementTypeOfArrayType(InstantiateType(mappedType, TypeMapper.PrependTypeMapping(typeVariable, CreateArrayType(e), m))) ?? unknownType!;
+            }
+            if ((modifiers & MappedTypeModifiers.IncludeOptional) != 0)
+            {
+                if ((flags & ElementFlags.Required) != 0)
+                {
+                    newElementInfos[i] = new TupleElementInfo(ElementFlags.Optional, newElementInfos[i].LabeledDeclaration());
+                }
+            }
+            else if ((modifiers & MappedTypeModifiers.ExcludeOptional) != 0)
+            {
+                if ((flags & ElementFlags.Optional) != 0)
+                {
+                    newElementInfos[i] = new TupleElementInfo(ElementFlags.Required, newElementInfos[i].LabeledDeclaration());
+                }
+            }
+            newElementTypes[i] = mapped;
+        }
+        var newReadonly = GetModifiedReadonlyState(tupleType.TargetTupleType().readonlyElements, GetMappedTypeModifiers(mappedType));
+        if (Array.IndexOf(newElementTypes, errorType) >= 0)
+        {
+            return errorType!;
+        }
+        return CreateTupleTypeEx(newElementTypes, newElementInfos, newReadonly);
+    }
+
+    // checker.go:22552-22566
+    internal Type InstantiateMappedTypeTemplate(Type t, Type key, bool isOptional, TypeMapper? m)
+    {
+        var templateMapper = TypeMapper.AppendTypeMapping(m, GetTypeParameterFromMappedType(t), key);
+        var propType = InstantiateType(GetTemplateTypeFromMappedType(t.AsMappedType().target ?? t), templateMapper);
+        var modifiers = GetMappedTypeModifiers(t);
+        if (strictNullChecks && (modifiers & MappedTypeModifiers.IncludeOptional) != 0 && !MaybeTypeOfKind(propType, TypeFlags.Undefined | TypeFlags.Void))
+        {
+            return GetOptionalType(propType, true /*isProperty*/);
+        }
+        if (strictNullChecks && (modifiers & MappedTypeModifiers.ExcludeOptional) != 0 && isOptional)
+        {
+            return GetTypeWithFacts(propType, TypeFacts.NEUndefined);
+        }
+        return propType;
+    }
+
+    // checker.go:22568-22574
+    internal static bool GetModifiedReadonlyState(bool state, MappedTypeModifiers modifiers)
+    {
+        if ((modifiers & MappedTypeModifiers.IncludeReadonly) != 0)
+        {
+            return true;
+        }
+        if ((modifiers & MappedTypeModifiers.ExcludeReadonly) != 0)
+        {
+            return false;
+        }
+        return state;
+    }
+
     // checker.go:22576-22582
     internal Type GetTypeParameterFromMappedType(Type t)
     {
@@ -1443,6 +1806,18 @@ public partial class Checker
     internal Node? GetConstraintDeclarationForMappedType(Type t) =>
         t.AsMappedType().declaration!.TypeParameter!.AsTypeParameterDeclaration().Constraint;
 
+    // checker.go:22624-22631
+    internal Type GetApparentMappedTypeKeys(Type nameType, Type targetType)
+    {
+        var modifiersType = GetApparentType(GetModifiersTypeFromMappedType(targetType));
+        var mappedKeys = new List<Type>();
+        ForEachMappedTypePropertyKeyTypeAndIndexSignatureKeyType(modifiersType, TypeFlags.StringOrNumberLiteralOrUnique, false, t =>
+        {
+            mappedKeys.Add(InstantiateType(nameType, TypeMapper.AppendTypeMapping(targetType.Mapper(), GetTypeParameterFromMappedType(targetType), t)));
+        });
+        return GetUnionType(mappedKeys.ToArray());
+    }
+
     // checker.go:22633-22646
     internal void ForEachMappedTypePropertyKeyTypeAndIndexSignatureKeyType(Type t, TypeFlags include, bool stringsOnly, Action<Type> cb)
     {
@@ -1464,6 +1839,29 @@ public partial class Checker
                 }
             }
         }
+    }
+
+    // checker.go:22648-22664
+    internal Type InstantiateReverseMappedType(Type t, TypeMapper? m)
+    {
+        var r = t.AsReverseMappedType();
+        var innerMappedType = InstantiateType(r.mappedType, m);
+        if ((innerMappedType.objectFlags & ObjectFlags.Mapped) == 0)
+        {
+            return t;
+        }
+        var innerIndexType = InstantiateType(r.constraintType, m);
+        if ((innerIndexType.flags & TypeFlags.Index) == 0)
+        {
+            return t;
+        }
+        var instantiated = InferTypeForHomomorphicMappedType(InstantiateType(r.source, m), innerMappedType, innerIndexType);
+        if (instantiated is not null)
+        {
+            return instantiated;
+        }
+        return t;
+        // Nested invocation of `inferTypeForHomomorphicMappedType` or the `source` instantiated into something unmappable
     }
 
     // checker.go:22666-22671
@@ -1947,18 +2345,8 @@ public partial class Checker
         return null;
     }
 
-    // ===================================================================================================
-    // DEFERRED (#14 line-range, breadth-first — not yet implemented). These stubs live in this file per
-    // the "未完成留桩在你文件" rule. The mapped-type instantiation subtree (instantiateMappedType /
-    // instantiateReverseMappedType and their satellites) and isTypeParameterPossiblyReferenced (blocked
-    // on ast.GetFirstIdentifier not yet ported) are the reachable stubs from the implemented core.
-    // ===================================================================================================
-
-    // checker.go:22441-22484
-    internal Type InstantiateMappedType(Type t, TypeMapper? m, TypeAlias? alias) => throw new NotImplementedException("instantiateMappedType");
-
-    // checker.go:22648-22664
-    internal Type InstantiateReverseMappedType(Type t, TypeMapper m) => throw new NotImplementedException("instantiateReverseMappedType");
+    // instantiateMappedType (22441) / instantiateReverseMappedType (22648) are now REAL above
+    // (mapped-type wave O); the former DEFERRED region here is retired.
 
     // checker.go:22309
     internal bool IsTypeParameterPossiblyReferenced(Type tp, Node node)
@@ -2028,7 +2416,5 @@ public partial class Checker
         return true;
     }
 
-    // checker.go:20926-20955 — deferred: needs getKnownKeysOfTupleType / mapTypeEx (not yet ported).
-    // Referenced by #18 (getIndexType/keyof); stub keeps the dependent cluster compiling.
-    internal Type GetLowerBoundOfKeyType(Type t) => throw new NotImplementedException("getLowerBoundOfKeyType");
+    // getLowerBoundOfKeyType (20926) is now REAL above (mapped-type wave O).
 }

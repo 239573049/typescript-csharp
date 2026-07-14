@@ -28,7 +28,7 @@ public partial class Checker
 
     // ---- mapped types (#15 type nodes) ----
     // getModifiersTypeFromMappedType (27956) implemented in Checker.Constraints.cs (#19).
-    internal MappedTypeModifiers GetMappedTypeModifiers(Type t) => throw new NotImplementedException("getMappedTypeModifiers");
+    // getMappedTypeModifiers (28769) implemented in Checker.Relater.Support.cs (#20).
 
     // ---- substitution / noinfer (#15 type nodes) ----
     // isNoInferType (26688) implemented in Checker.IndexedAccess.cs (#18).

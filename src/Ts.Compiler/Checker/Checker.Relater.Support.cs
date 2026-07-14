@@ -210,6 +210,69 @@ public partial class Checker
         return IsUnitType(t);
     }
 
+    // checker.go:28769-28781 (owner: #20 AliasReferences).
+    internal MappedTypeModifiers GetMappedTypeModifiers(Type t)
+    {
+        var declaration = t.AsMappedType().declaration!;
+        var modifiers = (MappedTypeModifiers)0;
+        if (declaration.ReadonlyToken is not null)
+        {
+            modifiers |= declaration.ReadonlyToken.Kind == SyntaxKind.MinusToken ? MappedTypeModifiers.ExcludeReadonly : MappedTypeModifiers.IncludeReadonly;
+        }
+        if (declaration.QuestionToken is not null)
+        {
+            modifiers |= declaration.QuestionToken.Kind == SyntaxKind.MinusToken ? MappedTypeModifiers.ExcludeOptional : MappedTypeModifiers.IncludeOptional;
+        }
+        return modifiers;
+    }
+
+    // checker.go:28783-28795 (owner: #20 AliasReferences).
+    // Return -1, 0, or 1, where -1 means optionality is stripped (i.e. -?), 0 means optionality is unchanged, and 1 means
+    // optionality is added (i.e. +?).
+    internal int GetMappedTypeOptionality(Type t)
+    {
+        var modifiers = GetMappedTypeModifiers(t);
+        if ((modifiers & MappedTypeModifiers.ExcludeOptional) != 0)
+        {
+            return -1;
+        }
+        if ((modifiers & MappedTypeModifiers.IncludeOptional) != 0)
+        {
+            return 1;
+        }
+        return 0;
+    }
+
+    // checker.go:28797-28815 (owner: #20 AliasReferences).
+    // Return -1, 0, or 1, for stripped, unchanged, or added optionality respectively. When a homomorphic mapped type doesn't
+    // modify optionality, recursively consult the optionality of the type being mapped over to see if it strips or adds optionality.
+    // For intersections, return -1 or 1 when all constituents strip or add optionality, otherwise return 0.
+    internal int GetCombinedMappedTypeOptionality(Type t)
+    {
+        if ((t.objectFlags & ObjectFlags.Mapped) != 0)
+        {
+            var optionality = GetMappedTypeOptionality(t);
+            if (optionality != 0)
+            {
+                return optionality;
+            }
+            return GetCombinedMappedTypeOptionality(GetModifiersTypeFromMappedType(t));
+        }
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            var optionality = GetCombinedMappedTypeOptionality(t.Types()[0]);
+            foreach (var tt in t.Types()[1..])
+            {
+                if (GetCombinedMappedTypeOptionality(tt) != optionality)
+                {
+                    return 0;
+                }
+            }
+            return optionality;
+        }
+        return 0;
+    }
+
     // checker.go:28817-28819 (owner: #20 AliasReferences).
     internal bool IsPartialMappedType(Type t) =>
         (t.objectFlags & ObjectFlags.Mapped) != 0 && (GetMappedTypeModifiers(t) & MappedTypeModifiers.IncludeOptional) != 0;

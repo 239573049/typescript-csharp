@@ -116,12 +116,20 @@ public partial class Checker
     // getSimplifiedTypeOrConstraint is real in Checker.Constraints.cs.
 
     // ---- members / modifiers ----
-    internal Type? GetDeclaringClass(Symbol prop) => throw new NotImplementedException("getDeclaringClass");
+    // checker.go:11889-11894
+    internal Type? GetDeclaringClass(Symbol prop)
+    {
+        if (prop.Parent is not null && (prop.Parent.Flags & SymbolFlags.Class) != 0)
+        {
+            return GetDeclaredTypeOfSymbol(GetParentOfSymbol(prop)!);
+        }
+        return null;
+    }
     internal bool IsValidOverrideOf(Symbol sourceProp, Symbol targetProp) => throw new NotImplementedException("isValidOverrideOf");
 
     // ---- mapped-type helpers ----
-    internal int GetCombinedMappedTypeOptionality(Type type) => throw new NotImplementedException("getCombinedMappedTypeOptionality");
-    internal Type GetApparentMappedTypeKeys(Type nameType, Type targetType) => throw new NotImplementedException("getApparentMappedTypeKeys");
+    // getCombinedMappedTypeOptionality (28797) implemented in Checker.Relater.Support.cs (#20).
+    // getApparentMappedTypeKeys (22624) implemented in Checker.Instantiation.cs (#14).
 
     // ---- facts (flow.go) ----
     // getTypeFacts 30731: real body landed in Checker.TypeFacts.cs.

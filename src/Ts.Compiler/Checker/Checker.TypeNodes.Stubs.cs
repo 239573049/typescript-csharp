@@ -32,7 +32,25 @@ public partial class Checker
         return t;
     }
 
-    internal Type CreateDeferredTypeReference(Type target, Node node, TypeMapper? mapper, TypeAlias? alias) => throw new NotImplementedException("createDeferredTypeReference");
+    // checker.go:25029-25043 — real body (mapped-type wave O); previously a stub here.
+    internal Type CreateDeferredTypeReference(Type target, Node node, TypeMapper? mapper, TypeAlias? alias)
+    {
+        if (alias is null)
+        {
+            alias = GetAliasForTypeNode(node);
+            if (alias is not null && mapper is not null)
+            {
+                alias.typeArguments = InstantiateTypes(alias.typeArguments, mapper);
+            }
+        }
+        var t = NewObjectType(ObjectFlags.Reference, target.symbol);
+        t.alias = alias;
+        var d = t.AsTypeReference()!;
+        d.target = target;
+        d.mapper = mapper;
+        d.node = node;
+        return t;
+    }
 
     internal Type NewConditionalType(ConditionalRoot root, TypeMapper? mapper, TypeMapper? combinedMapper) => throw new NotImplementedException("newConditionalType");
 
@@ -48,7 +66,19 @@ public partial class Checker
     // #18 getIndexType (1-arg) / getIndexedAccessTypeEx (26551/26793) implemented in Checker.IndexedAccess.cs (#18).
 
     // #14 instantiation
-    internal Type GetActualTypeVariable(Type type) => throw new NotImplementedException("getActualTypeVariable");
+    // checker.go:31328-31336 — real body (mapped-type wave O); previously a stub here.
+    internal Type GetActualTypeVariable(Type type)
+    {
+        if ((type.flags & TypeFlags.Substitution) != 0)
+        {
+            return GetActualTypeVariable(type.AsSubstitutionType().baseType);
+        }
+        if ((type.flags & TypeFlags.IndexedAccess) != 0 && ((type.AsIndexedAccessType().objectType.flags & TypeFlags.Substitution) != 0 || (type.AsIndexedAccessType().indexType.flags & TypeFlags.Substitution) != 0))
+        {
+            return GetIndexedAccessType(GetActualTypeVariable(type.AsIndexedAccessType().objectType), GetActualTypeVariable(type.AsIndexedAccessType().indexType));
+        }
+        return type;
+    }
 
     // instantiateTypeWithAlias / instantiateTypeAlias / getConstraintTypeFromMappedType /
     // getNameTypeFromMappedType / getTypeParameterFromMappedType / getHomomorphicTypeVariable /

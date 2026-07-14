@@ -118,7 +118,7 @@ public partial class Checker
     // utilities.go:690 — delegates to the Ex form landed in Checker.PropertyAccess.cs.
     internal static ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => GetDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/);
     // getFlowTypeInConstructor: owned by flow.go — real body in Checker.Flow.cs.
-    internal Type? GetTypeOfPropertyInBaseClass(Symbol symbol) => throw new NotImplementedException("getTypeOfPropertyInBaseClass");
+    // getTypeOfPropertyInBaseClass (11423) implemented in Checker.Flow.Deps.cs (wave O).
     // getTypeOfInitializer: owned by flow.go — real body in Checker.Flow.cs.
     // getDeclaringConstructor 27211: real body landed in Checker.PropertyAccess.cs.
     // We approximate own properties as non-methods plus methods that are inside the object literal
@@ -162,7 +162,7 @@ public partial class Checker
     // ---- indexed access / mapped (#18) ----
     // getIndexedAccessType (26789) implemented in Checker.IndexedAccess.cs (#18).
     // sliceTupleType owned by the relater wave (Checker.Relater.cs).
-    internal void ResolveMappedTypeMembers(Type t) => throw new NotImplementedException("resolveMappedTypeMembers");
+    // resolveMappedTypeMembers (20799) implemented in Checker.Instantiation.cs (#14).
     // resolveReverseMappedTypeMembers (inference.go:1065) implemented in Checker.Inference.cs.
     // resolveUnionTypeMembers (20957) / resolveIntersectionTypeMembers (21207) implemented in
     // Checker.Instantiation.cs (#14).

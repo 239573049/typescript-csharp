@@ -145,10 +145,46 @@ public partial class Checker
         }
         return (t.flags & TypeFlags.Instantiable) != 0 && (GetBaseConstraintOrType(t).flags & (TypeFlags.Nullable | TypeFlags.Union)) != 0;
     }
-    // checker.go:31294 / 31324 — constraint-substitution predicates; deferred (owning wave: constraint-position
-    // apparent-type analysis). Only reached when the reference type is a generic with a union constraint.
-    internal bool IsConstraintPosition(Type t, Node node) => throw new NotImplementedException("isConstraintPosition");
-    internal bool HasContextualTypeWithNoGenericTypes(Node node, CheckMode checkMode) => throw new NotImplementedException("hasContextualTypeWithNoGenericTypes");
+    // checker.go:31266-31274
+    internal bool IsConstraintPosition(Type t, Node node)
+    {
+        var parent = node.Parent!;
+        // In an element access obj[x], we consider obj to be in a constraint position, except when obj is of
+        // a generic type without a nullable constraint and x is a generic type. This is because when both obj
+        // and x are of generic types T and K, we want the resulting type to be T[K].
+        return NodeTests.IsPropertyAccessExpression(parent) || NodeTests.IsQualifiedName(parent) ||
+            (NodeTests.IsCallExpression(parent) || NodeTests.IsNewExpression(parent)) && parent.Expression() == node ||
+            NodeTests.IsElementAccessExpression(parent) && parent.Expression() == node && !(SomeType(t, IsGenericTypeWithoutNullableConstraint) && IsGenericIndexType(GetTypeOfExpression(parent.AsElementAccessExpression().ArgumentExpression!)));
+    }
+
+    // checker.go:31283-31288
+    internal bool IsGenericTypeWithoutNullableConstraint(Type t)
+    {
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            return CoreUtil.Some(t.AsIntersectionType()!.types, IsGenericTypeWithoutNullableConstraint);
+        }
+        return (t.flags & TypeFlags.Instantiable) != 0 && !MaybeTypeOfKind(GetBaseConstraintOrType(t), TypeFlags.Nullable);
+    }
+
+    // checker.go:31290-31302
+    internal bool HasContextualTypeWithNoGenericTypes(Node node, CheckMode checkMode)
+    {
+        // Computing the contextual type for a child of a JSX element involves resolving the type of the
+        // element's tag name, so we exclude that here to avoid circularities.
+        // If check mode has `CheckMode.RestBindingElement`, we skip binding pattern contextual types,
+        // as we want the type of a rest element to be generic when possible.
+        if ((NodeTests.IsIdentifier(node) || NodeTests.IsPropertyAccessExpression(node) || NodeTests.IsElementAccessExpression(node)) &&
+            !((NodeTests.IsJsxOpeningElement(node.Parent!) || NodeTests.IsJsxSelfClosingElement(node.Parent!)) && node.Parent!.TagName() == node))
+        {
+            var contextualType = GetContextualType(node, CoreUtil.IfElse((checkMode & CheckMode.RestBindingElement) != 0, ContextFlags.SkipBindingPatterns, ContextFlags.None));
+            if (contextualType is not null)
+            {
+                return !IsGenericType(contextualType);
+            }
+        }
+        return false;
+    }
     // checker.go:25322-25330
     internal bool IsUnitLikeType(Type t)
     {
@@ -161,7 +197,35 @@ public partial class Checker
         }
         return IsUnitType(t);
     }
-    internal Type GetFlowTypeOfProperty(Node reference, Symbol? prop) => throw new NotImplementedException("getFlowTypeOfProperty");
+    // checker.go:11413-11421
+    internal Type GetFlowTypeOfProperty(Node reference, Symbol? prop)
+    {
+        var initialType = undefinedType!;
+        if (prop is not null && prop.ValueDeclaration is not null && (!IsAutoTypedProperty(prop) || (prop.ValueDeclaration.ModifierFlags() & ModifierFlags.Ambient) != 0))
+        {
+            var baseType = GetTypeOfPropertyInBaseClass(prop);
+            if (baseType is not null)
+            {
+                initialType = baseType;
+            }
+        }
+        return GetFlowTypeOfReferenceEx(reference, autoType!, initialType, null, null);
+    }
+
+    // checker.go:11423-11433 — Return the inherited type of the given property or undefined if property doesn't exist in a base class.
+    internal Type? GetTypeOfPropertyInBaseClass(Symbol property)
+    {
+        var classType = GetDeclaringClass(property);
+        if (classType is not null)
+        {
+            var baseClassTypes = GetBaseTypes(classType);
+            if (baseClassTypes.Length > 0)
+            {
+                return GetTypeOfPropertyOfType(baseClassTypes[0], property.Name);
+            }
+        }
+        return null;
+    }
 
     // ---- type→property-name utilities (checker.go free funcs) ----
     // isTypeUsableAsPropertyName / getPropertyNameFromType already stubbed in Checker.SymbolResolution.cs.
