@@ -381,9 +381,9 @@ public partial class Checker
     internal void InitializeChecker()
     {
         // Initialize global symbol table
-        // PORT-NOTE: ambient-module and module-augmentation merges (mergeModuleAugmentation) are deferred
-        // to the module-merge wave; ambient module symbols are collected but not yet merged. Clean global
-        // (lib) symbol merging — which populates c.globals with Array/Boolean/Object/... — is fully ported.
+        // PORT-NOTE: module-augmentation merges (mergeModuleAugmentation) are deferred to the
+        // module-merge wave. Ambient module symbols are collected here and merged into globals after
+        // global type initialization (end of this method), matching checker.go:1371-1374.
         var ambientModuleSymbols = new List<Symbol>();
         foreach (var file in files)
         {
@@ -461,6 +461,14 @@ public partial class Checker
         }
         anyReadonlyArrayType = CreateTypeFromGenericGlobalType(globalReadonlyArrayType!, [anyType!]);
         globalThisType = GetGlobalType("ThisType", 1 /*arity*/, false /*reportErrors*/);
+        // Now merge global ambient module declarations (checker.go:1371-1374) — deferred until other
+        // global symbols and types are resolved.
+        foreach (var symbol in ambientModuleSymbols)
+        {
+            MergeGlobalSymbol(symbol);
+        }
+        // PORT-NOTE: non-global module-augmentation merges (mergeModuleAugmentation, checker.go:1376-1383)
+        // remain deferred to the module-merge wave (augmentation lists are not yet collected).
     }
 
     // checker.go:1466-1482
