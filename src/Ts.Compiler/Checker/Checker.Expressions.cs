@@ -127,6 +127,18 @@ public partial class Checker
         return t;
     }
 
+    // checker.go:10010
+    internal Type CheckTaggedTemplateExpression(Node node)
+    {
+        if (!CheckGrammarTaggedTemplateChain(node.AsTaggedTemplateExpression()))
+        {
+            CheckGrammarTypeArguments(node, node.TypeArgumentList());
+        }
+        var signature = GetResolvedSignature(node, null, CheckMode.Normal);
+        CheckDeprecatedSignature(signature, node);
+        return GetReturnTypeOfSignature(signature);
+    }
+
     // checker.go:10019
     internal Type CheckParenthesizedExpression(Node node, CheckMode checkMode)
     {
@@ -1625,6 +1637,17 @@ public partial class Checker
         return GetAwaitedTypeEx(yieldedType, errorNode, CoreUtil.IfElse(isYieldStar,
             Diag.Type_of_iterated_elements_of_a_yield_Asterisk_operand_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member,
             Diag.Type_of_yield_operand_in_an_async_generator_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member));
+    }
+
+    // checker.go:11006
+    internal Type CheckSyntheticExpression(Node node)
+    {
+        var t = (Type)node.AsSyntheticExpression().Type!;
+        if (node.AsSyntheticExpression().IsSpread)
+        {
+            return GetIndexedAccessType(t, numberType!);
+        }
+        return t;
     }
 
     // Indicates whether the result of an `Expression` will be unused.

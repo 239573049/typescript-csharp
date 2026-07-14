@@ -354,8 +354,7 @@ public partial class Checker
         Visit(node);
         return superCall;
     }
-    // checker.go:2770
-    internal void CheckAsyncFunctionReturnType(Node node, Node returnTypeNode) => throw new NotImplementedException("checkAsyncFunctionReturnType");
+    // checker.go:2770 — checkAsyncFunctionReturnType: real body landed in Checker.Declarations.cs.
     // checker.go:29454
     internal bool CheckGeneratorInstantiationAssignabilityToReturnType(Type returnType, FunctionFlags functionFlags, Node? errorNode) => throw new NotImplementedException("checkGeneratorInstantiationAssignabilityToReturnType");
 
@@ -504,9 +503,20 @@ public partial class Checker
     // SuperCallIsRootLevelInConstructor is now REAL in Checker.Declarations.cs (checker.go:2898).
     // NodeImmediatelyReferencesSuperOrThis is now REAL in Checker.Declarations.cs (checker.go:2903).
     // utilities.go:1237
-    internal static Node[] GetDeclarationsOfKind(Symbol symbol, SyntaxKind kind) => throw new NotImplementedException("getDeclarationsOfKind");
+    internal static Node[] GetDeclarationsOfKind(Symbol symbol, SyntaxKind kind) =>
+        CoreUtil.Filter(symbol.Declarations, d => d.Kind == kind) ?? [];
     // checker.go:5208
-    internal static Node? GetFirstNonAmbientClassOrFunctionDeclaration(Symbol symbol) => throw new NotImplementedException("getFirstNonAmbientClassOrFunctionDeclaration");
+    internal static Node? GetFirstNonAmbientClassOrFunctionDeclaration(Symbol symbol)
+    {
+        foreach (var declaration in symbol.Declarations ?? [])
+        {
+            if ((NodeTests.IsClassDeclaration(declaration) || (NodeTests.IsFunctionDeclaration(declaration) && AstUtilities.NodeIsPresent(declaration.Body()))) && (declaration.Flags & NodeFlags.Ambient) == 0)
+            {
+                return declaration;
+            }
+        }
+        return null;
+    }
     // utilities.go:223
     internal static bool IsTopLevelInExternalModuleAugmentation(Node? node) =>
         node is not null && node.Parent is not null &&

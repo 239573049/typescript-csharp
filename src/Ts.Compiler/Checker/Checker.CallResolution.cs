@@ -469,6 +469,36 @@ public partial class Checker
         return TypeHasProtectedAccessibleBase(target, firstBase);
     }
 
+    // checker.go:8695
+    private Signature ResolveTaggedTemplateExpression(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode)
+    {
+        var tag = node.AsTaggedTemplateExpression().Tag!.AsNode();
+        var tagType = CheckExpression(tag);
+        var apparentType = GetApparentType(tagType);
+        if (IsErrorType(apparentType))
+        {
+            // Another error has already been reported
+            return ResolveErrorCall(node);
+        }
+        var callSignatures = GetSignaturesOfType(apparentType, SignatureKind.Call);
+        var numConstructSignatures = GetSignaturesOfType(apparentType, SignatureKind.Construct).Length;
+        if (IsUntypedFunctionCall(tagType, apparentType, callSignatures.Length, numConstructSignatures))
+        {
+            return ResolveUntypedCall(node);
+        }
+        if (callSignatures.Length == 0)
+        {
+            if (NodeTests.IsArrayLiteralExpression(node.Parent!))
+            {
+                Error(tag, Diag.It_is_likely_that_you_are_missing_a_comma_to_separate_these_two_template_expressions_They_form_a_tagged_template_expression_which_cannot_be_invoked);
+                return ResolveErrorCall(node);
+            }
+            InvocationError(tag, apparentType, SignatureKind.Call, null);
+            return ResolveErrorCall(node);
+        }
+        return ResolveCall(node, callSignatures, candidatesOutArray, checkMode, SignatureFlags.None, null);
+    }
+
     // checker.go:8819
     internal Signature ResolveCall(Node node, Signature[] signatures, List<Signature>? candidatesOutArray, CheckMode checkMode, SignatureFlags callChainFlags, global::Ts.Diagnostics.Message? headMessage)
     {

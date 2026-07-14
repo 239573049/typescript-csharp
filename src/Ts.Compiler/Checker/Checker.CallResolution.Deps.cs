@@ -155,9 +155,8 @@ public partial class Checker
 
     // checkNonNullTypeWithReporter 7390: real body landed in Checker.PropertyAccess.cs (non-null cluster).
 
-    // checker.go:8435/8438/8442 — remaining resolveSignature dispatch targets (tagged-template / decorator
-    // / instanceof waves). resolveJsxOpeningLikeElement is REAL (jsx wave).
-    private Signature ResolveTaggedTemplateExpression(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("resolveTaggedTemplateExpression");
+    // checker.go:8438/8442 — remaining resolveSignature dispatch targets (decorator / instanceof waves).
+    // resolveJsxOpeningLikeElement is REAL (jsx wave); resolveTaggedTemplateExpression is REAL (Checker.CallResolution.cs).
     private Signature ResolveDecorator(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("resolveDecorator");
     private Signature ResolveInstanceofExpression(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("resolveInstanceofExpression");
 
@@ -173,7 +172,7 @@ public partial class Checker
     // ---- global-type resolvers reached from call/contextual paths (global-type bootstrap cluster) ----
     private Type GetGlobalImportCallOptionsType() => throw new NotImplementedException("getGlobalImportCallOptionsType");
     private Type GetGlobalImportAttributesType() => throw new NotImplementedException("getGlobalImportAttributesType");
-    private Type GetGlobalTemplateStringsArrayType() => throw new NotImplementedException("getGlobalTemplateStringsArrayType");
+    // getGlobalTemplateStringsArrayType: resolved via the getGlobalTemplateStringsArrayType field (Checker.Construction.cs).
     private Symbol? GetGlobalPromiseConstructorSymbolOrNil() => throw new NotImplementedException("getGlobalPromiseConstructorSymbolOrNil");
 
     // ---- deferred contextual branches (generator / decorator / JS-assignment-declaration surfaces) ----

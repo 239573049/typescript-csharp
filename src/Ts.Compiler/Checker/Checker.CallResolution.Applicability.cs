@@ -1103,7 +1103,7 @@ public partial class Checker
         if (NodeTests.IsTaggedTemplateExpression(node))
         {
             var template = node.AsTaggedTemplateExpression().Template;
-            var firstArg = CreateSyntheticExpression(template!, GetGlobalTemplateStringsArrayType(), false, null);
+            var firstArg = CreateSyntheticExpression(template!, getGlobalTemplateStringsArrayType(), false, null);
             if (!NodeTests.IsTemplateExpression(template!))
             {
                 return new[] { firstArg };

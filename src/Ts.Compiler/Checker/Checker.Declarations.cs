@@ -267,6 +267,33 @@ public partial class Checker
         }
     }
 
+    // Checks the return type of an async function to ensure it is a compatible
+    // Promise implementation.
+    //
+    // This checks that an async function has a valid Promise-compatible return type.
+    // An async function has a valid Promise-compatible return type if the resolved value
+    // of the return type has a construct signature that takes in an `initializer` function
+    // that in turn supplies a `resolve` function as one of its arguments and results in an
+    // object with a callable `then` signature.
+    // checker.go:2770
+    internal void CheckAsyncFunctionReturnType(Node node, Node returnTypeNode)
+    {
+        var returnType = GetTypeFromTypeNode(returnTypeNode);
+        if (IsErrorType(returnType))
+        {
+            return;
+        }
+        var globalPromiseType = getGlobalPromiseTypeChecked();
+        if (globalPromiseType != emptyGenericType && !IsReferenceToType(returnType, globalPromiseType))
+        {
+            // The promise type was not a valid type reference to the global promise type, so we
+            // report an error and return the unknown type.
+            Error(returnTypeNode, Diag.The_return_type_of_an_async_function_or_method_must_be_the_global_Promise_T_type_Did_you_mean_to_write_Promise_0, TypeToString(GetAwaitedTypeNoAlias(returnType) ?? voidType!));
+            return;
+        }
+        CheckAwaitedType(returnType, false /*withAlias*/, node, Diag.The_return_type_of_an_async_function_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member);
+    }
+
     // checker.go:2785
     internal void CheckMethodDeclaration(Node node)
     {

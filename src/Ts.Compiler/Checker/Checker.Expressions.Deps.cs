@@ -57,8 +57,7 @@ public partial class Checker
 
     // checker.go:8298 — checkCallExpression: real body landed in Checker.CallResolution.cs.
 
-    // checker.go:10010
-    internal Type CheckTaggedTemplateExpression(Node node) => throw new NotImplementedException("checkTaggedTemplateExpression");
+    // checker.go:10010 — checkTaggedTemplateExpression: real body landed in Checker.Expressions.cs.
 
     // checker.go:10019 — checkParenthesizedExpression: real body landed in Checker.Expressions.cs.
 
@@ -171,8 +170,7 @@ public partial class Checker
     // checkYieldExpression (checker.go:10926) + getYieldedTypeOfYieldExpression (checker.go:10993)
     // landed in Checker.Expressions.cs.
 
-    // checker.go:11006
-    internal Type CheckSyntheticExpression(Node node) => throw new NotImplementedException("checkSyntheticExpression");
+    // checker.go:11006 — checkSyntheticExpression: real body landed in Checker.Expressions.cs.
 
     // checker.go:7576
     internal Type InstantiateTypeWithSingleGenericCallSignature(Node node, Type t, CheckMode checkMode)
