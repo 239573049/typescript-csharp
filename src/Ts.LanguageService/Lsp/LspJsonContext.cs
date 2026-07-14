@@ -47,6 +47,11 @@ namespace Ts.LsProto;
 [JsonSerializable(typeof(SelectionRange))]
 [JsonSerializable(typeof(SelectionRange[]))]
 [JsonSerializable(typeof(LinkedEditingRanges))]
+[JsonSerializable(typeof(TextEdit))]
+[JsonSerializable(typeof(TextEdit[]))]
+[JsonSerializable(typeof(WorkspaceEdit))]
+[JsonSerializable(typeof(System.Collections.Generic.Dictionary<DocumentUri, TextEdit[]>))]
+[JsonSerializable(typeof(PrepareRenamePlaceholder))]
 public sealed partial class LspJsonContext : JsonSerializerContext
 {
 }

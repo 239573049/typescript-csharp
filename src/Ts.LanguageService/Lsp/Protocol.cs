@@ -909,3 +909,41 @@ public sealed class LinkedEditingRanges
     [JsonPropertyName("wordPattern")]
     public string? WordPattern { get; set; }
 }
+
+// lsp_generated.go: TextEdit — a text edit applicable to a text document.
+public sealed class TextEdit
+{
+    // The range of the text document to be manipulated. To insert
+    // text into a document create a range where start === end.
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    // The string to be inserted. For delete operations use an
+    // empty string.
+    [JsonPropertyName("newText")]
+    [JsonRequired]
+    public string NewText { get; set; } = "";
+}
+
+// lsp_generated.go: WorkspaceEdit (changes subset: documentChanges/changeAnnotations
+// ride the resource-operation layer, which is deferred with file-rename support).
+public sealed class WorkspaceEdit
+{
+    // Holds changes to existing resources.
+    [JsonPropertyName("changes")]
+    public System.Collections.Generic.Dictionary<DocumentUri, TextEdit[]>? Changes { get; set; }
+}
+
+// lsp_generated.go: PrepareRenamePlaceholder (textDocument/prepareRename result arm).
+// Since: 3.18.0
+public sealed class PrepareRenamePlaceholder
+{
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    [JsonPropertyName("placeholder")]
+    [JsonRequired]
+    public string Placeholder { get; set; } = "";
+}

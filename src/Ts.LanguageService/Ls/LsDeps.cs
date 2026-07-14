@@ -45,6 +45,15 @@ public sealed partial class LanguageService
     }
 }
 
+// lsutil/userpreferences.go:226 — QuotePreference. The Go type is a string enum whose
+// "" (unknown) and "auto" arms both resolve through GetQuotePreference; only the two
+// resolved arms survive resolution.
+internal enum QuotePreference
+{
+    Double,
+    Single,
+}
+
 internal static class LsDeps
 {
     // lsconv/converters.go:194 — Converters.PositionToLineAndCharacter (UTF-16 direct).
@@ -945,6 +954,702 @@ internal static class LsDeps
                 // preserve TS behavior: crash on unexpected kinds
                 throw new InvalidOperationException("Unhandled case in declarationIsWriteAccess");
         }
+    }
+
+    // ls/symbols.go:590 — isInsideNodeModules.
+    internal static bool IsInsideNodeModules(string fileName)
+    {
+        return fileName.Contains("/node_modules/", StringComparison.Ordinal);
+    }
+
+    // ast/utilities.go:2244 — IsLabelName.
+    internal static bool IsLabelName(global::Ts.Ast.Node node)
+    {
+        return IsLabelOfLabeledStatement(node) || IsJumpStatementTarget(node);
+    }
+
+    // ast/utilities.go:2248 — IsLabelOfLabeledStatement.
+    internal static bool IsLabelOfLabeledStatement(global::Ts.Ast.Node node)
+    {
+        if (!global::Ts.Ast.NodeTests.IsIdentifier(node))
+        {
+            return false;
+        }
+        if (!global::Ts.Ast.NodeTests.IsLabeledStatement(node.Parent!)) // Go dereferences Parent unconditionally.
+        {
+            return false;
+        }
+        return node == node.Parent!.Label();
+    }
+
+    // ast/utilities.go:2258 — IsJumpStatementTarget.
+    internal static bool IsJumpStatementTarget(global::Ts.Ast.Node node)
+    {
+        if (!global::Ts.Ast.NodeTests.IsIdentifier(node))
+        {
+            return false;
+        }
+        if (!IsBreakOrContinueStatement(node.Parent!)) // Go dereferences Parent unconditionally.
+        {
+            return false;
+        }
+        return node == node.Parent!.Label();
+    }
+
+    // ast/utilities.go:4142 — TryGetImportFromModuleSpecifier.
+    internal static global::Ts.Ast.Node? TryGetImportFromModuleSpecifier(global::Ts.Ast.Node node)
+    {
+        switch (node.Parent!.Kind) // Go dereferences Parent unconditionally.
+        {
+            case global::Ts.Ast.SyntaxKind.ImportDeclaration:
+            case global::Ts.Ast.SyntaxKind.JSImportDeclaration:
+            case global::Ts.Ast.SyntaxKind.ExportDeclaration:
+                return node.Parent;
+            case global::Ts.Ast.SyntaxKind.ExternalModuleReference:
+                return node.Parent!.Parent;
+            case global::Ts.Ast.SyntaxKind.CallExpression:
+                if (global::Ts.Ast.AstUtilities.IsImportCall(node.Parent!) ||
+                    global::Ts.Ast.AstUtilities.IsRequireCall(node.Parent!, false /*requireStringLiteralLikeArgument*/))
+                {
+                    return node.Parent;
+                }
+                return null;
+            case global::Ts.Ast.SyntaxKind.LiteralType:
+                if (!global::Ts.Ast.NodeTests.IsStringLiteral(node))
+                {
+                    return null;
+                }
+                if (node.Parent!.Parent!.Kind == global::Ts.Ast.SyntaxKind.ImportType)
+                {
+                    return node.Parent!.Parent;
+                }
+                return null;
+        }
+        return null;
+    }
+
+    // ast/utilities.go:4487 — GetReparsedNodeForNode.
+    // If the given node is part of a subtree of JSDoc nodes that have been cloned into a reparsed construct,
+    // return the corresponding reparsed clone in the subtree. Otherwise, just return the node.
+    internal static global::Ts.Ast.Node GetReparsedNodeForNode(global::Ts.Ast.Node node)
+    {
+        if (node != null &&
+            (node.Flags & global::Ts.Ast.NodeFlags.JSDoc) != 0 &&
+            (node.Flags & global::Ts.Ast.NodeFlags.Reparsed) == 0)
+        {
+            var file = global::Ts.Ast.AstUtilities.GetSourceFileOfNode(node);
+            if (file != null && (file.ReparsedClones?.Length ?? 0) != 0)
+            {
+                var clones = file.ReparsedClones!;
+                // slices.BinarySearchFunc(clones, node, CompareNodePositions): lower-bound
+                // search over Loc (Pos, then End).
+                var pos = 0;
+                var hi = clones.Length;
+                while (pos < hi)
+                {
+                    var mid = (pos + hi) / 2;
+                    if (global::Ts.Core.TextRange.CompareTextRanges(clones[mid].Loc, node.Loc) < 0)
+                    {
+                        pos = mid + 1;
+                    }
+                    else
+                    {
+                        hi = mid;
+                    }
+                }
+                var found = pos < clones.Length &&
+                    global::Ts.Core.TextRange.CompareTextRanges(clones[pos].Loc, node.Loc) == 0;
+                if (!found && pos > 0)
+                {
+                    pos--;
+                }
+                if (pos < clones.Length)
+                {
+                    var candidate = clones[pos];
+                    if (node.Loc.ContainedBy(candidate.Loc))
+                    {
+                        var reparsed = FindCloneInNode(candidate, node);
+                        if (reparsed != null)
+                        {
+                            return reparsed;
+                        }
+                    }
+                }
+            }
+        }
+        return node!;
+    }
+
+    // ast/utilities.go:4505 — findCloneInNode.
+    private static global::Ts.Ast.Node? FindCloneInNode(global::Ts.Ast.Node node, global::Ts.Ast.Node original)
+    {
+        while (true)
+        {
+            if (node.Kind == original.Kind && node.Loc == original.Loc)
+            {
+                return node;
+            }
+            var foundContainingChild = node.ForEachChild(n =>
+            {
+                if (original.Loc.ContainedBy(n.Loc))
+                {
+                    node = n;
+                    return true;
+                }
+                return false;
+            });
+            if (!foundContainingChild)
+            {
+                return null;
+            }
+        }
+    }
+
+    // ast/utilities.go:1081 — CanHaveModifiers. The C# port exists at
+    // Ts.Checker (Checker.Grammar.Deps.cs) but is `internal` to Ts.Compiler.
+    internal static bool CanHaveModifiers(global::Ts.Ast.Node node)
+    {
+        switch (node.Kind)
+        {
+            case global::Ts.Ast.SyntaxKind.TypeParameter:
+            case global::Ts.Ast.SyntaxKind.Parameter:
+            case global::Ts.Ast.SyntaxKind.PropertySignature:
+            case global::Ts.Ast.SyntaxKind.PropertyDeclaration:
+            case global::Ts.Ast.SyntaxKind.MethodSignature:
+            case global::Ts.Ast.SyntaxKind.MethodDeclaration:
+            case global::Ts.Ast.SyntaxKind.Constructor:
+            case global::Ts.Ast.SyntaxKind.GetAccessor:
+            case global::Ts.Ast.SyntaxKind.SetAccessor:
+            case global::Ts.Ast.SyntaxKind.IndexSignature:
+            case global::Ts.Ast.SyntaxKind.ConstructorType:
+            case global::Ts.Ast.SyntaxKind.FunctionExpression:
+            case global::Ts.Ast.SyntaxKind.ArrowFunction:
+            case global::Ts.Ast.SyntaxKind.ClassExpression:
+            case global::Ts.Ast.SyntaxKind.VariableStatement:
+            case global::Ts.Ast.SyntaxKind.FunctionDeclaration:
+            case global::Ts.Ast.SyntaxKind.ClassDeclaration:
+            case global::Ts.Ast.SyntaxKind.InterfaceDeclaration:
+            case global::Ts.Ast.SyntaxKind.TypeAliasDeclaration:
+            case global::Ts.Ast.SyntaxKind.EnumDeclaration:
+            case global::Ts.Ast.SyntaxKind.ModuleDeclaration:
+            case global::Ts.Ast.SyntaxKind.ImportEqualsDeclaration:
+            case global::Ts.Ast.SyntaxKind.ImportDeclaration:
+            case global::Ts.Ast.SyntaxKind.JSImportDeclaration:
+            case global::Ts.Ast.SyntaxKind.ExportAssignment:
+            case global::Ts.Ast.SyntaxKind.ExportDeclaration:
+                return true;
+        }
+        return false;
+    }
+
+    // ls/utilities.go:348 — isLiteralNameOfPropertyDeclarationOrIndexAccess.
+    internal static bool IsLiteralNameOfPropertyDeclarationOrIndexAccess(global::Ts.Ast.Node node)
+    {
+        // utilities
+        switch (node.Parent!.Kind) // Go dereferences Parent unconditionally.
+        {
+            case global::Ts.Ast.SyntaxKind.PropertyDeclaration:
+            case global::Ts.Ast.SyntaxKind.PropertySignature:
+            case global::Ts.Ast.SyntaxKind.PropertyAssignment:
+            case global::Ts.Ast.SyntaxKind.EnumMember:
+            case global::Ts.Ast.SyntaxKind.MethodDeclaration:
+            case global::Ts.Ast.SyntaxKind.MethodSignature:
+            case global::Ts.Ast.SyntaxKind.GetAccessor:
+            case global::Ts.Ast.SyntaxKind.SetAccessor:
+            case global::Ts.Ast.SyntaxKind.ModuleDeclaration:
+                return global::Ts.Ast.AstUtilities.GetNameOfDeclaration(node.Parent) == node;
+            case global::Ts.Ast.SyntaxKind.ElementAccessExpression:
+                return node.Parent!.AsElementAccessExpression().ArgumentExpression == node;
+            case global::Ts.Ast.SyntaxKind.ComputedPropertyName:
+                return true;
+            case global::Ts.Ast.SyntaxKind.LiteralType:
+                return node.Parent!.Parent!.Kind == global::Ts.Ast.SyntaxKind.IndexedAccessType;
+            default:
+                return false;
+        }
+    }
+
+    // ls/utilities.go:372 — isObjectBindingElementWithoutPropertyName.
+    internal static bool IsObjectBindingElementWithoutPropertyName(global::Ts.Ast.Node bindingElement)
+    {
+        return bindingElement.Kind == global::Ts.Ast.SyntaxKind.BindingElement &&
+            bindingElement.Parent!.Kind == global::Ts.Ast.SyntaxKind.ObjectBindingPattern &&
+            bindingElement.Name()!.Kind == global::Ts.Ast.SyntaxKind.Identifier &&
+            bindingElement.PropertyName() == null;
+    }
+
+    // lsutil/utilities.go:92 — QuotePreferenceFromString.
+    internal static QuotePreference QuotePreferenceFromString(global::Ts.Ast.StringLiteral str)
+    {
+        if ((str.TokenFlags & global::Ts.Ast.TokenFlags.SingleQuote) != 0)
+        {
+            return QuotePreference.Single;
+        }
+        return QuotePreference.Double;
+    }
+
+    // lsutil/utilities.go:99 — GetQuotePreference. PORT-NOTE: the UserPreferences
+    // carrier is deferred; its zero value ("") always falls through to the
+    // module-specifier scan, so the preferences parameter drops out.
+    internal static QuotePreference GetQuotePreference(global::Ts.Ast.SourceFile sourceFile)
+    {
+        // ignore synthetic import added when importHelpers: true
+        foreach (var n in sourceFile.Imports() ?? [])
+        {
+            if (global::Ts.Ast.NodeTests.IsStringLiteral(n) && !global::Ts.Ast.AstUtilities.NodeIsSynthesized(n.Parent!))
+            {
+                return QuotePreferenceFromString(n.AsStringLiteral());
+            }
+        }
+        return QuotePreference.Double;
+    }
+
+    // ls/utilities.go:452 — getAdjustedLocation.
+    internal static global::Ts.Ast.Node GetAdjustedLocation(global::Ts.Ast.Node node, bool forRename, global::Ts.Ast.SourceFile? sourceFile)
+    {
+        // todo: check if this function needs to be changed for jsdoc updates
+
+        var parent = node.Parent!;
+        // /**/<modifier> [|name|] ...
+        // /**/<modifier> <class|interface|type|enum|module|namespace|function|get|set> [|name|] ...
+        // /**/<class|interface|type|enum|module|namespace|function|get|set> [|name|] ...
+        // /**/import [|name|] = ...
+        //
+        // NOTE: If the node is a modifier, we don't adjust its location if it is the `default` modifier as that is handled
+        // specially by `getSymbolAtLocation`.
+        bool IsModifier(global::Ts.Ast.Node n)
+        {
+            if (global::Ts.Ast.AstUtilities.IsModifier(n) && (forRename || n.Kind != global::Ts.Ast.SyntaxKind.DefaultKeyword))
+            {
+                if (!CanHaveModifiers(parent))
+                {
+                    return false;
+                }
+                foreach (var modifier in parent.ModifierNodes() ?? [])
+                {
+                    if (modifier == n)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            switch (n.Kind)
+            {
+                case global::Ts.Ast.SyntaxKind.ClassKeyword:
+                    return global::Ts.Ast.NodeTests.IsClassDeclaration(parent) || global::Ts.Ast.NodeTests.IsClassExpression(n);
+                case global::Ts.Ast.SyntaxKind.FunctionKeyword:
+                    return global::Ts.Ast.NodeTests.IsFunctionDeclaration(parent) || global::Ts.Ast.NodeTests.IsFunctionExpression(n);
+                case global::Ts.Ast.SyntaxKind.InterfaceKeyword:
+                    return global::Ts.Ast.NodeTests.IsInterfaceDeclaration(parent);
+                case global::Ts.Ast.SyntaxKind.EnumKeyword:
+                    return global::Ts.Ast.NodeTests.IsEnumDeclaration(parent);
+                case global::Ts.Ast.SyntaxKind.TypeKeyword:
+                    return global::Ts.Ast.NodeTests.IsTypeAliasDeclaration(parent);
+                case global::Ts.Ast.SyntaxKind.NamespaceKeyword:
+                case global::Ts.Ast.SyntaxKind.ModuleKeyword:
+                    return global::Ts.Ast.NodeTests.IsModuleDeclaration(parent);
+                case global::Ts.Ast.SyntaxKind.ImportKeyword:
+                    return global::Ts.Ast.NodeTests.IsImportEqualsDeclaration(parent);
+                case global::Ts.Ast.SyntaxKind.GetKeyword:
+                    return global::Ts.Ast.NodeTests.IsGetAccessorDeclaration(parent);
+                case global::Ts.Ast.SyntaxKind.SetKeyword:
+                    return global::Ts.Ast.NodeTests.IsSetAccessorDeclaration(parent);
+            }
+            return false;
+        }
+        if (IsModifier(node))
+        {
+            sourceFile ??= global::Ts.Ast.AstUtilities.GetSourceFileOfNode(node);
+            var declLocation = GetAdjustedLocationForDeclaration(parent, forRename, sourceFile!);
+            if (declLocation != null)
+            {
+                return declLocation;
+            }
+        }
+
+        // /**/<var|let|const> [|name|] ...
+        if ((node.Kind == global::Ts.Ast.SyntaxKind.VarKeyword ||
+                node.Kind == global::Ts.Ast.SyntaxKind.ConstKeyword ||
+                node.Kind == global::Ts.Ast.SyntaxKind.LetKeyword) &&
+            global::Ts.Ast.NodeTests.IsVariableDeclarationList(parent) &&
+            parent.AsVariableDeclarationList().Declarations!.Nodes.Length == 1)
+        {
+            var declaration = parent.AsVariableDeclarationList().Declarations!.Nodes[0];
+            if (global::Ts.Ast.NodeTests.IsIdentifier(declaration.Name()!))
+            {
+                return declaration.Name()!;
+            }
+        }
+
+        if (node.Kind == global::Ts.Ast.SyntaxKind.TypeKeyword)
+        {
+            // import /**/type [|name|] from ...;
+            // import /**/type { [|name|] } from ...;
+            // import /**/type { propertyName as [|name|] } from ...;
+            // import /**/type ... from "[|module|]";
+            if (global::Ts.Ast.NodeTests.IsImportClause(parent) && parent.IsTypeOnly())
+            {
+                var location = GetAdjustedLocationForImportDeclaration(parent.Parent!.AsImportDeclaration(), forRename);
+                if (location != null)
+                {
+                    return location;
+                }
+            }
+            // export /**/type { [|name|] } from ...;
+            // export /**/type { propertyName as [|name|] } from ...;
+            // export /**/type * from "[|module|]";
+            // export /**/type * as ... from "[|module|]";
+            if (global::Ts.Ast.NodeTests.IsExportDeclaration(parent) && parent.IsTypeOnly())
+            {
+                var location = GetAdjustedLocationForExportDeclaration(parent.AsExportDeclaration(), forRename);
+                if (location != null)
+                {
+                    return location;
+                }
+            }
+        }
+
+        // import { propertyName /**/as [|name|] } ...
+        // import * /**/as [|name|] ...
+        // export { propertyName /**/as [|name|] } ...
+        // export * /**/as [|name|] ...
+        if (node.Kind == global::Ts.Ast.SyntaxKind.AsKeyword)
+        {
+            if ((parent.Kind == global::Ts.Ast.SyntaxKind.ImportSpecifier && parent.PropertyName() != null) ||
+                (parent.Kind == global::Ts.Ast.SyntaxKind.ExportSpecifier && parent.PropertyName() != null) ||
+                parent.Kind == global::Ts.Ast.SyntaxKind.NamespaceImport ||
+                parent.Kind == global::Ts.Ast.SyntaxKind.NamespaceExport)
+            {
+                return parent.Name()!;
+            }
+            if (parent.Kind == global::Ts.Ast.SyntaxKind.ExportDeclaration)
+            {
+                var exportClause = parent.AsExportDeclaration().ExportClause;
+                if (exportClause != null && exportClause.Kind == global::Ts.Ast.SyntaxKind.NamespaceExport)
+                {
+                    return exportClause.Name()!;
+                }
+            }
+        }
+
+        // /**/import [|name|] from ...;
+        // /**/import { [|name|] } from ...;
+        // /**/import { propertyName as [|name|] } from ...;
+        // /**/import ... from "[|module|]";
+        // /**/import "[|module|]";
+        if (node.Kind == global::Ts.Ast.SyntaxKind.ImportKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.ImportDeclaration)
+        {
+            var location = GetAdjustedLocationForImportDeclaration(parent.AsImportDeclaration(), forRename);
+            if (location != null)
+            {
+                return location;
+            }
+        }
+
+        if (node.Kind == global::Ts.Ast.SyntaxKind.ExportKeyword)
+        {
+            // /**/export { [|name|] } ...;
+            // /**/export { propertyName as [|name|] } ...;
+            // /**/export * from "[|module|]";
+            // /**/export * as ... from "[|module|]";
+            if (parent.Kind == global::Ts.Ast.SyntaxKind.ExportDeclaration)
+            {
+                var location = GetAdjustedLocationForExportDeclaration(parent.AsExportDeclaration(), forRename);
+                if (location != null)
+                {
+                    return location;
+                }
+            }
+            // NOTE: We don't adjust the location of the `default` keyword as that is handled specially by `getSymbolAtLocation`.
+            // /**/export default [|name|];
+            // /**/export = [|name|];
+            if (parent.Kind == global::Ts.Ast.SyntaxKind.ExportAssignment)
+            {
+                return global::Ts.Ast.AstUtilities.SkipOuterExpressions(parent.Expression()!, global::Ts.Ast.OuterExpressionKinds.All);
+            }
+        }
+        // import name = /**/require("[|module|]");
+        if (node.Kind == global::Ts.Ast.SyntaxKind.RequireKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.ExternalModuleReference)
+        {
+            return parent.Expression()!;
+        }
+        // import ... /**/from "[|module|]";
+        // export ... /**/from "[|module|]";
+        if (node.Kind == global::Ts.Ast.SyntaxKind.FromKeyword)
+        {
+            if ((parent.Kind == global::Ts.Ast.SyntaxKind.ImportDeclaration || parent.Kind == global::Ts.Ast.SyntaxKind.ExportDeclaration) &&
+                parent.ModuleSpecifier() != null)
+            {
+                return parent.ModuleSpecifier()!;
+            }
+        }
+        // class ... /**/extends [|name|] ...
+        // class ... /**/implements [|name|] ...
+        // class ... /**/implements name1, name2 ...
+        // interface ... /**/extends [|name|] ...
+        // interface ... /**/extends name1, name2 ...
+        if ((node.Kind == global::Ts.Ast.SyntaxKind.ExtendsKeyword || node.Kind == global::Ts.Ast.SyntaxKind.ImplementsKeyword) &&
+            parent.Kind == global::Ts.Ast.SyntaxKind.HeritageClause &&
+            parent.AsHeritageClause().Token == node.Kind)
+        {
+            // /**/extends [|name|]
+            // /**/implements [|name|]
+            //
+            // (with more than one type, fall through `getAdjustedLocation`:
+            //    /**/extends name1, name2 ...
+            //    /**/implements name1, name2 ...)
+            var heritageClause = parent.AsHeritageClause();
+            if (heritageClause.Types!.Nodes.Length == 1)
+            {
+                var location = heritageClause.Types!.Nodes[0].Expression();
+                if (location != null)
+                {
+                    return location;
+                }
+            }
+        }
+        if (node.Kind == global::Ts.Ast.SyntaxKind.ExtendsKeyword)
+        {
+            // ... <T /**/extends [|U|]> ...
+            if (parent.Kind == global::Ts.Ast.SyntaxKind.TypeParameter)
+            {
+                var constraint = parent.AsTypeParameterDeclaration().Constraint;
+                if (constraint != null && constraint.Kind == global::Ts.Ast.SyntaxKind.TypeReference)
+                {
+                    return constraint.AsTypeReferenceNode().TypeName!;
+                }
+            }
+            // ... T /**/extends [|U|] ? ...
+            if (parent.Kind == global::Ts.Ast.SyntaxKind.ConditionalType)
+            {
+                var extendsType = parent.AsConditionalTypeNode().ExtendsType;
+                if (extendsType != null && extendsType.Kind == global::Ts.Ast.SyntaxKind.TypeReference)
+                {
+                    return extendsType.AsTypeReferenceNode().TypeName!;
+                }
+            }
+        }
+        // ... T extends /**/infer [|U|] ? ...
+        if (node.Kind == global::Ts.Ast.SyntaxKind.InferKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.InferType)
+        {
+            return parent.AsInferTypeNode().TypeParameter!.Name()!;
+        }
+        // { [ [|K|] /**/in keyof T]: ... }
+        if (node.Kind == global::Ts.Ast.SyntaxKind.InKeyword &&
+            parent.Kind == global::Ts.Ast.SyntaxKind.TypeParameter &&
+            parent.Parent!.Kind == global::Ts.Ast.SyntaxKind.MappedType)
+        {
+            return parent.Name()!;
+        }
+        // /**/keyof [|T|]
+        if (node.Kind == global::Ts.Ast.SyntaxKind.KeyOfKeyword &&
+            parent.Kind == global::Ts.Ast.SyntaxKind.TypeOperator &&
+            parent.AsTypeOperatorNode().Operator == global::Ts.Ast.SyntaxKind.KeyOfKeyword)
+        {
+            var parentType = parent.AsTypeOperatorNode().Type;
+            if (parentType != null && parentType.Kind == global::Ts.Ast.SyntaxKind.TypeReference)
+            {
+                return parentType.AsTypeReferenceNode().TypeName!;
+            }
+        }
+        // /**/readonly [|name|][]
+        if (node.Kind == global::Ts.Ast.SyntaxKind.ReadonlyKeyword &&
+            parent.Kind == global::Ts.Ast.SyntaxKind.TypeOperator &&
+            parent.AsTypeOperatorNode().Operator == global::Ts.Ast.SyntaxKind.ReadonlyKeyword)
+        {
+            var parentType = parent.AsTypeOperatorNode().Type;
+            if (parentType != null &&
+                parentType.Kind == global::Ts.Ast.SyntaxKind.ArrayType &&
+                parentType.AsArrayTypeNode().ElementType!.Kind == global::Ts.Ast.SyntaxKind.TypeReference)
+            {
+                return parentType.AsArrayTypeNode().ElementType!.AsTypeReferenceNode().TypeName!;
+            }
+        }
+
+        if (!forRename)
+        {
+            // /**/new [|name|]
+            // /**/void [|name|]
+            // /**/void obj.[|name|]
+            // /**/typeof [|name|]
+            // /**/typeof obj.[|name|]
+            // /**/await [|name|]
+            // /**/await obj.[|name|]
+            // /**/yield [|name|]
+            // /**/yield obj.[|name|]
+            // /**/delete obj.[|name|]
+            if ((node.Kind == global::Ts.Ast.SyntaxKind.NewKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.NewExpression) ||
+                (node.Kind == global::Ts.Ast.SyntaxKind.VoidKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.VoidExpression) ||
+                (node.Kind == global::Ts.Ast.SyntaxKind.TypeOfKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.TypeOfExpression) ||
+                (node.Kind == global::Ts.Ast.SyntaxKind.AwaitKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.AwaitExpression) ||
+                (node.Kind == global::Ts.Ast.SyntaxKind.YieldKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.YieldExpression) ||
+                (node.Kind == global::Ts.Ast.SyntaxKind.DeleteKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.DeleteExpression))
+            {
+                var expr = parent.Expression();
+                if (expr != null)
+                {
+                    return global::Ts.Ast.AstUtilities.SkipOuterExpressions(expr, global::Ts.Ast.OuterExpressionKinds.All);
+                }
+            }
+
+            // left /**/in [|name|]
+            // left /**/instanceof [|name|]
+            if ((node.Kind == global::Ts.Ast.SyntaxKind.InKeyword || node.Kind == global::Ts.Ast.SyntaxKind.InstanceOfKeyword) &&
+                parent.Kind == global::Ts.Ast.SyntaxKind.BinaryExpression &&
+                parent.AsBinaryExpression().OperatorToken == node)
+            {
+                return global::Ts.Ast.AstUtilities.SkipOuterExpressions(parent.AsBinaryExpression().Right!, global::Ts.Ast.OuterExpressionKinds.All);
+            }
+
+            // left /**/as [|name|]
+            if (node.Kind == global::Ts.Ast.SyntaxKind.AsKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.AsExpression)
+            {
+                var asExprType = parent.Type();
+                if (asExprType != null && asExprType.Kind == global::Ts.Ast.SyntaxKind.TypeReference)
+                {
+                    return asExprType.AsTypeReferenceNode().TypeName!;
+                }
+            }
+
+            // for (... /**/in [|name|])
+            // for (... /**/of [|name|])
+            if ((node.Kind == global::Ts.Ast.SyntaxKind.InKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.ForInStatement) ||
+                (node.Kind == global::Ts.Ast.SyntaxKind.OfKeyword && parent.Kind == global::Ts.Ast.SyntaxKind.ForOfStatement))
+            {
+                return global::Ts.Ast.AstUtilities.SkipOuterExpressions(parent.Expression()!, global::Ts.Ast.OuterExpressionKinds.All);
+            }
+        }
+
+        return node;
+    }
+
+    // ls/utilities.go:683 — getAdjustedLocationForDeclaration.
+    private static global::Ts.Ast.Node? GetAdjustedLocationForDeclaration(global::Ts.Ast.Node node, bool forRename, global::Ts.Ast.SourceFile sourceFile)
+    {
+        if (node.Name() != null)
+        {
+            return node.Name();
+        }
+        if (forRename)
+        {
+            return null;
+        }
+        switch (node.Kind)
+        {
+            case global::Ts.Ast.SyntaxKind.ClassDeclaration:
+            case global::Ts.Ast.SyntaxKind.FunctionDeclaration:
+                // for class and function declarations, use the `default` modifier
+                // when the declaration is unnamed.
+                // PORT-NOTE: the Go predicate ignores its parameter and closes over the
+                // declaration `node` (utilities.go:700); kept faithfully.
+                foreach (var modifier in node.ModifierNodes() ?? [])
+                {
+                    if (node.Kind == global::Ts.Ast.SyntaxKind.DefaultKeyword)
+                    {
+                        return modifier;
+                    }
+                }
+                return null;
+            case global::Ts.Ast.SyntaxKind.ClassExpression:
+                // for class expressions, use the `class` keyword when the class is unnamed
+                return global::Ts.AstNav.Tokens.FindChildOfKind(node, global::Ts.Ast.SyntaxKind.ClassKeyword, sourceFile);
+            case global::Ts.Ast.SyntaxKind.FunctionExpression:
+                // for function expressions, use the `function` keyword when the function is unnamed
+                return global::Ts.AstNav.Tokens.FindChildOfKind(node, global::Ts.Ast.SyntaxKind.FunctionKeyword, sourceFile);
+            case global::Ts.Ast.SyntaxKind.Constructor:
+                return node;
+        }
+        return null;
+    }
+
+    // ls/utilities.go:713 — getAdjustedLocationForImportDeclaration.
+    private static global::Ts.Ast.Node? GetAdjustedLocationForImportDeclaration(global::Ts.Ast.ImportDeclaration node, bool forRename)
+    {
+        if (node.ImportClause != null)
+        {
+            var importClause = node.ImportClause; // ImportClauseNode aliases Ts.Ast.Node.
+            var name = importClause.Name();
+            if (name != null)
+            {
+                if (importClause.AsImportClause().NamedBindings != null)
+                {
+                    // do not adjust if we have both a name and named bindings
+                    return null;
+                }
+                // /**/import [|name|] from ...;
+                // import /**/type [|name|] from ...;
+                return name;
+            }
+
+            // /**/import { [|name|] } from ...;
+            // /**/import { propertyName as [|name|] } from ...;
+            // /**/import * as [|name|] from ...;
+            // import /**/type { [|name|] } from ...;
+            // import /**/type { propertyName as [|name|] } from ...;
+            // import /**/type * as [|name|] from ...;
+            var namedBindings = importClause.AsImportClause().NamedBindings;
+            if (namedBindings != null)
+            {
+                switch (namedBindings.Kind)
+                {
+                    case global::Ts.Ast.SyntaxKind.NamedImports:
+                        // do nothing if there is more than one binding
+                        var elements = namedBindings.Elements();
+                        if (elements == null || elements.Length != 1)
+                        {
+                            return null;
+                        }
+                        return elements[0].Name();
+
+                    case global::Ts.Ast.SyntaxKind.NamespaceImport:
+                        return namedBindings.Name();
+                }
+            }
+        }
+        if (!forRename)
+        {
+            // /**/import "[|module|]";
+            // /**/import ... from "[|module|]";
+            // import /**/type ... from "[|module|]";
+            return node.ModuleSpecifier;
+        }
+        return null;
+    }
+
+    // ls/utilities.go:756 — getAdjustedLocationForExportDeclaration.
+    private static global::Ts.Ast.Node? GetAdjustedLocationForExportDeclaration(global::Ts.Ast.ExportDeclaration node, bool forRename)
+    {
+        if (node.ExportClause != null)
+        {
+            // /**/export { [|name|] } ...
+            // /**/export { propertyName as [|name|] } ...
+            // /**/export * as [|name|] ...
+            // export /**/type { [|name|] } from ...
+            // export /**/type { propertyName as [|name|] } from ...
+            // export /**/type * as [|name|] ...
+            var exportClause = node.ExportClause; // NamedExportBindings aliases Ts.Ast.Node.
+            switch (exportClause.Kind)
+            {
+                case global::Ts.Ast.SyntaxKind.NamedExports:
+                    // do nothing if there is more than one binding
+                    var elements = exportClause.Elements();
+                    if (elements == null || elements.Length != 1)
+                    {
+                        return null;
+                    }
+                    return elements[0].Name();
+                case global::Ts.Ast.SyntaxKind.NamespaceExport:
+                    return exportClause.Name();
+            }
+        }
+        if (!forRename)
+        {
+            // /**/export * from "[|module|]";
+            // export /**/type * from "[|module|]";
+            return node.ModuleSpecifier;
+        }
+        return null;
     }
 
     // ast/ast.go:1404 — IsArrayLiteralOrObjectLiteralDestructuringPattern.

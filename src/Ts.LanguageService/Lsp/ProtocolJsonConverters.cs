@@ -19,6 +19,18 @@ public sealed class DocumentUriJsonConverter : JsonConverter<DocumentUri>
     {
         writer.WriteStringValue(value.Value);
     }
+
+    // WorkspaceEdit.Changes uses DocumentUri as a JSON object key (Go
+    // map[DocumentUri][]*TextEdit); STJ requires the property-name overrides.
+    public override DocumentUri ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return new DocumentUri(reader.GetString()!); // A PropertyName token is never null.
+    }
+
+    public override void WriteAsPropertyName(Utf8JsonWriter writer, DocumentUri value, JsonSerializerOptions options)
+    {
+        writer.WritePropertyName(value.Value);
+    }
 }
 
 public sealed class IntegerOrStringJsonConverter : JsonConverter<IntegerOrString>
