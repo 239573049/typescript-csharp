@@ -214,7 +214,42 @@ public partial class Checker
 
     // ---- deferred contextual branches (generator / decorator / JS-assignment-declaration surfaces) ----
     // checker.go:29476/29507 — yield/await contextual operands (generator-iteration cluster).
-    private Type? GetContextualTypeForYieldOperand(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForYieldOperand");
+    // checker.go:29476
+    private Type? GetContextualTypeForYieldOperand(Node node, ContextFlags contextFlags)
+    {
+        var fn = GetContainingFunction(node);
+        if (fn != null)
+        {
+            var functionFlags = AstUtilities.GetFunctionFlags(fn);
+            var contextualReturnType = GetContextualReturnType(fn, contextFlags);
+            if (contextualReturnType != null)
+            {
+                bool isAsyncGenerator = (functionFlags & FunctionFlags.Async) != 0;
+                bool isYieldStar = node.AsYieldExpression().AsteriskToken != null;
+                if (!isYieldStar && (contextualReturnType.flags & TypeFlags.Union) != 0)
+                {
+                    contextualReturnType = FilterType(contextualReturnType, t =>
+                        GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind.Return, t, isAsyncGenerator) != null);
+                }
+                if (isYieldStar)
+                {
+                    var iterationTypes = GetIterationTypesOfGeneratorFunctionReturnType(contextualReturnType, isAsyncGenerator);
+                    var yieldType = global::Ts.Core.CoreUtil.OrElse(iterationTypes.YieldType, silentNeverType!)!;
+                    var returnType = global::Ts.Core.CoreUtil.OrElse(GetContextualType(node, contextFlags), silentNeverType!)!;
+                    var nextType = global::Ts.Core.CoreUtil.OrElse(iterationTypes.NextType, unknownType!)!;
+                    var generatorType = CreateGeneratorType(yieldType, returnType, nextType, false /*isAsyncGenerator*/);
+                    if (isAsyncGenerator)
+                    {
+                        var asyncGeneratorType = CreateGeneratorType(yieldType, returnType, nextType, true /*isAsyncGenerator*/);
+                        return GetUnionType([generatorType, asyncGeneratorType]);
+                    }
+                    return generatorType;
+                }
+                return GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind.Yield, contextualReturnType, isAsyncGenerator);
+            }
+        }
+        return null;
+    }
     private Type? GetContextualTypeForAwaitOperand(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForAwaitOperand");
     // checker.go:29558 — decorator contextual type (decorator cluster).
     private Type? GetContextualTypeForDecorator(Node decorator) => throw new NotImplementedException("getContextualTypeForDecorator");

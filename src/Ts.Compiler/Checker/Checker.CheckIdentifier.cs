@@ -261,7 +261,25 @@ public partial class Checker
 
     // checker.go:11662 — uncalled deprecated function-reference probe; deferred (owning wave:
     // hasMatchingArgument). Reached only for deprecated function/method symbols.
-    internal bool IsUncalledFunctionReference(Node node, Symbol symbol) => throw new NotImplementedException("isUncalledFunctionReference");
+    // checker.go:11662
+    internal bool IsUncalledFunctionReference(Node node, Symbol symbol)
+    {
+        if ((symbol.Flags & (SymbolFlags.Function | SymbolFlags.Method)) != 0)
+        {
+            var parent = AstUtilities.FindAncestor(node.Parent, static n => !AstUtilities.IsAccessExpression(n));
+            if (parent == null)
+            {
+                parent = node.Parent;
+            }
+            if (AstUtilities.IsCallLikeExpression(parent!))
+            {
+                return AstUtilities.IsCallOrNewExpression(parent!) && NodeTests.IsIdentifier(node) && HasMatchingArgument(parent!, node);
+            }
+            return global::Ts.Core.CoreUtil.Every(symbol.Declarations, d =>
+                !AstUtilities.IsFunctionLike(d) || IsDeprecatedDeclaration(d));
+        }
+        return true;
+    }
 
     // checker.go:11407
     internal Node? GetControlFlowContainer(Node node)

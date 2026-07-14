@@ -121,6 +121,25 @@ public static partial class AstUtilities
         return IsCallExpression(node) || IsNewExpression(node);
     }
 
+    // utilities.go: IsCallLikeExpression
+    public static bool IsCallLikeExpression(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.JsxOpeningElement:
+            case SyntaxKind.JsxSelfClosingElement:
+            case SyntaxKind.JsxOpeningFragment:
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.NewExpression:
+            case SyntaxKind.TaggedTemplateExpression:
+            case SyntaxKind.Decorator:
+                return true;
+            case SyntaxKind.BinaryExpression:
+                return node.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.InstanceOfKeyword;
+        }
+        return false;
+    }
+
     // Go: utilities.go:3703-3716
     public static Node? GetInvokedExpression(Node node)
     {

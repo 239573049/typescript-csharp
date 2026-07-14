@@ -178,7 +178,31 @@ public partial class Checker
     // WidenTypeInferredFromInitializer is now REAL in Checker.Widening.cs (checker.go:16795).
     // GetWidenedLiteralTypeForInitializer is now REAL in Checker.Widening.cs (checker.go:16810).
     // GetWidenedLiteralLikeTypeForContextualType is now REAL in Checker.Widening.cs (checker.go:25423).
-    internal Type GetNonUndefinedType(Type t) => throw new NotImplementedException("getNonUndefinedType");
+    // checker.go:31305
+    internal Type GetNonUndefinedType(Type t)
+    {
+        var typeOrConstraint = t;
+        if (SomeType(t, IsGenericTypeWithUndefinedConstraint))
+        {
+            typeOrConstraint = MapType(t, sub =>
+                (sub.flags & TypeFlags.Instantiable) != 0 ? GetBaseConstraintOrType(sub) : sub);
+        }
+        return GetTypeWithFacts(typeOrConstraint, TypeFacts.NEUndefined);
+    }
+
+    // checker.go: isGenericTypeWithUndefinedConstraint
+    private bool IsGenericTypeWithUndefinedConstraint(Type t)
+    {
+        if ((t.flags & TypeFlags.Instantiable) != 0)
+        {
+            var constraint = GetBaseConstraintOfType(t);
+            if (constraint != null)
+            {
+                return MaybeTypeOfKind(constraint, TypeFlags.Undefined);
+            }
+        }
+        return false;
+    }
 
     // ---- facts / assignability (flow, relater) ----
     // hasTypeFacts 30735: real body landed in Checker.TypeFacts.cs.
