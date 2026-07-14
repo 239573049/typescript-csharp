@@ -9,6 +9,7 @@
 // getSymbolOfNode / getParentOfSymbol / isTypeAssignableTo / isPatternLiteralType / TypeToStringEx).
 
 using Ts.Ast;
+using Ts.Core;
 
 namespace Ts.Checker;
 
@@ -58,7 +59,73 @@ public partial class Checker
 
     // getSubstitutionType (27277) implemented in Checker.IndexedAccess.cs (#18).
 
-    internal Type GetStringMappingType(Symbol symbol, Type type) => throw new NotImplementedException("getStringMappingType");
+    // checker.go:28980-28997 — real body (lib-gate wave P); previously a stub here.
+    internal Type GetStringMappingType(Symbol symbol, Type type)
+    {
+        if ((type.flags & (TypeFlags.Union | TypeFlags.Never)) != 0)
+        {
+            return MapType(type, t => GetStringMappingType(symbol, t));
+        }
+        if ((type.flags & TypeFlags.StringLiteral) != 0)
+        {
+            return GetStringLiteralType(ApplyStringMapping(symbol, GetStringLiteralValue(type)));
+        }
+        if ((type.flags & TypeFlags.TemplateLiteral) != 0)
+        {
+            var (texts, types) = ApplyTemplateStringMapping(symbol, type.AsTemplateLiteralType().texts, type.AsTemplateLiteralType().types);
+            return GetTemplateLiteralType(texts, types);
+        }
+        if ((type.flags & TypeFlags.StringMapping) != 0 && symbol == type.symbol)
+        {
+            return type;
+        }
+        if ((type.flags & (TypeFlags.Any | TypeFlags.String | TypeFlags.StringMapping)) != 0 || IsGenericIndexType(type))
+        {
+            return GetStringMappingTypeForGenericType(symbol, type);
+        }
+        if (IsPatternLiteralPlaceholderType(type))
+        {
+            return GetStringMappingTypeForGenericType(symbol, GetTemplateLiteralType(["", ""], [type]));
+        }
+        return type;
+    }
+
+    // checker.go:29015-29031
+    internal (string[], Type[]) ApplyTemplateStringMapping(Symbol symbol, string[] texts, Type[] types)
+    {
+        switch (IntrinsicTypeKinds.GetValueOrDefault(symbol.Name))
+        {
+            case IntrinsicTypeKind.Uppercase:
+            case IntrinsicTypeKind.Lowercase:
+                return (CoreUtil.Map(texts, t => ApplyStringMapping(symbol, t))!,
+                    CoreUtil.Map(types, t => GetStringMappingType(symbol, t))!);
+            case IntrinsicTypeKind.Capitalize:
+            case IntrinsicTypeKind.Uncapitalize:
+                if (texts[0] != "")
+                {
+                    var newTexts = (string[])texts.Clone();
+                    newTexts[0] = ApplyStringMapping(symbol, newTexts[0]);
+                    return (newTexts, types);
+                }
+                var newTypes = (Type[])types.Clone();
+                newTypes[0] = GetStringMappingType(symbol, newTypes[0]);
+                return (texts, newTypes);
+        }
+        return (texts, types);
+    }
+
+    // checker.go:29033-29041
+    internal Type GetStringMappingTypeForGenericType(Symbol symbol, Type t)
+    {
+        var key = new StringMappingKey(symbol, t);
+        var result = stringMappingTypes.GetValueOrDefault(key);
+        if (result is null)
+        {
+            result = NewStringMappingType(symbol, t);
+            stringMappingTypes[key] = result;
+        }
+        return result;
+    }
 
     // #17 union / intersection: getIntersectionTypeEx (25950) / checkCrossProductUnion (26519)
     // implemented in Checker.UnionIntersection.cs (#17).
@@ -105,5 +172,18 @@ public partial class Checker
     // getBuiltinIteratorReturnType (6379): real body landed in Checker.IterationTypes.cs (iteration wave).
 
     // free-function helper (Go package-level; static class in Utilities.cs when that wave lands)
-    internal static SymbolTable CreateSymbolTable(Symbol[]? symbols) => throw new NotImplementedException("createSymbolTable");
+    // utilities.go:328-337 — Go returns nil for an empty slice (§7.2 nil-map read semantics).
+    internal static SymbolTable? CreateSymbolTable(Symbol[]? symbols)
+    {
+        if (symbols is null || symbols.Length == 0)
+        {
+            return null;
+        }
+        var result = new SymbolTable();
+        foreach (var symbol in symbols)
+        {
+            result[symbol.Name] = symbol;
+        }
+        return result;
+    }
 }

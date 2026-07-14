@@ -20,6 +20,7 @@
 using System;
 using Ts.Ast;
 using Ts.Core;
+using StrUtil = global::Ts.StringUtil.StringUtil;
 
 namespace Ts.Checker;
 
@@ -185,7 +186,28 @@ public partial class Checker
     // ---- jsnum / literal-value free functions (checker.go package funcs) ----
     internal static bool IsValidNumberString(string s, bool roundTripOnly) => throw new NotImplementedException("isValidNumberString");
     internal static bool IsValidBigIntString(string s, bool roundTripOnly) => throw new NotImplementedException("isValidBigIntString");
-    internal static string ApplyStringMapping(Symbol symbol, string str) => throw new NotImplementedException("applyStringMapping");
+    // checker.go:28999-29013 — real body (lib-gate wave P); previously a stub here.
+    internal static string ApplyStringMapping(Symbol symbol, string str)
+    {
+        switch (IntrinsicTypeKinds.GetValueOrDefault(symbol.Name))
+        {
+            case IntrinsicTypeKind.Uppercase:
+                return StrUtil.ToUpperJS(str);
+            case IntrinsicTypeKind.Lowercase:
+                return StrUtil.ToLowerJS(str);
+            case IntrinsicTypeKind.Capitalize:
+            {
+                var (_, size) = StrUtil.DecodeJSStringRune(str);
+                return StrUtil.ToUpperJS(str[..size]) + str[size..];
+            }
+            case IntrinsicTypeKind.Uncapitalize:
+            {
+                var (_, size) = StrUtil.DecodeJSStringRune(str);
+                return StrUtil.ToLowerJS(str[..size]) + str[size..];
+            }
+        }
+        return str;
+    }
     internal static global::Ts.JsNum.PseudoBigInt GetBigIntLiteralValue(Type t) => throw new NotImplementedException("getBigIntLiteralValue");
     internal static bool GetBooleanLiteralValue(Type t) => throw new NotImplementedException("getBooleanLiteralValue");
 }

@@ -113,7 +113,19 @@ public partial class Checker
         return t;
     }
     // recombineUnknownType 30958: real body landed in Checker.TypeFacts.cs.
-    internal Type ExtractUnitType(Type t) => throw new NotImplementedException("extractUnitType");
+    // checker.go:25332-25340
+    internal Type ExtractUnitType(Type t)
+    {
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            var u = CoreUtil.Find(t.AsIntersectionType().types, IsUnitType);
+            if (u is not null)
+            {
+                return u;
+            }
+        }
+        return t;
+    }
     // getFreshTypeOfLiteralType is real in Checker.TypeCreation.cs.
     // checker.go:31248
     internal Type GetNarrowableTypeForReference(Type t, Node reference, CheckMode checkMode)
@@ -229,7 +241,9 @@ public partial class Checker
 
     // ---- type→property-name utilities (checker.go free funcs) ----
     // isTypeUsableAsPropertyName / getPropertyNameFromType already stubbed in Checker.SymbolResolution.cs.
-    internal static bool IsNeitherUnitTypeNorNever(Type t) => throw new NotImplementedException("isNeitherUnitTypeNorNever");
+    // checker.go:25314-25316
+    internal static bool IsNeitherUnitTypeNorNever(Type t) =>
+        (t.flags & (TypeFlags.Unit | TypeFlags.Never)) == 0;
     // utilities.go:1054-1056
     internal static bool IsNonNullAccess(Node node) =>
         AstUtilities.IsAccessExpression(node) && NodeTests.IsNonNullExpression(node.Expression()!);

@@ -343,8 +343,30 @@ public partial class Checker
     internal bool CheckGeneratorInstantiationAssignabilityToReturnType(Type returnType, FunctionFlags functionFlags, Node? errorNode) => throw new NotImplementedException("checkGeneratorInstantiationAssignabilityToReturnType");
 
     // ---- JSDoc parameter matching / type-predicate parent (deferred) ----
-    // checker.go:6999
-    internal void CheckTypeParametersNotReferenced(Node root, Node[] typeParameters, int index) => throw new NotImplementedException("checkTypeParametersNotReferenced");
+    // checker.go:6998-7016 — Check that type parameter defaults only reference previously declared type parameters */
+    internal void CheckTypeParametersNotReferenced(Node root, Node[] typeParameters, int index)
+    {
+        Visitor visit = null!;
+        visit = (node) =>
+        {
+            if (NodeTests.IsTypeReferenceNode(node))
+            {
+                var t = GetTypeFromTypeReference(node);
+                if ((t.flags & TypeFlags.TypeParameter) != 0)
+                {
+                    for (var i = index; i < typeParameters.Length; i++)
+                    {
+                        if (t.symbol == GetSymbolOfDeclaration(typeParameters[i]))
+                        {
+                            Error(node, Diag.Type_parameter_defaults_can_only_reference_previously_declared_type_parameters);
+                        }
+                    }
+                }
+            }
+            return node.ForEachChild(visit);
+        };
+        visit(root);
+    }
     // checkUnmatchedJSDocParameters (jsdoc.go:9) landed in Checker.JSDoc.cs; its JS-file branch calls
     // containsArgumentsReference (checker.go:31875), stubbed here (owning wave: getResolvedSymbol /
     // argumentsSymbol / nodeStartsNewLexicalEnvironment). Only reachable for JS files / @param JSDoc.
