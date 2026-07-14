@@ -1,8 +1,8 @@
-// Corpus expansion wave over _submodules/TypeScript/tests/cases/conformance.
+// Full eligible corpus over _submodules/TypeScript/tests/cases/conformance.
 //
 // Enumeration follows tsgo internal/testrunner/compiler_runner.go: recursive walk of the suite
-// directory matching `\.tsx?$` (compiler_runner.go:28, EnumerateTestFiles). This first wave then
-// narrows to cases whose full vary-by/emit machinery is not required yet:
+// directory matching `\.tsx?$` (compiler_runner.go:28, EnumerateTestFiles). The errors-baseline
+// corpus narrows to cases whose full vary-by/emit machinery is not required yet:
 //
 //   1. basename must be unique across the suite (Go asserts this in compiler_runner_test.go:38-45;
 //      a duplicate would make two cases claim the same baseline file);
@@ -32,6 +32,8 @@ namespace Ts.Conformance.Tests;
 
 public sealed record CorpusSkip(string RelativePath, string Reason);
 
+public sealed record CorpusDirectoryRate(string Directory, int Matched, int Total);
+
 public sealed record CorpusSelection(
     IReadOnlyList<CuratedConformanceCase> Selected,
     IReadOnlyList<CorpusSkip> Skipped,
@@ -49,28 +51,12 @@ public sealed record CorpusSelection(
 
 public static class CorpusRunner
 {
-    // First-wave gate size for the default `dotnet test` run (kept inside the 300-800 band the
-    // stage-5 graded gates are measured against). The full eligible set runs with
-    // TSCS_CONFORMANCE_FULL_CORPUS=1; failingCases.txt is generated from the FULL set so both
-    // modes stay green. Selection is a deterministic stride sample over the ordinal-sorted
-    // eligible list, spreading coverage across all conformance subdirectories.
-    public const int DefaultWaveCap = 800;
+    public const string DebugWaveCapSkipReason = "beyond-debug-wave-cap";
+    public const string MissingBaselineSkipReason = "missing-errors-baseline";
+    public const string MultiFileSkipReason = "multi-file";
+    public const string UnsupportedOptionSkipReason = "unsupported-option";
 
-    // Local-debug override for the sample size (e.g. TSCS_CONFORMANCE_WAVE_CAP=100 for a quick
-    // smoke batch); ignored when TSCS_CONFORMANCE_FULL_CORPUS=1.
-    public static int WaveCap =>
-        int.TryParse(
-            Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_WAVE_CAP"),
-            out int cap) && cap > 0
-            ? cap
-            : DefaultWaveCap;
-
-    public static bool FullCorpus => string.Equals(
-        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_FULL_CORPUS"),
-        "1",
-        StringComparison.Ordinal);
-
-    public static bool UpdateFailingList => string.Equals(
+    public static bool IsFailingListUpdateRequested() => string.Equals(
         Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_UPDATE_FAILING"),
         "1",
         StringComparison.Ordinal);
@@ -86,8 +72,24 @@ public static class CorpusRunner
 
     public static CorpusSelection Selection => s_selection.Value;
 
-    private static CorpusSelection EnumerateCorpus()
+    public static CorpusSelection EnumerateAllEligible() => EnumerateCorpus(applyDebugWaveCap: false);
+
+    private static CorpusSelection EnumerateCorpus() => EnumerateCorpus(applyDebugWaveCap: true);
+
+    private static CorpusSelection EnumerateCorpus(bool applyDebugWaveCap)
     {
+        // Evaluate the local-debug override only when enumeration actually runs. In particular,
+        // do not capture it during type initialization or xUnit discovery.
+        int? debugWaveCap = null;
+        if (applyDebugWaveCap &&
+            int.TryParse(
+                Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_WAVE_CAP"),
+                out int parsedWaveCap) &&
+            parsedWaveCap > 0)
+        {
+            debugWaveCap = parsedWaveCap;
+        }
+
         string suiteRoot = Path.Combine(RepoPaths.TypeScriptSubmodulePath, "tests", "cases", "conformance");
         string referenceRoot = Path.Combine(Baseline.ReferenceRoot, "submodule", "conformance");
         var referenceNames = new HashSet<string>(
@@ -121,13 +123,6 @@ public static class CorpusRunner
                 continue;
             }
 
-            string baselineName = TrimTsExtension(basename) + ".errors.txt";
-            if (!referenceNames.Contains(baselineName))
-            {
-                skipped.Add(new CorpusSkip(relativePath, "no-plain-errors-baseline (vary-by matrix, error-free, or not run by tsgo)"));
-                continue;
-            }
-
             string casePath = Path.Combine(suiteRoot, relativePath);
             string content;
             try
@@ -149,9 +144,21 @@ public static class CorpusRunner
                 skipped.Add(new CorpusSkip(relativePath, "test-case-parse-error"));
                 continue;
             }
+            if (HasUnsupportedCompilerOptions(parsed.GlobalOptions))
+            {
+                skipped.Add(new CorpusSkip(relativePath, UnsupportedOptionSkipReason));
+                continue;
+            }
+
+            string baselineName = TrimTsExtension(basename) + ".errors.txt";
+            if (!referenceNames.Contains(baselineName))
+            {
+                skipped.Add(new CorpusSkip(relativePath, MissingBaselineSkipReason));
+                continue;
+            }
             if (parsed.Units.Count != 1)
             {
-                skipped.Add(new CorpusSkip(relativePath, "multi-file"));
+                skipped.Add(new CorpusSkip(relativePath, MultiFileSkipReason));
                 continue;
             }
             if (parsed.Symlinks.Count != 0)
@@ -163,8 +170,7 @@ public static class CorpusRunner
             eligible.Add(new CuratedConformanceCase(relativePath, baselineName));
         }
 
-        int waveCap = WaveCap;
-        if (!FullCorpus && eligible.Count > waveCap)
+        if (debugWaveCap is int waveCap && eligible.Count > waveCap)
         {
             var sampled = new List<CuratedConformanceCase>(waveCap);
             var chosen = new HashSet<int>();
@@ -181,7 +187,7 @@ public static class CorpusRunner
                 }
                 else
                 {
-                    skipped.Add(new CorpusSkip(eligible[i].RelativePath, "beyond-first-wave-cap (set TSCS_CONFORMANCE_FULL_CORPUS=1)"));
+                    skipped.Add(new CorpusSkip(eligible[i].RelativePath, DebugWaveCapSkipReason));
                 }
             }
             eligible = sampled;
@@ -192,7 +198,11 @@ public static class CorpusRunner
 
     public static ConformanceRunSummary RunCorpus()
     {
-        CorpusSelection selection = Selection;
+        return RunCorpus(Selection);
+    }
+
+    public static ConformanceRunSummary RunCorpus(CorpusSelection selection)
+    {
         var results = new List<ConformanceCaseResult>(selection.Selected.Count);
         foreach (CuratedConformanceCase testCase in selection.Selected)
         {
@@ -202,6 +212,28 @@ public static class CorpusRunner
             results.Add(CompilerBaselineRunner.RunOne(testCase));
         }
         return new ConformanceRunSummary(results);
+    }
+
+    public static IReadOnlyList<CorpusDirectoryRate> GetWorstDirectoryRates(
+        CorpusSelection selection,
+        ConformanceRunSummary summary,
+        int count)
+    {
+        var resultsByName = summary.Results.ToDictionary(
+            result => result.Name,
+            result => result,
+            StringComparer.Ordinal);
+        return selection.Selected
+            .GroupBy(testCase => GetTopLevelDirectory(testCase.RelativePath), StringComparer.Ordinal)
+            .Select(group => new CorpusDirectoryRate(
+                group.Key,
+                group.Count(testCase => resultsByName[CompilerBaselineRunner.GetCaseName(testCase.BaselineName)].Matched),
+                group.Count()))
+            .OrderBy(rate => (double)rate.Matched / rate.Total)
+            .ThenByDescending(rate => rate.Total)
+            .ThenBy(rate => rate.Directory, StringComparer.Ordinal)
+            .Take(count)
+            .ToList();
     }
 
     // Root-cause clustering for the summary report. Exception failures cluster on
@@ -293,6 +325,46 @@ public static class CorpusRunner
         return slash >= 0 ? relativePath[(slash + 1)..] : relativePath;
     }
 
+    private static string GetTopLevelDirectory(string relativePath)
+    {
+        int slash = relativePath.IndexOf('/');
+        return slash >= 0 ? relativePath[..slash] : ".";
+    }
+
+    // Mirrors tsgo harnessutil.SkipUnsupportedCompilerOptions. Vary-by lists are classified as
+    // unsupported only when every configured value is unsupported; mixed lists remain in the
+    // missing-plain-baseline bucket because they have configured baseline names instead.
+    private static bool HasUnsupportedCompilerOptions(IReadOnlyDictionary<string, string> options)
+    {
+        return AllOptionValuesMatch(options, "module", "amd", "umd", "system") ||
+            AllOptionValuesMatch(options, "moduleresolution", "node10", "classic") ||
+            AllOptionValuesMatch(options, "esmoduleinterop", "false") ||
+            AllOptionValuesMatch(options, "allowsyntheticdefaultimports", "false") ||
+            HasNonEmptyOption(options, "baseurl") ||
+            HasNonEmptyOption(options, "outfile") ||
+            AllOptionValuesMatch(options, "target", "es5") ||
+            AllOptionValuesMatch(options, "alwaysstrict", "false");
+    }
+
+    private static bool AllOptionValuesMatch(
+        IReadOnlyDictionary<string, string> options,
+        string optionName,
+        params string[] unsupportedValues)
+    {
+        if (!options.TryGetValue(optionName, out string? value))
+        {
+            return false;
+        }
+        string[] values = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return values.Length != 0 && values.All(candidate => unsupportedValues.Any(unsupported =>
+            string.Equals(candidate, unsupported, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static bool HasNonEmptyOption(IReadOnlyDictionary<string, string> options, string optionName)
+    {
+        return options.TryGetValue(optionName, out string? value) && value.Length != 0;
+    }
+
     private static string TrimTsExtension(string basename)
     {
         if (basename.EndsWith(".tsx", StringComparison.Ordinal))
@@ -342,8 +414,9 @@ public static class FailingCases
         # Semantics: listed + mismatch => theory Skips; NOT listed + mismatch => theory FAILS (regression);
         # listed + match => passes (prune opportunistically, the list only widens the Skip gate).
         # Regenerate (run from repo root; rewrites this file from the full eligible corpus):
-        #   TSCS_CONFORMANCE_UPDATE_FAILING=1 TSCS_CONFORMANCE_FULL_CORPUS=1 \
-        #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj -c Release
+        #   TSCS_CONFORMANCE_UPDATE_FAILING=1 dotnet test \
+        #     tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj -c Release --nologo /nodeReuse:false \
+        #     --filter FullyQualifiedName=Ts.Conformance.Tests.CorpusRunnerTests.RegenerateFailingCases_FromFullEligibleCorpus_WhenRequested
         """;
 
     public static void Save(IEnumerable<string> names)

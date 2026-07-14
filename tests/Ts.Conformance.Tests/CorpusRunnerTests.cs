@@ -39,7 +39,7 @@ public sealed class CorpusRunnerTests
         {
             Assert.Skip($"listed in failingCases.txt: {result.Failure ?? "errors.txt baseline mismatch"}");
         }
-        if (CorpusRunner.UpdateFailingList)
+        if (CorpusRunner.IsFailingListUpdateRequested())
         {
             // Regeneration run: the summary fact rewrites failingCases.txt from this run's
             // failures; individual theories must not fail on cases the new list will cover.
@@ -59,12 +59,12 @@ public sealed class CorpusRunnerTests
         // Selection sanity: the first wave must stay in the hundreds (unless a smaller smoke cap
         // was requested via TSCS_CONFORMANCE_WAVE_CAP) and every selected case has a reference
         // baseline by construction of the enumerator.
-        Assert.InRange(selection.Selected.Count, Math.Min(300, CorpusRunner.WaveCap), 5000);
+        Assert.InRange(selection.Selected.Count, 300, 5000);
         Assert.Equal(summary.Total, selection.Selected.Count);
         Assert.Equal(summary.Total, summary.ReferencesPresent);
         Assert.Equal(selection.TotalEnumerated, selection.Selected.Count + selection.Skipped.Count);
 
-        if (CorpusRunner.UpdateFailingList)
+        if (CorpusRunner.IsFailingListUpdateRequested())
         {
             FailingCases.Save(summary.Results.Where(result => !result.Matched).Select(result => result.Name));
         }
@@ -73,7 +73,7 @@ public sealed class CorpusRunnerTests
         Console.WriteLine(
             $"conformance corpus (errors.txt byte-match): {summary.Passed}/{summary.Total} " +
             $"({percent:F1}%) matched; {summary.Failed} failing " +
-            $"({(CorpusRunner.FullCorpus ? "full corpus" : $"first-wave sample, cap {CorpusRunner.DefaultWaveCap}")}); " +
+            $"(full eligible corpus); " +
             $"{selection.TotalEnumerated} files enumerated.");
         foreach ((string reason, int count) in selection.SkipReasonCounts)
         {
