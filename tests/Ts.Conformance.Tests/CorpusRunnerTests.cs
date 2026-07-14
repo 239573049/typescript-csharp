@@ -58,14 +58,28 @@ public sealed class CorpusRunnerTests
 
         // Selection sanity: the first wave must stay in the hundreds (unless a smaller smoke cap
         // was requested via TSCS_CONFORMANCE_WAVE_CAP) and every selected case has a reference
-        // baseline by construction of the enumerator.
+        // baseline by construction of the enumerator. Under TSCS_CONFORMANCE_SHARD the summary
+        // covers only this process's shard of the selection.
         Assert.InRange(selection.Selected.Count, 300, 5000);
-        Assert.Equal(summary.Total, selection.Selected.Count);
+        if (CorpusRunner.Shard is (int shardIndex, int shardCount))
+        {
+            int expected = Enumerable.Range(0, selection.Selected.Count)
+                .Count(i => i % shardCount == shardIndex - 1);
+            Assert.Equal(expected, summary.Total);
+        }
+        else
+        {
+            Assert.Equal(summary.Total, selection.Selected.Count);
+        }
         Assert.Equal(summary.Total, summary.ReferencesPresent);
         Assert.Equal(selection.TotalEnumerated, selection.Selected.Count + selection.Skipped.Count);
 
         if (CorpusRunner.IsFailingListUpdateRequested())
         {
+            // A sharded run sees only its own failures — rewriting the allowlist from a shard
+            // would drop every other shard's entries. Combine shard journals instead.
+            Assert.True(CorpusRunner.Shard is null,
+                "TSCS_CONFORMANCE_UPDATE_FAILING cannot be combined with TSCS_CONFORMANCE_SHARD");
             FailingCases.Save(summary.Results.Where(result => !result.Matched).Select(result => result.Name));
         }
 

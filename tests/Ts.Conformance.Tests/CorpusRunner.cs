@@ -201,15 +201,56 @@ public static class CorpusRunner
         return RunCorpus(Selection);
     }
 
+    // TSCS_CONFORMANCE_SHARD="i/n" (1-based) restricts RunCorpus to every n-th selected case
+    // starting at i-1. A full measurement is the union of shards 1/n..n/n run in separate
+    // processes; a process death loses one shard, not the whole run.
+    public static (int Index, int Count)? Shard
+    {
+        get
+        {
+            string? raw = Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_SHARD");
+            if (raw is null)
+            {
+                return null;
+            }
+            string[] parts = raw.Split('/');
+            if (parts.Length == 2 &&
+                int.TryParse(parts[0], out int index) &&
+                int.TryParse(parts[1], out int count) &&
+                count > 0 && index >= 1 && index <= count)
+            {
+                return (index, count);
+            }
+            throw new InvalidOperationException($"TSCS_CONFORMANCE_SHARD must be 'i/n' with 1<=i<=n, got '{raw}'");
+        }
+    }
+
+    // TSCS_CONFORMANCE_JOURNAL=<path>: append one line per finished case ("ok <name>" /
+    // "fail <name>\t<failure>") so a dying process still leaves its per-case results behind.
+    private static readonly string? s_journalPath =
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_JOURNAL");
+
     public static ConformanceRunSummary RunCorpus(CorpusSelection selection)
     {
-        var results = new List<ConformanceCaseResult>(selection.Selected.Count);
-        foreach (CuratedConformanceCase testCase in selection.Selected)
+        IReadOnlyList<CuratedConformanceCase> cases = selection.Selected;
+        if (Shard is (int shardIndex, int shardCount))
+        {
+            cases = cases.Where((_, i) => i % shardCount == shardIndex - 1).ToList();
+        }
+        var results = new List<ConformanceCaseResult>(cases.Count);
+        foreach (CuratedConformanceCase testCase in cases)
         {
             // RunOne is individually crash-guarded (LargeStackExecutor + catch-all): a stub
             // NotImplementedException or deep-recursion failure becomes a FAIL result for that
             // case only and never takes down the batch.
-            results.Add(CompilerBaselineRunner.RunOne(testCase));
+            ConformanceCaseResult result = CompilerBaselineRunner.RunOne(testCase);
+            results.Add(result);
+            if (s_journalPath is not null)
+            {
+                File.AppendAllText(s_journalPath, result.Matched
+                    ? $"ok {result.Name}\n"
+                    : $"fail {result.Name}\t{(result.Failure ?? "errors.txt baseline mismatch").ReplaceLineEndings(" ")}\n");
+            }
         }
         return new ConformanceRunSummary(results);
     }
