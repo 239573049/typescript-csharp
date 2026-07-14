@@ -117,8 +117,7 @@ internal sealed class EmitHostImpl : EmitHost
 
 public partial class Program
 {
-    // program.go:1226 (populated by emit-blocking diagnostics, deferred) — the set is empty until the
-    // program-diagnostics validation surface lands, so IsEmitBlocked is currently always false.
+    // program.go:100 — populated by BlockEmittingOfFile (verifyCompilerOptions emit-path checks).
     private readonly global::Ts.Collections.Set<global::Ts.TsPath.Path> hasEmitBlockingDiagnostics = new();
 
     // program.go:1230-1232

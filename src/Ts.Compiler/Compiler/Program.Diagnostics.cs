@@ -7,9 +7,6 @@
 // ported real.
 //
 // Deferred subsurfaces (documented with PORT-NOTE, not reached by a legal type-check-and-report run):
-//   * GetProgramDiagnostics / GetIncludeProcessorDiagnostics — includeProcessor.getDiagnostics is a
-//     phase 4/5 stub (IncludeProcessor.GetDiagnostics throws); programDiagnostics is populated by the
-//     deferred verifyCompilerOptions. Returns empty until those land.
 //   * GetDeclarationDiagnostics / GetSuggestionDiagnostics — emit-host / suggestion surfaces (phase 6).
 //   * The plain-JS diagnostic-code filter (plainJSErrors, ~100 codes) — the checker's JS surface is
 //     being filled in parallel; the plain-JS branch is stubbed behind IsPlainJSFile.
@@ -143,21 +140,22 @@ public sealed partial class Program
     // program.go:676-681 — program (options) + include-processor global diagnostics.
     public Diagnostic[] GetProgramDiagnostics()
     {
-        // PORT-NOTE (phase 4/5): programDiagnostics is populated by verifyCompilerOptions (deferred),
-        // and includeProcessor.getDiagnostics is a phase 4/5 stub. Until those land there are no
-        // program-level diagnostics; return empty (sorted for signature parity with tsgo).
-        return SortAndDeduplicateDiagnostics([]);
+        return SortAndDeduplicateDiagnostics(CoreUtil.Concatenate(
+            programDiagnostics.ToArray(),
+            processed.IncludeProcessor.GetDiagnostics(this).GetGlobalDiagnostics()) ?? []);
     }
 
-    // program.go:683-689 — include-processor per-file diagnostics; deferred (includeProcessor stub).
+    // program.go:683-689 — include-processor per-file diagnostics.
     private Diagnostic[] GetIncludeProcessorDiagnostics(SourceFile sourceFile)
     {
         if (SkipTypeChecking(sourceFile, false))
         {
             return [];
         }
-        // PORT-NOTE (phase 4/5): includeProcessor.getDiagnostics throws; no per-file include diagnostics yet.
-        return [];
+        var (filtered, _) = GetDiagnosticsWithPrecedingDirectives(
+            sourceFile,
+            processed.IncludeProcessor.GetDiagnostics(this).GetDiagnosticsForFile(sourceFile.FileName()));
+        return filtered;
     }
 
     // program.go:1295-1305

@@ -21,6 +21,7 @@ using Ts.Collections;
 using Ts.Core;
 using Ts.Module;
 using Ts.PackageJson;
+using Diag = global::Ts.Diagnostics.Diagnostics;
 
 namespace Ts.Compiler;
 
@@ -42,7 +43,7 @@ public sealed class ProgramOptions
 }
 
 // program.go:79-119
-public sealed partial class Program : global::Ts.Checker.Program
+public sealed partial class Program : global::Ts.Checker.Program, global::Ts.OutputPaths.OutputPathsHost
 {
     private readonly ProgramOptions opts;
     private global::Ts.Checker.ICheckerPool checkerPool = null!; // always set; fallback for project-system pools
@@ -76,6 +77,22 @@ public sealed partial class Program : global::Ts.Checker.Program
     internal Resolver Resolver => processed.Resolver;
 
     private ProjectReferenceFileMapper Mapper => processed.ProjectReferenceFileMapper;
+
+    // Internal accessors for the include-processor diagnostics surface (Go reads the program
+    // fields directly; C# composes ProcessedFiles, so the compiler-package peers go through these).
+    internal IncludeProcessor IncludeProcessorInstance => processed.IncludeProcessor;
+
+    internal Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedModule>> ResolvedModulesMap => processed.ResolvedModules;
+
+    internal Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedTypeReferenceDirective>> TypeResolutionsInFileMap => processed.TypeResolutionsInFile;
+
+    internal Dictionary<global::Ts.TsPath.Path, RedirectsFile>? RedirectFilesByPathMap => processed.RedirectFilesByPath;
+
+    internal global::Ts.TsPath.ComparePathsOptions ComparePathsOptions => comparePathsOptions;
+
+    // program.go:96 — programDiagnostics is populated by verifyCompilerOptions / verifyProjectReferences /
+    // blockEmittingOfFile and drained by GetProgramDiagnostics.
+    private readonly List<Diagnostic> programDiagnostics = new();
 
     // program.go:340-352
     private void InitCheckerPool()
@@ -384,19 +401,140 @@ public sealed partial class Program : global::Ts.Checker.Program
         return null;
     }
 
-    // program.go:1567-1583 — deferred (needs outputpaths.GetCommonSourceDirectory + checkSourceFilesBelongToPath).
-    public string CommonSourceDirectory() =>
-        throw new NotImplementedException("CommonSourceDirectory is deferred (outputpaths common-source-directory, phase 4/5)");
+    private string commonSourceDirectory = "";
+    private readonly Once commonSourceDirectoryOnce = new();
+
+    // program.go:1567-1583
+    public string CommonSourceDirectory()
+    {
+        commonSourceDirectoryOnce.Do(() =>
+        {
+            Func<string[]> files = () =>
+            {
+                // core.MapFiltered over p.files.
+                var result = new List<string>(processed.Files.Length);
+                foreach (var file in processed.Files)
+                {
+                    if (SourceFileMayBeEmitted(file, false /*forceDtsEmit*/) && !file.IsDeclarationFile)
+                    {
+                        result.Add(file.FileName());
+                    }
+                }
+                return result.ToArray();
+            };
+            commonSourceDirectory = global::Ts.OutputPaths.OutputPaths.GetCommonSourceDirectory(
+                Options(),
+                files,
+                GetCurrentDirectory(),
+                UseCaseSensitiveFileNames(),
+                CheckSourceFilesBelongToPath);
+        });
+        return commonSourceDirectory;
+    }
+
+    // program.go:1585-1607
+    private bool CheckSourceFilesBelongToPath(string[] sourceFiles, string rootDirectory)
+    {
+        bool allFilesBelongToPath = true;
+        foreach (var file in sourceFiles)
+        {
+            var absoluteSourceFilePath = global::Ts.TsPath.TsPath.GetCanonicalFileName(
+                global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(file, GetCurrentDirectory()), UseCaseSensitiveFileNames());
+            if (!global::Ts.TsPath.TsPath.ContainsPath(rootDirectory, file, comparePathsOptions))
+            {
+                processed.IncludeProcessor.AddProcessingDiagnostic(new ProcessingDiagnostic
+                {
+                    Kind = ProcessingDiagnosticKind.ExplainingFileInclude,
+                    Data = new IncludeExplainingDiagnostic
+                    {
+                        File = new global::Ts.TsPath.Path(absoluteSourceFilePath),
+                        Message = Diag.File_0_is_not_under_rootDir_1_rootDir_is_expected_to_contain_all_source_files,
+                        Args = [file, rootDirectory],
+                    },
+                });
+                allFilesBelongToPath = false;
+            }
+        }
+        return allFilesBelongToPath;
+    }
 
     // program.go:2022-2069 — deferred (lazy symlink cache from resolutions/package.json).
     public global::Ts.Symlinks.KnownSymlinks GetSymlinkCache() =>
         throw new NotImplementedException("GetSymlinkCache is deferred (symlink cache population, phase 4/5)");
 
-    // program.go:729-1223 — full compiler-option validation emits program diagnostics; deferred with the
-    // rest of the diagnostics surface (depends on outputpaths emit helpers). No-op for the milestone.
+    // program.go:729-1223 — verifyCompilerOptions.
+    // PORT-NOTE: only the emit-output-path verification tail (program.go:1178-1222 — TS5055
+    // "would overwrite input file" / TS5056 "overwritten by multiple input files" + emit blocking)
+    // is ported in this wave. The option-combination validation body (program.go:731-1176,
+    // createDiagnosticForOptionName / createOptionValueDiagnostic and friends) is deferred with the
+    // rest of the verifyCompilerOptions surface.
     private void VerifyCompilerOptions()
     {
-        // PORT-NOTE (phase 4/5): option validation is a program-diagnostics surface; deferred.
+        var options = Options();
+
+        string ConfigFilePath()
+        {
+            var configFile = opts.Config.ConfigFile;
+            return configFile is not null ? configFile.SourceFile.FileName() : "";
+        }
+
+        // If the emit is enabled make sure that every output file is unique and not overwriting any of the input files
+        if (!options.NoEmit.IsTrue() && !options.SuppressOutputPathCheck.IsTrue())
+        {
+            var emitFilesSeen = new Set<string>();
+
+            // Verify that all the emit files are unique and don't overwrite input files
+            void VerifyEmitFilePath(string emitFileName)
+            {
+                if (emitFileName != "")
+                {
+                    var emitFilePath = ToPath(emitFileName);
+                    // Report error if the output overwrites input file
+                    if (processed.FilesByPath.ContainsKey(emitFilePath))
+                    {
+                        var diag = Diagnostic.NewCompilerDiagnostic(Diag.Cannot_write_file_0_because_it_would_overwrite_input_file, emitFileName);
+                        if (ConfigFilePath() == "")
+                        {
+                            // The program is from either an inferred project or an external project
+                            diag.AddMessageChain(Diagnostic.NewCompilerDiagnostic(Diag.Adding_a_tsconfig_json_file_will_help_organize_projects_that_contain_both_TypeScript_and_JavaScript_files_Learn_more_at_https_Colon_Slash_Slashaka_ms_Slashtsconfig));
+                        }
+                        BlockEmittingOfFile(emitFileName, diag);
+                    }
+
+                    string emitFileKey = !Host().FS().UseCaseSensitiveFileNames()
+                        ? global::Ts.TsPath.TsPath.ToFileNameLowerCase(emitFilePath.Value)
+                        : emitFilePath.Value;
+
+                    // Report error if multiple files write into same file
+                    if (emitFilesSeen.Has(emitFileKey))
+                    {
+                        // Already seen the same emit file - report error
+                        BlockEmittingOfFile(emitFileName, Diagnostic.NewCompilerDiagnostic(Diag.Cannot_write_file_0_because_it_would_be_overwritten_by_multiple_input_files, emitFileName));
+                    }
+                    else
+                    {
+                        emitFilesSeen.Add(emitFileKey);
+                    }
+                }
+            }
+
+            global::Ts.OutputPaths.OutputPaths.ForEachEmittedFile(this, options, (emitFileNames, sourceFile) =>
+            {
+                VerifyEmitFilePath(emitFileNames.JsFilePath());
+                VerifyEmitFilePath(emitFileNames.SourceMapFilePath());
+                VerifyEmitFilePath(emitFileNames.DeclarationFilePath());
+                VerifyEmitFilePath(emitFileNames.DeclarationMapPath());
+                return false;
+            }, GetSourceFilesToEmit(null, false), false);
+            VerifyEmitFilePath(opts.Config.GetBuildInfoFileName());
+        }
+    }
+
+    // program.go:1225-1228
+    private void BlockEmittingOfFile(string emitFileName, Diagnostic diag)
+    {
+        hasEmitBlockingDiagnostics.Add(ToPath(emitFileName));
+        programDiagnostics.Add(diag);
     }
 
     // program.go:1633-1695 — Program.Emit lives in Program.Emit.cs (this wave).
