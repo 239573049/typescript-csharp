@@ -486,6 +486,11 @@ public partial class Checker
                 // checker.go:2503-2504
                 CheckFunctionExpressionOrObjectLiteralMethodDeferred(node);
                 break;
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+                // checker.go:2505-2506
+                CheckAccessorDeclaration(node);
+                break;
             case SyntaxKind.ClassExpression:
                 // checker.go:2507-2508
                 CheckClassExpressionDeferred(node);
@@ -493,6 +498,14 @@ public partial class Checker
             case SyntaxKind.TypeParameter:
                 // checker.go:2510-2511
                 CheckTypeParameterDeferred(node);
+                break;
+            case SyntaxKind.JsxSelfClosingElement:
+                // checker.go:2512-2513
+                CheckJsxSelfClosingElementDeferred(node);
+                break;
+            case SyntaxKind.JsxElement:
+                // checker.go:2514-2515
+                CheckJsxElementDeferred(node);
                 break;
             case SyntaxKind.TypeAssertionExpression:
             case SyntaxKind.AsExpression:
@@ -510,11 +523,7 @@ public partial class Checker
                     ResolveUntypedCall(node);
                 }
                 break;
-            default:
-                // Remaining kinds (accessors, class expressions, JSX, assertions) still route to the
-                // deferred-check cluster's worker stub (checker.go:2505-2518).
-                CheckDeferredNodeWorker(node);
-                break;
+                // No default: Go's switch (checker.go:2497-2524) falls through silently for other kinds.
         }
         currentNode = saveCurrentNode;
     }

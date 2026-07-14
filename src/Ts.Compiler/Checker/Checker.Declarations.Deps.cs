@@ -233,8 +233,22 @@ public partial class Checker
             }
         }
     }
-    // checker.go:2129
-    internal Node? GetTypeOnlyAliasDeclarationEx(Symbol symbol, SymbolFlags meaning) => throw new NotImplementedException("getTypeOnlyAliasDeclarationEx");
+    // checker.go:2129 — Return the first type-only alias declaration node (if any) in the resolution
+    // chain that affects the symbol for the given meaning
+    internal Node? GetTypeOnlyAliasDeclarationEx(Symbol symbol, SymbolFlags meaning)
+    {
+        while ((symbol.Flags & SymbolFlags.Alias) != 0 && (symbol.Flags & meaning) == 0)
+        {
+            var resolved = ResolveAliasCore(symbol);
+            var links = aliasSymbolLinks.Get(symbol);
+            if (links.typeOnlyDeclaration != null)
+            {
+                return links.typeOnlyDeclaration;
+            }
+            symbol = resolved;
+        }
+        return null;
+    }
     // checker.go:2154
     internal Diagnostic? AddTypeOnlyDeclarationRelatedInfo(Diagnostic? diagnostic, Node? typeOnlyDeclaration, string name) => throw new NotImplementedException("addTypeOnlyDeclarationRelatedInfo");
     // checker.go:5717

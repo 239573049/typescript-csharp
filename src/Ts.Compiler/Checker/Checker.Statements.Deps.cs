@@ -175,7 +175,8 @@ public partial class Checker
     // real bodies landed in Checker.FunctionOrConstructorSymbol.cs.
 
     // ---- deferred node worker (deferred-check cluster) ----
-    internal void CheckDeferredNodeWorker(Node node) => throw new NotImplementedException("checkDeferredNodeWorker");
+    // CheckDeferredNode's switch in Checker.Statements.cs now covers every case of Go's
+    // checkDeferredNode (checker.go:2491-2526); the worker stub is gone.
 
     // ---- signature/member/type-node/complex declaration validators ----
     // All CheckTypeParameter(s)/CheckParameter/CheckProperty*/CheckSignatureDeclaration/

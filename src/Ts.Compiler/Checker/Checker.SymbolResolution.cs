@@ -1539,7 +1539,50 @@ public partial class Checker
 
     internal Symbol? GetSuggestedSymbolForNonexistentModule(Node name, Symbol targetModule) => throw new NotImplementedException("getSuggestedSymbolForNonexistentModule");
 
-    internal bool IsCommonJSRequire(Node node) => throw new NotImplementedException("isCommonJSRequire");
+    // checker.go:15591
+    internal bool IsCommonJSRequire(Node node)
+    {
+        if (!AstUtilities.IsRequireCall(node, true /*requireStringLiteralLikeArgument*/))
+        {
+            return false;
+        }
+        if (!NodeTests.IsIdentifier(node.Expression()!))
+        {
+            throw new InvalidOperationException("Expected identifier for require call");
+        }
+        // Make sure require is not a local function
+        var resolvedRequire = ResolveName(node.Expression(), node.Expression()!.Text(), SymbolFlags.Value, null /*nameNotFoundMessage*/, true /*isUse*/, false /*excludeGlobals*/);
+        if (resolvedRequire == requireSymbol)
+        {
+            return true;
+        }
+        // project includes symbol named 'require' - make sure that it is ambient and local non-alias
+        if (resolvedRequire == null || (resolvedRequire.Flags & SymbolFlags.Alias) != 0)
+        {
+            return false;
+        }
+
+        SyntaxKind targetDeclarationKind;
+        if ((resolvedRequire.Flags & SymbolFlags.Function) != 0)
+        {
+            targetDeclarationKind = SyntaxKind.FunctionDeclaration;
+        }
+        else if ((resolvedRequire.Flags & SymbolFlags.Variable) != 0)
+        {
+            targetDeclarationKind = SyntaxKind.VariableDeclaration;
+        }
+        else
+        {
+            targetDeclarationKind = SyntaxKind.Unknown;
+        }
+        if (targetDeclarationKind != SyntaxKind.Unknown)
+        {
+            var decl = AstUtilities.GetDeclarationOfKind(resolvedRequire, targetDeclarationKind);
+            // function/variable declaration should be ambient
+            return decl != null && (decl.Flags & NodeFlags.Ambient) != 0;
+        }
+        return false;
+    }
 
     // Cross-cluster helpers used by both #10 and #11 (shared; single declaration here).
     // checker.go:14281
@@ -1621,7 +1664,16 @@ public partial class Checker
 
     // SymbolToString / SymbolToStringEx are now REAL in Checker.SymbolToString.cs (printer.go:250/262).
 
-    internal Node? GetTypeOnlyAliasDeclaration(Symbol symbol) => throw new NotImplementedException("getTypeOnlyAliasDeclaration");
+    // checker.go:2119
+    internal Node? GetTypeOnlyAliasDeclaration(Symbol symbol)
+    {
+        if ((symbol.Flags & SymbolFlags.Alias) != 0)
+        {
+            ResolveAliasCore(symbol);
+            return aliasSymbolLinks.Get(symbol).typeOnlyDeclaration;
+        }
+        return null;
+    }
 
     internal Symbol? GetImmediateAliasedSymbol(Symbol symbol) => throw new NotImplementedException("getImmediateAliasedSymbol");
 
@@ -1683,9 +1735,34 @@ public partial class Checker
     // the rest are minimal stubs (their bodies live in checker/utilities.go — another wave).
     // ===================================================================================
 
-    private static Node? GetExternalModuleRequireArgument(Node node) => throw new NotImplementedException("getExternalModuleRequireArgument");
+    // utilities.go:211
+    private static Node? GetExternalModuleRequireArgument(Node node)
+    {
+        if (AstUtilities.IsVariableDeclarationInitializedToRequire(node))
+        {
+            return node.Initializer()!.Arguments()![0];
+        }
+        return null;
+    }
 
-    private static Node? GetAliasDeclarationFromName(Node node) => throw new NotImplementedException("getAliasDeclarationFromName");
+    // checker/utilities.go:184
+    private static Node? GetAliasDeclarationFromName(Node node)
+    {
+        switch (node.Parent!.Kind)
+        {
+            case SyntaxKind.ImportClause:
+            case SyntaxKind.ImportSpecifier:
+            case SyntaxKind.NamespaceImport:
+            case SyntaxKind.ExportSpecifier:
+            case SyntaxKind.ExportAssignment:
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.NamespaceExport:
+                return node.Parent;
+            case SyntaxKind.QualifiedName:
+                return GetAliasDeclarationFromName(node.Parent!);
+        }
+        return null;
+    }
 
     private static Node? GetContainingQualifiedNameNode(Node node) => throw new NotImplementedException("getContainingQualifiedNameNode");
 
@@ -1762,14 +1839,55 @@ public partial class Checker
     // Missing ast helpers (absent from Ts.Ast). Minimal local stubs (report to add to ast).
     // ===================================================================================
 
-    private static Node? GetExternalModuleImportEqualsDeclarationExpression(Node node) => throw new NotImplementedException("ast.GetExternalModuleImportEqualsDeclarationExpression");
+    // ast/utilities.go:3226 (assert inlined from ast.IsExternalModuleImportEqualsDeclaration, utilities.go:1307)
+    private static Node? GetExternalModuleImportEqualsDeclarationExpression(Node node)
+    {
+        Debug.Assert(node.Kind == SyntaxKind.ImportEqualsDeclaration &&
+            node.AsImportEqualsDeclaration().ModuleReference!.Kind == SyntaxKind.ExternalModuleReference);
+        return node.AsImportEqualsDeclaration().ModuleReference!.Expression();
+    }
 
     private static bool IsRightSideOfQualifiedNameOrPropertyAccess(Node node) => throw new NotImplementedException("ast.IsRightSideOfQualifiedNameOrPropertyAccess");
 
     // internal so the EmitResolver class (separate type) can reach it; body still deferred to the ast wave.
-    internal static bool IsTypeOnlyImportOrExportDeclaration(Node node) => throw new NotImplementedException("ast.IsTypeOnlyImportOrExportDeclaration");
+    // ast/utilities.go:2881
+    internal static bool IsTypeOnlyImportDeclaration(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportSpecifier:
+                return node.IsTypeOnly() || node.Parent!.Parent!.IsTypeOnly();
+            case SyntaxKind.NamespaceImport:
+                return node.Parent!.IsTypeOnly();
+            case SyntaxKind.ImportClause:
+            case SyntaxKind.ImportEqualsDeclaration:
+                return node.IsTypeOnly();
+        }
+        return false;
+    }
 
-    private static bool IsDeclarationNode(Node node) => throw new NotImplementedException("ast.IsDeclarationNode");
+    // ast/utilities.go:2893
+    private static bool IsTypeOnlyExportDeclaration(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ExportSpecifier:
+                return node.IsTypeOnly() || node.Parent!.Parent!.IsTypeOnly();
+            case SyntaxKind.ExportDeclaration:
+                var d = node.AsExportDeclaration();
+                return d.IsTypeOnly && d.ModuleSpecifier != null && d.ExportClause == null;
+            case SyntaxKind.NamespaceExport:
+                return node.Parent!.IsTypeOnly();
+        }
+        return false;
+    }
+
+    // ast/utilities.go:2906
+    internal static bool IsTypeOnlyImportOrExportDeclaration(Node node) =>
+        IsTypeOnlyImportDeclaration(node) || IsTypeOnlyExportDeclaration(node);
+
+    // Forwarder: real body is AstUtilities.IsDeclarationNode (Ast/Utilities.Binder.cs, ast/utilities.go).
+    private static bool IsDeclarationNode(Node node) => AstUtilities.IsDeclarationNode(node);
 
     // ast/utilities.go:2488 — implemented by the EmitResolver wave. internal so the EmitResolver
     // class (separate type, faithful to Go's EmitResolver struct) can reach it.

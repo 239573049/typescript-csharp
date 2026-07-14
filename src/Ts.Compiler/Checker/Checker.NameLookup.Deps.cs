@@ -67,6 +67,8 @@ public partial class Checker
 // these with direct AstUtilities.X calls in Checker.NameLookup.cs.
 public partial class Checker
 {
-    private static bool IsValidTypeOnlyAliasUseSiteCore(Node useSite) => throw new NotImplementedException("ast.IsValidTypeOnlyAliasUseSite");
-    private static bool IsTypeOnlyImportDeclarationCore(Node node) => throw new NotImplementedException("ast.IsTypeOnlyImportDeclaration");
+    // Forwarder: real body landed in Ast/Utilities.Binder.cs (ast/utilities.go:3105).
+    private static bool IsValidTypeOnlyAliasUseSiteCore(Node useSite) => AstUtilities.IsValidTypeOnlyAliasUseSite(useSite);
+    // Forwarder: real body landed in Checker.SymbolResolution.cs (ast/utilities.go:2881).
+    private static bool IsTypeOnlyImportDeclarationCore(Node node) => IsTypeOnlyImportDeclaration(node);
 }

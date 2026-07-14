@@ -1057,6 +1057,55 @@ public static partial class AstUtilities
     }
 
     // Returns true for nodes that are considered executable for the purposes of unreachable code detection.
+    // Go: utilities.go:3105-3111
+    public static bool IsValidTypeOnlyAliasUseSite(Node useSite)
+    {
+        return (useSite.Flags & (NodeFlags.Ambient | NodeFlags.JSDoc)) != 0 ||
+            IsPartOfTypeQuery(useSite) ||
+            IsIdentifierInNonEmittingHeritageClause(useSite) ||
+            IsPartOfPossiblyValidTypeOrAbstractComputedPropertyName(useSite) ||
+            !(IsExpressionNode(useSite) || IsShorthandPropertyNameUseSite(useSite));
+    }
+
+    // Go: utilities.go:3113-3122
+    private static bool IsIdentifierInNonEmittingHeritageClause(Node node)
+    {
+        if (!IsIdentifier(node))
+        {
+            return false;
+        }
+        var parent = node.Parent!;
+        while (IsPropertyAccessExpression(parent) || IsExpressionWithTypeArguments(parent))
+        {
+            parent = parent.Parent!;
+        }
+        return IsHeritageClause(parent) && (parent.AsHeritageClause().Token == SyntaxKind.ImplementsKeyword || IsInterfaceDeclaration(parent.Parent!));
+    }
+
+    // Go: utilities.go:3124-3135
+    private static bool IsPartOfPossiblyValidTypeOrAbstractComputedPropertyName(Node node)
+    {
+        while (NodeKindIs(node, SyntaxKind.Identifier, SyntaxKind.PropertyAccessExpression))
+        {
+            node = node.Parent!;
+        }
+        if (node.Kind != SyntaxKind.ComputedPropertyName)
+        {
+            return false;
+        }
+        if (HasSyntacticModifier(node.Parent!, ModifierFlags.Abstract))
+        {
+            return true;
+        }
+        return NodeKindIs(node.Parent!.Parent!, SyntaxKind.InterfaceDeclaration, SyntaxKind.TypeLiteral);
+    }
+
+    // Go: utilities.go:3137-3139
+    private static bool IsShorthandPropertyNameUseSite(Node useSite)
+    {
+        return IsIdentifier(useSite) && IsShorthandPropertyAssignment(useSite.Parent!) && useSite.Parent!.AsShorthandPropertyAssignment().Name() == useSite;
+    }
+
     // Go: utilities.go:4210-4225
     public static bool IsPotentiallyExecutableNode(Node node)
     {

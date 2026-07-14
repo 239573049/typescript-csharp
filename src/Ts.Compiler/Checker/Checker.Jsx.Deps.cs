@@ -97,6 +97,8 @@ public partial class Checker
     // ast/utilities.go:2782 — ast.GetPragmaFromSourceFile: real body landed in
     // Ast/Utilities.Binder.cs (AstUtilities.GetPragmaFromSourceFile); call sites use it directly.
 
-    // ast — ast.GetSemanticJsxChildren.
-    internal static Node[] GetSemanticJsxChildren(Node[]? children) => throw new NotImplementedException("ast.GetSemanticJsxChildren");
+    // ast — ast.GetSemanticJsxChildren (utilities.go:3773). Forwarder: the faithful body lives in
+    // TransformerAstAdapters.GetSemanticJsxChildren until the AST layer owns it.
+    internal static Node[] GetSemanticJsxChildren(Node[]? children) =>
+        global::Ts.Transformers.TransformerAstAdapters.GetSemanticJsxChildren(children);
 }
