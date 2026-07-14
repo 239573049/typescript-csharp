@@ -64,7 +64,6 @@ classAbstractCrashedOnce
 classConstructorParametersAccessibility3
 classDoesNotDependOnBaseTypes
 classStaticBlock19
-classStaticBlock7
 classWithPrivateProperty
 computedPropertyNamesContextualType10_ES6
 computedPropertyNamesContextualType8_ES6
@@ -89,7 +88,6 @@ contextuallyTypedStringLiteralsInJsxAttributes02
 controlFlowAliasing
 controlFlowBindingPatternOrder
 controlFlowGenericTypes
-controlFlowIIFE
 controlFlowIterationErrors
 controlFlowIterationErrorsAsync
 controlFlowOptionalChain3
@@ -104,8 +102,6 @@ dependentDestructuredVariables
 derivedClassOverridesProtectedMembers4
 derivedClassTransitivity4
 destructuringArrayBindingPatternAndAssignment1ES5iterable
-destructuringArrayBindingPatternAndAssignment2
-destructuringArrayBindingPatternAndAssignment3
 destructuringControlFlow
 destructuringObjectBindingPatternAndAssignment3
 destructuringParameterDeclaration1ES5
@@ -127,7 +123,6 @@ duplicateNumericIndexers
 elementAccessChain.3
 enumAssignability
 enumAssignabilityInInheritance
-enumErrorOnConstantBindingWithInitializer
 enumIsNotASubtypeOfAnythingButNumber
 enumLiteralTypes3
 es2020IntlAPIs
@@ -152,21 +147,9 @@ for-of48
 functionConstraintSatisfaction2
 generatorAssignability
 generatorReturnContextualType
-generatorReturnTypeFallback.2
-generatorReturnTypeInference
-generatorReturnTypeInferenceNonStrict
-generatorTypeCheck19
-generatorTypeCheck20
-generatorTypeCheck22
-generatorTypeCheck23
-generatorTypeCheck24
 generatorTypeCheck25
 generatorTypeCheck31
 generatorTypeCheck39
-generatorTypeCheck50
-generatorTypeCheck53
-generatorTypeCheck54
-generatorTypeCheck57
 generatorTypeCheck58
 generatorTypeCheck62
 generatorTypeCheck63
@@ -279,7 +262,6 @@ objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat
 objectTypeWithStringAndNumberIndexSignatureToAny
 objectTypeWithStringIndexerHidingObjectIndexer
 optionalBindingParameters2
-optionalBindingParameters3
 optionalBindingParametersInOverloads2
 optionalTupleElements1
 overloadResolution
@@ -350,7 +332,6 @@ recursiveTypeReferences2
 restElementMustBeLast
 restElementWithAssignmentPattern2
 restElementWithAssignmentPattern4
-restElementWithInitializer1
 restElementWithInitializer2
 restTupleElements1
 restTuplesFromContextualTypes
@@ -379,7 +360,6 @@ templateLiteralTypes5
 templateLiteralTypes7
 templateLiteralTypesPatterns
 templateLiteralTypesPatternsPrefixSuffixAssignability
-templateStringWithEmbeddedYieldKeyword
 thisInObjectLiterals
 thisTypeInFunctionsNegative
 trailingCommasInBindingPatterns
@@ -406,7 +386,6 @@ tsxSpreadAttributesResolution6
 tsxSpreadChildren
 tsxSpreadInvalidType
 tsxStatelessFunctionComponentOverload5
-tsxStatelessFunctionComponents1
 tsxStatelessFunctionComponents2
 tsxTypeArgumentResolution
 tsxUnionElementType3
@@ -418,7 +397,6 @@ typeArgumentInferenceWithConstraints
 typeFromPropertyAssignment29
 typeGuardFunctionErrors
 typeGuardFunctionOfFormThisErrors
-typeGuardRedundancy
 typeGuardsWithInstanceOf
 typeOfThisInstanceMemberNarrowedWithLoopAntecedent
 typeParameterConstModifiers
@@ -427,7 +405,6 @@ typeSatisfaction_propertyNameFulfillment
 typeSatisfaction_propertyValueConformance3
 typeTagModuleExports
 typeTagPrototypeAssignment
-typedefOnStatements
 typeofThis
 typeofThisWithImplicitThis
 types.asyncGenerators.es2018.2
