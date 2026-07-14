@@ -1147,7 +1147,27 @@ public partial class Checker
         return initializerType;
     }
 
-    internal Type CheckShorthandPropertyAssignment(Node node, bool inDestructuringPattern, CheckMode checkMode) => throw new NotImplementedException("checkShorthandPropertyAssignment");
+    // checker.go:13621
+    internal Type CheckShorthandPropertyAssignment(Node node, bool inDestructuringPattern, CheckMode checkMode)
+    {
+        Node? expr = null;
+        if (!inDestructuringPattern)
+        {
+            expr = node.AsShorthandPropertyAssignment().ObjectAssignmentInitializer;
+        }
+        if (expr == null)
+        {
+            expr = node.Name();
+        }
+        var expressionType = CheckExpressionForMutableLocation(expr!, checkMode);
+        if (node.Type() != null)
+        {
+            var t = GetTypeFromTypeNode(node.Type()!);
+            CheckTypeAssignableToAndOptionallyElaborate(expressionType, t, node, expr, null /*headMessage*/, null);
+            return t;
+        }
+        return expressionType;
+    }
 
     // checker.go:13789
     internal Type CheckObjectLiteralMethod(Node node, CheckMode checkMode)

@@ -53,7 +53,19 @@ public partial class Checker
         return t;
     }
 
-    internal Type NewConditionalType(ConditionalRoot root, TypeMapper? mapper, TypeMapper? combinedMapper) => throw new NotImplementedException("newConditionalType");
+    // checker.go:25138
+    internal Type NewConditionalType(ConditionalRoot root, TypeMapper? mapper, TypeMapper? combinedMapper)
+    {
+        var data = new ConditionalType
+        {
+            root = root,
+            checkType = InstantiateType(root.checkType, mapper),
+            extendsType = InstantiateType(root.extendsType, mapper),
+            mapper = mapper,
+            combinedMapper = combinedMapper,
+        };
+        return NewType(TypeFlags.Conditional, ObjectFlags.None, data);
+    }
 
     // GetEnumLiteralType is now REAL in Checker.TypeCreation.cs (checker.go:25270).
 

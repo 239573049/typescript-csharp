@@ -368,7 +368,19 @@ public partial class Checker
     }
     // checker.go:2770 — checkAsyncFunctionReturnType: real body landed in Checker.Declarations.cs.
     // checker.go:29454
-    internal bool CheckGeneratorInstantiationAssignabilityToReturnType(Type returnType, FunctionFlags functionFlags, Node? errorNode) => throw new NotImplementedException("checkGeneratorInstantiationAssignabilityToReturnType");
+    // checker.go:29454
+    internal bool CheckGeneratorInstantiationAssignabilityToReturnType(Type returnType, FunctionFlags functionFlags, Node? errorNode)
+    {
+        // Naively, one could check that Generator<any, any, any> is assignable to the return type
+        // annotation. However, that would not catch the error where a BadGenerator extends both
+        // Iterable<number> and Iterator<string> with different types.
+        bool isAsync = (functionFlags & FunctionFlags.Async) != 0;
+        Type generatorYieldType = global::Ts.Core.CoreUtil.OrElse(GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind.Yield, returnType, isAsync), anyType!)!;
+        Type generatorReturnType = global::Ts.Core.CoreUtil.OrElse(GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind.Return, returnType, isAsync), generatorYieldType)!;
+        Type generatorNextType = global::Ts.Core.CoreUtil.OrElse(GetIterationTypeOfGeneratorFunctionReturnType(IterationTypeKind.Next, returnType, isAsync), unknownType!)!;
+        var generatorInstantiation = CreateGeneratorType(generatorYieldType, generatorReturnType, generatorNextType, isAsync);
+        return CheckTypeAssignableTo(generatorInstantiation, returnType, errorNode, null);
+    }
 
     // ---- JSDoc parameter matching / type-predicate parent (deferred) ----
     // checker.go:6998-7016 — Check that type parameter defaults only reference previously declared type parameters */

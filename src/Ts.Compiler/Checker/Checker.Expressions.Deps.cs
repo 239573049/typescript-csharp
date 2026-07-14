@@ -58,7 +58,21 @@ public partial class Checker
     // checker.go:11216 — checkPropertyAccessExpression: real body landed in Checker.PropertyAccess.cs.
 
     // checker.go:8099
-    internal Type CheckQualifiedName(Node node, CheckMode checkMode) => throw new NotImplementedException("checkQualifiedName");
+    // checker.go:8099
+    internal Type CheckQualifiedName(Node node, CheckMode checkMode)
+    {
+        var left = node.AsQualifiedName().Left!;
+        Type leftType;
+        if (AstUtilities.IsPartOfTypeQuery(node) && JSDocReparseAstGaps.IsThisIdentifier(left))
+        {
+            leftType = CheckNonNullType(CheckThisExpression(left), left);
+        }
+        else
+        {
+            leftType = CheckNonNullExpression(left);
+        }
+        return CheckPropertyAccessExpressionOrQualifiedName(node, left, leftType, node.AsQualifiedName().Right!, checkMode, false);
+    }
 
     // checker.go:8110 — checkIndexedAccess: real body landed in Checker.Expressions.cs.
 
