@@ -44,6 +44,9 @@ namespace Ts.LsProto;
 [JsonSerializable(typeof(SymbolInformation))]
 [JsonSerializable(typeof(SymbolInformation[]))]
 [JsonSerializable(typeof(SymbolInformationsOrDocumentSymbols))]
+[JsonSerializable(typeof(SelectionRange))]
+[JsonSerializable(typeof(SelectionRange[]))]
+[JsonSerializable(typeof(LinkedEditingRanges))]
 public sealed partial class LspJsonContext : JsonSerializerContext
 {
 }

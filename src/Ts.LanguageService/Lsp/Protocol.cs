@@ -886,3 +886,26 @@ public sealed class SymbolInformationsOrDocumentSymbols
     public static SymbolInformationsOrDocumentSymbols FromSymbolInformations(SymbolInformation[] value) => new() { SymbolInformations = value };
     public static SymbolInformationsOrDocumentSymbols FromDocumentSymbols(System.Collections.Generic.List<DocumentSymbol> value) => new() { DocumentSymbols = value };
 }
+
+// lsp_generated.go: SelectionRange — a selection range with an optional wider parent
+// selection range containing this one (textDocument/selectionRange).
+public sealed class SelectionRange
+{
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    [JsonPropertyName("parent")]
+    public SelectionRange? Parent { get; set; }
+}
+
+// lsp_generated.go: LinkedEditingRanges (textDocument/linkedEditingRange result).
+public sealed class LinkedEditingRanges
+{
+    [JsonPropertyName("ranges")]
+    [JsonRequired]
+    public Range[] Ranges { get; set; } = [];
+
+    [JsonPropertyName("wordPattern")]
+    public string? WordPattern { get; set; }
+}
