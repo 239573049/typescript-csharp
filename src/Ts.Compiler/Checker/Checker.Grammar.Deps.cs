@@ -222,7 +222,8 @@ public partial class Checker
         }
         return false;
     }
-    internal static bool CanHaveIllegalModifiers(Node node) => throw new NotImplementedException("ast.CanHaveIllegalModifiers");
+    // ast.CanHaveIllegalModifiers: real body in AstUtilities (Utilities.Binder.cs, utilities.go:1069).
+    internal static bool CanHaveIllegalModifiers(Node node) => AstUtilities.CanHaveIllegalModifiers(node);
     // IsEffectiveExternalModule is now REAL in Ast/Utilities.Binder.cs (utilities.go:1650); callers use AstUtilities.IsEffectiveExternalModule.
 
     // PORT-NOTE: Go's ast.SourceFile satisfies ast.HasFileName structurally; the C# Ast port declares

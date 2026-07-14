@@ -1158,6 +1158,31 @@ public static partial class AstUtilities
         }
         return false;
     }
+
+    // utilities.go:2863
+    public static bool IsCheckJSEnabledForFile(SourceFile sourceFile, global::Ts.Core.CompilerOptions compilerOptions)
+    {
+        if (sourceFile.CheckJsDirective != null)
+        {
+            return sourceFile.CheckJsDirective.Enabled;
+        }
+        return compilerOptions.CheckJs.IsTrue();
+    }
+
+    // utilities.go:1069
+    public static bool CanHaveIllegalModifiers(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ClassStaticBlockDeclaration:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.ShorthandPropertyAssignment:
+            case SyntaxKind.MissingDeclaration:
+            case SyntaxKind.NamespaceExportDeclaration:
+                return true;
+        }
+        return false;
+    }
 }
 
 // Go: internal/ast/utilities.go:1500-1520 — `type JSDeclarationKind int` iota block. Members

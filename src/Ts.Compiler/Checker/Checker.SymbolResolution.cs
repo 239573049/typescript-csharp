@@ -1959,7 +1959,8 @@ public partial class Checker
         throw new global::System.InvalidOperationException("Unhandled case in GetFirstIdentifier");
     }
 
-    private static Node? GetNameOfDeclaration(Node? declaration) => throw new NotImplementedException("ast.GetNameOfDeclaration");
+    // ast.GetNameOfDeclaration: real body in AstUtilities (Utilities.Binder.cs, utilities.go:1428).
+    private static Node? GetNameOfDeclaration(Node? declaration) => AstUtilities.GetNameOfDeclaration(declaration);
 
     private static bool IsTypeOfExpression(Node node) => throw new NotImplementedException("ast.IsTypeOfExpression");
 

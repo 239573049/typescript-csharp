@@ -305,7 +305,8 @@ public partial class Checker
     // utilities.go:963 — isLateBoundName. PORT-NOTE: '\xfe' is the InternalSymbolName sentinel (U+00FE in
     // UTF-16); late-bound names are `\xfe@...`.
     internal static bool IsLateBoundName(string name) => name.Length >= 2 && name[0] == '\xfe' && name[1] == '@';
-    internal bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions options) => throw new NotImplementedException("ast.IsCheckJSEnabledForFile");
+    // ast.IsCheckJSEnabledForFile: real body in AstUtilities (Utilities.Binder.cs, utilities.go:2863).
+    internal bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions options) => AstUtilities.IsCheckJSEnabledForFile(sourceFile, options);
     // ForEachReturnStatement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1138).
     // ForEachYieldExpression is now REAL in Checker.ContextSensitive.cs (internal/checker/utilities.go:1197).
 }

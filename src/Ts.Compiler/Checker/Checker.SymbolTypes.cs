@@ -1291,7 +1291,8 @@ public partial class Checker
         return node.Parent!;
     }
 
-    private static bool IsJsonSourceFile(SourceFile file) => throw new NotImplementedException("ast.IsJsonSourceFile");
+    // ast.IsJsonSourceFile: real body in AstUtilities (Utilities.Binder.cs, utilities.go:1876).
+    private static bool IsJsonSourceFile(SourceFile file) => AstUtilities.IsJsonSourceFile(file);
 
     // ast.GetExtendsHeritageClauseElements (utilities.go:1701) — delegates to the ast utility.
     private static Node[] GetExtendsHeritageClauseElements(Node node) => AstUtilities.GetExtendsHeritageClauseElements(node);
