@@ -7,9 +7,9 @@
 //
 // Reachability: for .ts inputs without `@param` JSDoc, getAllJSDocTags returns empty and
 // checkUnmatchedJSDocParameters early-returns. The JSDoc-parameter processing branches only run for
-// JS files / `.ts` with `@param` tags; they route through cross-cluster stubs
-// (containsArgumentsReference/entityNameToString/errorOrSuggestion) that land with their owning
-// waves.
+// JS files / `.ts` with `@param` tags. containsArgumentsReference is REAL in
+// Checker.Declarations.Deps.cs (checker.go:31875); entityNameToString/errorOrSuggestion land with
+// their owning waves.
 
 using System.Collections.Generic;
 using Ts.Ast;

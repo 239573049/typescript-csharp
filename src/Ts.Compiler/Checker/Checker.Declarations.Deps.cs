@@ -386,9 +386,77 @@ public partial class Checker
         visit(root);
     }
     // checkUnmatchedJSDocParameters (jsdoc.go:9) landed in Checker.JSDoc.cs; its JS-file branch calls
-    // containsArgumentsReference (checker.go:31875), stubbed here (owning wave: getResolvedSymbol /
-    // argumentsSymbol / nodeStartsNewLexicalEnvironment). Only reachable for JS files / @param JSDoc.
-    internal bool ContainsArgumentsReference(Node node) => throw new NotImplementedException("containsArgumentsReference");
+    // containsArgumentsReference (checker.go:31875), real below.
+    // checker.go:31875
+    internal bool ContainsArgumentsReference(Node node)
+    {
+        if (node.Body() == null)
+        {
+            return false;
+        }
+
+        if (cachedArgumentsReferenced.TryGetValue(node, out var cached))
+        {
+            return cached;
+        }
+
+        Func<Node?, bool> visit = null!;
+        visit = n =>
+        {
+            if (n == null)
+            {
+                return false;
+            }
+            switch (n.Kind)
+            {
+                case SyntaxKind.Identifier:
+                    return n.Text() == argumentsSymbol.Name && IsArgumentsSymbol(GetResolvedSymbol(n));
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                    if (NodeTests.IsComputedPropertyName(n.Name()!))
+                    {
+                        return visit(n.Name());
+                    }
+                    break;
+                case SyntaxKind.PropertyAccessExpression:
+                case SyntaxKind.ElementAccessExpression:
+                    return visit(n.Expression());
+                case SyntaxKind.PropertyAssignment:
+                    return visit(n.Initializer());
+            }
+            if (NodeStartsNewLexicalEnvironment(n) || AstUtilities.IsPartOfTypeNode(n))
+            {
+                return false;
+            }
+            return n.ForEachChild(child => visit(child));
+        };
+
+        var containsArguments = visit(node.Body());
+        cachedArgumentsReferenced[node] = containsArguments;
+        return containsArguments;
+    }
+    // services.go:229
+    internal bool IsArgumentsSymbol(Symbol symbol) => symbol == argumentsSymbol;
+    // checker/utilities.go:1686
+    internal static bool NodeStartsNewLexicalEnvironment(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.Constructor:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.ModuleDeclaration:
+            case SyntaxKind.SourceFile:
+                return true;
+        }
+        return false;
+    }
     // checker.go:3085
     internal Node? GetTypePredicateParent(Node node) => throw new NotImplementedException("getTypePredicateParent");
     // checker.go:3097
@@ -448,7 +516,8 @@ public partial class Checker
         node is not null && node.Parent is not null &&
         NodeTests.IsModuleBlock(node.Parent) && IsExternalModuleAugmentation(node.Parent.Parent!);
     // checker.go:5735
-    internal static bool IsNotOverload(Node node) => throw new NotImplementedException("isNotOverload");
+    internal static bool IsNotOverload(Node node) =>
+        !NodeTests.IsFunctionDeclaration(node) && !NodeTests.IsMethodDeclaration(node) || node.Body() != null;
     // utilities.go:234
     internal bool HasExportAssignmentSymbol(Symbol moduleSymbol) => throw new NotImplementedException("hasExportAssignmentSymbol");
     // checker.go:5384

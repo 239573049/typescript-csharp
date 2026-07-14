@@ -382,8 +382,33 @@ public partial class Checker
         return false;
     }
 
-    // checker.go — definitely-falsy type extraction (type-facts cluster).
-    internal Type ExtractDefinitelyFalsyTypes(Type type) => throw new NotImplementedException("extractDefinitelyFalsyTypes");
+    // checker.go:28867
+    internal Type ExtractDefinitelyFalsyTypes(Type type) => MapType(type, GetDefinitelyFalsyPartOfType);
+    // checker.go:28871
+    internal Type GetDefinitelyFalsyPartOfType(Type t)
+    {
+        if ((t.flags & TypeFlags.String) != 0)
+        {
+            return emptyStringType!;
+        }
+        if ((t.flags & TypeFlags.Number) != 0)
+        {
+            return zeroType!;
+        }
+        if ((t.flags & TypeFlags.BigInt) != 0)
+        {
+            return zeroBigIntType!;
+        }
+        if (t == regularFalseType || t == falseType ||
+            (t.flags & (TypeFlags.Void | TypeFlags.Undefined | TypeFlags.Null | TypeFlags.AnyOrUnknown)) != 0 ||
+            (t.flags & TypeFlags.StringLiteral) != 0 && GetStringLiteralValue(t) == "" ||
+            (t.flags & TypeFlags.NumberLiteral) != 0 && GetNumberLiteralValue(t) == 0 ||
+            (t.flags & TypeFlags.BigIntLiteral) != 0 && IsZeroBigInt(t))
+        {
+            return t;
+        }
+        return neverType!;
+    }
     // checker.go:28863
     internal Type RemoveDefinitelyFalsyTypes(Type t) => FilterType(t, x => HasTypeFacts(x, TypeFacts.Truthy));
 

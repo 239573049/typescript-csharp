@@ -830,7 +830,7 @@ public partial class Checker
                 return;
             }
             var t = GetDeclaredTypeOfSymbol(symbol);
-            if (!AreTypeParametersIdentical(declarations, t.AsInterfaceType()!.LocalTypeParameters()!, static decl => decl.TypeParameters().OrEmpty()))
+            if (!AreTypeParametersIdentical(declarations, t.AsInterfaceType()!.LocalTypeParameters(), static decl => decl.TypeParameters().OrEmpty()))
             {
                 // Report an error on every conflicting declaration.
                 var name = SymbolToString(symbol);
@@ -849,9 +849,10 @@ public partial class Checker
     }
 
     // checker.go:4427
-    internal bool AreTypeParametersIdentical(Node[] declarations, Type[] targetParameters, Func<Node, Node[]> getTypeParameterDeclarations)
+    internal bool AreTypeParametersIdentical(Node[] declarations, Type[]? targetParameters, Func<Node, Node[]> getTypeParameterDeclarations)
     {
-        var maxTypeArgumentCount = targetParameters.Length;
+        // Go `[]*Type` is nil for non-generic merged interfaces (LocalTypeParameters() == nil); len(nil) == 0.
+        var maxTypeArgumentCount = targetParameters?.Length ?? 0;
         var minTypeArgumentCount = GetMinTypeArgumentCount(targetParameters);
         foreach (var declaration in declarations)
         {
@@ -864,7 +865,7 @@ public partial class Checker
             for (var i = 0; i < sourceParameters.Length; i++)
             {
                 var source = sourceParameters[i];
-                var target = targetParameters[i];
+                var target = targetParameters![i];
                 // If the type parameter node does not have the same name as the resolved type
                 // parameter at this position, we report an error.
                 if (source.Name()!.Text() != target.symbol!.Name)
