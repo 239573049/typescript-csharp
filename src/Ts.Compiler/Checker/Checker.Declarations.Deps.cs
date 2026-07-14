@@ -273,7 +273,19 @@ public partial class Checker
         return false;
     }
     // checker.go:5726
-    internal bool HasShadowedNamespace(Symbol symbol) => throw new NotImplementedException("hasShadowedNamespace");
+    // checker.go:5726
+    internal bool HasShadowedNamespace(Symbol symbol)
+    {
+        if ((symbol.Flags & SymbolFlags.NamespaceModule) != 0 && (symbol.Flags & SymbolFlags.Alias) != 0)
+        {
+            var (target, _) = ResolveAlias(symbol);
+            if (target != null && (target.Flags & SymbolFlags.Namespace) != 0 && HasExportedMembersOfKind(target, SymbolFlags.Type | SymbolFlags.Namespace))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     // checker.go:6938-6977
     internal DeclarationSpaces GetDeclarationSpaces(Node node)
     {
@@ -536,7 +548,35 @@ public partial class Checker
     internal bool IsDeprecatedDeclaration(Node declaration) =>
         AstUtilities.IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlagsCached(declaration));
     // checker.go:3021 — deprecated suggestion target; deferred. Reached only on the deprecated path above.
-    internal Node? GetDeprecatedSuggestionNode(Node node) => throw new NotImplementedException("getDeprecatedSuggestionNode");
+    // checker.go:3021
+    internal Node? GetDeprecatedSuggestionNode(Node node)
+    {
+        node = AstUtilities.SkipParentheses(node);
+        switch (node.Kind)
+        {
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.Decorator:
+            case SyntaxKind.NewExpression:
+                return GetDeprecatedSuggestionNode(node.Expression()!);
+            case SyntaxKind.TaggedTemplateExpression:
+                return GetDeprecatedSuggestionNode(node.AsTaggedTemplateExpression().Tag!);
+            case SyntaxKind.JsxOpeningElement:
+            case SyntaxKind.JsxSelfClosingElement:
+                return GetDeprecatedSuggestionNode(node.TagName()!);
+            case SyntaxKind.ElementAccessExpression:
+                return node.AsElementAccessExpression().ArgumentExpression;
+            case SyntaxKind.PropertyAccessExpression:
+                return node.Name();
+            case SyntaxKind.TypeReference:
+                var typeName = node.AsTypeReferenceNode().TypeName!;
+                if (NodeTests.IsQualifiedName(typeName))
+                {
+                    return typeName.AsQualifiedName().Right;
+                }
+                break;
+        }
+        return node;
+    }
     // checker.go:8197 — checkIndexedAccessIndexType: real body landed in Checker.Expressions.cs.
 
     // ---- package-level ast/checker helpers not yet landed on a host class (deferred) ----
