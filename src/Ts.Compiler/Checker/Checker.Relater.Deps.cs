@@ -125,7 +125,29 @@ public partial class Checker
         }
         return null;
     }
-    internal bool IsValidOverrideOf(Symbol sourceProp, Symbol targetProp) => throw new NotImplementedException("isValidOverrideOf");
+    // checker.go:11897
+    internal bool IsValidOverrideOf(Symbol sourceProp, Symbol targetProp) =>
+        !ForEachProperty(targetProp, tp =>
+        {
+            if ((GetDeclarationModifierFlagsFromSymbol(tp) & ModifierFlags.Protected) != 0)
+            {
+                return !IsPropertyInClassDerivedFrom(sourceProp, GetDeclaringClass(tp));
+            }
+            return false;
+        });
+
+    // checker.go:11907 — return true if some underlying source property is declared in a class
+    // that derives (directly or indirectly) from the given base class.
+    private bool IsPropertyInClassDerivedFrom(Symbol prop, Type? baseClass) =>
+        ForEachProperty(prop, sp =>
+        {
+            var sourceClass = GetDeclaringClass(sp);
+            if (sourceClass != null)
+            {
+                return HasBaseType(sourceClass, baseClass);
+            }
+            return false;
+        });
 
     // ---- mapped-type helpers ----
     // getCombinedMappedTypeOptionality (28797) implemented in Checker.Relater.Support.cs (#20).

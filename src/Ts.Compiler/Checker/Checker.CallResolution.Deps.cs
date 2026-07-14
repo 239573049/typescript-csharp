@@ -370,7 +370,61 @@ public partial class Checker
     }
     // GetTypeOfPropertyOfContextualTypeEx (+ its contextual-property helpers) are now REAL in Checker.ContextualType.cs (checker.go:30312).
     // checker.go:30469 — object-literal discrimination of union contextual types (discriminant cluster).
-    private Type DiscriminateContextualTypeByObjectMembers(Node node, Type contextualType) => throw new NotImplementedException("discriminateContextualTypeByObjectMembers");
+    // checker.go:30512
+    private Type DiscriminateContextualTypeByObjectMembers(Node node, Type contextualType)
+    {
+        var key = new DiscriminatedContextualTypeKey(AstUtilities.GetNodeId(node), contextualType.id);
+        if (discriminatedContextualTypes.TryGetValue(key, out var discriminatedCached) && discriminatedCached != null)
+        {
+            return discriminatedCached;
+        }
+        var discriminated = GetMatchingUnionConstituentForObjectLiteral(contextualType, node);
+        if (discriminated == null)
+        {
+            var discriminantProperties = CoreUtil.Filter(node.Properties(), p =>
+            {
+                var symbol = p.Symbol();
+                if (symbol == null)
+                {
+                    return false;
+                }
+                if (NodeTests.IsPropertyAssignment(p))
+                {
+                    return IsPossiblyDiscriminantValue(p.Initializer()!) && IsDiscriminantProperty(contextualType, symbol.Name);
+                }
+                if (NodeTests.IsShorthandPropertyAssignment(p))
+                {
+                    return IsDiscriminantProperty(contextualType, symbol.Name);
+                }
+                return false;
+            });
+            var discriminantMembers = CoreUtil.Filter(GetPropertiesOfType(contextualType), s =>
+                (s.Flags & SymbolFlags.Optional) != 0 &&
+                node.Symbol()!.Members?.GetValueOrDefault(s.Name) == null &&
+                IsDiscriminantProperty(contextualType, s.Name));
+            var discriminator = new ObjectLiteralDiscriminator(this, discriminantProperties ?? [], discriminantMembers ?? []);
+            discriminated = DiscriminateTypeByDiscriminableItems(contextualType, discriminator);
+        }
+        discriminatedContextualTypes[key] = discriminated;
+        return discriminated;
+    }
+
+    // checker.go:30542
+    private Type? GetMatchingUnionConstituentForObjectLiteral(Type unionType, Node node)
+    {
+        var keyPropertyName = GetKeyPropertyName(unionType);
+        if (keyPropertyName != "")
+        {
+            var propNode = CoreUtil.Find(node.Properties(), p =>
+                p.Symbol() != null && NodeTests.IsPropertyAssignment(p) && p.Symbol()!.Name == keyPropertyName && IsPossiblyDiscriminantValue(p.Initializer()!));
+            if (propNode != null)
+            {
+                var propType = GetContextFreeTypeOfExpression(propNode.Initializer()!);
+                return GetConstituentTypeForKeyType(unionType, propType);
+            }
+        }
+        return null;
+    }
     // getAwaitedTypeNoAlias (31215): stub already declared in Checker.MembersSignatures.Deps.cs.
     // checkGeneratorInstantiationAssignabilityToReturnType: stub already in Checker.Declarations.Deps.cs.
 }
