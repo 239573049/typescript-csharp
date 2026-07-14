@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Ts.Ast;
+using Ts.Collections;
 using Ts.Core;
 using Diag = global::Ts.Diagnostics.Diagnostics;
 
@@ -1238,6 +1239,328 @@ public partial class Checker
         return null;
     }
 
+    // checker.go:21319-21326
+    internal Symbol? GetPropertyOfUnionOrIntersectionType(Type t, string name, bool skipObjectFunctionPropertyAugment)
+    {
+        var prop = GetUnionOrIntersectionProperty(t, name, skipObjectFunctionPropertyAugment);
+        // We need to filter out partial properties in union types
+        if (prop is not null && (prop.CheckFlags & CheckFlags.ReadPartial) != 0)
+        {
+            return null;
+        }
+        return prop;
+    }
+
+    // Return the symbol for a given property in a union or intersection type, or undefined if the property
+    // does not exist in any constituent type. Note that the returned property may only be present in some
+    // constituents, in which case the isPartial flag is set when the containing type is union type. We need
+    // these partial properties when identifying discriminant properties, but otherwise they are filtered out
+    // and do not appear to be present in the union type.
+    // checker.go:21333-21355
+    internal Symbol? GetUnionOrIntersectionProperty(Type t, string name, bool skipObjectFunctionPropertyAugment)
+    {
+        SymbolTable cache;
+        if (skipObjectFunctionPropertyAugment)
+        {
+            cache = AstUtilities.GetSymbolTable(ref t.AsUnionOrIntersectionType()!.propertyCacheWithoutFunctionPropertyAugment);
+        }
+        else
+        {
+            cache = AstUtilities.GetSymbolTable(ref t.AsUnionOrIntersectionType()!.propertyCache);
+        }
+        if (cache.GetValueOrDefault(name) is { } cachedProp)
+        {
+            return cachedProp;
+        }
+        var prop = CreateUnionOrIntersectionProperty(t, name, skipObjectFunctionPropertyAugment);
+        if (prop is not null)
+        {
+            cache[name] = prop;
+            // Propagate an entry from the non-augmented cache to the augmented cache unless the property is partial.
+            if (skipObjectFunctionPropertyAugment && (prop.CheckFlags & CheckFlags.Partial) == 0)
+            {
+                var augmentedCache = AstUtilities.GetSymbolTable(ref t.AsUnionOrIntersectionType()!.propertyCache);
+                if (augmentedCache.GetValueOrDefault(name) is null)
+                {
+                    augmentedCache[name] = prop;
+                }
+            }
+        }
+        return prop;
+    }
+
+    // checker.go:21357-21564
+    internal Symbol? CreateUnionOrIntersectionProperty(Type containingType, string name, bool skipObjectFunctionPropertyAugment)
+    {
+        var propFlags = SymbolFlags.None;
+        Symbol? singleProp = null;
+        var propSet = new global::Ts.Collections.OrderedSet<Symbol>();
+        List<Type>? indexTypes = null;
+        var isUnion = (containingType.flags & TypeFlags.Union) != 0;
+        // Flags we want to propagate to the result if they exist in all source symbols
+        var checkFlags = CheckFlags.None;
+        var optionalFlag = SymbolFlags.None;
+        if (!isUnion)
+        {
+            checkFlags = CheckFlags.Readonly;
+            optionalFlag = SymbolFlags.Optional;
+        }
+        var syntheticFlag = CheckFlags.SyntheticMethod;
+        var mergedInstantiations = false;
+        foreach (var current in containingType.Types())
+        {
+            var t = GetApparentType(current);
+            if (!IsErrorType(t) && (t.flags & TypeFlags.Never) == 0)
+            {
+                var prop = GetPropertyOfTypeEx(t, name, skipObjectFunctionPropertyAugment, false);
+                if (prop is not null)
+                {
+                    var modifiers = GetDeclarationModifierFlagsFromSymbol(prop);
+                    if ((prop.Flags & SymbolFlags.ClassMember) != 0)
+                    {
+                        if (isUnion)
+                        {
+                            optionalFlag |= prop.Flags & SymbolFlags.Optional;
+                        }
+                        else
+                        {
+                            optionalFlag &= prop.Flags;
+                        }
+                    }
+                    if (singleProp is null)
+                    {
+                        singleProp = prop;
+                        propFlags = CoreUtil.OrElse(prop.Flags & SymbolFlags.Accessor, SymbolFlags.Property);
+                    }
+                    else if (prop != singleProp)
+                    {
+                        var isInstantiation = GetTargetSymbol(prop) == GetTargetSymbol(singleProp);
+                        // If the symbols are instances of one another with identical types - consider the symbols
+                        // equivalent and just use the first one, which thus allows us to avoid eliding private
+                        // members when intersecting a (this-)instantiations of a class with its raw base or another instance
+                        if (isInstantiation && CompareProperties(singleProp, prop, CompareTypesEqual) == Ternary.True)
+                        {
+                            // If we merged instantiations of a generic type, we replicate the symbol parent resetting behavior we used
+                            // to do when we recorded multiple distinct symbols so that we still get, eg, `Array<T>.length` printed
+                            // back and not `Array<string>.length` when we're looking at a `.length` access on a `string[] | number[]`
+                            mergedInstantiations = singleProp.Parent is not null && (GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(singleProp.Parent)?.Length ?? 0) != 0;
+                        }
+                        else
+                        {
+                            if (propSet.Size() == 0)
+                            {
+                                propSet.Add(singleProp);
+                            }
+                            propSet.Add(prop);
+                        }
+                        // classes created by mixins are represented as intersections
+                        // and overriding a property in a derived class redefines it completely at runtime
+                        // so a get accessor can't be merged with a set accessor in a base class,
+                        // for that reason the accessor flags are only used when they are the same in all constituents
+                        if ((propFlags & SymbolFlags.Accessor) != 0 && (prop.Flags & SymbolFlags.Accessor) != (propFlags & SymbolFlags.Accessor))
+                        {
+                            propFlags = (propFlags & ~SymbolFlags.Accessor) | SymbolFlags.Property;
+                        }
+                    }
+                    if (isUnion && IsReadonlySymbol(prop))
+                    {
+                        checkFlags |= CheckFlags.Readonly;
+                    }
+                    else if (!isUnion && !IsReadonlySymbol(prop))
+                    {
+                        checkFlags &= ~CheckFlags.Readonly;
+                    }
+                    if ((modifiers & ModifierFlags.NonPublicAccessibilityModifier) == 0)
+                    {
+                        checkFlags |= CheckFlags.ContainsPublic;
+                    }
+                    if ((modifiers & ModifierFlags.Protected) != 0)
+                    {
+                        checkFlags |= CheckFlags.ContainsProtected;
+                    }
+                    if ((modifiers & ModifierFlags.Private) != 0)
+                    {
+                        checkFlags |= CheckFlags.ContainsPrivate;
+                    }
+                    if ((modifiers & ModifierFlags.Static) != 0)
+                    {
+                        checkFlags |= CheckFlags.ContainsStatic;
+                    }
+                    if (!IsPrototypeProperty(prop))
+                    {
+                        syntheticFlag = CheckFlags.SyntheticProperty;
+                    }
+                }
+                else if (isUnion)
+                {
+                    IndexInfo? indexInfo = null;
+                    if (!IsLateBoundName(name))
+                    {
+                        indexInfo = GetApplicableIndexInfoForName(t, name);
+                    }
+                    if (indexInfo is not null)
+                    {
+                        propFlags = (propFlags & ~SymbolFlags.Accessor) | SymbolFlags.Property;
+                        checkFlags |= CheckFlags.WritePartial | CoreUtil.IfElse(indexInfo.isReadonly, CheckFlags.Readonly, CheckFlags.None);
+                        if (IsTupleType(t))
+                        {
+                            var indexType = GetRestTypeOfTupleType(t);
+                            indexType ??= undefinedType!;
+                            (indexTypes ??= []).Add(indexType);
+                        }
+                        else
+                        {
+                            (indexTypes ??= []).Add(indexInfo.valueType);
+                        }
+                    }
+                    else if (IsObjectLiteralType(t) && (t.objectFlags & ObjectFlags.ContainsSpread) == 0)
+                    {
+                        checkFlags |= CheckFlags.WritePartial;
+                        (indexTypes ??= []).Add(undefinedType!);
+                    }
+                    else
+                    {
+                        checkFlags |= CheckFlags.ReadPartial;
+                    }
+                }
+            }
+        }
+        if (singleProp is null || (isUnion &&
+            (propSet.Size() != 0 || (checkFlags & CheckFlags.Partial) != 0) &&
+            (checkFlags & (CheckFlags.ContainsPrivate | CheckFlags.ContainsProtected)) != 0 &&
+            !(propSet.Size() != 0 && HasCommonDeclaration(propSet))))
+        {
+            // No property was found, or, in a union, a property has a private or protected declaration in one
+            // constituent, but is missing or has a different declaration in another constituent.
+            return null;
+        }
+        if (propSet.Size() == 0 && (checkFlags & CheckFlags.ReadPartial) == 0 && indexTypes is null)
+        {
+            if (!mergedInstantiations)
+            {
+                return singleProp;
+            }
+            // No symbol from a union/intersection should have a `.parent` set (since unions/intersections don't act as symbol parents)
+            // Unless that parent is "reconstituted" from the "first value declaration" on the symbol (which is likely different than its instantiated parent!)
+            // They also have a `.containingType` set, which affects some services endpoints behavior, like `getRootSymbol`
+            Type? singlePropType = null;
+            TypeMapper? singlePropMapper = null;
+            if ((singleProp.Flags & SymbolFlags.Transient) != 0)
+            {
+                var singlePropLinks = valueSymbolLinks.Get(singleProp);
+                singlePropType = singlePropLinks.resolvedType;
+                singlePropMapper = singlePropLinks.mapper;
+            }
+            var clone = CreateSymbolWithType(singleProp, singlePropType);
+            if (singleProp.ValueDeclaration is not null)
+            {
+                clone.Parent = singleProp.ValueDeclaration.Symbol()!.Parent;
+            }
+            var cloneLinks = valueSymbolLinks.Get(clone);
+            cloneLinks.containingType = containingType;
+            cloneLinks.mapper = singlePropMapper;
+            cloneLinks.writeType = GetWriteTypeOfSymbol(singleProp);
+            return clone;
+        }
+        if (propSet.Size() == 0)
+        {
+            propSet.Add(singleProp);
+        }
+        Node[]? declarations = null;
+        Type? firstType = null;
+        Type? nameType = null;
+        List<Type> propTypes = [];
+        List<Type>? writeTypes = null;
+        Node? firstValueDeclaration = null;
+        var hasNonUniformValueDeclaration = false;
+        foreach (var prop in propSet.Values())
+        {
+            if (firstValueDeclaration is null)
+            {
+                firstValueDeclaration = prop.ValueDeclaration;
+            }
+            else if (prop.ValueDeclaration is not null && prop.ValueDeclaration != firstValueDeclaration)
+            {
+                hasNonUniformValueDeclaration = true;
+            }
+            declarations = CoreUtil.Concatenate(declarations, prop.Declarations);
+            var t = GetTypeOfSymbol(prop);
+            if (firstType is null)
+            {
+                firstType = t;
+                nameType = valueSymbolLinks.Get(prop).nameType;
+            }
+            var writeType = GetWriteTypeOfSymbol(prop);
+            if (writeTypes is not null || writeType != t)
+            {
+                writeTypes ??= [.. propTypes];
+                writeTypes.Add(writeType);
+            }
+            if (t != firstType)
+            {
+                checkFlags |= CheckFlags.HasNonUniformType;
+            }
+            if (IsLiteralType(t) || IsPatternLiteralType(t))
+            {
+                checkFlags |= CheckFlags.HasLiteralType;
+            }
+            if ((t.flags & TypeFlags.Never) != 0 && t != uniqueLiteralType)
+            {
+                checkFlags |= CheckFlags.HasNeverType;
+            }
+            propTypes.Add(t);
+        }
+        if (indexTypes is not null)
+        {
+            propTypes.AddRange(indexTypes);
+        }
+        var result = NewSymbolEx(propFlags | optionalFlag, name, checkFlags | syntheticFlag);
+        result.Declarations = declarations;
+        if (!hasNonUniformValueDeclaration && firstValueDeclaration is not null)
+        {
+            result.ValueDeclaration = firstValueDeclaration;
+            // Inherit information about parent type.
+            result.Parent = firstValueDeclaration.Symbol()!.Parent;
+        }
+        var links = valueSymbolLinks.Get(result);
+        links.containingType = containingType;
+        links.nameType = nameType;
+        if (propTypes.Count > 2)
+        {
+            // When `propTypes` has the potential to explode in size when normalized, defer normalization until absolutely needed
+            result.CheckFlags |= CheckFlags.DeferredType;
+            var deferred = deferredSymbolLinks.Get(result);
+            deferred.parent = containingType;
+            deferred.constituents = propTypes.ToArray();
+            deferred.writeConstituents = writeTypes?.ToArray();
+            return result;
+        }
+        if (isUnion)
+        {
+            links.resolvedType = GetUnionType(propTypes.ToArray());
+        }
+        else
+        {
+            links.resolvedType = GetIntersectionType(propTypes.ToArray());
+        }
+        if (writeTypes is not null)
+        {
+            if (isUnion)
+            {
+                links.writeType = GetUnionType(writeTypes.ToArray());
+            }
+            else
+            {
+                links.writeType = GetIntersectionType(writeTypes.ToArray());
+            }
+        }
+        return result;
+    }
+
+    // checker.go:27565-27570 — free function compareTypesEqual; hosted here for its single caller
+    // (createUnionOrIntersectionProperty).
+    internal static Ternary CompareTypesEqual(Type s, Type t) => s == t ? Ternary.True : Ternary.False;
+
     // checker.go:21566-21574
     internal Symbol? GetTargetSymbol(Symbol? s)
     {
@@ -1253,6 +1576,41 @@ public partial class Checker
     // checker.go:21580
     internal static bool IsPrototypeProperty(Symbol symbol) =>
         (symbol.Flags & SymbolFlags.Method) != 0 || (symbol.CheckFlags & CheckFlags.SyntheticMethod) != 0;
+
+    // checker.go:21584-21606
+    internal bool HasCommonDeclaration(global::Ts.Collections.OrderedSet<Symbol> symbols)
+    {
+        var commonDeclarations = new global::Ts.Collections.Set<Node>();
+        foreach (var symbol in symbols.Values())
+        {
+            if ((symbol.Declarations?.Length ?? 0) == 0)
+            {
+                return false;
+            }
+            if (commonDeclarations.Len() == 0)
+            {
+                foreach (var d in symbol.Declarations!)
+                {
+                    commonDeclarations.Add(d);
+                }
+                continue;
+            }
+            // map-iter: 序无关 —— 逐键独立判断是否删除，结果与迭代序无关。Go 允许 range 中 delete，
+            // C# 需先物化快照再删除。
+            foreach (var d in new List<Node>(commonDeclarations.Keys()))
+            {
+                if (System.Array.IndexOf(symbol.Declarations!, d) < 0)
+                {
+                    commonDeclarations.Delete(d);
+                }
+            }
+            if (commonDeclarations.Len() == 0)
+            {
+                return false;
+            }
+        }
+        return commonDeclarations.Len() != 0;
+    }
 
     // checker.go:21608-21618
     internal Symbol CreateSymbolWithType(Symbol source, Type? t)

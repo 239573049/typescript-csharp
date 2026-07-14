@@ -249,8 +249,16 @@ public partial class Checker
         }
         return null;
     }
-    // checker.go:2154
-    internal Diagnostic? AddTypeOnlyDeclarationRelatedInfo(Diagnostic? diagnostic, Node? typeOnlyDeclaration, string name) => throw new NotImplementedException("addTypeOnlyDeclarationRelatedInfo");
+    // checker.go:2154-2160
+    internal Diagnostic? AddTypeOnlyDeclarationRelatedInfo(Diagnostic? diagnostic, Node? typeOnlyDeclaration, string name)
+    {
+        if (typeOnlyDeclaration is null)
+        {
+            return diagnostic;
+        }
+        var isExport = NodeTests.IsExportSpecifier(typeOnlyDeclaration) || NodeTests.IsExportDeclaration(typeOnlyDeclaration) || NodeTests.IsNamespaceExport(typeOnlyDeclaration);
+        return diagnostic!.AddRelatedInfo(NewDiagnosticForNode(typeOnlyDeclaration, CoreUtil.IfElse(isExport, Diag.X_0_was_exported_here, Diag.X_0_was_imported_here), name));
+    }
     // checker.go:5717
     internal bool HasExportedMembersOfKind(Symbol moduleSymbol, SymbolFlags kind) => throw new NotImplementedException("hasExportedMembersOfKind");
     // checker.go:5726

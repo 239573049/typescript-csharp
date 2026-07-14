@@ -91,19 +91,47 @@ public partial class Checker
     // getSymbolOfNode 14326: real body landed in Checker.SymbolResolution.cs.
     // symbolIsValueEx / createSymbolWithType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     // isNamedMember (checker.go:21992) implemented in Checker.TypeCreation.cs alongside getNamedMembers.
-    internal Symbol GetSpreadSymbol(Symbol prop, bool isReadonly) => throw new NotImplementedException("getSpreadSymbol");
+    // checker.go:13517-13534
+    internal Symbol GetSpreadSymbol(Symbol prop, bool isReadonly)
+    {
+        var isSetonlyAccessor = (prop.Flags & SymbolFlags.SetAccessor) != 0 && (prop.Flags & SymbolFlags.GetAccessor) == 0;
+        if (!isSetonlyAccessor && isReadonly == IsReadonlySymbol(prop))
+        {
+            return prop;
+        }
+        var flags = SymbolFlags.Property | (prop.Flags & SymbolFlags.Optional);
+        var result = NewSymbolEx(flags, prop.Name, (prop.CheckFlags & CheckFlags.Late) | CoreUtil.IfElse(isReadonly, CheckFlags.Readonly, CheckFlags.None));
+        var links = valueSymbolLinks.Get(result);
+        if (isSetonlyAccessor)
+        {
+            links.resolvedType = undefinedType!;
+        }
+        else
+        {
+            links.resolvedType = GetTypeOfSymbol(prop);
+        }
+        result.Declarations = prop.Declarations;
+        links.nameType = valueSymbolLinks.Get(prop).nameType;
+        mappedSymbolLinks.Get(result).syntheticOrigin = prop;
+        return result;
+    }
     // utilities.go:690 — delegates to the Ex form landed in Checker.PropertyAccess.cs.
     internal static ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => GetDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/);
     // getFlowTypeInConstructor: owned by flow.go — real body in Checker.Flow.cs.
     internal Type? GetTypeOfPropertyInBaseClass(Symbol symbol) => throw new NotImplementedException("getTypeOfPropertyInBaseClass");
     // getTypeOfInitializer: owned by flow.go — real body in Checker.Flow.cs.
     // getDeclaringConstructor 27211: real body landed in Checker.PropertyAccess.cs.
-    internal bool IsSpreadableProperty(Symbol prop) => throw new NotImplementedException("isSpreadableProperty");
+    // We approximate own properties as non-methods plus methods that are inside the object literal
+    // checker.go:13512-13515
+    internal bool IsSpreadableProperty(Symbol prop) =>
+        (!CoreUtil.Some(prop.Declarations, AstUtilities.IsPrivateIdentifierClassElementDeclaration) && (prop.Flags & (SymbolFlags.Method | SymbolFlags.GetAccessor | SymbolFlags.SetAccessor)) == 0) ||
+        !CoreUtil.Some(prop.Declarations, d => d.Parent is not null && AstUtilities.IsClassLike(d.Parent));
     // isSymbolAssigned: owned by flow.go — real body in Checker.Flow.cs.
     internal bool IsKnownSymbol(Symbol symbol) => throw new NotImplementedException("IsKnownSymbol");
     // getLiteralTypeFromProperty (26617) / getLiteralTypeFromPropertyName (26640) implemented in Checker.IndexedAccess.cs (#18).
     // getPropertyOfObjectType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
-    internal Symbol? GetPropertyOfUnionOrIntersectionType(Type t, string name, bool skipObjectFunctionPropertyAugment) => throw new NotImplementedException("getPropertyOfUnionOrIntersectionType");
+    // getPropertyOfUnionOrIntersectionType (21319) / getUnionOrIntersectionProperty (21333) /
+    // createUnionOrIntersectionProperty (21357): real bodies landed in Checker.Instantiation.cs.
 
     // ---- instantiation (#14) ----
     // getReducedApparentType / instantiateSignatures / instantiateSymbols / instantiateIndexInfos /

@@ -39,7 +39,7 @@ public partial class Checker
         }
         return false;
     }
-    internal Symbol? GetUnionOrIntersectionProperty(Type type, string name, bool skipObjectFunctionPropertyAugment) => throw new NotImplementedException("getUnionOrIntersectionProperty");
+    // getUnionOrIntersectionProperty (checker.go:21333): real body landed in Checker.Instantiation.cs.
     internal Type? GetTypeOfPropertyOrIndexSignatureOfType(Type type, string name) => throw new NotImplementedException("getTypeOfPropertyOrIndexSignatureOfType");
     // GetRegularTypeOfObjectLiteral is now REAL in Checker.Widening.cs (checker.go:27988).
     // checker.go:27690

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using Ts.Ast;
+using Ts.Collections;
 
 namespace Ts.Checker;
 
@@ -41,17 +42,252 @@ public partial class Checker
 
     // MapTypeEx is now REAL in Checker.Widening.cs (checker.go:25473).
 
-    // checker.go:13319
-    internal Type GetSpreadType(Type left, Type right, Symbol? symbol, ObjectFlags objectFlags, bool @readonly) => throw new NotImplementedException("getSpreadType");
+    // checker.go:13319-13427
+    internal Type GetSpreadType(Type left, Type right, Symbol? symbol, ObjectFlags objectFlags, bool @readonly)
+    {
+        if ((left.flags & TypeFlags.Any) != 0 || (right.flags & TypeFlags.Any) != 0)
+        {
+            return anyType!;
+        }
+        if ((left.flags & TypeFlags.Unknown) != 0 || (right.flags & TypeFlags.Unknown) != 0)
+        {
+            return unknownType!;
+        }
+        if ((left.flags & TypeFlags.Never) != 0)
+        {
+            return right;
+        }
+        if ((right.flags & TypeFlags.Never) != 0)
+        {
+            return left;
+        }
+        left = TryMergeUnionOfObjectTypeAndEmptyObject(left, @readonly);
+        if ((left.flags & TypeFlags.Union) != 0)
+        {
+            if (CheckCrossProductUnion([left, right]))
+            {
+                return MapType(left, t => GetSpreadType(t, right, symbol, objectFlags, @readonly));
+            }
+            return errorType!;
+        }
+        right = TryMergeUnionOfObjectTypeAndEmptyObject(right, @readonly);
+        if ((right.flags & TypeFlags.Union) != 0)
+        {
+            if (CheckCrossProductUnion([left, right]))
+            {
+                return MapType(right, t => GetSpreadType(left, t, symbol, objectFlags, @readonly));
+            }
+            return errorType!;
+        }
+        if ((right.flags & (TypeFlags.BooleanLike | TypeFlags.NumberLike | TypeFlags.BigIntLike | TypeFlags.StringLike | TypeFlags.EnumLike | TypeFlags.NonPrimitive | TypeFlags.Index)) != 0)
+        {
+            return left;
+        }
+        if (IsGenericObjectType(left) || IsGenericObjectType(right))
+        {
+            if (IsEmptyObjectType(left))
+            {
+                return right;
+            }
+            // When the left type is an intersection, we may need to merge the last constituent of the
+            // intersection with the right type. For example when the left type is 'T & { a: string }'
+            // and the right type is '{ b: string }' we produce 'T & { a: string, b: string }'.
+            if ((left.flags & TypeFlags.Intersection) != 0)
+            {
+                var types = left.Types();
+                var lastLeft = types[types.Length - 1];
+                if (IsNonGenericObjectType(lastLeft) && IsNonGenericObjectType(right))
+                {
+                    var newTypes = (Type[])types.Clone();
+                    newTypes[newTypes.Length - 1] = GetSpreadType(lastLeft, right, symbol, objectFlags, @readonly);
+                    return GetIntersectionType(newTypes);
+                }
+            }
+            return GetIntersectionType([left, right]);
+        }
+        var members = new SymbolTable();
+        var skippedPrivateMembers = new global::Ts.Collections.Set<string>();
+        IndexInfo[]? indexInfos;
+        if (left == emptyObjectType)
+        {
+            indexInfos = GetIndexInfosOfType(right);
+        }
+        else
+        {
+            indexInfos = GetUnionIndexInfos([left, right]);
+        }
+        foreach (var rightProp in GetPropertiesOfType(right))
+        {
+            if ((GetDeclarationModifierFlagsFromSymbol(rightProp) & (ModifierFlags.Private | ModifierFlags.Protected)) != 0)
+            {
+                skippedPrivateMembers.Add(rightProp.Name);
+            }
+            else if (IsSpreadableProperty(rightProp))
+            {
+                members[rightProp.Name] = GetSpreadSymbol(rightProp, @readonly);
+            }
+        }
 
-    // checker.go:13462 — deferred; only reached from the object-literal spread path (getSpreadType wave).
-    internal Type TryMergeUnionOfObjectTypeAndEmptyObject(Type t, bool @readonly) => throw new NotImplementedException("tryMergeUnionOfObjectTypeAndEmptyObject");
+        foreach (var leftProp in GetPropertiesOfType(left))
+        {
+            if (skippedPrivateMembers.Has(leftProp.Name) || !IsSpreadableProperty(leftProp))
+            {
+                continue;
+            }
+            if (members.GetValueOrDefault(leftProp.Name) is not null)
+            {
+                var rightProp = members[leftProp.Name];
+                var rightType = GetTypeOfSymbol(rightProp);
+                if ((rightProp.Flags & SymbolFlags.Optional) != 0)
+                {
+                    var declarations = global::Ts.Core.CoreUtil.Concatenate(leftProp.Declarations, rightProp.Declarations);
+                    var flags = SymbolFlags.Property | (leftProp.Flags & SymbolFlags.Optional);
+                    var result = NewSymbol(flags, leftProp.Name);
+                    var links = valueSymbolLinks.Get(result);
+                    // Optimization: avoid calculating the union type if spreading into the exact same type.
+                    // This is common, e.g. spreading one options bag into another where the bags have the
+                    // same type, or have properties which overlap. If the unions are large, it may turn out
+                    // to be expensive to perform subtype reduction.
+                    var leftType = GetTypeOfSymbol(leftProp);
+                    var leftTypeWithoutUndefined = RemoveMissingOrUndefinedType(leftType);
+                    var rightTypeWithoutUndefined = RemoveMissingOrUndefinedType(rightType);
+                    if (leftTypeWithoutUndefined == rightTypeWithoutUndefined)
+                    {
+                        links.resolvedType = leftType;
+                    }
+                    else
+                    {
+                        links.resolvedType = GetUnionTypeEx([leftType, rightTypeWithoutUndefined], UnionReduction.Subtype, null, null);
+                    }
+                    spreadLinks.Get(result).leftSpread = leftProp;
+                    spreadLinks.Get(result).rightSpread = rightProp;
+                    result.Declarations = declarations;
+                    links.nameType = valueSymbolLinks.Get(leftProp).nameType;
+                    members[leftProp.Name] = result;
+                }
+            }
+            else
+            {
+                members[leftProp.Name] = GetSpreadSymbol(leftProp, @readonly);
+            }
+        }
+        var spreadIndexInfos = global::Ts.Core.CoreUtil.SameMap(indexInfos, info => GetIndexInfoWithReadonly(info, @readonly));
+        var spread = NewAnonymousType(symbol, members, null, null, spreadIndexInfos);
+        spread.objectFlags |= ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral | ObjectFlags.ContainsSpread | objectFlags;
+        return spread;
+    }
+
+    // checker.go:13429-13434
+    internal IndexInfo GetIndexInfoWithReadonly(IndexInfo info, bool @readonly)
+    {
+        if (info.isReadonly != @readonly)
+        {
+            return NewIndexInfo(info.keyType, info.valueType, @readonly, info.declaration, info.components);
+        }
+        return info;
+    }
+
+    // checker.go:13442-13456
+    internal IndexInfo[]? GetUnionIndexInfos(Type[] types)
+    {
+        var sourceInfos = GetIndexInfosOfType(types[0]);
+        List<IndexInfo>? result = null;
+        foreach (var info in sourceInfos)
+        {
+            var indexType = info.keyType;
+            if (global::Ts.Core.CoreUtil.Every(types, t => GetIndexInfoOfType(t, indexType) is not null))
+            {
+                var valueType = GetUnionType(global::Ts.Core.CoreUtil.Map(types, t => GetIndexTypeOfType(t, indexType)!));
+                var isReadonly = global::Ts.Core.CoreUtil.Some(types, t => GetIndexInfoOfType(t, indexType)!.isReadonly);
+                (result ??= []).Add(NewIndexInfo(indexType, valueType, isReadonly, null, null));
+            }
+        }
+        return result?.ToArray();
+    }
+
+    // checker.go:13462-13509
+    internal Type TryMergeUnionOfObjectTypeAndEmptyObject(Type t, bool @readonly)
+    {
+        if ((t.flags & TypeFlags.Union) == 0)
+        {
+            return t;
+        }
+        if (global::Ts.Core.CoreUtil.Every(t.Types(), IsEmptyObjectTypeOrSpreadsIntoEmptyObject))
+        {
+            var empty = global::Ts.Core.CoreUtil.Find(t.Types(), IsEmptyObjectType);
+            if (empty is not null)
+            {
+                return empty;
+            }
+            return emptyObjectType!;
+        }
+        var firstType = global::Ts.Core.CoreUtil.Find(t.Types(), tt => !IsEmptyObjectTypeOrSpreadsIntoEmptyObject(tt));
+        if (firstType is null)
+        {
+            return t;
+        }
+        var secondType = global::Ts.Core.CoreUtil.Find(t.Types(), tt => tt != firstType && !IsEmptyObjectTypeOrSpreadsIntoEmptyObject(tt));
+        if (secondType is not null)
+        {
+            return t;
+        }
+        // gets the type as if it had been spread, but where everything in the spread is made optional
+        var members = new SymbolTable();
+        foreach (var prop in GetPropertiesOfType(firstType))
+        {
+            if ((GetDeclarationModifierFlagsFromSymbol(prop) & (ModifierFlags.Private | ModifierFlags.Protected)) != 0)
+            {
+                // do nothing, skip privates
+            }
+            else if (IsSpreadableProperty(prop))
+            {
+                var isSetonlyAccessor = (prop.Flags & SymbolFlags.SetAccessor) != 0 && (prop.Flags & SymbolFlags.GetAccessor) == 0;
+                var flags = SymbolFlags.Property | SymbolFlags.Optional;
+                var result = NewSymbolEx(flags, prop.Name, (prop.CheckFlags & CheckFlags.Late) | global::Ts.Core.CoreUtil.IfElse(@readonly, CheckFlags.Readonly, CheckFlags.None));
+                var links = valueSymbolLinks.Get(result);
+                if (isSetonlyAccessor)
+                {
+                    links.resolvedType = undefinedType!;
+                }
+                else
+                {
+                    links.resolvedType = AddOptionalityEx(GetTypeOfSymbol(prop), true /*isProperty*/, true /*isOptional*/);
+                }
+                result.Declarations = prop.Declarations;
+                links.nameType = valueSymbolLinks.Get(prop).nameType;
+                mappedSymbolLinks.Get(result).syntheticOrigin = prop;
+                members[prop.Name] = result;
+            }
+        }
+        var spread = NewAnonymousType(firstType.symbol, members, null, null, GetIndexInfosOfType(firstType));
+        spread.objectFlags |= ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral;
+        return spread;
+    }
+
+    // checker.go:13536-13538
+    internal bool IsEmptyObjectTypeOrSpreadsIntoEmptyObject(Type t) =>
+        IsEmptyObjectType(t) ||
+        (t.flags & (TypeFlags.Null | TypeFlags.Undefined | TypeFlags.BooleanLike | TypeFlags.NumberLike | TypeFlags.BigIntLike | TypeFlags.StringLike | TypeFlags.EnumLike | TypeFlags.NonPrimitive | TypeFlags.Index)) != 0;
 
     // checker.go:13520 — pushContextualType(node, getContextualType(node, None), isCache: true).
     internal void PushCachedContextualType(Node node) => PushContextualType(node, GetContextualType(node, ContextFlags.None), true /*isCache*/);
 
-    // checker.go:13303
-    internal void CheckSpreadPropOverrides(Type t, SymbolTable props, Node spread) => throw new NotImplementedException("checkSpreadPropOverrides");
+    // checker.go:13303-13312
+    internal void CheckSpreadPropOverrides(Type t, SymbolTable props, Node spread)
+    {
+        foreach (var right in GetPropertiesOfType(t))
+        {
+            if ((right.Flags & SymbolFlags.Optional) == 0 && (right.CheckFlags & CheckFlags.Partial) == 0)
+            {
+                var left = props.GetValueOrDefault(right.Name);
+                if (left is not null)
+                {
+                    var diagnostic = Error(left.ValueDeclaration, global::Ts.Diagnostics.Diagnostics.X_0_is_specified_more_than_once_so_this_usage_will_be_overwritten, left.Name);
+                    diagnostic.AddRelatedInfo(NewDiagnosticForNode(spread, global::Ts.Diagnostics.Diagnostics.This_spread_always_overwrites_this_property));
+                }
+            }
+        }
+    }
 
     // ---- signatures / first-parameter fallback (checker.go signature wave) ----
 

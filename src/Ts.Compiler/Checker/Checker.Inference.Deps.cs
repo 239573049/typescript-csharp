@@ -78,7 +78,15 @@ public partial class Checker
         return result;
     }
 
-    internal Type RemoveMissingOrUndefinedType(Type type) => throw new NotImplementedException("removeMissingOrUndefinedType");
+    // checker.go:28856-28861
+    internal Type RemoveMissingOrUndefinedType(Type t)
+    {
+        if (exactOptionalPropertyTypes)
+        {
+            return RemoveType(t, missingType!);
+        }
+        return GetTypeWithFacts(t, TypeFacts.NEUndefined);
+    }
 
     // ---- const type variables / readonly symbols ----
     // checker.go:27967-27994
