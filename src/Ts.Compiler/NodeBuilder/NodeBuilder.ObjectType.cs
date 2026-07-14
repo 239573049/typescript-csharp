@@ -54,11 +54,21 @@ public sealed partial class NodeBuilder
     // nodebuilderimpl.go:2273
     private const int MaxReverseMappedNestingInspectionDepth = 3;
 
+    // The context-free leaf arms of typeToTypeNode (nodebuilderimpl.go:3202-3319): every arm up to (but
+    // not including) the this-type arm — intrinsics, literals, enum-like — plus `boolean` when unaliased
+    // (checked separately because Go also requires t.alias == nil). These flags are disjoint from the
+    // reference / type-parameter / union / object arms below, so dispatching them via one mask preserves
+    // the Go arm order. (UniqueESSymbol is deliberately absent: its Go arm reads ctx and is deferred; it
+    // falls through to the leaf fallback exactly as before.)
+    private const TypeFlags LeafTypeKinds =
+        TypeFlags.Any | TypeFlags.Unknown | TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt
+        | TypeFlags.EnumLike | TypeFlags.StringLiteral | TypeFlags.NumberLiteral | TypeFlags.BigIntLiteral
+        | TypeFlags.BooleanLiteral | TypeFlags.Void | TypeFlags.Undefined | TypeFlags.Null | TypeFlags.Never
+        | TypeFlags.ESSymbol | TypeFlags.NonPrimitive;
+
     // nodebuilderimpl.go:3176 — typeToTypeNode. The single authoritative Type -> TypeNode dispatch on the
-    // request-scoped builder. Ported faithfully for the slice the error-message / .d.ts callers exercise;
-    // the deep arms (mapped / conditional / template-literal / indexed-access / string-mapping / this-type
-    // / generic type-parameter usage / unique-symbol) route to TypeToTypeNodeLeaf, which reuses the landed
-    // context-free intrinsic/literal/union/named core in Checker.TypeToString.cs.
+    // request-scoped builder with ctx, ported in Go arm order. The context-free leaf arms (intrinsic /
+    // literal / enum-like) delegate to the landed core in Checker.TypeToString.cs via TypeToTypeNodeLeaf.
     private Node TypeToTypeNodeCore(Type t)
     {
         // PORT-NOTE: the maxExpansionDepth typeStack push/pop (nodebuilderimpl.go:3178-3183) is a no-op here
@@ -66,6 +76,7 @@ public sealed partial class NodeBuilder
 
         var inTypeAlias = ctx!.flags & global::Ts.NodeBuilder.Flags.InTypeAlias;
         ctx.flags &= ~global::Ts.NodeBuilder.Flags.InTypeAlias;
+        _ = inTypeAlias; // consumed only by the deferred type-alias reference arm (see PORT-NOTE below)
 
         // nodebuilderimpl.go:3198 — reduce unless NoTypeReduction.
         if ((ctx.flags & global::Ts.NodeBuilder.Flags.NoTypeReduction) == 0)
@@ -73,16 +84,133 @@ public sealed partial class NodeBuilder
             t = ch.GetReducedType(t);
         }
 
+        // nodebuilderimpl.go:3202-3319 — intrinsic / literal / enum-like leaf arms.
+        if ((t.flags & LeafTypeKinds) != 0 || ((t.flags & TypeFlags.Boolean) != 0 && t.alias == null))
+        {
+            return TypeToTypeNodeLeaf(t);
+        }
+
+        // nodebuilderimpl.go:3321 — this-type.
+        if (Checker.IsThisTypeParameter(t))
+        {
+            if ((ctx.flags & global::Ts.NodeBuilder.Flags.InObjectTypeLiteral) != 0)
+            {
+                if (!ctx.encounteredError && (ctx.flags & global::Ts.NodeBuilder.Flags.AllowThisInObjectLiteral) == 0)
+                {
+                    ctx.encounteredError = true;
+                }
+                ctx.tracker?.ReportInaccessibleThisError();
+            }
+            ctx.approximateLength += 4;
+            return f.NewThisTypeNode();
+        }
+
+        // PORT-NOTE (deferred): the type-alias reference arm (nodebuilderimpl.go:3335, gated on
+        // `inTypeAlias == 0 && t.alias != nil && (UseAliasDefinedOutsideCurrentScope || IsTypeSymbolAccessible)`)
+        // is owned by the symbol-chain wave; aliased types fall through to their underlying structural arm,
+        // exactly as Go does when the alias symbol is inaccessible.
+
         var objectFlags = t.objectFlags;
 
         // nodebuilderimpl.go:3352 — generic type reference (Array / ReadonlyArray / tuple / interface).
         if ((objectFlags & ObjectFlags.Reference) != 0)
         {
             global::Ts.Core.Debug.Assert((t.flags & TypeFlags.Object) != 0);
-            // PORT-NOTE (deferred): the shouldExpandType hover arm short-circuits (maxExpansionDepth < 0),
-            // and the AsTypeReference().node reuse path (visitAndTransformType over typeReferenceToTypeNode)
-            // is folded into a direct call here — reuse only affects node identity, not printed bytes.
+            // PORT-NOTE: the shouldExpandType hover arm short-circuits (maxExpansionDepth < 0).
+            if (t.AsTypeReference()!.node is not null)
+            {
+                return VisitAndTransformType(t, static (b, ty) => b.TypeReferenceToTypeNode(ty));
+            }
             return TypeReferenceToTypeNode(t);
+        }
+
+        // nodebuilderimpl.go:3366 — type parameter / class / interface.
+        if ((t.flags & TypeFlags.TypeParameter) != 0 || (objectFlags & ObjectFlags.ClassOrInterface) != 0)
+        {
+            // PORT-NOTE: the shouldExpandType structural-expansion arm short-circuits (maxExpansionDepth < 0).
+            if ((t.flags & TypeFlags.TypeParameter) != 0 && ctx.inferTypeParameters is not null
+                && System.Array.IndexOf(ctx.inferTypeParameters, t) >= 0)
+            {
+                ctx.approximateLength += AstUtilities.SymbolName(t.symbol!).Length + 6;
+                Node? constraintNode = null;
+                var constraint = ch.GetConstraintOfTypeParameter(t);
+                if (constraint is not null)
+                {
+                    // If the infer type has a constraint that is not the same as the constraint
+                    // we would have normally inferred based on context, we emit the constraint
+                    // using `infer T extends ?`. We omit inferred constraints from type references
+                    // as they may be elided.
+                    var inferredConstraint = ch.GetInferredTypeParameterConstraint(t, true /*omitTypeReferences*/);
+                    if (!(inferredConstraint is not null && ch.IsTypeIdenticalTo(constraint, inferredConstraint)))
+                    {
+                        ctx.approximateLength += 9;
+                        constraintNode = TypeToTypeNodeCore(constraint);
+                    }
+                }
+                return f.NewInferTypeNode(TypeParameterToDeclarationWithConstraint(t, constraintNode));
+            }
+            if ((ctx.flags & global::Ts.NodeBuilder.Flags.GenerateNamesForShadowedTypeParams) != 0
+                && (t.flags & TypeFlags.TypeParameter) != 0)
+            {
+                var shadowedName = TypeParameterToName(t);
+                ctx.approximateLength += shadowedName.Text().Length;
+                return f.NewTypeReferenceNode(NewIdentifier(shadowedName.Text(), t.symbol), null /*typeArguments*/);
+            }
+            // Ignore constraint/default when creating a usage (as opposed to declaration) of a type parameter.
+            if (t.symbol is not null)
+            {
+                return SymbolToTypeReferenceNodeLocal(t.symbol, null /*typeArguments*/);
+            }
+            string name;
+            if ((t == ch.markerSuperTypeForCheck || t == ch.markerSubTypeForCheck)
+                && ch.varianceTypeParameter is not null && ch.varianceTypeParameter.symbol is not null)
+            {
+                name = (t == ch.markerSubTypeForCheck ? "sub-" : "super-") + AstUtilities.SymbolName(ch.varianceTypeParameter.symbol);
+            }
+            else
+            {
+                name = "?";
+            }
+            return f.NewTypeReferenceNode(NewIdentifier(name, null /*symbol*/), null /*typeArguments*/);
+        }
+
+        // nodebuilderimpl.go:3409 — union origin unwrap + union/intersection constituent mapping.
+        if ((t.flags & TypeFlags.Union) != 0 && t.AsUnionType().origin is not null)
+        {
+            t = t.AsUnionType().origin!;
+        }
+        if ((t.flags & (TypeFlags.Union | TypeFlags.Intersection)) != 0)
+        {
+            Type[] types;
+            if ((t.flags & TypeFlags.Union) != 0)
+            {
+                // expandingEnum is only ever set by the hover-expansion enum arm (maxExpansionDepth < 0 here).
+                types = ch.FormatUnionTypes(t.AsUnionType().types, false /*expandingEnum*/);
+            }
+            else
+            {
+                types = t.AsIntersectionType().types;
+            }
+            if (types.Length == 1)
+            {
+                return TypeToTypeNodeCore(types[0]);
+            }
+            var typeNodes = MapToTypeNodesLocal(types, true /*isBareList*/);
+            if (typeNodes is not null && typeNodes.Nodes.Length > 0)
+            {
+                if ((t.flags & TypeFlags.Union) != 0)
+                {
+                    return f.NewUnionTypeNode(typeNodes);
+                }
+                return f.NewIntersectionTypeNode(typeNodes);
+            }
+            if (!ctx.encounteredError && (ctx.flags & global::Ts.NodeBuilder.Flags.AllowEmptyUnionOrIntersection) == 0)
+            {
+                ctx.encounteredError = true;
+            }
+            // PORT-NOTE: Go returns nil here (TODO GH#18217); encounteredError makes ExitContext drop the
+            // result, so a neutral `any` stand-in keeps the C# signature non-nullable with identical output.
+            return f.NewKeywordTypeNode(SyntaxKind.AnyKeyword);
         }
 
         // nodebuilderimpl.go:3437 — anonymous / mapped object type literal.
@@ -92,14 +220,14 @@ public sealed partial class NodeBuilder
             return CreateAnonymousTypeNode(t);
         }
 
-        // All remaining kinds — intrinsics, literals, union/intersection, enum-like and named references,
-        // type parameters, and the deferred deep arms — are handled by the landed context-free leaf core.
+        // All remaining kinds — index / template literal / string mapping / indexed access / conditional /
+        // substitution / unique-symbol — are deferred deep arms; the leaf core renders its neutral fallback.
         return TypeToTypeNodeLeaf(t);
     }
 
-    // The landed intrinsic / literal / union / intersection / named-reference core (Checker.TypeToString.cs,
-    // nodebuilderimpl.go:3176 leaf arms). Context-free; the object/reference arms above are handled before
-    // reaching here so this only sees kinds that do not read ctx.
+    // The landed intrinsic / literal / enum-like leaf core (Checker.TypeToString.cs,
+    // nodebuilderimpl.go:3202-3319 leaf arms). Context-free; every ctx-reading arm is handled by
+    // TypeToTypeNodeCore before reaching here.
     private Node TypeToTypeNodeLeaf(Type t) => ch.NodeBuilderTypeToTypeNode(t, f);
 
     // nodebuilderimpl.go:140 — checkTruncationLength.
@@ -281,9 +409,59 @@ public sealed partial class NodeBuilder
         }
         if ((target.objectFlags & ObjectFlags.Tuple) != 0)
         {
-            // DEFERRED: tuple element-info expansion (labels, optional/rest/variadic markers). Owned by the
-            // deep-reference wave; the anonymous-object assignability messages do not reach it.
-            throw new NotImplementedException("nodeBuilder.typeReferenceToTypeNode(tuple)");
+            // nodebuilderimpl.go:2964-3013 — tuple arm (labels, optional/rest/variadic markers).
+            var tupleTarget = target.AsTupleType()!;
+            var infos = tupleTarget.ElementInfos();
+            typeArguments = global::Ts.Core.CoreUtil.SameMapIndex(typeArguments, (arg, i) =>
+            {
+                bool isOptional = i < infos.Length && (infos[i].flags & ElementFlags.Optional) != 0;
+                return ch.RemoveMissingType(arg, isOptional);
+            })!; // Go SameMapIndex returns the same (non-nil) slice for non-nil input
+            if (typeArguments.Length > 0)
+            {
+                int arity = ch.GetTypeReferenceArity(t);
+                var tupleConstituentNodes = MapToTypeNodesLocal(typeArguments[0..arity], false /*isBareList*/);
+                if (tupleConstituentNodes != null)
+                {
+                    for (int i = 0; i < tupleConstituentNodes.Nodes.Length; i++)
+                    {
+                        var flags = infos[i].flags;
+                        var labeledElementDeclaration = infos[i].labeledDeclaration;
+                        if (labeledElementDeclaration != null)
+                        {
+                            tupleConstituentNodes.Nodes[i] = f.NewNamedTupleMember(
+                                (flags & ElementFlags.Variable) != 0 ? f.NewToken(SyntaxKind.DotDotDotToken) : null,
+                                f.NewIdentifier(ch.GetTupleElementLabel(infos[i], null, i)),
+                                (flags & ElementFlags.Optional) != 0 ? f.NewToken(SyntaxKind.QuestionToken) : null,
+                                (flags & ElementFlags.Rest) != 0 ? f.NewArrayTypeNode(tupleConstituentNodes.Nodes[i]) : tupleConstituentNodes.Nodes[i]);
+                        }
+                        else if ((flags & ElementFlags.Variable) != 0)
+                        {
+                            tupleConstituentNodes.Nodes[i] = f.NewRestTypeNode(
+                                (flags & ElementFlags.Rest) != 0 ? f.NewArrayTypeNode(tupleConstituentNodes.Nodes[i]) : tupleConstituentNodes.Nodes[i]);
+                        }
+                        else if ((flags & ElementFlags.Optional) != 0)
+                        {
+                            tupleConstituentNodes.Nodes[i] = f.NewOptionalTypeNode(tupleConstituentNodes.Nodes[i]);
+                        }
+                    }
+                    var tupleTypeNode = f.NewTupleTypeNode(tupleConstituentNodes);
+                    e.SetEmitFlags(tupleTypeNode, PrinterNs.EmitFlags.SingleLine);
+                    return tupleTarget.readonlyElements
+                        ? f.NewTypeOperatorNode(SyntaxKind.ReadonlyKeyword, tupleTypeNode)
+                        : tupleTypeNode;
+                }
+            }
+            if (ctx!.encounteredError || (ctx.flags & global::Ts.NodeBuilder.Flags.AllowEmptyTuple) != 0)
+            {
+                var emptyTupleTypeNode = f.NewTupleTypeNode(f.NewNodeList([]));
+                e.SetEmitFlags(emptyTupleTypeNode, PrinterNs.EmitFlags.SingleLine);
+                return tupleTarget.readonlyElements
+                    ? f.NewTypeOperatorNode(SyntaxKind.ReadonlyKeyword, emptyTupleTypeNode)
+                    : emptyTupleTypeNode;
+            }
+            ctx.encounteredError = true;
+            return null!; // TODO: GH#18217 (Go returns nil here)
         }
         if ((ctx!.flags & global::Ts.NodeBuilder.Flags.WriteClassExpressionAsTypeLiteral) != 0
             && t.symbol!.ValueDeclaration is not null && AstUtilities.IsClassLike(t.symbol.ValueDeclaration))
@@ -293,14 +471,21 @@ public sealed partial class NodeBuilder
             // the anonymous-object assignability messages never set.
             throw new NotImplementedException("nodeBuilder.typeReferenceToTypeNode(classExpressionAsTypeLiteral)");
         }
-        // DEFERRED: the interface outer-type-parameter grouping + type-argument-default elision arm
-        // (nodebuilderimpl.go:3019+). Fall back to a plain named reference with mapped type arguments so a
-        // generic reference still renders `Name<Args>` (the assignability messages in this wave use only the
-        // Array arm above; other references render name-only, which the leaf core already did).
+        // nodebuilderimpl.go:3050-3075 — own-type-argument slice: typeArguments[i:typeParameterCount]
+        // with typeParameterCount = min(len(TypeParameters), len(typeArguments)), which drops the
+        // trailing this-type argument. DEFERRED: the outer-type-parameter grouping (3020-3049, i stays 0
+        // here) and the Iterable-family default elision (3053-3073, needs getGlobalIterableType which is
+        // still stubbed); both PORT-NOTEs land with the deep-reference wave.
         TypeList? typeArgumentNodes = null;
         if (typeArguments.Length > 0)
         {
-            typeArgumentNodes = MapToTypeNodesLocal(typeArguments, false /*isBareList*/);
+            int typeParameterCount = 0;
+            var typeParams = target.AsInterfaceType()?.TypeParameters();
+            if (typeParams != null)
+            {
+                typeParameterCount = Math.Min(typeParams.Length, typeArguments.Length);
+            }
+            typeArgumentNodes = MapToTypeNodesLocal(typeArguments[0..typeParameterCount], false /*isBareList*/);
         }
         return SymbolToTypeReferenceNodeLocal(t.symbol!, typeArgumentNodes);
     }
@@ -310,7 +495,9 @@ public sealed partial class NodeBuilder
     // accessibility tracking) is deferred with the symbol-chain wave.
     private Node SymbolToTypeReferenceNodeLocal(Symbol symbol, TypeList? typeArguments)
     {
-        var name = AstUtilities.SymbolName(symbol);
+        // getNameOfSymbolAsWritten renders internal names as written ('(Anonymous class)', 'default', …)
+        // instead of the raw InternalSymbolName text (e.g. 'þclass').
+        var name = GetNameOfSymbolAsWritten(symbol);
         return f.NewTypeReferenceNode(f.NewIdentifier(name), typeArguments);
     }
 

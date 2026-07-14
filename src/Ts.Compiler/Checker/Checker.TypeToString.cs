@@ -3,20 +3,20 @@
 // (typeToTypeNode). This is the checker's Type -> error-message-string serializer:
 //   typeToStringEx  =  nodeBuilder.TypeToTypeNode(t)  ->  emit Printer prints the TypeNode to text.
 //
-// SCOPE (breadth-first, per phase-5 type-display wave):
-//   The full NodeBuilder/NodeBuilderImpl (internal/checker/nodebuilderimpl.go, ~150 KB) is deferred.
-//   This wave ports only the type kinds needed by common assignability error messages so the checker
-//   can emit its first end-to-end "Type 'X' is not assignable to type 'Y'" diagnostic:
+// SCOPE (per phase-5 type-display wave; narrowed by the nodebuilder printing wave):
+//   This file now holds only the CONTEXT-FREE leaf arms of typeToTypeNode — the arms of
+//   nodebuilderimpl.go:3202-3319 that never read the request-scoped NodeBuilderContext:
 //     * intrinsics: any / unknown / string / number / bigint / boolean / void / undefined / null /
 //                   never / symbol / object (+ the `intrinsic` marker keyword)
 //     * literals:   string / number / bigint / boolean literal types
-//     * composite:  union / intersection (constituent mapping)
-//     * named:      a minimal symbol-name type reference for named / enum-like types
-//   All other kinds (conditional, mapped, indexed access, template literal, anonymous object,
-//   type parameters with constraints, full symbol chains, reference type-argument expansion,
-//   truncation of long constituent lists, VerbosityContext hover expansion) fall through to
-//   TypeToTypeNodeFallback and render as the `any` keyword, each marked with a PORT-NOTE. They land
-//   with the full NodeBuilderImpl port in a later wave.
+//     * enum-like:  enum / enum-member references (incl. the qualified `E.member` form)
+//   Every context-needing arm — this-type, type reference (Array / tuple / interface with type
+//   arguments), type parameter / class / interface, union / intersection, anonymous / mapped object —
+//   is dispatched BEFORE reaching here by NodeBuilder.TypeToTypeNodeCore
+//   (NodeBuilder/NodeBuilder.ObjectType.cs), matching the Go arm order. The remaining kinds
+//   (conditional, indexed access, template literal, string mapping, substitution, unique-symbol,
+//   full symbol chains, VerbosityContext hover expansion) fall through to TypeToTypeNodeFallback and
+//   render as the `any` keyword; they land with the deeper NodeBuilderImpl waves.
 
 using System;
 using Ts.Ast;
@@ -109,20 +109,22 @@ public sealed partial class Checker
         return result;
     }
 
-    // nodebuilderimpl.go:3176 — typeToTypeNode, exposed to the request-scoped NodeBuilder
-    // (NodeBuilder/NodeBuilderImpl.cs). Both the error-message serializer (TypeToStringEx above) and the
-    // .d.ts request builder share this one synthesis core; the request builder threads its own factory
-    // (the emit-context factory) rather than the type-to-string emit context's.
+    // nodebuilderimpl.go:3176 — the CONTEXT-FREE leaf arms of typeToTypeNode, exposed to the
+    // request-scoped NodeBuilder (NodeBuilder/NodeBuilderImpl.cs). The authoritative dispatch is
+    // NodeBuilder.TypeToTypeNodeCore (NodeBuilder/NodeBuilder.ObjectType.cs); it handles every arm that
+    // reads ctx (this-type / reference / type parameter / union / intersection / anonymous object) and
+    // only delegates the leaf kinds — plus the deferred deep-kind fallback — here.
     internal Node NodeBuilderTypeToTypeNode(Type t, global::Ts.Ast.NodeFactory f) => TypeToTypeNode(t, f);
 
-    // nodebuilderimpl.go:3176 — typeToTypeNode (intrinsic / literal / union / intersection / named slice).
+    // nodebuilderimpl.go:3202-3319 — typeToTypeNode (intrinsic / literal / enum-like leaf slice).
     // PORT-NOTE: the Go original threads a NodeBuilderContext (b.ctx) for expansion depth, truncation, and
-    // encounteredError tracking. This breadth-first slice is context-free: it only needs the AST factory to
-    // build the keyword/literal/composite type nodes the common error messages require.
+    // encounteredError tracking; these leaf arms only touch ctx.approximateLength (truncation accounting),
+    // which the caller's arms account for separately. The caller has already applied getReducedType
+    // (NodeBuilder.TypeToTypeNodeCore honors FlagsNoTypeReduction); re-reducing here is idempotent.
     private Node TypeToTypeNode(Type t, global::Ts.Ast.NodeFactory f)
     {
-        // nodebuilderimpl.go:3198 — reduce unless NoTypeReduction. (No FlagsNoTypeReduction plumbing yet;
-        // reduction is safe and matches the default caller flags.)
+        // nodebuilderimpl.go:3198 — reduce unless NoTypeReduction. (No FlagsNoTypeReduction plumbing here;
+        // reduction is idempotent after the caller's reduce and matches the default caller flags.)
         t = GetReducedType(t);
 
         if ((t.flags & TypeFlags.Any) != 0)
@@ -237,57 +239,18 @@ public sealed partial class Checker
             return f.NewKeywordTypeNode(SyntaxKind.ObjectKeyword);
         }
 
-        // nodebuilderimpl.go:3409 — union origin unwrap + union/intersection constituent mapping.
-        if ((t.flags & TypeFlags.Union) != 0 && t.AsUnionType().origin != null)
-        {
-            t = t.AsUnionType().origin!;
-        }
-        if ((t.flags & (TypeFlags.Union | TypeFlags.Intersection)) != 0)
-        {
-            Type[] types;
-            if ((t.flags & TypeFlags.Union) != 0)
-            {
-                types = FormatUnionTypes(t.AsUnionType().types, false /*expandingEnum*/);
-            }
-            else
-            {
-                types = t.AsIntersectionType().types;
-            }
-            if (types.Length == 1)
-            {
-                return TypeToTypeNode(types[0], f);
-            }
-            var typeNodes = MapToTypeNodes(types, f);
-            if (typeNodes != null && typeNodes.Nodes.Length > 0)
-            {
-                if ((t.flags & TypeFlags.Union) != 0)
-                {
-                    return f.NewUnionTypeNode(typeNodes);
-                }
-                return f.NewIntersectionTypeNode(typeNodes);
-            }
-            // Empty union/intersection with no constituents renders as `never`/`unknown` upstream via the
-            // deferred error path; for a stringified diagnostic we emit the neutral fallback.
-            return TypeToTypeNodeFallback(f);
-        }
-
-        // nodebuilderimpl.go:3232 / 3367 / 3398 — enum-like and named types (type parameters, class /
-        // interface, references) reduce to a symbol-name type reference in the common error case.
-        if (t.symbol != null && ((t.flags & TypeFlags.EnumLike) != 0
-            || (t.flags & TypeFlags.TypeParameter) != 0
-            || (t.objectFlags & (ObjectFlags.Reference | ObjectFlags.ClassOrInterface)) != 0))
-        {
-            return SymbolToTypeReferenceNode(t.symbol, f);
-        }
-
-        // All remaining kinds (conditional / mapped / indexed access / template literal / anonymous
-        // object / substitution / index / this-type / reference type-argument expansion) are part of the
-        // deferred NodeBuilderImpl port.
+        // The context-needing arms — this-type (nodebuilderimpl.go:3321), reference (:3352), type
+        // parameter / class / interface (:3366), union / intersection (:3409), anonymous / mapped object
+        // (:3437) — are handled by NodeBuilder.TypeToTypeNodeCore BEFORE delegating leaf kinds here. The
+        // remaining kinds (index / template literal / string mapping / indexed access / conditional /
+        // substitution / unique-symbol) are part of the deferred NodeBuilderImpl waves.
         return TypeToTypeNodeFallback(f);
     }
 
-    // printer.go:383 — formatUnionTypes.
-    private Type[] FormatUnionTypes(Type[] types, bool expandingEnum)
+    // printer.go:383 — formatUnionTypes. (Internal: the union arm lives on the request-scoped
+    // NodeBuilder — NodeBuilder.TypeToTypeNodeCore — which calls back here, matching Go's
+    // b.ch.formatUnionTypes.)
+    internal Type[] FormatUnionTypes(Type[] types, bool expandingEnum)
     {
         var result = new System.Collections.Generic.List<Type>();
         TypeFlags flags = 0;
@@ -334,22 +297,9 @@ public sealed partial class Checker
         return result.ToArray();
     }
 
-    // nodebuilderimpl.go:337 — mapToTypeNodes (bare-list slice, no truncation/name-collision handling).
-    // PORT-NOTE: truncation elision ("... N more ...") and the seenNames collision de-dup are part of the
-    // deferred NodeBuilderImpl port.
-    private TypeList? MapToTypeNodes(Type[] list, global::Ts.Ast.NodeFactory f)
-    {
-        if (list.Length == 0)
-        {
-            return null;
-        }
-        var result = new Node[list.Length];
-        for (var i = 0; i < list.Length; i++)
-        {
-            result[i] = TypeToTypeNode(list[i], f);
-        }
-        return f.NewNodeList(result);
-    }
+    // nodebuilderimpl.go:337 — mapToTypeNodes lives on the request-scoped NodeBuilder
+    // (MapToTypeNodesLocal in NodeBuilder/NodeBuilder.ObjectType.cs, truncation-aware); the leaf arms
+    // here never map constituent lists.
 
     // nodebuilderimpl.go:638 — symbolToTypeNode, reduced to a bare identifier type reference.
     // PORT-NOTE: the full symbol chain (qualified names, import types, type-argument nodes, accessibility

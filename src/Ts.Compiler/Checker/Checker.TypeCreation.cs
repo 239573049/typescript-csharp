@@ -5,7 +5,11 @@
 // Arenas deleted (plan §一.5): newType no longer takes a `data` arg (the concrete object IS the
 // header); newSignature/newIndexInfo just `new`.
 
+using System;
+using System.Collections.Generic;
 using Ts.Ast;
+using Ts.Core;
+using StrUtil = global::Ts.StringUtil.StringUtil;
 
 namespace Ts.Checker;
 
@@ -417,11 +421,104 @@ public partial class Checker
 
     // getUnionType / getUnionTypeWorker (real reduction) now live in Checker.UnionIntersection.cs (#17).
 
-    // MINIMAL-BUILD stand-in for constructor support. Full getTemplateLiteralType interning
-    // (checker.go §15) lands in a later wave.
+    // checker.go:28902-28968 — real body (lib-gate wave P); previously a no-normalization stand-in.
     internal Type GetTemplateLiteralType(string[] texts, Type[] types)
     {
-        // PORT-NOTE: skeleton stand-in — no normalization/interning.
-        return NewTemplateLiteralType(texts, types);
+        var unionIndex = CoreUtil.FindIndex(types, t => (t.flags & (TypeFlags.Never | TypeFlags.Union)) != 0);
+        if (unionIndex >= 0)
+        {
+            if (!CheckCrossProductUnion(types))
+            {
+                return errorType!;
+            }
+            return MapType(types[unionIndex], t => GetTemplateLiteralType(texts, CoreUtil.ReplaceElement(types, unionIndex, t)));
+        }
+        if (System.Array.IndexOf(types, wildcardType) >= 0)
+        {
+            return wildcardType!;
+        }
+        var newTypes = new List<Type>();
+        var newTexts = new List<string>();
+        var sb = new System.Text.StringBuilder();
+        sb.Append(texts[0]);
+        Func<string[], Type[], bool> addSpans = null!;
+        addSpans = (spanTexts, spanTypes) =>
+        {
+            for (var i = 0; i < spanTypes.Length; i++)
+            {
+                var t = spanTypes[i];
+                if ((t.flags & (TypeFlags.Literal | TypeFlags.Null | TypeFlags.Undefined)) != 0)
+                {
+                    sb.Append(GetTemplateStringForType(t));
+                    sb.Append(spanTexts[i + 1]);
+                }
+                else if ((t.flags & TypeFlags.TemplateLiteral) != 0)
+                {
+                    sb.Append(t.AsTemplateLiteralType().texts[0]);
+                    if (!addSpans(t.AsTemplateLiteralType().texts, t.AsTemplateLiteralType().types))
+                    {
+                        return false;
+                    }
+                    sb.Append(spanTexts[i + 1]);
+                }
+                else if (IsGenericIndexType(t) || IsPatternLiteralPlaceholderType(t))
+                {
+                    newTypes.Add(t);
+                    newTexts.Add(StrUtil.CombineSurrogatePairs(sb.ToString()));
+                    sb.Clear();
+                    sb.Append(spanTexts[i + 1]);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
+        };
+        if (!addSpans(texts, types))
+        {
+            return stringType!;
+        }
+        if (newTypes.Count == 0)
+        {
+            return GetStringLiteralType(StrUtil.CombineSurrogatePairs(sb.ToString()));
+        }
+        newTexts.Add(StrUtil.CombineSurrogatePairs(sb.ToString()));
+        var newTextsArray = newTexts.ToArray();
+        var newTypesArray = newTypes.ToArray();
+        if (CoreUtil.Every(newTextsArray, t => t == ""))
+        {
+            if (CoreUtil.Every(newTypesArray, t => (t.flags & TypeFlags.String) != 0))
+            {
+                return stringType!;
+            }
+            // Normalize `${Mapping<xxx>}` into Mapping<xxx>
+            if (newTypesArray.Length == 1 && IsPatternLiteralType(newTypesArray[0]))
+            {
+                return newTypesArray[0];
+            }
+        }
+        var key = GetTemplateTypeKey(newTextsArray, newTypesArray);
+        var t2 = templateLiteralTypes.GetValueOrDefault(key);
+        if (t2 is null)
+        {
+            t2 = NewTemplateLiteralType(newTextsArray, newTypesArray);
+            templateLiteralTypes[key] = t2;
+        }
+        return t2;
+    }
+
+    // checker.go:28970-28978
+    internal string GetTemplateStringForType(Type t)
+    {
+        if ((t.flags & (TypeFlags.StringLiteral | TypeFlags.NumberLiteral | TypeFlags.BooleanLiteral | TypeFlags.BigIntLiteral)) != 0)
+        {
+            return global::Ts.Evaluator.EvaluatorFactory.AnyToString(t.AsLiteralType().value);
+        }
+        if ((t.flags & TypeFlags.Nullable) != 0)
+        {
+            return t.AsIntrinsicType().intrinsicName;
+        }
+        return "";
     }
 }
