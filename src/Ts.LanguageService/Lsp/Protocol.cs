@@ -23,6 +23,8 @@ public static class Methods
     public const string TextDocumentDefinition = "textDocument/definition";
     public const string TextDocumentCompletion = "textDocument/completion";
     public const string TextDocumentPublishDiagnostics = "textDocument/publishDiagnostics";
+    public const string TextDocumentFoldingRange = "textDocument/foldingRange";
+    public const string TextDocumentDocumentSymbol = "textDocument/documentSymbol";
 }
 
 [JsonConverter(typeof(DocumentUriJsonConverter))]
@@ -697,4 +699,146 @@ public sealed class Definition
 
     public static Definition FromLocation(Location value) => new() { Location = value };
     public static Definition FromLocations(Location[] value) => new() { Locations = value };
+}
+
+// lsp_generated.go: FoldingRangeKind — a string-typed enumeration on the wire
+// ("comment" | "imports" | "region"). The default value (null Value) mirrors the
+// Go zero value "" used as the "no kind" sentinel.
+[JsonConverter(typeof(FoldingRangeKindJsonConverter))]
+public readonly record struct FoldingRangeKind(string? Value)
+{
+    public static FoldingRangeKind Comment => new("comment");
+    public static FoldingRangeKind Imports => new("imports");
+    public static FoldingRangeKind Region => new("region");
+}
+
+// lsp_generated.go: FoldingRange.
+public sealed class FoldingRange
+{
+    [JsonPropertyName("startLine")]
+    [JsonRequired]
+    public uint StartLine { get; set; }
+
+    [JsonPropertyName("startCharacter")]
+    public uint? StartCharacter { get; set; }
+
+    [JsonPropertyName("endLine")]
+    [JsonRequired]
+    public uint EndLine { get; set; }
+
+    [JsonPropertyName("endCharacter")]
+    public uint? EndCharacter { get; set; }
+
+    [JsonPropertyName("kind")]
+    public FoldingRangeKind? Kind { get; set; }
+
+    [JsonPropertyName("collapsedText")]
+    public string? CollapsedText { get; set; }
+}
+
+// lsp_generated.go: SymbolKind.
+public enum SymbolKind : uint
+{
+    File = 1,
+    Module = 2,
+    Namespace = 3,
+    Package = 4,
+    Class = 5,
+    Method = 6,
+    Property = 7,
+    Field = 8,
+    Constructor = 9,
+    Enum = 10,
+    Interface = 11,
+    Function = 12,
+    Variable = 13,
+    Constant = 14,
+    String = 15,
+    Number = 16,
+    Boolean = 17,
+    Array = 18,
+    Object = 19,
+    Key = 20,
+    Null = 21,
+    EnumMember = 22,
+    Struct = 23,
+    Event = 24,
+    Operator = 25,
+    TypeParameter = 26,
+}
+
+// lsp_generated.go: SymbolTag.
+public enum SymbolTag : uint
+{
+    Deprecated = 1,
+}
+
+// lsp_generated.go: DocumentSymbol. Children is a mutable list (Go *[]*DocumentSymbol):
+// the document-symbol outline merges expando/namespace children in place.
+public sealed class DocumentSymbol
+{
+    [JsonPropertyName("name")]
+    [JsonRequired]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("detail")]
+    public string? Detail { get; set; }
+
+    [JsonPropertyName("kind")]
+    [JsonRequired]
+    public SymbolKind Kind { get; set; }
+
+    [JsonPropertyName("tags")]
+    public SymbolTag[]? Tags { get; set; }
+
+    [JsonPropertyName("deprecated")]
+    public bool? Deprecated { get; set; }
+
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    [JsonPropertyName("selectionRange")]
+    [JsonRequired]
+    public Range SelectionRange { get; set; } = null!;
+
+    [JsonPropertyName("children")]
+    public System.Collections.Generic.List<DocumentSymbol>? Children { get; set; }
+}
+
+// lsp_generated.go: SymbolInformation.
+public sealed class SymbolInformation
+{
+    [JsonPropertyName("name")]
+    [JsonRequired]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("kind")]
+    [JsonRequired]
+    public SymbolKind Kind { get; set; }
+
+    [JsonPropertyName("tags")]
+    public SymbolTag[]? Tags { get; set; }
+
+    [JsonPropertyName("deprecated")]
+    public bool? Deprecated { get; set; }
+
+    [JsonPropertyName("location")]
+    [JsonRequired]
+    public Location Location { get; set; } = null!;
+
+    [JsonPropertyName("containerName")]
+    public string? ContainerName { get; set; }
+}
+
+// lsp_generated.go: SymbolInformationsOrDocumentSymbolsOrNull (the "OrNull" arm is a
+// null reference at the response site, matching the Definition union treatment above).
+[JsonConverter(typeof(SymbolInformationsOrDocumentSymbolsJsonConverter))]
+public sealed class SymbolInformationsOrDocumentSymbols
+{
+    public SymbolInformation[]? SymbolInformations { get; private set; }
+    public System.Collections.Generic.List<DocumentSymbol>? DocumentSymbols { get; private set; }
+
+    public static SymbolInformationsOrDocumentSymbols FromSymbolInformations(SymbolInformation[] value) => new() { SymbolInformations = value };
+    public static SymbolInformationsOrDocumentSymbols FromDocumentSymbols(System.Collections.Generic.List<DocumentSymbol> value) => new() { DocumentSymbols = value };
 }

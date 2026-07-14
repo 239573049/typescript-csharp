@@ -337,6 +337,61 @@ public sealed class HoverContentsJsonConverter : JsonConverter<MarkupContentOrSt
     }
 }
 
+public sealed class FoldingRangeKindJsonConverter : JsonConverter<FoldingRangeKind>
+{
+    public override FoldingRangeKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("FoldingRangeKind must be a string");
+        }
+        return new FoldingRangeKind(reader.GetString()!); // A String token is never null unless its value is JSON null.
+    }
+
+    public override void Write(Utf8JsonWriter writer, FoldingRangeKind value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.Value ?? "");
+    }
+}
+
+public sealed class SymbolInformationsOrDocumentSymbolsJsonConverter : JsonConverter<SymbolInformationsOrDocumentSymbols>
+{
+    public override SymbolInformationsOrDocumentSymbols Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            using var document = JsonDocument.ParseValue(ref reader);
+            var root = document.RootElement;
+            // Both union arms are arrays of objects; "location" is required on
+            // SymbolInformation and absent from DocumentSymbol (which requires
+            // "selectionRange" instead). An empty array is read as DocumentSymbols.
+            if (root.GetArrayLength() > 0 && root[0].TryGetProperty("location", out _))
+            {
+                return SymbolInformationsOrDocumentSymbols.FromSymbolInformations(
+                    root.Deserialize(LspJsonContext.Default.SymbolInformationArray)!);
+            }
+            return SymbolInformationsOrDocumentSymbols.FromDocumentSymbols(
+                root.Deserialize(LspJsonContext.Default.ListDocumentSymbol)!);
+        }
+        throw new JsonException("invalid document symbol response");
+    }
+
+    public override void Write(Utf8JsonWriter writer, SymbolInformationsOrDocumentSymbols value, JsonSerializerOptions options)
+    {
+        if (value.SymbolInformations is not null)
+        {
+            JsonSerializer.Serialize(writer, value.SymbolInformations, LspJsonContext.Default.SymbolInformationArray);
+            return;
+        }
+        if (value.DocumentSymbols is not null)
+        {
+            JsonSerializer.Serialize(writer, value.DocumentSymbols, LspJsonContext.Default.ListDocumentSymbol);
+            return;
+        }
+        throw new JsonException("document symbol response must contain exactly one value");
+    }
+}
+
 public sealed class DefinitionJsonConverter : JsonConverter<Definition>
 {
     public override Definition Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

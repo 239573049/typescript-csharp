@@ -33,6 +33,13 @@ namespace Ts.LsProto;
 [JsonSerializable(typeof(MarkupContent))]
 [JsonSerializable(typeof(MarkedStringWithLanguage))]
 [JsonSerializable(typeof(StringOrMarkedStringWithLanguage[]))]
+[JsonSerializable(typeof(FoldingRange))]
+[JsonSerializable(typeof(FoldingRange[]))]
+[JsonSerializable(typeof(DocumentSymbol))]
+[JsonSerializable(typeof(System.Collections.Generic.List<DocumentSymbol>))]
+[JsonSerializable(typeof(SymbolInformation))]
+[JsonSerializable(typeof(SymbolInformation[]))]
+[JsonSerializable(typeof(SymbolInformationsOrDocumentSymbols))]
 public sealed partial class LspJsonContext : JsonSerializerContext
 {
 }
