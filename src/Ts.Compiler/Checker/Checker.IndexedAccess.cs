@@ -2,8 +2,8 @@
 // construction, lines 26551-27301). plan/03 §4.2 #18.
 //
 // getPropertyTypeForIndexType (26867-27079) is REAL, as are its leaf helpers typeHasStaticProperty
-// (27081) and getSuggestionForNonexistentIndexSignature (27097). getSuggestionForNonexistentProperty
-// (27089) remains a stub in Checker.Relater.Deps.cs (spelling-suggestion engine not yet landed).
+// (27081), getSuggestionForNonexistentProperty (27089) and getSuggestionForNonexistentIndexSignature
+// (27097).
 
 using System.Collections.Generic;
 using Ts.Ast;
@@ -713,8 +713,16 @@ public partial class Checker
         return false;
     }
 
-    // checker.go:27089-27095 getSuggestionForNonexistentProperty lives as a stub in
-    // Checker.Relater.Deps.cs (depends on the not-yet-landed spelling-suggestion engine).
+    // checker.go:27089-27095
+    internal string GetSuggestionForNonexistentProperty(string name, Type containingType)
+    {
+        var symbol = GetSpellingSuggestionForName(name, GetPropertiesOfType(containingType), SymbolFlags.Value);
+        if (symbol != null)
+        {
+            return symbol.Name;
+        }
+        return "";
+    }
 
     // checker.go:27097-27115
     internal string GetSuggestionForNonexistentIndexSignature(Type objectType, Node expr, Type keyedType)

@@ -453,13 +453,27 @@ public partial class Checker
         AddErrorOrSuggestion(!isUncheckedJS || diagnostic.Code() != Diag.Property_0_may_not_exist_on_type_1_Did_you_mean_2.Code, diagnostic);
     }
 
-    // checker.go:11565 — lib-feature suggestion for a non-existent property. Go looks up
-    // getApparentType(containingType).symbol.Name in the getFeatureMap() table (a large static
-    // es-lib feature index) which is deferred in this port (see GetSuggestedLibForNonExistentName in
-    // Checker.Stubs.cs); until it lands there is never a suggested lib, so "" is behaviorally faithful.
-    // PORT-NOTE: port getFeatureMap + the container-symbol lookup with the identifier-resolution
-    // diagnostics wave.
-    internal string GetSuggestedLibForNonExistentProperty(string missingProperty, Type containingType) => "";
+    // checker.go:11563-11575 — lib-feature suggestion for a non-existent property (feature table in
+    // Checker.Utilities.FeatureMap.cs).
+    internal string GetSuggestedLibForNonExistentProperty(string missingProperty, Type containingType)
+    {
+        var container = GetApparentType(containingType).symbol;
+        if (container != null)
+        {
+            var featureMap = GetFeatureMap();
+            if (featureMap.TryGetValue(container.Name, out var typeFeatures))
+            {
+                foreach (var entry in typeFeatures)
+                {
+                    if (System.Array.IndexOf(entry.Props, missingProperty) >= 0)
+                    {
+                        return entry.Lib;
+                    }
+                }
+            }
+        }
+        return "";
+    }
 
     // checker.go:11580
     internal Symbol? GetSuggestedSymbolForNonexistentProperty(Node name, Type containingType)

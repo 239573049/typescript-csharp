@@ -21,12 +21,53 @@ namespace Ts.Checker;
 
 public partial class Checker
 {
-    // ---- spelling-suggestion machinery (checker.go:1749/1786; suggestion NameResolver pass) ----
-    // getPrimitiveTypeAliasSuggestions (checker.go:1749) — yields the six primitive type-alias symbols for
-    // global spelling suggestions. Reached only from GetSuggestionForSymbolNameLookup (the suggestion
-    // resolver's Lookup hook), which the NoLib pipeline does not drive. Deferred to the
-    // identifier-resolution diagnostics wave.
-    internal System.Collections.Generic.IEnumerable<Symbol> GetPrimitiveTypeAliasSuggestions(SymbolTable? symbols) => throw new NotImplementedException("getPrimitiveTypeAliasSuggestions");
+    // ---- spelling-suggestion machinery (checker.go:1731/1786; suggestion NameResolver pass) ----
+    // checker.go:1731-1747 — the six primitive type-alias suggestion symbols, keyed by builtin name.
+    // Go wraps the table in sync.OnceValue; the C# static readonly field initializer is the
+    // thread-safe once analogue.
+    private static readonly SymbolTable primitiveTypeAliasSuggestions = CreatePrimitiveTypeAliasSuggestions();
+
+    private static SymbolTable CreatePrimitiveTypeAliasSuggestions()
+    {
+        var result = new SymbolTable(6);
+        foreach (var (primitive, builtin) in new[]
+        {
+            ("string", "String"),
+            ("number", "Number"),
+            ("boolean", "Boolean"),
+            ("object", "Object"),
+            ("bigint", "BigInt"),
+            ("symbol", "Symbol"),
+        })
+        {
+            var sym = new Symbol
+            {
+                Flags = SymbolFlags.TypeAlias | SymbolFlags.Transient,
+                Name = primitive,
+            };
+            result[builtin] = sym;
+        }
+        return result;
+    }
+
+    // checker.go:1749-1759 — Go yields lazily over the OnceValue map; the candidates feed
+    // GetSpellingSuggestion, whose equal-distance ties are decided by the compare callback, so the
+    // result is iteration-order independent.
+    internal static System.Collections.Generic.IEnumerable<Symbol> GetPrimitiveTypeAliasSuggestions(SymbolTable? symbols)
+    {
+        if (symbols == null)
+        {
+            yield break;
+        }
+        // map-iter: 序无关
+        foreach (var (builtinName, suggestion) in primitiveTypeAliasSuggestions)
+        {
+            if (symbols.ContainsKey(builtinName))
+            {
+                yield return suggestion;
+            }
+        }
+    }
 
     // checker.go:1786
     internal Symbol? GetSpellingSuggestionForName(string name, System.Collections.Generic.IEnumerable<Symbol> symbols, SymbolFlags meaning)

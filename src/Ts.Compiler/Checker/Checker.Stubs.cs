@@ -114,16 +114,21 @@ public partial class Checker
     // *ForExportingPrimitiveType / *ForUsingNamespaceAsTypeOrValue / *ForUsingTypeAsValue /
     // *ForUsingValueAsType) are now REAL in Checker.NameLookup.cs (name-resolution wave).
 
-    // checker.go:1719-1725 — lib-feature suggestion for a non-existent name. The getFeatureMap() table
-    // (a large static es-lib feature index) is deferred; for the currently-exercised NoLib global-type
-    // bootstrap there is genuinely no suggested lib, so returning "" is behaviorally faithful.
-    // PORT-NOTE: port getFeatureMap + full lookup with the identifier-resolution diagnostics wave.
-    internal string GetSuggestedLibForNonExistentName(string name) => "";
+    // checker.go:1719-1725 — lib-feature suggestion for a non-existent name (feature table in
+    // Checker.Utilities.FeatureMap.cs).
+    internal string GetSuggestedLibForNonExistentName(string name)
+    {
+        var featureMap = GetFeatureMap();
+        if (featureMap.TryGetValue(name, out var typeFeatures))
+        {
+            return typeFeatures[0].Lib;
+        }
+        return "";
+    }
 
-    // checker.go:1727-1729 — spelling suggestion via resolveNameForSymbolSuggestion. Deferred (the
-    // suggestion name-resolver pass is unported); with NoLib there is no suggestion, so null is faithful.
-    // PORT-NOTE: port resolveNameForSymbolSuggestion with the identifier-resolution diagnostics wave.
-    internal Symbol? GetSuggestedSymbolForNonexistentSymbol(Node? location, string outerName, SymbolFlags meaning) => null;
+    // checker.go:1727-1729
+    internal Symbol? GetSuggestedSymbolForNonexistentSymbol(Node? location, string outerName, SymbolFlags meaning) =>
+        resolveNameForSymbolSuggestion(location, outerName, meaning, null /*nameNotFoundMessage*/, false /*isUse*/, false /*excludeGlobals*/);
 
     // Constructor closures.
     // compareSymbolsWorker (utilities.go:343) implemented in Checker.TypeOps.Support.cs (needed by CompareTypes).

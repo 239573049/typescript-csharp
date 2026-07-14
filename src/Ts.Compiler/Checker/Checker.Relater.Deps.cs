@@ -136,7 +136,8 @@ public partial class Checker
 
     // ---- suggestions / jsx (services / jsx waves) ----
     // getSuggestedSymbolForNonexistentJSXAttribute: real body landed in Checker.Jsx.cs (jsx wave).
-    internal string GetSuggestionForNonexistentProperty(string name, Type containingType) => throw new NotImplementedException("getSuggestionForNonexistentProperty");
+    // getSuggestionForNonexistentProperty (27089): real body landed in Checker.IndexedAccess.cs
+    // (spelling-suggestion wave).
     internal Type? GetSuggestedTypeForNonexistentStringLiteralType(Type source, Type target) => throw new NotImplementedException("getSuggestedTypeForNonexistentStringLiteralType");
     internal Symbol[] GetExactOptionalUnassignableProperties(Type source, Type target) => throw new NotImplementedException("getExactOptionalUnassignableProperties");
     // getJsxType / elaborateJsxComponents: real bodies landed in Checker.Jsx.cs (jsx wave).
