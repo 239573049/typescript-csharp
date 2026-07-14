@@ -1580,7 +1580,13 @@ public partial class Checker
         return null;
     }
 
-    internal Symbol? GetSuggestedSymbolForNonexistentModule(Node name, Symbol targetModule) => throw new NotImplementedException("getSuggestedSymbolForNonexistentModule");
+    // checker.go:15822
+    internal Symbol? GetSuggestedSymbolForNonexistentModule(Node name, Symbol targetModule)
+    {
+        // map-iter: 序无关 — Go maps.Values(exports) feeds the spelling-suggestion scan, which picks
+        // the best-distance candidate (ties resolved by compareSymbols inside GetSpellingSuggestion).
+        return GetSpellingSuggestionForName(name.Text(), GetExportsOfModule(targetModule).Values, SymbolFlags.ModuleMember);
+    }
 
     // checker.go:15591
     internal bool IsCommonJSRequire(Node node)
@@ -1817,9 +1823,21 @@ public partial class Checker
         return null;
     }
 
-    private static Node? GetContainingQualifiedNameNode(Node node) => throw new NotImplementedException("getContainingQualifiedNameNode");
+    // checker/utilities.go:199-204
+    private static Node? GetContainingQualifiedNameNode(Node node)
+    {
+        while (IsQualifiedName(node.Parent!))
+        {
+            node = node.Parent!;
+        }
+        return node;
+    }
 
-    private static string EntityNameToString(Node node) => throw new NotImplementedException("entityNameToString");
+    // checker/utilities.go:195-197
+    private static string EntityNameToString(Node name)
+    {
+        return AstUtilities.EntityNameToString(name, global::Ts.Scanner.Scanner.GetTextOfNode);
+    }
 
     // utilities.go:1074-1082
     private static Node[]? GetMembersOfDeclaration(Node node)
@@ -1962,7 +1980,8 @@ public partial class Checker
     // ast.GetNameOfDeclaration: real body in AstUtilities (Utilities.Binder.cs, utilities.go:1428).
     private static Node? GetNameOfDeclaration(Node? declaration) => AstUtilities.GetNameOfDeclaration(declaration);
 
-    private static bool IsTypeOfExpression(Node node) => throw new NotImplementedException("ast.IsTypeOfExpression");
+    // ast.IsTypeOfExpression: real body in NodeTests (NodeCasts.g.cs, ast_generated.go:4968).
+    private static bool IsTypeOfExpression(Node node) => NodeTests.IsTypeOfExpression(node);
 
     // Local slice helpers matching Go slices.Compact / slices.Concat semantics on Node[]?.
     private static Node[] SlicesConcat(Node[]? a, Node[]? b)

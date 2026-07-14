@@ -33,6 +33,30 @@ public static partial class AstUtilities
         return false;
     }
 
+    // Go: utilities.go:2090-2107 (ast.EntityNameToString)
+    public static string EntityNameToString(Node name, Func<Node, string>? getTextOfNode)
+    {
+        switch (name.Kind)
+        {
+            case SyntaxKind.ThisKeyword:
+                return "this";
+            case SyntaxKind.Identifier:
+            case SyntaxKind.PrivateIdentifier:
+                if (NodeIsSynthesized(name) || getTextOfNode == null)
+                {
+                    return name.Text();
+                }
+                return getTextOfNode(name);
+            case SyntaxKind.QualifiedName:
+                return EntityNameToString(name.AsQualifiedName().Left!, getTextOfNode) + "." + EntityNameToString(name.AsQualifiedName().Right!, getTextOfNode);
+            case SyntaxKind.PropertyAccessExpression:
+                return EntityNameToString(name.Expression()!, getTextOfNode) + "." + EntityNameToString(name.AsPropertyAccessExpression().Name()!, getTextOfNode);
+            case SyntaxKind.JsxNamespacedName:
+                return EntityNameToString(name.AsJsxNamespacedName().Namespace!, getTextOfNode) + ":" + EntityNameToString(name.AsJsxNamespacedName().Name()!, getTextOfNode);
+        }
+        throw new InvalidOperationException("Unhandled case in EntityNameToString");
+    }
+
     // Go: utilities.go:2114-2127 — returns (string, bool); C# Try pattern (plan/05 §4.1)
     public static bool TryGetTextOfPropertyName(Node name, out string text)
     {

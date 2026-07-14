@@ -32,7 +32,8 @@ public partial class Checker
         }
         return exprType;
     }
-    internal Type CheckSuperExpression(Node node) => throw new NotImplementedException("checkSuperExpression");
+    // checkSuperExpression (7831): real body landed in Checker.Expressions.cs (with getSuperContainer
+    // + isInConstructorArgumentInitializer).
     // getResolvedSignature (8383): real body landed in Checker.CallResolution.cs (candidatesOutArray
     // modeled as List<Signature>? to match the Go *[]*Signature out-parameter).
     // utilities.go:90

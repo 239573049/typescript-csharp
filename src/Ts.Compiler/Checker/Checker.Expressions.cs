@@ -973,6 +973,215 @@ public partial class Checker
         return awaitedType;
     }
 
+    // checker.go:7831
+    internal Type CheckSuperExpression(Node node)
+    {
+        var isCallExpression = NodeTests.IsCallExpression(node.Parent!) && node.Parent!.Expression() == node;
+        var immediateContainer = GetSuperContainer(node, true /*stopOnFunctions*/);
+        var container = immediateContainer;
+
+        // adjust the container reference in case if super is used inside arrow functions with arbitrarily deep nesting
+        if (!isCallExpression)
+        {
+            while (container != null && NodeTests.IsArrowFunction(container))
+            {
+                container = GetSuperContainer(container, true /*stopOnFunctions*/);
+            }
+        }
+
+        bool isLegalUsageOfSuperExpression()
+        {
+            if (isCallExpression)
+            {
+                // TS 1.0 SPEC (April 2014): 4.8.1
+                // Super calls are only permitted in constructors of derived classes
+                return NodeTests.IsConstructorDeclaration(container!);
+            }
+            // TS 1.0 SPEC (April 2014)
+            // 'super' property access is allowed
+            // - In a constructor, instance member function, instance member accessor, or instance member variable initializer where this references a derived class instance
+            // - In a static member function or static member accessor
+
+            // topmost container must be something that is directly nested in the class declaration\object literal expression
+            if (AstUtilities.IsClassLike(container!.Parent!) || NodeTests.IsObjectLiteralExpression(container.Parent!))
+            {
+                if (AstUtilities.IsStatic(container))
+                {
+                    return AstUtilities.NodeKindIs(container, SyntaxKind.MethodDeclaration, SyntaxKind.MethodSignature, SyntaxKind.GetAccessor, SyntaxKind.SetAccessor, SyntaxKind.PropertyDeclaration, SyntaxKind.ClassStaticBlockDeclaration);
+                }
+                return AstUtilities.NodeKindIs(container, SyntaxKind.MethodDeclaration, SyntaxKind.MethodSignature, SyntaxKind.GetAccessor, SyntaxKind.SetAccessor, SyntaxKind.PropertyDeclaration, SyntaxKind.PropertySignature, SyntaxKind.Constructor);
+            }
+            return false;
+        }
+
+        if (container == null || !isLegalUsageOfSuperExpression())
+        {
+            // issue more specific error if super is used in computed property name
+            // class A { foo() { return "1" }}
+            // class B {
+            //     [super.foo()]() {}
+            // }
+            var current = AstUtilities.FindAncestorOrQuit(node, n =>
+            {
+                if (n == container)
+                {
+                    return FindAncestorResult.Quit;
+                }
+                if (NodeTests.IsComputedPropertyName(n))
+                {
+                    return FindAncestorResult.True;
+                }
+                return FindAncestorResult.False;
+            });
+            if (current != null && NodeTests.IsComputedPropertyName(current))
+            {
+                Error(node, Diag.X_super_cannot_be_referenced_in_a_computed_property_name);
+            }
+            else if (isCallExpression)
+            {
+                Error(node, Diag.Super_calls_are_not_permitted_outside_constructors_or_in_nested_functions_inside_constructors);
+            }
+            else if (container == null || container.Parent == null || !(AstUtilities.IsClassLike(container.Parent) || NodeTests.IsObjectLiteralExpression(container.Parent)))
+            {
+                Error(node, Diag.X_super_can_only_be_referenced_in_members_of_derived_classes_or_object_literal_expressions);
+            }
+            else
+            {
+                Error(node, Diag.X_super_property_access_is_permitted_only_in_a_constructor_member_function_or_member_accessor_of_a_derived_class);
+            }
+            return errorType!;
+        }
+        if (!isCallExpression && NodeTests.IsConstructorDeclaration(immediateContainer!))
+        {
+            CheckThisBeforeSuper(node, container, Diag.X_super_must_be_called_before_accessing_a_property_of_super_in_the_constructor_of_a_derived_class);
+        }
+        if (container.Parent!.Kind == SyntaxKind.ObjectLiteralExpression)
+        {
+            // for object literal assume that type of 'super' is 'any'
+            return anyType!;
+        }
+        // at this point the only legal case for parent is ClassLikeDeclaration
+        var classLikeDeclaration = container.Parent!;
+        if (AstUtilities.GetExtendsHeritageClauseElement(classLikeDeclaration) == null)
+        {
+            Error(node, Diag.X_super_can_only_be_referenced_in_a_derived_class);
+            return errorType!;
+        }
+        if (ClassDeclarationExtendsNull(classLikeDeclaration))
+        {
+            if (isCallExpression)
+            {
+                return errorType!;
+            }
+            return nullWideningType!;
+        }
+        var classType = GetDeclaredTypeOfSymbol(GetSymbolOfDeclaration(classLikeDeclaration)!);
+        Type? baseClassType = null;
+        if (classType != null)
+        {
+            baseClassType = CoreUtil.FirstOrNil(GetBaseTypes(classType));
+        }
+        if (baseClassType == null)
+        {
+            return errorType!;
+        }
+        if (NodeTests.IsConstructorDeclaration(container) && IsInConstructorArgumentInitializer(node, container))
+        {
+            // issue custom error message for super property access in constructor arguments (to be aligned with old compiler)
+            Error(node, Diag.X_super_cannot_be_referenced_in_constructor_arguments);
+            return errorType!;
+        }
+        if (AstUtilities.IsStatic(container) || isCallExpression)
+        {
+            if (!isCallExpression &&
+                languageVersion <= ScriptTarget.ES2021 &&
+                (NodeTests.IsPropertyDeclaration(container) || NodeTests.IsClassStaticBlockDeclaration(container)))
+            {
+                // for `super.x` or `super[x]` in a static initializer, mark all enclosing
+                // block scope containers so that we can report potential collisions with
+                // `Reflect`.
+                for (var blockScopeContainer = AstUtilities.GetEnclosingBlockScopeContainer(node.Parent!); blockScopeContainer != null; blockScopeContainer = AstUtilities.GetEnclosingBlockScopeContainer(blockScopeContainer))
+                {
+                    if (!NodeTests.IsSourceFile(blockScopeContainer) || AstUtilities.IsExternalOrCommonJSModule(blockScopeContainer.AsSourceFile()))
+                    {
+                        nodeLinks.Get(blockScopeContainer).flags |= NodeCheckFlags.ContainsSuperPropertyInStaticInitializer;
+                    }
+                }
+            }
+            return GetBaseConstructorTypeOfClass(classType!);
+        }
+        return GetTypeWithThisArgument(baseClassType, classType!.AsInterfaceType()!.thisType, false);
+    }
+
+    // internal/checker/utilities.go:1165-1194 (free func getSuperContainer)
+    internal static Node? GetSuperContainer(Node node, bool stopOnFunctions)
+    {
+        Node? current = node;
+        while (true)
+        {
+            current = current.Parent;
+            if (current == null)
+            {
+                return null;
+            }
+            switch (current.Kind)
+            {
+                case SyntaxKind.ComputedPropertyName:
+                    current = current.Parent!;
+                    break;
+                case SyntaxKind.FunctionDeclaration:
+                case SyntaxKind.FunctionExpression:
+                case SyntaxKind.ArrowFunction:
+                    if (!stopOnFunctions)
+                    {
+                        continue;
+                    }
+                    goto case SyntaxKind.PropertyDeclaration;
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.PropertySignature:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.MethodSignature:
+                case SyntaxKind.Constructor:
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                case SyntaxKind.ClassStaticBlockDeclaration:
+                    return current;
+                case SyntaxKind.Decorator:
+                    // Decorators are always applied outside of the body of a class or method.
+                    if (NodeTests.IsParameterDeclaration(current.Parent!) && AstUtilities.IsClassElement(current.Parent!.Parent!))
+                    {
+                        // If the decorator's parent is a Parameter, we resolve the this container from
+                        // the grandparent class declaration.
+                        current = current.Parent!.Parent!;
+                    }
+                    else if (AstUtilities.IsClassElement(current.Parent!))
+                    {
+                        // If the decorator's parent is a class element, we resolve the 'this' container
+                        // from the parent class declaration.
+                        current = current.Parent!;
+                    }
+                    break;
+            }
+        }
+    }
+
+    // checker.go:7940
+    internal bool IsInConstructorArgumentInitializer(Node node, Node constructorDecl)
+    {
+        return AstUtilities.FindAncestorOrQuit(node, n =>
+        {
+            if (AstUtilities.IsFunctionLikeDeclaration(n))
+            {
+                return FindAncestorResult.Quit;
+            }
+            if (NodeTests.IsParameterDeclaration(n) && n.Parent == constructorDecl)
+            {
+                return FindAncestorResult.True;
+            }
+            return FindAncestorResult.False;
+        }) != null;
+    }
+
     // checker.go:7953
     internal Type CheckTemplateExpression(Node node)
     {
