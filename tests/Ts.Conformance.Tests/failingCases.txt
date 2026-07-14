@@ -144,7 +144,6 @@ generatorTypeCheck62
 generatorTypeCheck63
 generatorTypeCheck8
 genericRestParameters1
-globalMergeWithCommonJSAssignmentDeclaration
 globalThisGlobalExportAsGlobal
 ifDoWhileStatements
 importAssertion4
@@ -157,7 +156,6 @@ importEmptyFromModuleNotExisted
 importTag11
 importTag12
 importTag14
-importTypeAmbient
 importTypeAmbientMissing
 indexSignatures1
 inferTypes1
@@ -197,7 +195,6 @@ jsdocPrefixPostfixParsing
 jsdocTemplateTag
 jsdocTemplateTag5
 jsdocTemplateTag8
-jsdocTypeReferenceExports
 jsxParsingError1
 keyofAndIndexedAccess
 keyofAndIndexedAccess2
@@ -256,12 +253,7 @@ parserComputedPropertyName26
 parserComputedPropertyName30
 parserComputedPropertyName34
 parserErrorRecovery_ModuleElement1
-parserExportAssignment1
-parserExportAssignment2
-parserExportAssignment3
-parserExportAssignment4
 parserExportAssignment5
-parserExportAssignment6
 parserExportAssignment9
 parserForOfStatement2
 parserForOfStatement21
