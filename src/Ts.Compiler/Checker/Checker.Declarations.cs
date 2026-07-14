@@ -382,6 +382,44 @@ public partial class Checker
         }
     }
 
+    // checker.go:2894
+    internal static bool IsInstancePropertyWithInitializerOrPrivateIdentifierProperty(Node n) =>
+        AstUtilities.IsPrivateIdentifierClassElementDeclaration(n) || NodeTests.IsPropertyDeclaration(n) && !AstUtilities.IsStatic(n) && n.Initializer() != null;
+
+    // checker.go:2898
+    internal static bool SuperCallIsRootLevelInConstructor(Node superCall, Node body)
+    {
+        var superCallParent = AstUtilities.WalkUpParenthesizedExpressions(superCall.Parent)!;
+        return NodeTests.IsExpressionStatement(superCallParent) && superCallParent.Parent == body;
+    }
+
+    // checker.go:2903
+    internal static bool NodeImmediatelyReferencesSuperOrThis(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.SuperKeyword:
+            case SyntaxKind.ThisKeyword:
+                return true;
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.PropertyDeclaration:
+                return false;
+            case SyntaxKind.Block:
+                switch (node.Parent!.Kind)
+                {
+                    case SyntaxKind.Constructor:
+                    case SyntaxKind.MethodDeclaration:
+                    case SyntaxKind.GetAccessor:
+                    case SyntaxKind.SetAccessor:
+                        return false;
+                }
+                break;
+        }
+        return node.ForEachChild(NodeImmediatelyReferencesSuperOrThis);
+    }
+
     // checker.go:2918
     internal void CheckAccessorDeclaration(Node node)
     {
@@ -910,6 +948,39 @@ public partial class Checker
                     Error(node, Diag.Cannot_extend_a_class_0_Class_constructor_is_marked_as_private, GetFullyQualifiedName(t.symbol!, null));
                 }
             }
+        }
+    }
+
+    // checker.go:4477
+    internal void IssueMemberSpecificError(Node node, Type typeWithThis, Type baseWithThis, global::Ts.Diagnostics.Message broadDiag)
+    {
+        // iterate over all implemented properties and issue errors on each one which isn't compatible, rather than the class as a whole, if possible
+        var issuedMemberError = false;
+        foreach (var member in node.Members().OrEmpty())
+        {
+            if (AstUtilities.IsStatic(member))
+            {
+                continue;
+            }
+            if (GetSymbolOfDeclaration(member) is { } declaredProp && declaredProp.Name != InternalSymbolName.Computed)
+            {
+                var prop = GetPropertyOfType(typeWithThis, declaredProp.Name);
+                var baseProp = GetPropertyOfType(baseWithThis, declaredProp.Name);
+                if (prop != null && baseProp != null)
+                {
+                    var diags = new List<Diagnostic>();
+                    if (!CheckTypeAssignableToEx(GetTypeOfSymbol(prop), GetTypeOfSymbol(baseProp), member.Name() ?? member, null /*headMessage*/, diags))
+                    {
+                        AddDiagnostic(Diagnostic.NewDiagnosticChain(diags[0], Diag.Property_0_in_type_1_is_not_assignable_to_the_same_property_in_base_type_2, SymbolToString(declaredProp), TypeToString(typeWithThis), TypeToString(baseWithThis)));
+                        issuedMemberError = true;
+                    }
+                }
+            }
+        }
+        if (!issuedMemberError)
+        {
+            // check again with diagnostics to generate a less-specific error
+            CheckTypeAssignableTo(typeWithThis, baseWithThis, node.Name() ?? node, broadDiag);
         }
     }
 

@@ -47,8 +47,7 @@ public partial class Checker
         }
         return result;
     }
-    // checker.go:4477
-    internal void IssueMemberSpecificError(Node node, Type typeWithThis, Type baseWithThis, global::Ts.Diagnostics.Message broadDiag) => throw new NotImplementedException("issueMemberSpecificError");
+    // IssueMemberSpecificError is now REAL in Checker.Declarations.cs (checker.go:4477).
     // GetTypeWithoutSignatures is now REAL in Checker.Declarations.cs (checker.go:4502).
     // checker.go:4519
     // CheckKindsOfPropertyMemberOverrides is now REAL in Checker.Declarations.cs (checker.go:4519).
@@ -501,12 +500,9 @@ public partial class Checker
     // utilities.go:64
     // utilities.go:64 — getSelectedModifierFlags.
     internal static ModifierFlags GetSelectedModifierFlags(Node node, ModifierFlags flags) => node.ModifierFlags() & flags;
-    // checker.go:2894
-    internal static bool IsInstancePropertyWithInitializerOrPrivateIdentifierProperty(Node n) => throw new NotImplementedException("isInstancePropertyWithInitializerOrPrivateIdentifierProperty");
-    // checker.go:2898
-    internal static bool SuperCallIsRootLevelInConstructor(Node superCall, Node body) => throw new NotImplementedException("superCallIsRootLevelInConstructor");
-    // checker.go:2903
-    internal static bool NodeImmediatelyReferencesSuperOrThis(Node node) => throw new NotImplementedException("nodeImmediatelyReferencesSuperOrThis");
+    // IsInstancePropertyWithInitializerOrPrivateIdentifierProperty is now REAL in Checker.Declarations.cs (checker.go:2894).
+    // SuperCallIsRootLevelInConstructor is now REAL in Checker.Declarations.cs (checker.go:2898).
+    // NodeImmediatelyReferencesSuperOrThis is now REAL in Checker.Declarations.cs (checker.go:2903).
     // utilities.go:1237
     internal static Node[] GetDeclarationsOfKind(Symbol symbol, SyntaxKind kind) => throw new NotImplementedException("getDeclarationsOfKind");
     // checker.go:5208
