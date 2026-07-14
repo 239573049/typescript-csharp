@@ -35,8 +35,7 @@ public partial class Checker
     // findContextualNode (30643), getContextualTypeForArgumentAtIndex (29529): real bodies landed in
     // Checker.ContextualType.cs (call-resolution + contextual-type wave).
 
-    // checker.go:30559
-    internal bool IsPossiblyDiscriminantValue(Node node) => throw new NotImplementedException("isPossiblyDiscriminantValue");
+    // isPossiblyDiscriminantValue (checker.go:30556) implemented in Checker.ContextualType.cs (#21).
 
     // ---- type mapping / spread (checker.go union/spread wave) ----
 
@@ -294,8 +293,7 @@ public partial class Checker
     // checker.go:28762 — getTypeOfFirstParameterOfSignatureWithFallback: real body landed in
     // Checker.AwaitedTypes.cs (#22 awaited-types wave).
 
-    // checker.go:21017
-    internal Signature[] GetUnionSignatures(Signature[][] signatureLists) => throw new NotImplementedException("getUnionSignatures");
+    // getUnionSignatures (checker.go:21017) implemented in Checker.Instantiation.cs (#14).
 
     // ---- index symbol (checker.go:31839) ----
 

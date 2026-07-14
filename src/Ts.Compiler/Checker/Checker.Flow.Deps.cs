@@ -149,13 +149,26 @@ public partial class Checker
     // apparent-type analysis). Only reached when the reference type is a generic with a union constraint.
     internal bool IsConstraintPosition(Type t, Node node) => throw new NotImplementedException("isConstraintPosition");
     internal bool HasContextualTypeWithNoGenericTypes(Node node, CheckMode checkMode) => throw new NotImplementedException("hasContextualTypeWithNoGenericTypes");
-    internal bool IsUnitLikeType(Type t) => throw new NotImplementedException("isUnitLikeType");
+    // checker.go:25322-25330
+    internal bool IsUnitLikeType(Type t)
+    {
+        // Intersections that reduce to 'never' (e.g. 'T & null' where 'T extends {}') are not unit types.
+        t = GetBaseConstraintOrType(t);
+        // Scan intersections such that tagged literal types are considered unit types.
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            return CoreUtil.Some(t.AsIntersectionType().types, IsUnitType);
+        }
+        return IsUnitType(t);
+    }
     internal Type GetFlowTypeOfProperty(Node reference, Symbol? prop) => throw new NotImplementedException("getFlowTypeOfProperty");
 
     // ---- type→property-name utilities (checker.go free funcs) ----
     // isTypeUsableAsPropertyName / getPropertyNameFromType already stubbed in Checker.SymbolResolution.cs.
     internal static bool IsNeitherUnitTypeNorNever(Type t) => throw new NotImplementedException("isNeitherUnitTypeNorNever");
-    internal static bool IsNonNullAccess(Node access) => throw new NotImplementedException("isNonNullAccess");
+    // utilities.go:1054-1056
+    internal static bool IsNonNullAccess(Node node) =>
+        AstUtilities.IsAccessExpression(node) && NodeTests.IsNonNullExpression(node.Expression()!);
     // IsTypeAny already stubbed in Checker.SymbolTypes.cs.
 }
 

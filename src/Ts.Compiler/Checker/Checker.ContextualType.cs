@@ -762,6 +762,34 @@ public partial class Checker
         return null;
     }
 
+    // Return true if the given expression is possibly a discriminant value. We limit the kinds of
+    // expressions we check to those that don't depend on their contextual type in order not to cause
+    // recursive (and possibly infinite) invocations of getContextualType.
+    // checker.go:30556-30570
+    internal bool IsPossiblyDiscriminantValue(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NumericLiteral:
+            case SyntaxKind.BigIntLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+            case SyntaxKind.TemplateExpression:
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+            case SyntaxKind.NullKeyword:
+            case SyntaxKind.Identifier:
+            case SyntaxKind.UndefinedKeyword:
+                return true;
+            case SyntaxKind.PropertyAccessExpression:
+            case SyntaxKind.ParenthesizedExpression:
+                return IsPossiblyDiscriminantValue(node.Expression()!);
+            case SyntaxKind.JsxExpression:
+                return node.Expression() == null || IsPossiblyDiscriminantValue(node.Expression()!);
+        }
+        return false;
+    }
+
     // ===== contextual stack helpers (checker.go:30633/30637/30643) =====
 
     // checker.go:30633

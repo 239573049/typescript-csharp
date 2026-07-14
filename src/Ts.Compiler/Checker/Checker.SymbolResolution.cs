@@ -1599,6 +1599,16 @@ public partial class Checker
         return symbol;
     }
 
+    // checker.go:14302-14307
+    internal Symbol? GetSymbolIfSameReference(Symbol s1, Symbol s2)
+    {
+        if (GetMergedSymbol(ResolveSymbol(GetMergedSymbol(s1))) == GetMergedSymbol(ResolveSymbol(GetMergedSymbol(s2))))
+        {
+            return s1;
+        }
+        return null;
+    }
+
     // checker.go:14316
     internal Symbol? GetSymbolOfDeclaration(Node node)
     {

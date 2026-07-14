@@ -2,10 +2,10 @@
 // plan/03 §4.2 partial #14. Covers the instantiateType family, the load-bearing depth guards
 // (instantiationDepth==100 / instantiationCount>=5,000,000, checker.go:22016) and the active
 // mapper stack, apparent/reduced-type resolution, type-argument defaults, and the mapped-type
-// accessor family. Heavy member-resolution functions that also fall in this line range
-// (resolveMappedTypeMembers / resolveUnionTypeMembers / resolveIntersectionTypeMembers /
-// getUnionSignatures / createUnionOrIntersectionProperty / getTypeOfMappedSymbol / …) are
-// deferred breadth-first — their stubs remain in the Members/Signatures dedup surface and are
+// accessor family. Heavy member-resolution functions that also fall in this line range are landed
+// here as they arrive (resolveUnionTypeMembers / getUnionSignatures / resolveIntersectionTypeMembers
+// / createUnionOrIntersectionProperty / …); resolveMappedTypeMembers / getTypeOfMappedSymbol remain
+// deferred breadth-first — their stubs stay in the Members/Signatures dedup surface and are
 // reported as remaining. A short DEFERRED region at the tail carries the #14 stubs this file's
 // implementations reference but do not yet implement.
 //
@@ -73,6 +73,166 @@ public partial class Checker
         resultLinks.mapper = m;
         resultLinks.nameType = links.nameType;
         return result;
+    }
+
+    // checker.go:20957-20975
+    internal void ResolveUnionTypeMembers(Type t)
+    {
+        // The members and properties collections are empty for union types. To get all properties of a union
+        // type use getPropertiesOfType (only the language service uses this).
+        var callSignatures = GetUnionSignatures(CoreUtil.Map(t.Types(), tt =>
+        {
+            if (tt == globalFunctionType)
+            {
+                return new Signature[] { unknownSignature! };
+            }
+            return GetSignaturesOfType(tt, SignatureKind.Call);
+        })!);
+        if (callSignatures.Length == 0)
+        {
+            callSignatures = GetArrayMemberCallSignatures(t) ?? [];
+        }
+        var constructSignatures = GetUnionSignatures(CoreUtil.Map(t.Types(), tt => GetSignaturesOfType(tt, SignatureKind.Construct))!);
+        var indexInfos = GetUnionIndexInfos(t.Types());
+        SetStructuredTypeMembers(t, null, callSignatures, constructSignatures, indexInfos);
+    }
+
+    // checker.go:20976-20998
+    internal Signature[]? GetArrayMemberCallSignatures(Type t)
+    {
+        // Check if union is exclusively instantiations of a member of the global Array or ReadonlyArray type.
+        var memberName = "";
+        var types = t.Types();
+        for (var i = 0; i < types.Length; i++)
+        {
+            var tt = types[i];
+            if ((tt.objectFlags & ObjectFlags.Instantiated) == 0 || tt.symbol is null || tt.symbol.Parent is null || !IsArrayOrTupleSymbol(tt.symbol.Parent))
+            {
+                return null;
+            }
+            if (i == 0)
+            {
+                memberName = tt.symbol.Name;
+            }
+            else if (memberName != tt.symbol.Name)
+            {
+                return null;
+            }
+        }
+        // Transform the type from `(A[] | B[])["member"]` to `(A | B)[]["member"]` (since we pretend array is covariant anyway).
+        var arrayArg = MapType(t, tt =>
+            tt.Mapper()!.Map(CoreUtil.IfElse(IsReadonlyArraySymbol(tt.symbol!.Parent), globalReadonlyArrayType, globalArrayType)!.AsInterfaceType()!.TypeParameters()![0]));
+        var arrayType = CreateArrayTypeEx(arrayArg, SomeType(t, tt => IsReadonlyArraySymbol(tt.symbol!.Parent)));
+        return GetSignaturesOfType(GetTypeOfPropertyOfType(arrayType, memberName)!, SignatureKind.Call);
+    }
+
+    // checker.go:20999-21004
+    internal bool IsArrayOrTupleSymbol(Symbol? symbol)
+    {
+        if (symbol is null || globalArrayType!.symbol is null || globalReadonlyArrayType!.symbol is null)
+        {
+            return false;
+        }
+        return GetSymbolIfSameReference(symbol, globalArrayType.symbol) is not null || GetSymbolIfSameReference(symbol, globalReadonlyArrayType.symbol) is not null;
+    }
+
+    // checker.go:21006-21011
+    internal bool IsReadonlyArraySymbol(Symbol? symbol)
+    {
+        if (symbol is null || globalReadonlyArrayType!.symbol is null)
+        {
+            return false;
+        }
+        return GetSymbolIfSameReference(symbol, globalReadonlyArrayType.symbol) is not null;
+    }
+
+    // The signatures of a union type are those signatures that are present in each of the constituent types.
+    // Generic signatures must match exactly, but non-generic signatures are allowed to have extra optional
+    // parameters and may differ in return types. When signatures differ in return types, the resulting return
+    // type is the union of the constituent return types.
+    // checker.go:21013-21086
+    internal Signature[] GetUnionSignatures(Signature[][] signatureLists)
+    {
+        List<Signature>? result = null;
+        var indexWithLengthOverOne = 0;
+        var countLengthOverOne = 0;
+        for (var i = 0; i < signatureLists.Length; i++)
+        {
+            if (signatureLists[i].Length == 0)
+            {
+                return [];
+            }
+            if (signatureLists[i].Length > 1)
+            {
+                indexWithLengthOverOne = i;
+                countLengthOverOne++;
+            }
+            foreach (var signature in signatureLists[i])
+            {
+                // Only process signatures with parameter lists that aren't already in the result list
+                if (result is null || FindMatchingSignature([.. result], signature, false /*partialMatch*/, false /*ignoreThisTypes*/, true /*ignoreReturnTypes*/) is null)
+                {
+                    var unionSignatures = FindMatchingSignatures(signatureLists, signature, i);
+                    if (unionSignatures is not null)
+                    {
+                        var s = signature;
+                        // Union the result types when more than one signature matches
+                        if (unionSignatures.Length > 1)
+                        {
+                            var thisParameter = signature.thisParameter;
+                            var firstThisParameterOfUnionSignatures = CoreUtil.FirstNonNil(unionSignatures, sig => sig.thisParameter);
+                            if (firstThisParameterOfUnionSignatures is not null)
+                            {
+                                var thisType = GetIntersectionType(CoreUtil.MapNonNil(unionSignatures, sig =>
+                                {
+                                    if (sig.thisParameter is not null)
+                                    {
+                                        return GetTypeOfSymbol(sig.thisParameter);
+                                    }
+                                    return null;
+                                })!);
+                                thisParameter = CreateSymbolWithType(firstThisParameterOfUnionSignatures, thisType);
+                            }
+                            s = CreateUnionSignature(signature, unionSignatures);
+                            s.thisParameter = thisParameter;
+                        }
+                        (result ??= []).Add(s);
+                    }
+                }
+            }
+        }
+        if ((result is null || result.Count == 0) && countLengthOverOne <= 1)
+        {
+            // No sufficiently similar signature existed to subsume all the other signatures in the union - time to see if we can make a single
+            // signature that handles all of them. We only do this when there are overloads in only one constituent. (Overloads are conditional in
+            // nature and having overloads in multiple constituents would necessitate making a power set of signatures from the type, whose
+            // ordering would be non-obvious)
+            var masterList = signatureLists[indexWithLengthOverOne];
+            Signature[]? results = (Signature[])masterList.Clone();
+            foreach (var signatures in signatureLists)
+            {
+                if (!CoreUtil.Same(signatures, masterList))
+                {
+                    var signature = signatures[0];
+                    Debug.Assert(signature is not null, "getUnionSignatures bails early on empty signature lists and should not have empty lists on second pass");
+                    if (signature!.typeParameters.Len() != 0 && CoreUtil.Some(results, s =>
+                        s.typeParameters.Len() != 0 && !CompareTypeParametersIdentical(signature.typeParameters, s.typeParameters)))
+                    {
+                        results = null;
+                    }
+                    else
+                    {
+                        results = CoreUtil.Map(results, sig => CombineUnionOrIntersectionMemberSignatures(sig, signature, true /*isUnion*/));
+                    }
+                    if (results is null)
+                    {
+                        break;
+                    }
+                }
+            }
+            return results ?? [];
+        }
+        return result is not null ? [.. result] : [];
     }
 
     // checker.go:21088-21123
@@ -231,6 +391,110 @@ public partial class Checker
         // permissive when calling, for now, we'll intersect the `this` types just like we do for param types in union signatures.
         var thisType = GetUnionOrIntersectionType([GetTypeOfSymbol(left), InstantiateType(GetTypeOfSymbol(right), mapper)], !isUnion, UnionReduction.Literal);
         return CreateSymbolWithType(left, thisType);
+    }
+
+    // checker.go:21207-21238
+    internal void ResolveIntersectionTypeMembers(Type t)
+    {
+        // The members and properties collections are empty for intersection types. To get all properties of an
+        // intersection type use getPropertiesOfType (only the language service uses this).
+        Signature[]? callSignatures = null;
+        Signature[]? constructSignatures = null;
+        IndexInfo[]? indexInfos = null;
+        var types = t.Types();
+        var (mixinFlags, mixinCount) = FindMixins(types);
+        for (var i = 0; i < types.Length; i++)
+        {
+            var tt = types[i];
+            // When an intersection type contains mixin constructor types, the construct signatures from
+            // those types are discarded and their return types are mixed into the return types of all
+            // other construct signatures in the intersection type. For example, the intersection type
+            // '{ new(...args: any[]) => A } & { new(s: string) => B }' has a single construct signature
+            // 'new(s: string) => A & B'.
+            if (!mixinFlags[i])
+            {
+                var signatures = GetSignaturesOfType(tt, SignatureKind.Construct);
+                if (signatures.Length != 0 && mixinCount > 0)
+                {
+                    var index = i;
+                    signatures = CoreUtil.Map(signatures, s =>
+                    {
+                        var clone = CloneSignature(s);
+                        clone.resolvedReturnType = IncludeMixinType(GetReturnTypeOfSignature(s), types, mixinFlags, index);
+                        return clone;
+                    })!;
+                }
+                constructSignatures = AppendSignatures(constructSignatures, signatures);
+            }
+            callSignatures = AppendSignatures(callSignatures, GetSignaturesOfType(tt, SignatureKind.Call));
+            foreach (var info in GetIndexInfosOfType(tt))
+            {
+                indexInfos = AppendIndexInfo(indexInfos, info, false /*union*/);
+            }
+        }
+        SetStructuredTypeMembers(t, null, callSignatures, constructSignatures, indexInfos);
+    }
+
+    // checker.go:21240-21249
+    internal Signature[]? AppendSignatures(Signature[]? signatures, Signature[] newSignatures)
+    {
+        foreach (var sig in newSignatures)
+        {
+            if (signatures is null || signatures.Length == 0 || CoreUtil.Every(signatures, s =>
+                CompareSignaturesIdentical(s, sig, false /*partialMatch*/, false /*ignoreThisTypes*/, false /*ignoreReturnTypes*/, CompareTypesIdentical) == Ternary.False))
+            {
+                signatures = [.. signatures ?? [], sig];
+            }
+        }
+        return signatures;
+    }
+
+    // checker.go:21251-21268
+    internal IndexInfo[]? AppendIndexInfo(IndexInfo[]? indexInfos, IndexInfo newInfo, bool union)
+    {
+        if (indexInfos is not null)
+        {
+            for (var i = 0; i < indexInfos.Length; i++)
+            {
+                var info = indexInfos[i];
+                if (info.keyType == newInfo.keyType)
+                {
+                    Type valueType;
+                    bool isReadonly;
+                    if (union)
+                    {
+                        valueType = GetUnionType([info.valueType, newInfo.valueType]);
+                        isReadonly = info.isReadonly || newInfo.isReadonly;
+                    }
+                    else
+                    {
+                        valueType = GetIntersectionType([info.valueType, newInfo.valueType]);
+                        isReadonly = info.isReadonly && newInfo.isReadonly;
+                    }
+                    indexInfos[i] = NewIndexInfo(info.keyType, valueType, isReadonly, null, null);
+                    return indexInfos;
+                }
+            }
+        }
+        return [.. indexInfos ?? [], newInfo];
+    }
+
+    // checker.go:21292-21302
+    internal Type IncludeMixinType(Type t, Type[] types, bool[] mixinFlags, int index)
+    {
+        List<Type> mixedTypes = [];
+        for (var i = 0; i < types.Length; i++)
+        {
+            if (i == index)
+            {
+                mixedTypes.Add(t);
+            }
+            else if (mixinFlags[i])
+            {
+                mixedTypes.Add(GetReturnTypeOfSignature(GetSignaturesOfType(types[i], SignatureKind.Construct)[0]));
+            }
+        }
+        return GetIntersectionType([.. mixedTypes]);
     }
 
     // checker.go:21634-21667 — For a type parameter, return the base constraint; for the string,

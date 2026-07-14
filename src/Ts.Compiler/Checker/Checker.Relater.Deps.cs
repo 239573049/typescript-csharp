@@ -40,7 +40,21 @@ public partial class Checker
         return false;
     }
     // getUnionOrIntersectionProperty (checker.go:21333): real body landed in Checker.Instantiation.cs.
-    internal Type? GetTypeOfPropertyOrIndexSignatureOfType(Type type, string name) => throw new NotImplementedException("getTypeOfPropertyOrIndexSignatureOfType");
+    // checker.go:29071-29081
+    internal Type? GetTypeOfPropertyOrIndexSignatureOfType(Type type, string name)
+    {
+        var propType = GetTypeOfPropertyOfType(type, name);
+        if (propType is not null)
+        {
+            return propType;
+        }
+        var indexInfo = GetApplicableIndexInfoForName(type, name);
+        if (indexInfo is not null)
+        {
+            return AddOptionalityEx(indexInfo.valueType, true /*isProperty*/, true /*isOptional*/);
+        }
+        return null;
+    }
     // GetRegularTypeOfObjectLiteral is now REAL in Checker.Widening.cs (checker.go:27988).
     // checker.go:27690
     internal bool TypeHasCallOrConstructSignatures(Type type) =>

@@ -164,8 +164,8 @@ public partial class Checker
     // sliceTupleType owned by the relater wave (Checker.Relater.cs).
     internal void ResolveMappedTypeMembers(Type t) => throw new NotImplementedException("resolveMappedTypeMembers");
     // resolveReverseMappedTypeMembers (inference.go:1065) implemented in Checker.Inference.cs.
-    internal void ResolveUnionTypeMembers(Type t) => throw new NotImplementedException("resolveUnionTypeMembers");
-    internal void ResolveIntersectionTypeMembers(Type t) => throw new NotImplementedException("resolveIntersectionTypeMembers");
+    // resolveUnionTypeMembers (20957) / resolveIntersectionTypeMembers (21207) implemented in
+    // Checker.Instantiation.cs (#14).
 
     // ---- widening / initializer inference ----
     // checkDeclarationInitializer (checker.go:16710) landed in this file; its parameter-binding-pattern
