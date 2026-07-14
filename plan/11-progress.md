@@ -56,7 +56,7 @@
 | 当前阶段 | **阶段 5–8 多线并进**：checker 22 partial 全面实质落地（+awaited-types #22/属性访问/函数符号/typeFacts/调用解析/上下文类型/拓宽/别名标记/全局合并/lib-reference 加载）——**双里程碑达成：e2e 类型错误端到端返回 + 真实 .ts→.js emit**（tscs 是真编译器）；**conformance 815 例语料 26.5%→~55.5% 字节匹配（阶段 5 第一档 25% 达成，第二档 60% 逼近，§5 历史表）**，curated 12/16，语料扩容 ~2,619 例 + 全量跑批在途；**阶段 6** printer/transformers/sourcemap 全落地 + emit 管线接线；**阶段 7** CLI tscs 类型检查+emit+tsconfig；**阶段 8** LanguageService（jsonrpc/format/quickinfo/definition/completions/references/signatureHelp）+ **LSP server 骨架（tscs --lsp）**；**跨阶段** fswatch/tracing/pprof/pseudochecker/diagnosticwriter/locale；余：匹配率爬坡（failingCases 628 例逐波消化）/.d.ts 签名序列化/execute watch+build/api/fourslash；阶段 0 待远端 CI | 首个未签核阶段 |
 | 包状态达「完成」 | 0 / 49 行（0 LOC / 298,374 可移植 LOC = **0.0%**） | §4 表中状态=完成的行；LOC 加权分母 = 全表 LOC 合计 298,474 − json 100（N/A 不移植） |
 | 包状态达「编译通过」及以上 | ~30 / 49 行（阶段 1–4 主体 + checker/evaluator/nodebuilder/sourcemap/diagnosticwriter/locale/printer/transformers/fswatch/tracing/pprof/pseudochecker/jsonrpc/format/execute；§4 逐行细化下次会话补） | 同上，状态 ∈ {编译通过, 单测绿, 差分绿, 基线绿, 完成} |
-| 最近 conformance 通过率 | **84.6%（2216/2619，2026-07-15 全合格语料跑批；向第三档 90% 爬坡中）** | §5 历史表最新行 |
+| 最近 conformance 通过率 | **84.9%（2224/2619，2026-07-15 全合格语料跑批；向第三档 90% 爬坡中）** | §5 历史表最新行 |
 | 最近 fourslash 通过率 | —（尚未有跑批） | §5.2 历史表最新行 |
 | 已签核门禁 | 0 | §6 行数 |
 | 已登记偏差 | 8（D-001…D-008；另有 6 项设计期偏差待落地登记，§8.2） | §8.1 行数 |
