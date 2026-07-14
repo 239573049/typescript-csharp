@@ -85,8 +85,9 @@ public static partial class CompilerBaselineRunner
     // to harness options by SetOptionsFromTestConfig and must never reach the compiler option
     // parser (an unknown-option diagnostic would corrupt the errors baseline). Options that only
     // affect types/js baselines (noTypesAndSymbols, fullEmitPaths, ...) are ignorable for the
-    // errors.txt wave; behavior-affecting ones (useCaseSensitiveFileNames, libFiles, ...) simply
-    // stay non-matching and land in failingCases.txt until honored.
+    // errors.txt wave; libFiles is honored below (harnessutil.go:145-154); the remaining
+    // behavior-affecting ones (useCaseSensitiveFileNames, ...) simply stay non-matching and land
+    // in failingCases.txt until honored.
     private static readonly HashSet<string> s_harnessOnlyOptions = new(StringComparer.Ordinal)
     {
         "baselinefile",
@@ -115,6 +116,23 @@ public static partial class CompilerBaselineRunner
             foreach (string libName in global::Ts.Bundled.Bundled.LibNames)
             {
                 contents[libName] = File.ReadAllText(Path.Combine(bundledLibRoot, libName), Encoding.UTF8);
+            }
+            return contents;
+        },
+        LazyThreadSafetyMode.ExecutionAndPublication);
+
+    // Go harnessutil.go:241-264 testLibFolderMap (sync.OnceValue): every file under the
+    // TypeScript submodule's tests/lib directory, keyed by its `/.lib/<relative path>` VFS path.
+    // Only merged into a test VFS when the case actually references the folder (includeLibDir).
+    private static readonly Lazy<IReadOnlyDictionary<string, string>> s_testLibFolderContents = new(
+        () =>
+        {
+            string libRoot = Path.Combine(RepoPaths.TypeScriptSubmodulePath, "tests", "lib");
+            var contents = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (string filePath in Directory.EnumerateFiles(libRoot, "*", SearchOption.AllDirectories))
+            {
+                string relative = Path.GetRelativePath(libRoot, filePath).Replace('\\', '/');
+                contents[LibraryFolder + "/" + relative] = File.ReadAllText(filePath, Encoding.UTF8);
             }
             return contents;
         },
@@ -213,6 +231,39 @@ public static partial class CompilerBaselineRunner
             vfsEntries[path] = unit.Content;
         }
 
+        var rootPaths = SelectRootPaths(unitsByPath, parsed.GlobalOptions);
+
+        // Performance optimization; avoid copying in the /.lib folder if the test doesn't need it.
+        // Go harnessutil.go:142 scans the compiled input files (toBeCompiled) only, not otherFiles;
+        // rootPaths is exactly that set here.
+        bool includeLibDir = unitsByPath.Any(entry =>
+            rootPaths.Contains(entry.Path, StringComparer.Ordinal) &&
+            entry.Unit.Content.Contains(LibraryFolder + "/", StringComparison.Ordinal));
+
+        // Files from tests/lib that are requested by "@libFiles" join the program file set after
+        // the test units (Go harnessutil.go:145-154); they are compiled but never baselined.
+        var programRoots = rootPaths;
+        if (parsed.GlobalOptions.TryGetValue("libfiles", out string? libFilesValue))
+        {
+            bool noLib = parsed.GlobalOptions.TryGetValue("nolib", out string? noLibValue) &&
+                string.Equals(noLibValue, "true", StringComparison.OrdinalIgnoreCase);
+            foreach (string libFile in ParseLibFilesList(libFilesValue))
+            {
+                if (string.Equals(libFile, "lib.d.ts", StringComparison.Ordinal) && !noLib)
+                {
+                    // Go harnessutil.go:148: "We used to override lib with a custom lib.d.ts for
+                    // some reason. Skip this unless it becomes necessary."
+                    continue;
+                }
+                if (ReferenceEquals(programRoots, rootPaths))
+                {
+                    programRoots = new List<string>(rootPaths);
+                }
+                programRoots.Add(global::Ts.TsPath.TsPath.CombinePaths(LibraryFolder, libFile));
+                includeLibDir = true;
+            }
+        }
+
         // The product-side bundled.WrapFS equivalent is not exported yet. Load the generated lib
         // copies into this test VFS so Program sees the same `/.lib` namespace as the Go harness.
         // map-iter: 序无关 — dictionary insertion into the VFS map; VFS lookup is by path.
@@ -229,10 +280,20 @@ public static partial class CompilerBaselineRunner
             vfsEntries[linkPath] = VfsTestUtil.Symlink(targetPath);
         }
 
+        // Go harnessutil.go:207-209: maps.Copy(testfs, testLibFolderMap()) — mounted last, after
+        // test units and symlinks, so a tests/lib file wins over any same-path entry.
+        if (includeLibDir)
+        {
+            // map-iter: 序无关 — dictionary insertion into the VFS map; VFS lookup is by path.
+            foreach ((string libPath, string libContent) in s_testLibFolderContents.Value)
+            {
+                vfsEntries[libPath] = libContent;
+            }
+        }
+
         IFileSystem fs = VfsTestUtil.FromMap(vfsEntries, useCaseSensitiveFileNames: true);
-        var rootPaths = SelectRootPaths(unitsByPath, parsed.GlobalOptions);
         var configHost = new VfsParseConfigHost(fs, currentDirectory);
-        ParsedCommandLine config = ParseCompilerOptions(configHost, parsed.GlobalOptions, rootPaths);
+        ParsedCommandLine config = ParseCompilerOptions(configHost, parsed.GlobalOptions, programRoots);
         CompilerOptions options = config.CompilerOptions()!;
         if (options.NewLine == NewLineKind.None)
         {
@@ -423,6 +484,27 @@ public static partial class CompilerBaselineRunner
         }
         args.AddRange(roots);
         return global::Ts.TsOptions.CommandLineParser.ParseCommandLine(args.ToArray(), host);
+    }
+
+    // Go tsoptions.ParseListTypeOption (commandlineparser.go:339-366) as applied to the string-
+    // element "libFiles" harness option: trim the whole value; a "-" prefix or empty value yields
+    // no entries; otherwise split on ',' and drop empty elements (elements are not trimmed).
+    private static List<string> ParseLibFilesList(string value)
+    {
+        value = value.Trim();
+        var result = new List<string>();
+        if (value.StartsWith('-') || value.Length == 0)
+        {
+            return result;
+        }
+        foreach (string element in value.Split(','))
+        {
+            if (element.Length != 0)
+            {
+                result.Add(element);
+            }
+        }
+        return result;
     }
 
     private static List<string> SelectRootPaths(
