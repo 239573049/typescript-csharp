@@ -571,13 +571,57 @@ public sealed class Diagnostic
     public StringOrMarkupContent Message { get; set; } = null!;
 
     [JsonPropertyName("tags")]
-    public JsonElement? Tags { get; set; }
+    public DiagnosticTag[]? Tags { get; set; }
 
     [JsonPropertyName("relatedInformation")]
-    public JsonElement? RelatedInformation { get; set; }
+    public DiagnosticRelatedInformation[]? RelatedInformation { get; set; }
 
     [JsonPropertyName("data")]
     public JsonElement? Data { get; set; }
+}
+
+// lsp_generated.go: DiagnosticTag.
+public enum DiagnosticTag : uint
+{
+    // Unused or unnecessary code.
+    Unnecessary = 1,
+    // Deprecated or obsolete code.
+    Deprecated = 2,
+}
+
+// lsp_generated.go: DiagnosticRelatedInformation — a related diagnostic location and message.
+public sealed class DiagnosticRelatedInformation
+{
+    [JsonPropertyName("location")]
+    [JsonRequired]
+    public Location Location { get; set; } = null!;
+
+    [JsonPropertyName("message")]
+    [JsonRequired]
+    public string Message { get; set; } = "";
+}
+
+// lsp_generated.go: DocumentHighlightKind.
+public enum DocumentHighlightKind : uint
+{
+    // A textual occurrence.
+    Text = 1,
+    // Read-access of a symbol, like reading a variable.
+    Read = 2,
+    // Write-access of a symbol, like writing to a variable.
+    Write = 3,
+}
+
+// lsp_generated.go: DocumentHighlight — a range inside a text document which deserves
+// special attention, usually a symbol occurrence.
+public sealed class DocumentHighlight
+{
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    [JsonPropertyName("kind")]
+    public DocumentHighlightKind? Kind { get; set; }
 }
 
 public sealed class PublishDiagnosticsParams
