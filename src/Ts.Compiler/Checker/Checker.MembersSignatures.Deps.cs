@@ -127,7 +127,8 @@ public partial class Checker
         (!CoreUtil.Some(prop.Declarations, AstUtilities.IsPrivateIdentifierClassElementDeclaration) && (prop.Flags & (SymbolFlags.Method | SymbolFlags.GetAccessor | SymbolFlags.SetAccessor)) == 0) ||
         !CoreUtil.Some(prop.Declarations, d => d.Parent is not null && AstUtilities.IsClassLike(d.Parent));
     // isSymbolAssigned: owned by flow.go — real body in Checker.Flow.cs.
-    internal bool IsKnownSymbol(Symbol symbol) => throw new NotImplementedException("IsKnownSymbol");
+    // utilities.go:952
+    internal bool IsKnownSymbol(Symbol symbol) => IsLateBoundName(symbol.Name);
     // getLiteralTypeFromProperty (26617) / getLiteralTypeFromPropertyName (26640) implemented in Checker.IndexedAccess.cs (#18).
     // getPropertyOfObjectType implemented by the #14 Instantiation wave (Checker.Instantiation.cs).
     // getPropertyOfUnionOrIntersectionType (21319) / getUnionOrIntersectionProperty (21333) /

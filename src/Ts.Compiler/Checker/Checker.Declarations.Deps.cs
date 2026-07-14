@@ -259,7 +259,19 @@ public partial class Checker
         return diagnostic!.AddRelatedInfo(NewDiagnosticForNode(typeOnlyDeclaration, CoreUtil.IfElse(isExport, Diag.X_0_was_exported_here, Diag.X_0_was_imported_here), name));
     }
     // checker.go:5717
-    internal bool HasExportedMembersOfKind(Symbol moduleSymbol, SymbolFlags kind) => throw new NotImplementedException("hasExportedMembersOfKind");
+    // checker.go:5717
+    // map-iter: 序无关 — any matching export returns true (early-return), order-independent.
+    internal bool HasExportedMembersOfKind(Symbol moduleSymbol, SymbolFlags kind)
+    {
+        foreach (var symbol in (moduleSymbol.Exports?.Values ?? System.Linq.Enumerable.Empty<Symbol>()))
+        {
+            if (symbol.Name != InternalSymbolName.ExportEquals && (GetSymbolFlags(symbol) & kind) != 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     // checker.go:5726
     internal bool HasShadowedNamespace(Symbol symbol) => throw new NotImplementedException("hasShadowedNamespace");
     // checker.go:6938-6977
@@ -456,7 +468,27 @@ public partial class Checker
         return false;
     }
     // checker.go:3085
-    internal Node? GetTypePredicateParent(Node node) => throw new NotImplementedException("getTypePredicateParent");
+    // checker.go:3085
+    internal Node? GetTypePredicateParent(Node node)
+    {
+        var parent = node.Parent!;
+        switch (parent.Kind)
+        {
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.CallSignature:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.FunctionType:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.MethodSignature:
+                if (node == parent.Type())
+                {
+                    return parent;
+                }
+                break;
+        }
+        return null;
+    }
     // checker.go:3097
     internal bool CheckIfTypePredicateVariableIsDeclaredInBindingPattern(Node pattern, Node predicateVariableNode, string predicateVariableName) => throw new NotImplementedException("checkIfTypePredicateVariableIsDeclaredInBindingPattern");
 

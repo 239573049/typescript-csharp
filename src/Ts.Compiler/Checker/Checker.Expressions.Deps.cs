@@ -41,7 +41,17 @@ public partial class Checker
     // checkTemplateExpression (checker.go:7953) landed in Checker.Expressions.cs.
 
     // checker.go:7989
-    internal Type CheckRegularExpressionLiteral(Node node) => throw new NotImplementedException("checkRegularExpressionLiteral");
+    // checker.go:7989
+    internal Type CheckRegularExpressionLiteral(Node node)
+    {
+        var links = nodeLinks.Get(node);
+        if ((links.flags & NodeCheckFlags.TypeChecked) == 0)
+        {
+            links.flags |= NodeCheckFlags.TypeChecked;
+            CheckGrammarRegularExpressionLiteral(node.AsRegularExpressionLiteral());
+        }
+        return globalRegExpType!;
+    }
 
     // checker.go:13094 — checkObjectLiteral: real body landed in Checker.ObjectLiteral.cs.
 

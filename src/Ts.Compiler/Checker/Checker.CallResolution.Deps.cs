@@ -158,7 +158,43 @@ public partial class Checker
     // checker.go:8438/8442 — remaining resolveSignature dispatch targets (decorator / instanceof waves).
     // resolveJsxOpeningLikeElement is REAL (jsx wave); resolveTaggedTemplateExpression is REAL (Checker.CallResolution.cs).
     private Signature ResolveDecorator(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("resolveDecorator");
-    private Signature ResolveInstanceofExpression(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("resolveInstanceofExpression");
+    // checker.go:8776
+    private Signature ResolveInstanceofExpression(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode)
+    {
+        // if rightType is an object type with a custom `[Symbol.hasInstance]` method, then it is potentially
+        // valid on the right-hand side of the `instanceof` operator (Step 2 of the ECMAScript algorithm).
+        var right = node.AsBinaryExpression().Right!;
+        var rightType = CheckExpression(right);
+        if (!IsTypeAny(rightType))
+        {
+            var hasInstanceMethodType = GetSymbolHasInstanceMethodOfObjectType(rightType);
+            if (hasInstanceMethodType != null)
+            {
+                var apparentType = GetApparentType(hasInstanceMethodType);
+                if (IsErrorType(apparentType))
+                {
+                    return ResolveErrorCall(node);
+                }
+                var callSignatures = GetSignaturesOfType(apparentType, SignatureKind.Call);
+                var constructSignatures = GetSignaturesOfType(apparentType, SignatureKind.Construct);
+                if (IsUntypedFunctionCall(hasInstanceMethodType, apparentType, callSignatures.Length, constructSignatures.Length))
+                {
+                    return ResolveUntypedCall(node);
+                }
+                if (callSignatures.Length != 0)
+                {
+                    return ResolveCall(node, callSignatures, candidatesOutArray, checkMode, SignatureFlags.None, null);
+                }
+            }
+            else if (!(TypeHasCallOrConstructSignatures(rightType) || IsTypeSubtypeOf(rightType, globalFunctionType!)))
+            {
+                Error(right, global::Ts.Diagnostics.Diagnostics.The_right_hand_side_of_an_instanceof_expression_must_be_either_of_type_any_a_class_function_or_other_type_assignable_to_the_Function_interface_type_or_an_object_type_with_a_Symbol_hasInstance_method);
+                return ResolveErrorCall(node);
+            }
+        }
+        // fall back to a default signature
+        return anySignature!;
+    }
 
     // checker.go:9108/29901 — decorator argument shape (legacy/ES decorator cluster).
     private int GetDecoratorArgumentCount(Node node, Signature signature) => throw new NotImplementedException("getDecoratorArgumentCount");
