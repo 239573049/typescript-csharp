@@ -413,10 +413,12 @@ public static class FailingCases
         # One case name per line (= baseline name without .errors.txt). '#' and blank lines are ignored.
         # Semantics: listed + mismatch => theory Skips; NOT listed + mismatch => theory FAILS (regression);
         # listed + match => passes (prune opportunistically, the list only widens the Skip gate).
-        # Regenerate (run from repo root; rewrites this file from the full eligible corpus):
-        #   TSCS_CONFORMANCE_UPDATE_FAILING=1 dotnet test \
-        #     tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj -c Release --nologo /nodeReuse:false \
-        #     --filter FullyQualifiedName=Ts.Conformance.Tests.CorpusRunnerTests.RegenerateFailingCases_FromFullEligibleCorpus_WhenRequested
+        # Regenerate (run from repo root; rewrites this file from the full eligible corpus).
+        # Use the xUnit v3 native executable — under `dotnet test`/vstest the corpus theory can
+        # collapse (no data pre-enumeration) and captured console output is swallowed:
+        #   dotnet build tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj -c Release /nodeReuse:false
+        #   TSCS_CONFORMANCE_UPDATE_FAILING=1 tests/Ts.Conformance.Tests/bin/Release/net10.0/Ts.Conformance.Tests \
+        #     -method "Ts.Conformance.Tests.CorpusRunnerTests.CorpusSummary_ReportsMatchRateAndAccounting"
         """;
 
     public static void Save(IEnumerable<string> names)
