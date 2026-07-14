@@ -1142,6 +1142,22 @@ public static partial class AstUtilities
         }
         return false;
     }
+
+    // utilities.go:3674
+    public static bool IsRightSideOfQualifiedNameOrPropertyAccess(Node node)
+    {
+        var parent = node.Parent!;
+        switch (parent.Kind)
+        {
+            case SyntaxKind.QualifiedName:
+                return parent.AsQualifiedName().Right == node;
+            case SyntaxKind.PropertyAccessExpression:
+                return parent.AsPropertyAccessExpression().Name() == node;
+            case SyntaxKind.MetaProperty:
+                return parent.AsMetaProperty().Name() == node;
+        }
+        return false;
+    }
 }
 
 // Go: internal/ast/utilities.go:1500-1520 — `type JSDeclarationKind int` iota block. Members

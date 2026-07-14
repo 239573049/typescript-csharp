@@ -1535,7 +1535,50 @@ public partial class Checker
 
     internal Symbol? GetExternalModuleMember(Node node, Node specifier, bool dontResolveAlias) => throw new NotImplementedException("getExternalModuleMember");
 
-    internal void CheckAndReportErrorForResolvingImportAliasToTypeOnlySymbol(Node node, Symbol? resolved) => throw new NotImplementedException("checkAndReportErrorForResolvingImportAliasToTypeOnlySymbol");
+    // checker.go:14420
+    internal void CheckAndReportErrorForResolvingImportAliasToTypeOnlySymbol(Node node, Symbol? resolved)
+    {
+        var decl = node.AsImportEqualsDeclaration();
+        Node name = decl.ModuleReference!;
+        while (true)
+        {
+            var typeOnlyDeclaration = GetTypeOnlyDeclarationOfEntityName(name);
+            if (typeOnlyDeclaration != null)
+            {
+                bool isExport = AstUtilities.NodeKindIs(typeOnlyDeclaration, SyntaxKind.ExportSpecifier, SyntaxKind.ExportDeclaration);
+                var message = isExport
+                    ? global::Ts.Diagnostics.Diagnostics.An_import_alias_cannot_reference_a_declaration_that_was_exported_using_export_type
+                    : global::Ts.Diagnostics.Diagnostics.An_import_alias_cannot_reference_a_declaration_that_was_imported_using_import_type;
+                var relatedMessage = isExport
+                    ? global::Ts.Diagnostics.Diagnostics.X_0_was_exported_here
+                    : global::Ts.Diagnostics.Diagnostics.X_0_was_imported_here;
+                // TODO: how to get name for export *?
+                string relatedName = "*";
+                if (!NodeTests.IsExportDeclaration(typeOnlyDeclaration))
+                {
+                    relatedName = typeOnlyDeclaration.Name()!.Text();
+                }
+                Error(decl.ModuleReference, message).AddRelatedInfo(CreateDiagnosticForNode(typeOnlyDeclaration, relatedMessage, relatedName));
+                break;
+            }
+            if (NodeTests.IsIdentifier(name))
+            {
+                break;
+            }
+            name = name.AsQualifiedName().Left!;
+        }
+    }
+
+    // checker.go:14447
+    internal Node? GetTypeOnlyDeclarationOfEntityName(Node name)
+    {
+        var symbol = ResolveEntityName(name, SymbolFlags.Value | SymbolFlags.Type | SymbolFlags.Namespace, true /*ignoreErrors*/, true /*dontResolveAlias*/, null /*location*/);
+        if (symbol != null)
+        {
+            return GetTypeOnlyAliasDeclaration(symbol);
+        }
+        return null;
+    }
 
     internal Symbol? GetSuggestedSymbolForNonexistentModule(Node name, Symbol targetModule) => throw new NotImplementedException("getSuggestedSymbolForNonexistentModule");
 
@@ -1857,7 +1900,8 @@ public partial class Checker
         return node.AsImportEqualsDeclaration().ModuleReference!.Expression();
     }
 
-    private static bool IsRightSideOfQualifiedNameOrPropertyAccess(Node node) => throw new NotImplementedException("ast.IsRightSideOfQualifiedNameOrPropertyAccess");
+    // ast.IsRightSideOfQualifiedNameOrPropertyAccess: real body in AstUtilities (Utilities.Binder.cs, utilities.go:3674).
+    private static bool IsRightSideOfQualifiedNameOrPropertyAccess(Node node) => AstUtilities.IsRightSideOfQualifiedNameOrPropertyAccess(node);
 
     // internal so the EmitResolver class (separate type) can reach it; body still deferred to the ast wave.
     // ast/utilities.go:2881
