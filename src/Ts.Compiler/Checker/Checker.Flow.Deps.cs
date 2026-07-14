@@ -95,7 +95,7 @@ public partial class Checker
     }
     internal bool IsSomeSymbolAssigned(Node rootDeclaration) => throw new NotImplementedException("isSomeSymbolAssigned");
     internal Symbol? GetSymbolForPrivateIdentifierExpression(Node privId) => throw new NotImplementedException("getSymbolForPrivateIdentifierExpression");
-    internal Symbol? GetGlobalRecordSymbol() => throw new NotImplementedException("getGlobalRecordSymbol");
+    internal Symbol? GetGlobalRecordSymbol() => getGlobalRecordSymbol();
     // checker.go:1076 — memoized resolver assigned in the constructor (Checker.Construction.cs).
     internal Symbol? GetGlobalESSymbolConstructorSymbolOrNil() => getGlobalESSymbolConstructorSymbolOrNil();
 

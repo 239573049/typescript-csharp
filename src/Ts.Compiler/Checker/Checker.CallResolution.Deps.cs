@@ -170,10 +170,11 @@ public partial class Checker
     // checker.go:31010 — getAwaitedType: real body landed in Checker.AwaitedTypes.cs (#22).
 
     // ---- global-type resolvers reached from call/contextual paths (global-type bootstrap cluster) ----
-    private Type GetGlobalImportCallOptionsType() => throw new NotImplementedException("getGlobalImportCallOptionsType");
-    private Type GetGlobalImportAttributesType() => throw new NotImplementedException("getGlobalImportAttributesType");
+    // wired field resolver (Construction.cs); the method just unmasks it.
+    private Type GetGlobalImportCallOptionsType() => getGlobalImportCallOptionsType();
+    private Type GetGlobalImportAttributesType() => getGlobalImportAttributesType();
     // getGlobalTemplateStringsArrayType: resolved via the getGlobalTemplateStringsArrayType field (Checker.Construction.cs).
-    private Symbol? GetGlobalPromiseConstructorSymbolOrNil() => throw new NotImplementedException("getGlobalPromiseConstructorSymbolOrNil");
+    private Symbol? GetGlobalPromiseConstructorSymbolOrNil() => getGlobalPromiseConstructorSymbolOrNil();
 
     // ---- deferred contextual branches (generator / decorator / JS-assignment-declaration surfaces) ----
     // checker.go:29476/29507 — yield/await contextual operands (generator-iteration cluster).

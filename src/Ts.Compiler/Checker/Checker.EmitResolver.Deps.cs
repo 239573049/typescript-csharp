@@ -115,8 +115,8 @@ public partial class Checker
         throw new NotImplementedException("IsValueSymbolAccessible");
 
     // checker.go:843 — getGlobalPromiseConstructorSymbol (getGlobalValueSymbolResolver("Promise")).
-    internal Symbol? GetGlobalPromiseConstructorSymbol() =>
-        throw new NotImplementedException("getGlobalPromiseConstructorSymbol");
+    // Wired field resolver (Construction.cs:214); the method just unmasks it.
+    internal Symbol? GetGlobalPromiseConstructorSymbol() => getGlobalPromiseConstructorSymbol();
 
     // checker.go:27683 — containsUndefinedType.
     internal static bool ContainsUndefinedType(Checker c, Type t)

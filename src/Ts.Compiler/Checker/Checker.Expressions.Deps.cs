@@ -344,7 +344,7 @@ public partial class Checker
     // grammar.go — CheckGrammarNumericLiteral/CheckGrammarBigIntLiteral are now REAL in Checker.Grammar.cs (grammar wave).
 
     // checker.go — global-symbol resolution (Construction / NameLookup clusters).
-    internal Symbol? GetGlobalNaNSymbolOrNil() => throw new NotImplementedException("getGlobalNaNSymbolOrNil");
+    internal Symbol? GetGlobalNaNSymbolOrNil() => getGlobalNaNSymbolOrNil();
 
     // reportNonexistentProperty (checker.go:11499) + its suggestion helpers landed in
     // Checker.PropertyAccess.cs.

@@ -30,7 +30,7 @@ public partial class Checker
 
     // ---- symbol / global helpers ----
     // GetLateBoundSymbol is now REAL in Checker.SymbolResolution.cs (checker.go:14334).
-    internal Symbol? GetGlobalExtractSymbol() => throw new NotImplementedException("getGlobalExtractSymbol");
+    internal Symbol? GetGlobalExtractSymbol() => getGlobalExtractSymbol();
 
     // ---- diagnostics ----
     // utilities.go:22-30

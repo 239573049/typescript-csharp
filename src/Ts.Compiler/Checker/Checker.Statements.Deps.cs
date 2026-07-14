@@ -158,8 +158,8 @@ public partial class Checker
     // ---- containers / global types (construction / global resolution) ----
     // utilities.go:842
     internal static Node? GetContainingFunctionOrClassStaticBlock(Node node) => AstUtilities.FindAncestor(node.Parent, AstUtilities.IsFunctionLikeOrClassStaticBlockDeclaration);
-    internal Type GetGlobalDisposableType() => throw new NotImplementedException("getGlobalDisposableType");
-    internal Type GetGlobalAsyncDisposableType() => throw new NotImplementedException("getGlobalAsyncDisposableType");
+    internal Type GetGlobalDisposableType() => getGlobalDisposableType();
+    internal Type GetGlobalAsyncDisposableType() => getGlobalAsyncDisposableType();
     // CheckExternalEmitHelpers (+ HasSignatureWithArityGreaterThan / GetHelperNames / ResolveHelpersModule) are now REAL in Checker.AliasReferences.cs (checker.go:28333).
 
     // ---- non-null / property helpers (members/type ops) ----

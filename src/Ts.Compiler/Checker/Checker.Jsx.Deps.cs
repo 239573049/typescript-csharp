@@ -303,7 +303,7 @@ public partial class Checker
     // ---- iteration types (checker.go iteration wave) ----
 
     // checker.go:1088 — lazy global-type resolver `getGlobalIterableType func() *Type`.
-    internal Type GetGlobalIterableType() => throw new NotImplementedException("getGlobalIterableType");
+    internal Type GetGlobalIterableType() => getGlobalIterableType();
 
     // getIterationTypeOfIterable (6217): real body landed in Checker.IterationTypes.cs (iteration wave).
 

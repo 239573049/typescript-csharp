@@ -1734,7 +1734,22 @@ public partial class Checker
         return null;
     }
 
-    internal Symbol? GetImmediateAliasedSymbol(Symbol symbol) => throw new NotImplementedException("getImmediateAliasedSymbol");
+    // checker.go:2141
+    internal Symbol? GetImmediateAliasedSymbol(Symbol symbol)
+    {
+        global::Ts.Core.Debug.Assert((symbol.Flags & SymbolFlags.Alias) != 0, "Should only get Alias here.");
+        var links = aliasSymbolLinks.Get(symbol);
+        if (links.immediateTarget == null)
+        {
+            var node = GetDeclarationOfAliasSymbol(symbol);
+            if (node == null)
+            {
+                throw new global::System.InvalidOperationException("Unexpected nil in getImmediateAliasedSymbol");
+            }
+            links.immediateTarget = GetTargetOfAliasDeclaration(node);
+        }
+        return links.immediateTarget;
+    }
 
     // CombineSymbolTables is now REAL in Checker.Merge.cs (checker.go:14022).
 
