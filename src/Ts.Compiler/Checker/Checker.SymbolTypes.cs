@@ -1378,7 +1378,7 @@ public partial class Checker
     private static bool IsTypeAny(Type? t) => t != null && (t.flags & TypeFlags.Any) != 0;
 
     // utilities.go:276-278
-    private static bool IsOptionalDeclaration(Node declaration) => AstUtilities.HasQuestionToken(declaration);
+    internal static bool IsOptionalDeclaration(Node declaration) => AstUtilities.HasQuestionToken(declaration);
 
     // ast/utilities.go WalkUpBindingElementsAndPatterns — implemented by the EmitResolver wave;
     // internal so the EmitResolver class (separate type) can reach it.

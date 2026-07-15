@@ -143,6 +143,40 @@ public sealed partial class NodeBuilder
     // nodecopy.go:12 — reuseNode.
     private Node? ReuseNode(Node? node) => node == null ? node : TryReuseExistingNodeHelper(node);
 
+    // nodebuilderimpl.go:536 — tryReuseExistingNonParameterTypeNode.
+    private Node? TryReuseExistingNonParameterTypeNode(Node existing, Type t, Node? host, Type? annotationType)
+    {
+        host ??= ctx!.enclosingDeclaration;
+        annotationType ??= ch.GetTypeFromTypeNode(existing);
+        if (annotationType != null && TypeNodeIsEquivalentToType(host, t, annotationType) && CanReuseExistingJSTypeNode(existing, t))
+        {
+            var result = TryReuseExistingNodeHelper(existing);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
+    }
+
+    // nodebuilderimpl.go — typeNodeIsEquivalentToType.
+    private bool TypeNodeIsEquivalentToType(Node? annotatedDeclaration, Type t, Type? typeFromTypeNode)
+    {
+        if (typeFromTypeNode == t)
+        {
+            return true;
+        }
+        if (annotatedDeclaration == null)
+        {
+            return false;
+        }
+        if (global::Ts.Checker.Checker.IsOptionalDeclaration(annotatedDeclaration))
+        {
+            return ch.GetTypeWithFacts(t, TypeFacts.NEUndefined) == typeFromTypeNode;
+        }
+        return false;
+    }
+
     // nodecopy.go:222 — tryReuseExistingNodeHelper.
     private Node? TryReuseExistingNodeHelper(Node existing)
     {

@@ -25,7 +25,6 @@ generatorReturnContextualType
 genericRestParameters1
 initializerReferencingConstructorLocals
 initializerReferencingConstructorParameters
-instantiationExpressionErrors
 jsdocDisallowedInTypescript
 jsdocTemplateTag
 jsdocTemplateTag5

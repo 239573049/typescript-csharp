@@ -720,9 +720,30 @@ public sealed partial class NodeBuilder
             var isInstantiationExpressionType = (t.objectFlags & ObjectFlags.InstantiationExpressionType) != 0;
             if (isInstantiationExpressionType)
             {
-                // DEFERRED: instantiation-expression type reuse (tryReuseExistingNonParameterTypeNode over a
-                // typeof node). Owned by the node-reuse wave; not reached by anonymous-object messages.
-                throw new NotImplementedException("nodeBuilder.createAnonymousTypeNodeEx(instantiationExpression)");
+                var instantiationExpressionType = t.AsInstantiationExpressionType();
+                var existing = instantiationExpressionType.node;
+                // instantiationExpressionType.node is unreliable for constituents of unions/intersections.
+                if (existing != null && NodeTests.IsTypeQueryNode(existing) && ch.GetTypeFromTypeNode(existing) == t)
+                {
+                    // Guard against unbounded recursion when the existing typeof node fails to be reused and
+                    // the recovery boundary's fallback re-enters typeToTypeNode with the same instantiation type.
+                    if (ctx!.visitedTypes.Contains(typeId))
+                    {
+                        return CreateElidedInformationPlaceholder();
+                    }
+                    ctx.visitedTypes.Add(typeId);
+                    var typeNode = TryReuseExistingNonParameterTypeNode(existing, t, null, null);
+                    ctx.visitedTypes.Remove(typeId);
+                    if (typeNode != null)
+                    {
+                        return typeNode;
+                    }
+                }
+                if (ctx!.visitedTypes.Contains(typeId))
+                {
+                    return CreateElidedInformationPlaceholder();
+                }
+                return VisitAndTransformType(t, static (b, ty) => b.CreateTypeNodeFromObjectType(ty));
             }
             SymbolFlags isInstanceType;
             if (IsClassInstanceSide(ch, t))
