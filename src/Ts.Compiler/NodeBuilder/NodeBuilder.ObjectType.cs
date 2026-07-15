@@ -220,8 +220,43 @@ public sealed partial class NodeBuilder
             return CreateAnonymousTypeNode(t);
         }
 
-        // All remaining kinds — index / template literal / string mapping / indexed access / conditional /
-        // substitution / unique-symbol — are deferred deep arms; the leaf core renders its neutral fallback.
+        // nodebuilderimpl.go:3442 — index (keyof) type.
+        if ((t.flags & TypeFlags.Index) != 0)
+        {
+            var indexedType = t.Target();
+            ctx!.approximateLength += 6;
+            var indexTypeNode = TypeToTypeNodeCore(indexedType);
+            return f.NewTypeOperatorNode(SyntaxKind.KeyOfKeyword, indexTypeNode);
+        }
+        // nodebuilderimpl.go:3448 — template literal type.
+        if ((t.flags & TypeFlags.TemplateLiteral) != 0)
+        {
+            var texts = t.AsTemplateLiteralType().texts;
+            var types = t.AsTemplateLiteralType().types;
+            var templateHead = f.NewTemplateHead(texts[0], "", TokenFlags.None);
+            e.AddEmitFlags(templateHead, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+            var templateSpans = f.NewNodeList(global::Ts.Core.CoreUtil.MapIndex(types, (ty, i) =>
+            {
+                Node res = i < types.Length - 1
+                    ? f.NewTemplateMiddle(texts[i + 1], "", TokenFlags.None)
+                    : f.NewTemplateTail(texts[i + 1], "", TokenFlags.None);
+                e.AddEmitFlags(res, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+                return f.NewTemplateLiteralTypeSpan(TypeToTypeNodeCore(ty), res);
+            })!);
+            ctx!.approximateLength += 2;
+            return f.NewTemplateLiteralTypeNode(templateHead, templateSpans);
+        }
+        // nodebuilderimpl.go:3470 — indexed access (T[K]) type.
+        if ((t.flags & TypeFlags.IndexedAccess) != 0)
+        {
+            var objectTypeNode = TypeToTypeNodeCore(t.AsIndexedAccessType().objectType);
+            var indexTypeNode = TypeToTypeNodeCore(t.AsIndexedAccessType().indexType);
+            ctx!.approximateLength += 2;
+            return f.NewIndexedAccessTypeNode(objectTypeNode, indexTypeNode);
+        }
+
+        // Remaining deep arms — string mapping / conditional / substitution / unique-symbol — are still
+        // deferred (need symbolToTypeNode / conditionalTypeToTypeNode); the leaf core renders its fallback.
         return TypeToTypeNodeLeaf(t);
     }
 
