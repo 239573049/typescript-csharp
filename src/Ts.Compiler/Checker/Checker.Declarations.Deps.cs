@@ -287,7 +287,37 @@ public partial class Checker
         return ModuleKind.None;
     }
     // checker.go:5534
-    internal void CheckExportSpecifier(Node node) => throw new NotImplementedException("checkExportSpecifier");
+    // checker.go:5534
+    internal void CheckExportSpecifier(Node node)
+    {
+        CheckAliasSymbol(node);
+        var hasModuleSpecifier = node.Parent!.Parent!.ModuleSpecifier() != null;
+        CheckModuleExportName(node.PropertyName(), hasModuleSpecifier);
+        CheckModuleExportName(node.Name(), true /*allowStringLiteral*/);
+        if (!hasModuleSpecifier)
+        {
+            var exportedName = node.PropertyNameOrName()!;
+            if (exportedName.Kind == SyntaxKind.StringLiteral)
+            {
+                return; // Skip for invalid syntax like this: export { "x" }
+            }
+            // find immediate value referenced by exported name (SymbolFlags.Alias is set so we don't chase down aliases)
+            var symbol = ResolveName(exportedName, exportedName.Text(), SymbolFlags.Value | SymbolFlags.Type | SymbolFlags.Namespace | SymbolFlags.Alias, null /*nameNotFoundMessage*/, true /*isUse*/, false);
+            if (symbol != null && (symbol == undefinedSymbol || symbol == globalThisSymbol || symbol.Declarations != null && AstUtilities.IsGlobalSourceFile(AstUtilities.GetDeclarationContainer(symbol.Declarations[0])!)))
+            {
+                Error(exportedName, global::Ts.Diagnostics.Diagnostics.Cannot_export_0_Only_local_declarations_can_be_exported_from_a_module, exportedName.Text());
+            }
+            else
+            {
+                MarkLinkedReferences(node, ReferenceHint.ExportSpecifier, null /*propSymbol*/, null /*parentType*/);
+            }
+        }
+        else if (program.GetEmitModuleFormatOfFile(SourceFileAsHasFileName(AstUtilities.GetSourceFileOfNode(node)!)) == ModuleKind.CommonJS &&
+            AstUtilities.ModuleExportNameIsDefault(node.PropertyNameOrName()!))
+        {
+            CheckExternalEmitHelpers(node, ExternalEmitHelpers.ImportDefault);
+        }
+    }
     // checker.go:5371
     internal void CheckModuleExportName(Node? name, bool allowStringLiteral)
     {
