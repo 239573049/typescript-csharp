@@ -672,14 +672,23 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilderimpl.go:1591 — typeToTypeNodeHelperWithPossibleReusableTypeNode.
-    // PORT-NOTE (deferred reuse): tryReuseExistingNodeHelper is owned by the node-reuse wave; the guard
-    // falls through to typeToTypeNode, matching the SerializeTypeForDeclarationImpl precedent (reuse
-    // disabled ⇒ same output as Go when reuse yields no node).
+    // PORT-NOTE: isActivelyExpanding()/checkTypeExpandability are hover-expansion-only (maxExpansionDepth
+    // is fixed at -1 for the error-message / .d.ts callers), so they are omitted; the reuse guard is the
+    // faithful common path. If tryReuseExistingNodeHelper bails (finalizeBoundary=false) it returns null
+    // and we fall through to typeToTypeNode — identical to the pre-reuse behavior, hence zero-regression.
     private Node TypeToTypeNodeHelperWithPossibleReusableTypeNode(Type? t, Node? typeNode)
     {
         if (t is null)
         {
             return f.NewKeywordTypeNode(SyntaxKind.AnyKeyword);
+        }
+        if (typeNode != null && ch.GetTypeFromTypeNode(typeNode) == t)
+        {
+            var reused = TryReuseExistingNodeHelper(typeNode);
+            if (reused != null)
+            {
+                return reused;
+            }
         }
         return TypeToTypeNodeImpl(t);
     }

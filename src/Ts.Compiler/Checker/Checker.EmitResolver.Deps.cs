@@ -108,7 +108,7 @@ public partial class Checker
     // symbolaccessibility.go:839 — IsSymbolAccessible.
     internal global::Ts.Printer.SymbolAccessibilityResult IsSymbolAccessible(
         Symbol? symbol, Node? enclosingDeclaration, SymbolFlags meaning, bool shouldComputeAliasesToMakeVisible) =>
-        throw new NotImplementedException("IsSymbolAccessible");
+        IsSymbolAccessibleWorkerCore(symbol, enclosingDeclaration, meaning, shouldComputeAliasesToMakeVisible, true /*allowModules*/);
 
     // symbolaccessibility.go:16 — IsValueSymbolAccessible.
     // IsValueSymbolAccessible: real body in Checker.SymbolAccessibility.cs (symbolaccessibility.go).
