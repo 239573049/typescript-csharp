@@ -106,6 +106,21 @@ public static partial class CompilerBaselineRunner
         "usecasesensitivefilenames",
     };
 
+    // harnessutil.go:293-311 — compiler options the harness recognizes on top of OptionsDeclarations.
+    // tsgo's SetOptionsFromTestConfig applies test-config options via getCommandLineOption +
+    // ParseCompilerOptions (never through CLI-flag string parsing), so these — which are NOT
+    // command-line flags in OptionsDeclarations — are accepted. Our runner otherwise routes every
+    // directive through ParseCommandLine, which would reject `--suppressoutputpathcheck` with TS5023
+    // (and then treat the value `true` as a root file → TS6231). Map the lowercase test-directive key
+    // to the canonical option name and apply it directly onto the parsed CompilerOptions instead.
+    private static readonly Dictionary<string, string> s_harnessExtraCompilerOptions = new(StringComparer.Ordinal)
+    {
+        ["allownontsextensions"] = "allowNonTsExtensions",
+        ["noerrortruncation"] = "noErrorTruncation",
+        ["suppressoutputpathcheck"] = "suppressOutputPathCheck",
+        ["nocheck"] = "noCheck",
+    };
+
     // The bundled lib texts are identical for every case; reading the ~90 files from disk once
     // keeps the multi-hundred-case corpus wave IO-bound on test inputs only.
     private static readonly Lazy<IReadOnlyDictionary<string, string>> s_bundledLibContents = new(
@@ -469,11 +484,18 @@ public static partial class CompilerBaselineRunner
         IReadOnlyList<string> roots)
     {
         var args = new List<string>();
+        List<(string name, string value)>? extraCompilerOptions = null;
         // map-iter: 已排序 — compiler options are emitted in ordinal key order before parsing.
         foreach (string key in globalOptions.Keys.OrderBy(key => key, StringComparer.Ordinal))
         {
             if (s_harnessOnlyOptions.Contains(key))
             {
+                continue;
+            }
+            if (s_harnessExtraCompilerOptions.TryGetValue(key, out var canonical))
+            {
+                // Applied directly onto the parsed options below, matching tsgo's harness.
+                (extraCompilerOptions ??= new()).Add((canonical, globalOptions[key]));
                 continue;
             }
             args.Add("--" + key);
@@ -483,7 +505,22 @@ public static partial class CompilerBaselineRunner
             }
         }
         args.AddRange(roots);
-        return global::Ts.TsOptions.CommandLineParser.ParseCommandLine(args.ToArray(), host);
+        var config = global::Ts.TsOptions.CommandLineParser.ParseCommandLine(args.ToArray(), host);
+        if (extraCompilerOptions != null)
+        {
+            var opts = config.CompilerOptions();
+            if (opts != null)
+            {
+                foreach (var (name, value) in extraCompilerOptions)
+                {
+                    // All four harness-extra options are boolean; convert the string directive value
+                    // to a bool so ParseTristate (which only recognizes the bool true) sets True.
+                    object boolValue = string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+                    global::Ts.TsOptions.ParsingHelpers.ParseCompilerOptions(name, boolValue, opts);
+                }
+            }
+        }
+        return config;
     }
 
     // Go tsoptions.ParseListTypeOption (commandlineparser.go:339-366) as applied to the string-
