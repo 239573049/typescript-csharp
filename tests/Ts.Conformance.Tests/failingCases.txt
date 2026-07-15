@@ -139,7 +139,6 @@ intersectionReduction
 intersectionReductionStrict
 intersectionWithIndexSignatures
 intraExpressionInferences
-intrinsicTypes
 invalidBooleanAssignments
 invalidEnumAssignments
 invalidNewTarget.es6
@@ -181,7 +180,6 @@ moduleResolutionWithoutExtension8
 namedTupleMembersErrors
 neverReturningFunctions1
 noAssertForUnparseableTypedefs
-noInfer
 numericLiteralTypes3
 objectSpreadStrictNull
 objectTypeHidingMembersOfExtendedObject
@@ -232,7 +230,6 @@ strictBindCallApply1
 stringEnumLiteralTypes3
 stringLiteralTypesAndParenthesizedExpressions01
 stringLiteralsAssignedToStringMappings
-stringMappingOverPatternLiterals
 symbolProperty21
 symbolProperty53
 symbolProperty54
