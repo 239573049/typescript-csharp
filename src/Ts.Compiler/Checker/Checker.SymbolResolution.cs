@@ -1529,11 +1529,11 @@ public partial class Checker
 
     // #10 module-resolution machinery — resolveExternalModuleName/-Worker/resolveExternalModule
     // trunk is now REAL above (checker.go:15019-15473); deep branches remain `// !!!` stubs there.
-    internal Symbol? ResolveESModuleSymbol(Symbol? moduleSymbol, Node node, Node? moduleSpecifier) => throw new NotImplementedException("resolveESModuleSymbol");
+    // ResolveESModuleSymbol / GetExternalModuleMember: real bodies in Checker.SyntheticDefault.cs.
 
     internal Symbol? GetTargetOfModuleDefault(Symbol moduleSymbol, Node node, bool dontResolveAlias) => throw new NotImplementedException("getTargetOfModuleDefault");
 
-    internal Symbol? GetExternalModuleMember(Node node, Node specifier, bool dontResolveAlias) => throw new NotImplementedException("getExternalModuleMember");
+
 
     // checker.go:14420
     internal void CheckAndReportErrorForResolvingImportAliasToTypeOnlySymbol(Node node, Symbol? resolved)

@@ -209,7 +209,7 @@ public partial class Checker
         }
     }
     // checker.go:14726
-    internal bool IsOnlyImportableAsDefault(Node? usage, Symbol? resolvedModule) => throw new NotImplementedException("isOnlyImportableAsDefault");
+    // IsOnlyImportableAsDefault / HasExportAssignmentSymbol: real bodies in Checker.SyntheticDefault.cs.
     // checker.go:15040 resolveExternalModuleNameWorker: real body landed in Checker.SymbolResolution.cs.
     // checker.go:5391
     // checker.go:5391
@@ -756,7 +756,7 @@ public partial class Checker
     internal static bool IsNotOverload(Node node) =>
         !NodeTests.IsFunctionDeclaration(node) && !NodeTests.IsMethodDeclaration(node) || node.Body() != null;
     // utilities.go:234
-    internal bool HasExportAssignmentSymbol(Symbol moduleSymbol) => throw new NotImplementedException("hasExportAssignmentSymbol");
+
     // checker.go:5384
     internal static bool HasTypeJsonImportAttribute(Node node) => throw new NotImplementedException("hasTypeJsonImportAttribute");
     // GetVerbatimModuleSyntaxErrorMessage (checker.go:5660) already stubbed in Checker.Grammar.Deps.cs.

@@ -19,6 +19,7 @@ public partial class Checker
     // signatureToString / signatureToStringEx: real bodies in Checker.SymbolToString.cs (printer.go:309).
     // typePredicateToString / typePredicateToStringEx: real bodies in Checker.SymbolToString.cs.
     internal string ValueToString(object? value) => throw new NotImplementedException("valueToString");
+    internal void ReportNonExportedMember(Node name, string declarationName, Symbol moduleSymbol, string moduleName) => throw new NotImplementedException("reportNonExportedMember");
 
     // ---- union / property helpers (checker.go / members) ----
     // checker.go:27669-27681

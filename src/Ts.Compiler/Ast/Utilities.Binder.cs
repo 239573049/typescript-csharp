@@ -1300,6 +1300,7 @@ public static partial class AstUtilities
     // utilities.go — IsExpressionWithTypeArgumentsInClassExtendsClause.
     public static bool IsExpressionWithTypeArgumentsInClassExtendsClause(Node node) =>
         TryGetClassExtendingExpressionWithTypeArguments(node) != null;
+
 }
 
 // Go: internal/ast/utilities.go:1500-1520 — `type JSDeclarationKind int` iota block. Members
