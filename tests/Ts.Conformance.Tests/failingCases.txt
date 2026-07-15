@@ -45,7 +45,6 @@ prototypePropertyAssignmentMergedTypeReference
 recursiveMappedTypes
 symbolProperty53
 symbolProperty54
-symbolType2
 thisInObjectLiterals
 thisTypeInFunctionsNegative
 typeArgumentInferenceWithClassExpression2

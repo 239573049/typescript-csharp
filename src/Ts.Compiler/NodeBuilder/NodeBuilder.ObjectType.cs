@@ -301,8 +301,7 @@ public sealed partial class NodeBuilder
             return VisitAndTransformType(t, static (b, ty) => b.ConditionalTypeToTypeNode(ty));
         }
         // nodebuilderimpl.go:3286 — unique ES symbol (renders `typeof x` when the value symbol is
-        // accessible, else `unique symbol`). PORT-NOTE: symbolToTypeNode approximated by the reduced
-        // SymbolToNodeImplTypeNode (typeof form).
+        // accessible, else `unique symbol`).
         if ((t.flags & TypeFlags.UniqueESSymbol) != 0)
         {
             if ((ctx.flags & global::Ts.NodeBuilder.Flags.AllowUniqueESSymbolType) == 0)
@@ -310,7 +309,7 @@ public sealed partial class NodeBuilder
                 if (ch.IsValueSymbolAccessible(t.symbol!, ctx.enclosingDeclaration))
                 {
                     ctx.approximateLength += 6;
-                    return SymbolToNodeImplTypeNode(t.symbol!, SymbolFlags.Value);
+                    return SymbolToTypeNode(t.symbol!, SymbolFlags.Value, null)!;
                 }
                 ctx.tracker?.ReportInaccessibleUniqueSymbolError();
             }
