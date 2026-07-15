@@ -303,12 +303,12 @@ public partial class Checker
         {
             var symbol = containingClass.Symbol();
             var name = global::Ts.Binder.Binder.GetSymbolNameForPrivateIdentifier(symbol!, propName);
-            var prop = symbol!.Members!.GetValueOrDefault(name);
+            var prop = symbol!.Members?.GetValueOrDefault(name);
             if (prop != null)
             {
                 return prop;
             }
-            prop = symbol.Exports!.GetValueOrDefault(name);
+            prop = symbol.Exports?.GetValueOrDefault(name);
             if (prop != null)
             {
                 return prop;
