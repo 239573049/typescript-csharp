@@ -15,7 +15,6 @@ ambientExternalModuleInsideNonAmbientExternalModule
 arbitraryModuleNamespaceIdentifiers_exportEmpty
 arbitraryModuleNamespaceIdentifiers_importEmpty
 argumentExpressionContextualTyping
-arraySpreadInCall
 assertionsAndNonReturningFunctions
 assignFromStringInterface2
 assignmentCompatWithCallSignatures3
@@ -69,8 +68,6 @@ contextuallyTypedStringLiteralsInJsxAttributes01
 controlFlowAliasing
 controlFlowBindingPatternOrder
 controlFlowGenericTypes
-controlFlowIterationErrors
-controlFlowIterationErrorsAsync
 controlFlowOptionalChain3
 covariantCallbacks
 declarationFiles
@@ -108,9 +105,7 @@ exportAsNamespace_nonExistent
 exportNonLocalDeclarations
 exportSpecifiers_js
 extendsTag5
-fixSignatureCaching
 for-inStatements
-for-inStatementsArrayErrors
 for-inStatementsInvalid
 for-of-excess-declarations
 for-of16
@@ -216,17 +211,9 @@ parserExportAssignment9
 parserForOfStatement2
 parserForOfStatement21
 parserMissingLambdaOpenBrace1
-parserRealSource1
-parserRealSource11
-parserRealSource14
-parserRealSource4
 parserRealSource6
-parserRealSource7
-parserRealSource8
-parserRealSource9
 parserStrictMode8
 parserharness
-parserindenter
 plainJSBinderErrors
 plainJSGrammarErrors
 plainJSGrammarErrors4
@@ -263,7 +250,6 @@ symbolProperty53
 symbolProperty54
 symbolType2
 taggedTemplateContextualTyping2
-templateInsideCallback
 templateLiteralTypes1
 templateLiteralTypes2
 templateLiteralTypes3
@@ -304,7 +290,6 @@ typeFromPropertyAssignment29
 typeGuardFunctionErrors
 typeGuardFunctionOfFormThisErrors
 typeGuardsWithInstanceOf
-typeOfThisInstanceMemberNarrowedWithLoopAntecedent
 typeParameterConstModifiers
 typeSatisfaction_propNameConstraining
 typeSatisfaction_propertyNameFulfillment
@@ -329,7 +314,6 @@ uniqueSymbolsDeclarations
 uniqueSymbolsErrors
 unknownControlFlow
 unknownType2
-useObjectValuesAndEntries3
 usingDeclarationsWithIteratorObject
 usingDeclarationsWithObjectLiterals1
 variadicTuples1
