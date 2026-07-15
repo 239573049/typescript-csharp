@@ -157,7 +157,7 @@ public partial class Checker
 
     // checker.go:8438/8442 — remaining resolveSignature dispatch targets (decorator / instanceof waves).
     // resolveJsxOpeningLikeElement is REAL (jsx wave); resolveTaggedTemplateExpression is REAL (Checker.CallResolution.cs).
-    private Signature ResolveDecorator(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode) => throw new NotImplementedException("resolveDecorator");
+
     // checker.go:8776
     private Signature ResolveInstanceofExpression(Node node, List<Signature>? candidatesOutArray, CheckMode checkMode)
     {
@@ -197,8 +197,8 @@ public partial class Checker
     }
 
     // checker.go:9108/29901 — decorator argument shape (legacy/ES decorator cluster).
-    private int GetDecoratorArgumentCount(Node node, Signature signature) => throw new NotImplementedException("getDecoratorArgumentCount");
-    private Node[] GetEffectiveDecoratorArguments(Node node) => throw new NotImplementedException("getEffectiveDecoratorArguments");
+    // GetDecoratorArgumentCount / GetEffectiveDecoratorArguments / GetContextualTypeForDecorator / ResolveDecorator: real bodies in Checker.Decorators.cs.
+
 
     // checker.go:10289 — getIntersectedSignatures: real body landed in Checker.ContextualType.cs
     // (combine helpers in Checker.Instantiation.cs, checker.go:21088-21207).
@@ -265,7 +265,7 @@ public partial class Checker
         return null;
     }
     // checker.go:29558 — decorator contextual type (decorator cluster).
-    private Type? GetContextualTypeForDecorator(Node decorator) => throw new NotImplementedException("getContextualTypeForDecorator");
+
     // checker.go:29340/29369 — binding-element / static-property contextual type (binding/JS clusters).
     // checker.go:29340
     private Type? GetContextualTypeForBindingElement(Node declaration, ContextFlags contextFlags)

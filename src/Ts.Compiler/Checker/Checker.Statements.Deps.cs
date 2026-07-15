@@ -193,7 +193,7 @@ public partial class Checker
     // early-return at the guard. MarkLinkedReferences is now REAL in Checker.AliasReferences.cs
     // (alias-reference-marking wave). GetFirstTransformableStaticClassElement (checker.go:10031) is
     // now REAL in Checker.Expressions.cs (class-expression cluster).
-    internal void CheckDecorator(Node node) => throw new NotImplementedException("checkDecorator");
+    // CheckDecorator: real body in Checker.Decorators.cs.
 
     // ---- JSDoc comment checks (JSDoc cluster) ----
     // CheckJSDocComments/CheckJSDocComment/ResolveJSDocMemberName are now REAL in
