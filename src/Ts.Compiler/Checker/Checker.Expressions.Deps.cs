@@ -77,7 +77,62 @@ public partial class Checker
     // checker.go:8110 — checkIndexedAccess: real body landed in Checker.Expressions.cs.
 
     // checker.go:8244
-    internal Type CheckImportCallExpression(Node node) => throw new NotImplementedException("checkImportCallExpression");
+    // checker.go:8244
+    internal Type CheckImportCallExpression(Node node)
+    {
+        CheckGrammarImportCallExpression(node);
+        var args = node.Arguments();
+        if (args == null || args.Length == 0)
+        {
+            return CreatePromiseReturnType(node, anyType!);
+        }
+        var specifier = args[0];
+        var specifierType = CheckExpressionCached(specifier);
+        Type? optionsType = null;
+        if (args.Length > 1)
+        {
+            optionsType = CheckExpressionCached(args[1]);
+        }
+        for (var i = 2; i < args.Length; i++)
+        {
+            CheckExpressionCached(args[i]);
+        }
+        if ((specifierType.flags & TypeFlags.Nullable) != 0 || !IsTypeAssignableTo(specifierType, stringType!))
+        {
+            Error(specifier, global::Ts.Diagnostics.Diagnostics.Dynamic_import_s_specifier_must_be_of_type_string_but_here_has_type_0, TypeToString(specifierType));
+        }
+        if (optionsType != null)
+        {
+            var importCallOptionsType = getGlobalImportCallOptionsTypeChecked();
+            if (importCallOptionsType != emptyObjectType)
+            {
+                CheckTypeAssignableTo(optionsType, GetNullableType(importCallOptionsType, TypeFlags.Undefined), args[1], null);
+            }
+            if (NodeTests.IsObjectLiteralExpression(args[1]))
+            {
+                foreach (var prop in args[1].AsObjectLiteralExpression().Properties!.Nodes)
+                {
+                    if (NodeTests.IsPropertyAssignment(prop) && NodeTests.IsIdentifier(prop.Name()!) && prop.Name()!.Text() == "assert")
+                    {
+                        Error(prop.Name(), global::Ts.Diagnostics.Diagnostics.Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert);
+                        break;
+                    }
+                }
+            }
+        }
+        var moduleSymbol = ResolveExternalModuleName(node, specifier, false /*ignoreErrors*/);
+        if (moduleSymbol != null)
+        {
+            var esModuleSymbol = ResolveExternalModuleSymbol(moduleSymbol, true /*dontResolveAlias*/);
+            if (esModuleSymbol != null)
+            {
+                var syntheticType = GetTypeWithSyntheticDefaultOnly(GetTypeOfSymbol(esModuleSymbol), esModuleSymbol, moduleSymbol, specifier)
+                    ?? GetTypeWithSyntheticDefaultImportType(GetTypeOfSymbol(esModuleSymbol), esModuleSymbol, moduleSymbol, specifier);
+                return CreatePromiseReturnType(node, syntheticType!);
+            }
+        }
+        return CreatePromiseReturnType(node, anyType!);
+    }
 
     // checker.go:8298 — checkCallExpression: real body landed in Checker.CallResolution.cs.
 
