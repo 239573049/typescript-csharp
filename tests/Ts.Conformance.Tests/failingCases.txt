@@ -98,7 +98,6 @@ plainJSGrammarErrors4
 plainJSRedeclare
 plainJSReservedStrict
 privateNameAndAny
-privateNameHashCharName
 privateNameUnused
 propertyAssignmentUseParentType2
 prototypePropertyAssignmentMergedTypeReference
