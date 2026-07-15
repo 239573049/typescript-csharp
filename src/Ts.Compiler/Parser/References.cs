@@ -17,10 +17,102 @@ internal static class References
     // IsAmbientModule, IsExternalModule. This populates SourceFile.Imports /
     // ModuleAugmentations / AmbientModuleNames, consumed by binder/checker in later
     // phases — not by the parse-tree structure. Left as a no-op until those ast utilities land.
-    // TODO(phase-4): restore the faithful collectExternalModuleReferences / collectModuleReferences.
+    // references.go:11 — collectExternalModuleReferences. The static-import/augmentation collection is
+    // ported faithfully; the dynamic-import/require scan (ForEachDynamicImportOrRequireCall, guarded by
+    // PossiblyContainsDynamicImport || IsInJSFile) is DEFERRED — it needs findImportOrRequire (text
+    // scanner) + GetNodeAtPosition (astnav), still unported.
     public static void CollectExternalModuleReferences(SourceFile file)
     {
-        // !!! pending ast helpers (see PORT-NOTE above)
+        foreach (var node in file.Statements?.Nodes ?? [])
+        {
+            CollectModuleReferences(file, node, false /*inAmbientModule*/);
+        }
+        // PORT-NOTE (deferred): dynamic-import/require scan — see method comment.
+    }
+
+    // references.go:23 — collectModuleReferences.
+    private static void CollectModuleReferences(SourceFile file, Node node, bool inAmbientModule)
+    {
+        if (IsAnyImportOrReExport(node))
+        {
+            var moduleNameExpr = GetExternalModuleName(node);
+            if (moduleNameExpr != null && NodeTests.IsStringLiteral(moduleNameExpr))
+            {
+                var moduleName = moduleNameExpr.Text();
+                if (moduleName != "" && (!inAmbientModule || !global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(moduleName)))
+                {
+                    AstUtilities.SetImportsOfSourceFile(file, [.. file.Imports() ?? [], moduleNameExpr]);
+                    if (file.UsesUriStyleNodeCoreModules != Tristate.True && !file.IsDeclarationFile)
+                    {
+                        if (moduleName.StartsWith("node:", StringComparison.Ordinal) && !global::Ts.Core.Core.ExclusivelyPrefixedNodeCoreModules.Contains(moduleName))
+                        {
+                            file.UsesUriStyleNodeCoreModules = Tristate.True;
+                        }
+                        else if (file.UsesUriStyleNodeCoreModules == Tristate.Unknown && global::Ts.Core.Core.UnprefixedNodeCoreModules.Contains(moduleName))
+                        {
+                            file.UsesUriStyleNodeCoreModules = Tristate.False;
+                        }
+                    }
+                }
+            }
+            return;
+        }
+        if (NodeTests.IsModuleDeclaration(node) && AstUtilities.IsAmbientModule(node) && (inAmbientModule || AstUtilities.HasSyntacticModifier(node, ModifierFlags.Ambient) || file.IsDeclarationFile))
+        {
+            var nameText = node.AsModuleDeclaration().Name()!.Text();
+            // Ambient module declarations can be interpreted as augmentations for existing external modules.
+            if (AstUtilities.IsExternalModule(file) || (inAmbientModule && !global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(nameText)))
+            {
+                file.ModuleAugmentations = [.. file.ModuleAugmentations ?? [], node.AsModuleDeclaration().Name()!];
+            }
+            else if (!inAmbientModule)
+            {
+                file.AmbientModuleNames = [.. file.AmbientModuleNames ?? [], nameText];
+                // Body of an ambient module is always a module block, if it exists.
+                if (node.Body() != null)
+                {
+                    foreach (var statement in node.Body()!.Statements() ?? [])
+                    {
+                        CollectModuleReferences(file, statement, true /*inAmbientModule*/);
+                    }
+                }
+            }
+        }
+    }
+
+    // ast/utilities.go:1859 — IsAnyImportOrReExport / IsImportNode (inlined predicates).
+    private static bool IsAnyImportOrReExport(Node node) => IsImportNode(node) || NodeTests.IsExportDeclaration(node);
+    private static bool IsImportNode(Node node) =>
+        node.Kind is SyntaxKind.ImportDeclaration or SyntaxKind.ImportEqualsDeclaration or SyntaxKind.JSImportDeclaration;
+
+    // ast/utilities.go:1884 — getExternalModuleName. The ImportType case (getImportTypeNodeLiteral) is
+    // deferred; it is not reached from collectModuleReferences (which only passes import/export nodes).
+    private static Node? GetExternalModuleName(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            case SyntaxKind.ExportDeclaration:
+                return node.ModuleSpecifier();
+            case SyntaxKind.ImportEqualsDeclaration:
+                if (node.AsImportEqualsDeclaration().ModuleReference!.Kind == SyntaxKind.ExternalModuleReference)
+                {
+                    return node.AsImportEqualsDeclaration().ModuleReference!.Expression();
+                }
+                return null;
+            case SyntaxKind.ImportType:
+                throw new NotImplementedException("getExternalModuleName(ImportType)"); // deferred getImportTypeNodeLiteral
+            case SyntaxKind.CallExpression:
+                return CoreUtil.FirstOrNil(node.Arguments());
+            case SyntaxKind.ModuleDeclaration:
+                if (NodeTests.IsStringLiteral(node.AsModuleDeclaration().Name()!))
+                {
+                    return node.AsModuleDeclaration().Name();
+                }
+                return null;
+        }
+        throw new InvalidOperationException("Unhandled case in getExternalModuleName");
     }
 
     // Ported from tsgo internal/ast/utilities.go:3730 CompareNodePositions.

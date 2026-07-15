@@ -385,8 +385,13 @@ public partial class Checker
         // module-merge wave. Ambient module symbols are collected here and merged into globals after
         // global type initialization (end of this method), matching checker.go:1371-1374.
         var ambientModuleSymbols = new List<Symbol>();
+        var augmentations = new List<Node>();
         foreach (var file in files)
         {
+            if (file.ModuleAugmentations != null)
+            {
+                augmentations.AddRange(file.ModuleAugmentations);
+            }
             if (!AstUtilities.IsExternalOrCommonJSModule(file))
             {
                 // It is an error for a non-external-module (i.e. script) to declare its own `globalThis`.
@@ -430,8 +435,15 @@ public partial class Checker
                 }
             }
         }
-        // PORT-NOTE: global-scope module-augmentation merges (mergeModuleAugmentation) deferred to the
-        // module-merge wave.
+        // checker.go:1335-1341 — merge global-scope module augmentations (before creating global types,
+        // since they can affect the global types).
+        foreach (var augmentation in augmentations)
+        {
+            if (AstUtilities.IsGlobalScopeAugmentation(augmentation.Parent!))
+            {
+                MergeModuleAugmentation(augmentation);
+            }
+        }
         AddUndefinedToGlobalsOrErrorOnRedeclaration();
         valueSymbolLinks.Get(undefinedSymbol).resolvedType = undefinedWideningType;
         valueSymbolLinks.Get(argumentsSymbol).resolvedType = GetGlobalType("IArguments", 0 /*arity*/, true /*reportErrors*/);
@@ -467,8 +479,74 @@ public partial class Checker
         {
             MergeGlobalSymbol(symbol);
         }
-        // PORT-NOTE: non-global module-augmentation merges (mergeModuleAugmentation, checker.go:1376-1383)
-        // remain deferred to the module-merge wave (augmentation lists are not yet collected).
+        // checker.go:1376-1383 — merge non-global module augmentations (after all ambient modules indexed).
+        foreach (var augmentation in augmentations)
+        {
+            if (!AstUtilities.IsGlobalScopeAugmentation(augmentation.Parent!))
+            {
+                MergeModuleAugmentation(augmentation);
+            }
+        }
+    }
+
+    // checker.go:1387 — mergeModuleAugmentation.
+    internal void MergeModuleAugmentation(Node moduleName)
+    {
+        var moduleNode = moduleName.Parent!;
+        var symbol = moduleNode.Symbol()!;
+        if (symbol.Declarations![0] != moduleNode)
+        {
+            // combined symbol for multiple augmentations within the same file — do the work only once.
+            return;
+        }
+        if (AstUtilities.IsGlobalScopeAugmentation(moduleNode))
+        {
+            MergeSymbolTable(globals, symbol.Exports!, false /*unidirectional*/, null /*parent*/);
+        }
+        else
+        {
+            // find a module about to be augmented; do not validate names of augmentations in ambient context.
+            global::Ts.Diagnostics.Message? moduleNotFoundError = null;
+            if ((moduleName.Parent!.Parent!.Flags & NodeFlags.Ambient) == 0)
+            {
+                moduleNotFoundError = global::Ts.Diagnostics.Diagnostics.Invalid_module_name_in_augmentation_module_0_cannot_be_found;
+            }
+            var mainModule = ResolveExternalModuleNameWorker(moduleName, moduleName, moduleNotFoundError, false /*ignoreErrors*/, true);
+            if (mainModule == null)
+            {
+                return;
+            }
+            // obtain item referenced by 'export='
+            mainModule = ResolveExternalModuleSymbol(mainModule, false /*dontResolveAlias*/);
+            if ((mainModule!.Flags & SymbolFlags.Namespace) != 0)
+            {
+                // Merge an augmentation to a pattern ambient module unidirectionally.
+                if (CoreUtil.Some(patternAmbientModules, m => mainModule == m.Symbol))
+                {
+                    var merged = MergeSymbol(symbol, mainModule, true /*unidirectional*/);
+                    AstUtilities.GetSymbolTable(ref patternAmbientModuleAugmentations)[moduleName.Text()] = merged;
+                }
+                else
+                {
+                    if (mainModule.Exports != null && mainModule.Exports.GetValueOrDefault(InternalSymbolName.ExportStar) != null && (symbol.Exports?.Count ?? 0) != 0)
+                    {
+                        var resolvedExports = GetResolvedMembersOrExportsOfSymbol(mainModule, MembersOrExportsResolutionKind.ResolvedExports) ?? new SymbolTable();
+                        foreach (var (key, value) in symbol.Exports!) // map-iter: 序无关 — merges keyed by export name
+                        {
+                            if (resolvedExports.GetValueOrDefault(key) != null && mainModule.Exports.GetValueOrDefault(key) == null)
+                            {
+                                MergeSymbol(resolvedExports[key], value, false /*unidirectional*/);
+                            }
+                        }
+                    }
+                    MergeSymbol(mainModule, symbol, false /*unidirectional*/);
+                }
+            }
+            else
+            {
+                Error(moduleName, global::Ts.Diagnostics.Diagnostics.Cannot_augment_module_0_because_it_resolves_to_a_non_module_entity, moduleName.Text());
+            }
+        }
     }
 
     // checker.go:1466-1482
