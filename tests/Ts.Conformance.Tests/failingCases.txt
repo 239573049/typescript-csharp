@@ -32,13 +32,8 @@ classStaticBlock19
 computedPropertyNamesContextualType10_ES6
 computedPropertyNamesContextualType8_ES6
 computedPropertyNamesContextualType9_ES6
-constructableDecoratorOnClass01
 controlFlowOptionalChain3
 declarationFiles
-decoratorCallGeneric
-decoratorOnClassMethod17
-decoratorOnClassMethod6
-decoratorOnClassMethodParameter3
 dependentDestructuredVariables
 destructuringArrayBindingPatternAndAssignment1ES5iterable
 destructuringParameterDeclaration1ES5iterable
@@ -48,7 +43,6 @@ enumAssignabilityInInheritance
 enumIsNotASubtypeOfAnythingButNumber
 enumLiteralTypes3
 esDecorators-arguments
-esDecorators-privateFieldAccess
 everyTypeWithAnnotationAndInvalidInitializer
 for-inStatements
 for-of-excess-declarations
@@ -57,7 +51,6 @@ for-of29
 generatorReturnContextualType
 generatorTypeCheck25
 generatorTypeCheck31
-generatorTypeCheck39
 generatorTypeCheck62
 generatorTypeCheck63
 genericRestParameters1
