@@ -27,7 +27,6 @@ mappedTypeProperties
 mixinAccessors3
 moduleExportsAliasLoop1
 moduleExportsAliasLoop2
-neverReturningFunctions1
 parserClassDeclaration1
 parserClassDeclaration6
 parserComputedPropertyName16

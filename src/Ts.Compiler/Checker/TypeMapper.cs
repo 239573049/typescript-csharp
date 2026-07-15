@@ -18,9 +18,12 @@ public abstract class TypeMapper
 
     // Factory functions (mapper.go:40-73)
 
-    // mapper.go:40-45
+    // mapper.go:40-45. PORT-NOTE: Go's len(nil)==0 makes newTypeMapper(nil, nil) fall to the array
+    // mapper (an empty mapper that maps every type to itself); .Len() reproduces that nil tolerance,
+    // where sources.Length would NRE (e.g. compareTypeParametersIdentical on two signatures that both
+    // have no type parameters).
     public static TypeMapper NewTypeMapper(Type[] sources, Type[] targets) =>
-        sources.Length == 1 ? NewSimpleTypeMapper(sources[0], targets[0]) : NewArrayTypeMapper(sources, targets);
+        sources.Len() == 1 ? NewSimpleTypeMapper(sources[0], targets[0]) : NewArrayTypeMapper(sources, targets);
 
     // mapper.go:54-59
     public static TypeMapper MergeTypeMappers(TypeMapper? m1, TypeMapper m2) =>
@@ -36,7 +39,7 @@ public abstract class TypeMapper
 
     public static TypeMapper NewSimpleTypeMapper(Type source, Type target) => new SimpleTypeMapper { source = source, target = target };
 
-    public static TypeMapper NewArrayTypeMapper(Type[] sources, Type[] targets) => new ArrayTypeMapper { sources = sources, targets = targets };
+    public static TypeMapper NewArrayTypeMapper(Type[] sources, Type[] targets) => new ArrayTypeMapper { sources = sources ?? [], targets = targets ?? [] };
 
     public static TypeMapper NewArrayToSingleTypeMapper(Type[] sources, Type target) => new ArrayToSingleTypeMapper { sources = sources, target = target };
 
