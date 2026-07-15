@@ -12,7 +12,6 @@ YieldExpression15_es6
 YieldExpression17_es6
 YieldExpression2_es6
 ambientExternalModuleInsideNonAmbientExternalModule
-arbitraryModuleNamespaceIdentifiers_exportEmpty
 arbitraryModuleNamespaceIdentifiers_importEmpty
 assignFromStringInterface2
 assignmentCompatWithCallSignatures3
@@ -20,8 +19,6 @@ assignmentCompatWithCallSignatures4
 assignmentCompatWithCallSignaturesWithRestParameters
 assignmentCompatWithConstructSignatures3
 assignmentCompatWithConstructSignatures4
-asyncAwaitIsolatedModules_es2017
-asyncAwaitIsolatedModules_es6
 awaitAndYield
 awaitAndYieldInProperty
 awaitUsingDeclarations.13
@@ -34,7 +31,6 @@ checkJsdocTypeTagOnObjectProperty1
 checkJsdocTypeTagOnObjectProperty2
 checkJsdocTypedefOnlySourceFile
 checkJsxChildrenCanBeTupleType
-checkJsxGenericTagHasCorrectInferences
 classStaticBlock19
 computedPropertyNamesContextualType10_ES6
 computedPropertyNamesContextualType8_ES6
@@ -58,7 +54,6 @@ enumLiteralTypes3
 esDecorators-arguments
 esDecorators-privateFieldAccess
 everyTypeWithAnnotationAndInvalidInitializer
-exportAsNamespace_nonExistent
 for-inStatements
 for-of-excess-declarations
 for-of16
@@ -70,13 +65,8 @@ generatorTypeCheck39
 generatorTypeCheck62
 generatorTypeCheck63
 genericRestParameters1
-importAssertion4
-importAssertion5
-importAttributes4
-importAttributes5
 importCallExpressionGrammarError
 importCallExpressionSpecifierNotStringTypeError
-importTag14
 importTypeAmbientMissing
 indexSignatures1
 inferTypes1
@@ -100,7 +90,6 @@ moduleExportsAliasLoop2
 moduleResolutionWithoutExtension5
 moduleResolutionWithoutExtension8
 neverReturningFunctions1
-noAssertForUnparseableTypedefs
 objectTypeHidingMembersOfExtendedObject
 objectTypeWithStringIndexerHidingObjectIndexer
 parserClassDeclaration1
