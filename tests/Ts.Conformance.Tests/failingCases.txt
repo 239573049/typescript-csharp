@@ -40,7 +40,6 @@ parserForOfStatement2
 parserForOfStatement21
 parserMissingLambdaOpenBrace1
 parserRealSource6
-plainJSGrammarErrors
 propertyAssignmentUseParentType2
 prototypePropertyAssignmentMergedTypeReference
 recursiveMappedTypes
