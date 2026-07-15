@@ -359,7 +359,31 @@ public partial class Checker
     }
 
     // checker.go:7550 — const-enum access-site validation (needs program/verbatim-module wiring).
-    internal void CheckConstEnumAccess(Node node, Type t) => throw new NotImplementedException("checkConstEnumAccess");
+    // checker.go:7550 — enum object type for const enums is only permitted in specific positions.
+    internal void CheckConstEnumAccess(Node node, Type t)
+    {
+        var ok = NodeTests.IsPropertyAccessExpression(node.Parent!) && node.Parent!.Expression() == node ||
+            NodeTests.IsElementAccessExpression(node.Parent!) && node.Parent!.Expression() == node ||
+            ((NodeTests.IsIdentifier(node) || NodeTests.IsQualifiedName(node)) && AstUtilities.IsInRightSideOfImportOrExportAssignment(node) ||
+                NodeTests.IsTypeQueryNode(node.Parent!) && node.Parent!.AsTypeQueryNode().ExprName == node) ||
+            NodeTests.IsExportSpecifier(node.Parent!); // We allow reexporting const enums
+        if (!ok)
+        {
+            Error(node, global::Ts.Diagnostics.Diagnostics.X_const_enums_can_only_be_used_in_property_or_index_access_expressions_or_the_right_hand_side_of_an_import_declaration_or_export_assignment_or_type_query);
+        }
+        // --verbatimModuleSyntax only gets checked here when the enum usage does not resolve to an import,
+        // because imports of ambient const enums get checked separately in `checkAliasSymbol`.
+        if (compilerOptions.IsolatedModules.IsTrue() || compilerOptions.VerbatimModuleSyntax.IsTrue() && ok && ResolveName(node, GetFirstIdentifier(node).Text(), SymbolFlags.Alias, null /*nameNotFoundMessage*/, false /*isUse*/, true) == null)
+        {
+            global::Ts.Core.Debug.Assert((t.symbol!.Flags & SymbolFlags.ConstEnum) != 0);
+            var constEnumDeclaration = t.symbol.ValueDeclaration!;
+            var redirect = program.GetProjectReferenceFromOutputDts(AstUtilities.GetSourceFileOfNode(constEnumDeclaration)!.Path());
+            if ((constEnumDeclaration.Flags & NodeFlags.Ambient) != 0 && !AstUtilities.IsValidTypeOnlyAliasUseSite(node) && (redirect == null || !redirect.Resolved!.CompilerOptions()!.ShouldPreserveConstEnums()))
+            {
+                Error(node, global::Ts.Diagnostics.Diagnostics.Cannot_access_ambient_const_enums_when_0_is_enabled, GetIsolatedModulesLikeFlagName());
+            }
+        }
+    }
 
     // ===== (b) cross-cluster helpers called by #7/#8 (owned elsewhere) =====
 

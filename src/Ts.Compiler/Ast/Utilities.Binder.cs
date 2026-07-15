@@ -1232,6 +1232,17 @@ public static partial class AstUtilities
         }
         return false;
     }
+
+    // checker/utilities.go:1084
+    public static bool IsInRightSideOfImportOrExportAssignment(Node node)
+    {
+        while (node.Parent!.Kind == SyntaxKind.QualifiedName)
+        {
+            node = node.Parent;
+        }
+        return node.Parent.Kind == SyntaxKind.ImportEqualsDeclaration && node.Parent.AsImportEqualsDeclaration().ModuleReference == node ||
+            node.Parent.Kind == SyntaxKind.ExportAssignment && node.Parent.Expression() == node;
+    }
 }
 
 // Go: internal/ast/utilities.go:1500-1520 — `type JSDeclarationKind int` iota block. Members

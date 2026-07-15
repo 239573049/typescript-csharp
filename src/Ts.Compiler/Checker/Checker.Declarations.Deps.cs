@@ -117,7 +117,9 @@ public partial class Checker
     // checker.go:2638-2640
     internal bool ShouldCheckErasableSyntax(Node node) => compilerOptions.ErasableSyntaxOnly.IsTrue() && !AstUtilities.IsInJSFile(node);
     // checker.go:5217
-    internal string GetIsolatedModulesLikeFlagName() => throw new NotImplementedException("getIsolatedModulesLikeFlagName");
+    // checker.go:5217
+    internal string GetIsolatedModulesLikeFlagName() =>
+        compilerOptions.VerbatimModuleSyntax.IsTrue() ? "verbatimModuleSyntax" : "isolatedModules";
 
     // ---- module augmentation / import-export resolution deep branches (symbol-resolution, deferred) ----
     // checker.go:5221
