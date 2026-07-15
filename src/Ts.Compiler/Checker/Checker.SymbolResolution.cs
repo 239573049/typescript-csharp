@@ -1531,7 +1531,61 @@ public partial class Checker
     // trunk is now REAL above (checker.go:15019-15473); deep branches remain `// !!!` stubs there.
     // ResolveESModuleSymbol / GetExternalModuleMember: real bodies in Checker.SyntheticDefault.cs.
 
-    internal Symbol? GetTargetOfModuleDefault(Symbol moduleSymbol, Node node, bool dontResolveAlias) => throw new NotImplementedException("getTargetOfModuleDefault");
+    // checker.go — getTargetOfModuleDefault.
+    internal Symbol? GetTargetOfModuleDefault(Symbol moduleSymbol, Node node, bool dontResolveAlias)
+    {
+        var file = CoreUtil.Find(moduleSymbol.Declarations, NodeTests.IsSourceFile);
+        var specifier = GetModuleSpecifierForImportOrExport(node);
+        Symbol? exportDefaultSymbol = null;
+        Symbol? exportModuleDotExportsSymbol = null;
+        if (IsShorthandAmbientModuleSymbol(moduleSymbol))
+        {
+            // exportDefaultSymbol = moduleSymbol (Go no-op)
+        }
+        else if (file != null && specifier != null &&
+            ModuleKind.Node20 <= moduleKind && moduleKind <= ModuleKind.NodeNext &&
+            GetEmitSyntaxForModuleSpecifierExpression(specifier) == ModuleKind.CommonJS &&
+            program.GetImpliedNodeFormatForEmit(SourceFileAsHasFileName(file.AsSourceFile())) == ModuleKind.ESNext)
+        {
+            exportModuleDotExportsSymbol = ResolveExportByName(moduleSymbol, InternalSymbolName.ModuleExports, node, dontResolveAlias);
+        }
+        if (exportModuleDotExportsSymbol != null)
+        {
+            MarkSymbolOfAliasDeclarationIfTypeOnly(node, null);
+            return exportModuleDotExportsSymbol;
+        }
+        exportDefaultSymbol = ResolveExportByName(moduleSymbol, InternalSymbolName.Default, node, dontResolveAlias);
+        if (specifier == null)
+        {
+            return exportDefaultSymbol;
+        }
+        var hasDefaultOnly = IsOnlyImportableAsDefault(specifier, moduleSymbol);
+        var hasSyntheticDefault = CanHaveSyntheticDefault(file, moduleSymbol, dontResolveAlias, specifier);
+        if (exportDefaultSymbol == null && !hasSyntheticDefault && !hasDefaultOnly)
+        {
+            if (NodeTests.IsImportClause(node))
+            {
+                ReportNonDefaultExport(moduleSymbol, node);
+            }
+            else
+            {
+                var name = AstUtilities.IsImportOrExportSpecifier(node) ? node.PropertyNameOrName() : node.Name();
+                ErrorNoModuleMemberSymbol(moduleSymbol, moduleSymbol, node, name!);
+            }
+        }
+        else if (hasSyntheticDefault || hasDefaultOnly)
+        {
+            // per emit behavior, a synthetic default overrides a "real" .default member if `__esModule` is not present
+            var resolved = ResolveExternalModuleSymbol(moduleSymbol, dontResolveAlias) ?? ResolveSymbolEx(moduleSymbol, dontResolveAlias);
+            MarkSymbolOfAliasDeclarationIfTypeOnly(node, null);
+            return resolved;
+        }
+        MarkSymbolOfAliasDeclarationIfTypeOnly(node, null);
+        return exportDefaultSymbol;
+    }
+
+    // reportNonDefaultExport (checker.go) — deferred (rare error branch; see getTargetOfModuleDefault).
+    private void ReportNonDefaultExport(Symbol moduleSymbol, Node node) => throw new NotImplementedException("reportNonDefaultExport");
 
 
 
