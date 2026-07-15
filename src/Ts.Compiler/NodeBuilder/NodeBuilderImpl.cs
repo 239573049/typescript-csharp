@@ -71,6 +71,9 @@ internal sealed class NodeBuilderContext
     // nodebuilderimpl.go:72 — suppressReportInferenceFallback: quiets ReportInferenceFallback while
     // serializing an inferred return type (the tracker call itself lands with the reuse wave).
     internal bool suppressReportInferenceFallback;
+    // nodecopy.go — trackedSymbols: symbols the WrappingTracker deferred within a recovery boundary
+    // (see NodeBuilder.NodeCopy.cs). Saved/restored across boundaries; stays empty outside one.
+    internal List<TrackedSymbolArgs> trackedSymbols = new();
 
     // ── object-type serialization state (nodebuilderimpl.go:57 NodeBuilderContext) ───────────────────
     // These fields back the anonymous/object type-literal path (createAnonymousTypeNode ->

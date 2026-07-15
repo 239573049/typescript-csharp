@@ -137,6 +137,15 @@ public partial class Checker
     // isCanceled (utilities.go:1635): Go `c.ctx != nil && c.ctx.Err() != nil`.
     internal bool IsCanceled() => ctx.IsCancellationRequested;
 
+    // utilities.go:1639 — checkNotCanceled.
+    internal void CheckNotCanceled()
+    {
+        if (wasCanceled)
+        {
+            throw new InvalidOperationException("Checker was previously cancelled");
+        }
+    }
+
     // ---- expressions (#7/#8) ----
     // CheckExpression / CheckExpressionCached already stubbed in Stubs.cs; GetResolvedSymbolOrNil elsewhere.
     // checker.go:10917
