@@ -218,7 +218,36 @@ public partial class Checker
         }
         return InternalSymbolName.Missing;
     }
-    internal Type PadTupleType(Type t, Node pattern) => throw new NotImplementedException("padTupleType");
+    // checker.go:16771
+    internal Type PadTupleType(Type t, Node pattern)
+    {
+        var patternElements = pattern.Elements()!;
+        if ((t.TargetTupleType()!.combinedFlags & ElementFlags.Variable) != 0 || GetTypeReferenceArity(t) >= patternElements.Length)
+        {
+            return t;
+        }
+        var elementTypes = new global::System.Collections.Generic.List<Type>(GetElementTypes(t));
+        var elementInfos = new global::System.Collections.Generic.List<TupleElementInfo>(t.TargetTupleType()!.elementInfos!);
+        for (var i = GetTypeReferenceArity(t); i < patternElements.Length; i++)
+        {
+            var e = patternElements[i];
+            if (i < patternElements.Length - 1 || !(NodeTests.IsBindingElement(e) && HasDotDotDotToken(e)))
+            {
+                var elementType = anyType!;
+                if (!NodeTests.IsOmittedExpression(e) && HasDefaultValue(e))
+                {
+                    elementType = GetTypeFromBindingElement(e, false /*includePatternInType*/, false /*reportErrors*/);
+                }
+                elementTypes.Add(elementType);
+                elementInfos.Add(new TupleElementInfo(ElementFlags.Optional, null));
+                if (!NodeTests.IsOmittedExpression(e) && !HasDefaultValue(e))
+                {
+                    ReportImplicitAny(e, anyType!, WideningKind.Normal);
+                }
+            }
+        }
+        return CreateTupleTypeEx(elementTypes.ToArray(), elementInfos.ToArray(), t.TargetTupleType()!.readonlyElements);
+    }
     // WidenTypeInferredFromInitializer is now REAL in Checker.Widening.cs (checker.go:16795).
     // GetWidenedLiteralTypeForInitializer is now REAL in Checker.Widening.cs (checker.go:16810).
     // GetWidenedLiteralLikeTypeForContextualType is now REAL in Checker.Widening.cs (checker.go:25423).
