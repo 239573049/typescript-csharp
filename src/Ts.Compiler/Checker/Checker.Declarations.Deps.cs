@@ -123,7 +123,44 @@ public partial class Checker
 
     // ---- module augmentation / import-export resolution deep branches (symbol-resolution, deferred) ----
     // checker.go:5221
-    internal void CheckModuleAugmentationElement(Node node) => throw new NotImplementedException("checkModuleAugmentationElement");
+    // checker.go:5221
+    internal void CheckModuleAugmentationElement(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.VariableStatement:
+                foreach (var decl in node.AsVariableStatement().DeclarationList!.AsVariableDeclarationList().Declarations!.Nodes)
+                {
+                    CheckModuleAugmentationElement(decl);
+                }
+                break;
+            case SyntaxKind.ExportAssignment:
+            case SyntaxKind.ExportDeclaration:
+                GrammarErrorOnFirstToken(node, Diag.Exports_and_export_assignments_are_not_permitted_in_module_augmentations);
+                break;
+            case SyntaxKind.ImportEqualsDeclaration:
+                if (IsInternalModuleImportEqualsDeclaration(node))
+                {
+                    break;
+                }
+                goto case SyntaxKind.ImportDeclaration;
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+                GrammarErrorOnFirstToken(node, Diag.Imports_are_not_permitted_in_module_augmentations_Consider_moving_them_to_the_enclosing_external_module);
+                break;
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.VariableDeclaration:
+                var name = node.Name()!;
+                if (AstUtilities.IsBindingPattern(name))
+                {
+                    foreach (var el in name.Elements() ?? [])
+                    {
+                        CheckModuleAugmentationElement(el);
+                    }
+                }
+                break;
+        }
+    }
     // checker.go:5316
     internal bool CheckExternalImportOrExportDeclaration(Node node)
     {

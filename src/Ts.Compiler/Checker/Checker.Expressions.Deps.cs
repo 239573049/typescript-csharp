@@ -31,7 +31,17 @@ public partial class Checker
     // ===== (a) #7 leaf expression checkers (owned; body pending a follow-up breadth pass) =====
 
     // checker.go:7814 / 7823
-    internal Type CheckPrivateIdentifierExpression(Node node) => throw new NotImplementedException("checkPrivateIdentifierExpression");
+    // checker.go — checkPrivateIdentifierExpression.
+    internal Type CheckPrivateIdentifierExpression(Node node)
+    {
+        CheckGrammarPrivateIdentifierExpression(node.AsPrivateIdentifier());
+        var symbol = GetSymbolForPrivateIdentifierExpression(node);
+        if (symbol != null)
+        {
+            MarkPropertyAsReferenced(symbol, null /*nodeForCheckWriteOnly*/, false /*isSelfTypeAccess*/);
+        }
+        return anyType!;
+    }
 
     // checkIdentifier (checker.go:11014) landed in Checker.CheckIdentifier.cs.
 
