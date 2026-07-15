@@ -210,7 +210,80 @@ public partial class Checker
     internal bool IsOnlyImportableAsDefault(Node? usage, Symbol? resolvedModule) => throw new NotImplementedException("isOnlyImportableAsDefault");
     // checker.go:15040 resolveExternalModuleNameWorker: real body landed in Checker.SymbolResolution.cs.
     // checker.go:5391
-    internal void CheckImportAttributes(Node declaration) => throw new NotImplementedException("checkImportAttributes");
+    // checker.go:5391
+    internal void CheckImportAttributes(Node declaration)
+    {
+        var node = GetImportAttributes(declaration);
+        if (node == null)
+        {
+            return;
+        }
+        var importAttributesType = getGlobalImportAttributesTypeChecked();
+        if (importAttributesType != emptyObjectType)
+        {
+            CheckTypeAssignableTo(GetTypeFromImportAttributes(node), GetNullableType(importAttributesType, TypeFlags.Undefined), node, null);
+        }
+        bool isTypeOnly = AstUtilities.IsExclusivelyTypeOnlyImportOrExport(declaration);
+        var over = GetResolutionModeOverride(node.AsImportAttributes(), isTypeOnly);
+        if (isTypeOnly && over != ModuleKind.None)
+        {
+            return; // Other grammar checks do not apply to type-only imports with resolution mode attributes
+        }
+        if (!moduleKind.SupportsImportAttributes())
+        {
+            GrammarErrorOnNode(node, global::Ts.Diagnostics.Diagnostics.Import_attributes_are_only_supported_when_the_module_option_is_set_to_esnext_node18_node20_nodenext_or_preserve);
+            return;
+        }
+        var moduleSpecifier = GetModuleSpecifierFromNode(declaration);
+        if (moduleSpecifier != null)
+        {
+            if (GetEmitSyntaxForModuleSpecifierExpression(moduleSpecifier) == ModuleKind.CommonJS)
+            {
+                GrammarErrorOnNode(node, global::Ts.Diagnostics.Diagnostics.Import_attributes_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls);
+                return;
+            }
+        }
+        if (isTypeOnly)
+        {
+            GrammarErrorOnNode(node, global::Ts.Diagnostics.Diagnostics.Import_attributes_cannot_be_used_with_type_only_imports_or_exports);
+            return;
+        }
+        if (over != ModuleKind.None)
+        {
+            GrammarErrorOnNode(node, global::Ts.Diagnostics.Diagnostics.X_resolution_mode_can_only_be_set_for_type_only_imports);
+        }
+    }
+
+    // checker.go:5427
+    internal Type GetTypeFromImportAttributes(Node node)
+    {
+        var links = typeNodeLinks.Get(node);
+        if (links.resolvedType == null)
+        {
+            var symbol = NewSymbol(SymbolFlags.ObjectLiteral, InternalSymbolName.ImportAttributes);
+            var members = new SymbolTable();
+            foreach (var attr in node.AsImportAttributes().Attributes!.Nodes)
+            {
+                var member = NewSymbol(SymbolFlags.Property, attr.Name()!.Text());
+                valueSymbolLinks.Get(member).resolvedType = GetRegularTypeOfLiteralType(CheckExpression(attr.AsImportAttribute().Value!));
+                members[member.Name] = member;
+            }
+            var t = NewAnonymousType(symbol, members, null, null, null);
+            t.objectFlags |= ObjectFlags.ObjectLiteral | ObjectFlags.NonInferrableType;
+            links.resolvedType = t;
+        }
+        return links.resolvedType;
+    }
+
+    // checker.go:14803
+    internal ResolutionMode GetEmitSyntaxForModuleSpecifierExpression(Node usage)
+    {
+        if (AstUtilities.IsStringLiteralLike(usage))
+        {
+            return program.GetEmitSyntaxForUsageLocation(SourceFileAsHasFileName(AstUtilities.GetSourceFileOfNode(usage)!), usage);
+        }
+        return ModuleKind.None;
+    }
     // checker.go:5534
     internal void CheckExportSpecifier(Node node) => throw new NotImplementedException("checkExportSpecifier");
     // checker.go:5371
@@ -518,7 +591,49 @@ public partial class Checker
 
     // ---- type-node deep helpers (type-nodes/indexed-access, deferred) ----
     // checker.go:3318
-    internal ResolutionMode GetResolutionModeOverride(ImportAttributes node, bool reportErrors) => throw new NotImplementedException("getResolutionModeOverride");
+    // checker.go:3318
+    internal ResolutionMode GetResolutionModeOverride(ImportAttributes node, bool reportErrors)
+    {
+        if (node.Attributes!.Nodes.Length != 1)
+        {
+            if (reportErrors)
+            {
+                GrammarErrorOnNode(node, global::Ts.Diagnostics.Diagnostics.Type_import_attributes_should_have_exactly_one_key_resolution_mode_with_value_import_or_require);
+            }
+            return ModuleKind.None;
+        }
+        var elem = node.Attributes.Nodes[0];
+        if (!AstUtilities.IsStringLiteralLike(elem.Name()!))
+        {
+            return ModuleKind.None;
+        }
+        if (elem.Name()!.Text() != "resolution-mode")
+        {
+            if (reportErrors)
+            {
+                GrammarErrorOnNode(elem.Name()!, global::Ts.Diagnostics.Diagnostics.X_resolution_mode_is_the_only_valid_key_for_type_import_attributes);
+            }
+            return ModuleKind.None;
+        }
+        var value = elem.AsImportAttribute().Value!;
+        if (!AstUtilities.IsStringLiteralLike(value))
+        {
+            return ModuleKind.None;
+        }
+        if (value.Text() != "import" && value.Text() != "require")
+        {
+            if (reportErrors)
+            {
+                GrammarErrorOnNode(value, global::Ts.Diagnostics.Diagnostics.X_resolution_mode_should_be_either_require_or_import);
+            }
+            return ModuleKind.None;
+        }
+        if (value.Text() == "import")
+        {
+            return ModuleKind.ESNext;
+        }
+        return ModuleKind.CommonJS;
+    }
     // checker.go:2986
     internal void CheckTypeReferenceOrImport(Node node)
     {

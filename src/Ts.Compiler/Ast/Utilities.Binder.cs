@@ -1202,6 +1202,36 @@ public static partial class AstUtilities
         }
         return false;
     }
+
+    // utilities.go:2910
+    public static bool IsExclusivelyTypeOnlyImportOrExport(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ExportDeclaration:
+                return node.IsTypeOnly();
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            {
+                var importClause = node.ImportClause();
+                if (importClause != null)
+                {
+                    return importClause.IsTypeOnly();
+                }
+                break;
+            }
+            case SyntaxKind.JSDocImportTag:
+            {
+                var importClause = node.ImportClause();
+                if (importClause != null)
+                {
+                    return importClause.IsTypeOnly();
+                }
+                break;
+            }
+        }
+        return false;
+    }
 }
 
 // Go: internal/ast/utilities.go:1500-1520 — `type JSDeclarationKind int` iota block. Members
