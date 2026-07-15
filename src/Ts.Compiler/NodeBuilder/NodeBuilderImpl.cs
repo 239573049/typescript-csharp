@@ -736,6 +736,74 @@ public sealed partial class NodeBuilder
     private string GetSpecifierForModuleSymbol(Symbol symbol, ResolutionMode overrideImportMode) =>
         throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol");
 
+    // nodebuilderimpl.go:430 — serializeTypeName.
+    private Node? SerializeTypeName(Node node, bool isTypeOf, TypeList? typeArguments)
+    {
+        var meaning = isTypeOf ? SymbolFlags.Value : SymbolFlags.Type;
+        var symbol = ch.ResolveEntityName(node, meaning, true, false, node);
+        if (symbol == null)
+        {
+            return null;
+        }
+        var resolvedSymbol = symbol;
+        if ((symbol.Flags & SymbolFlags.Alias) != 0)
+        {
+            resolvedSymbol = ch.ResolveAlias(symbol).Item1 ?? symbol;
+        }
+        if (ch.IsSymbolAccessible(symbol, ctx!.enclosingDeclaration, meaning, false).Accessibility != global::Ts.Printer.SymbolAccessibility.Accessible)
+        {
+            return null;
+        }
+        return SymbolToTypeNode(resolvedSymbol, meaning, typeArguments);
+    }
+
+    // nodebuilderimpl.go:495 — canReuseExistingJSTypeNode.
+    private bool CanReuseExistingJSTypeNode(Node existing, Type t) =>
+        ch.GetIntendedTypeFromJSDocTypeReference(existing) == null && ExistingTypeNodeIsNotReferenceOrIsReferenceWithCompatibleTypeArgumentCount(existing, t);
+
+    // nodebuilderimpl.go:499 — tryGetResolvedSymbolFromTypeNode.
+    private Symbol? TryGetResolvedSymbolFromTypeNode(Node? node)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+        ch.GetTypeFromTypeNode(node); // call to ensure symbol is resolved
+        var links = ch.symbolNodeLinks.TryGet(node);
+        if (links == null)
+        {
+            return null;
+        }
+        return links.resolvedSymbol;
+    }
+
+    // nodebuilderimpl.go:511 — existingTypeNodeIsNotReferenceOrIsReferenceWithCompatibleTypeArgumentCount.
+    private bool ExistingTypeNodeIsNotReferenceOrIsReferenceWithCompatibleTypeArgumentCount(Node existing, Type t)
+    {
+        // In JS, you can say something like `Foo` and get a `Foo<any>` implicitly - we don't want to preserve that original `Foo` in these cases, though.
+        if ((t.objectFlags & ObjectFlags.Reference) == 0)
+        {
+            return true;
+        }
+        if (!NodeTests.IsTypeReferenceNode(existing))
+        {
+            return true;
+        }
+        var symbol = TryGetResolvedSymbolFromTypeNode(existing);
+        if (symbol == null)
+        {
+            return true;
+        }
+        // `type` is a reference type, and `existing` is a type reference node, but we still need to make sure they refer to the _same_ target type
+        // before we go comparing their type argument counts.
+        var existingTarget = ch.GetDeclaredTypeOfSymbol(symbol);
+        if (existingTarget == null || existingTarget != t.AsTypeReference()!.target)
+        {
+            return true;
+        }
+        return (existing.TypeArguments()?.Length ?? 0) >= ch.GetMinTypeArgumentCount(t.AsTypeReference()!.target!.AsInterfaceType()!.TypeParameters());
+    }
+
     // nodebuilderimpl.go:1123 — lookupTypeParameterNodes.
     // The WriteTypeParametersInQualifiedName branch (qualified generic names) is deferred, matching
     // LookupExpressionChainTypeArgumentNodes; the common path returns null after guarding the symbol id.
