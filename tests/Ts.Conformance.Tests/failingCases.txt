@@ -64,7 +64,6 @@ contextualTypeTupleEnd
 contextuallyTypedBindingInitializerNegative
 contextuallyTypedClassExpressionMethodDeclaration01
 contextuallyTypedIifeStrict
-contextuallyTypedStringLiteralsInJsxAttributes01
 controlFlowAliasing
 controlFlowBindingPatternOrder
 controlFlowGenericTypes
@@ -86,7 +85,6 @@ destructuringParameterDeclaration2
 destructuringParameterDeclaration3ES5
 destructuringParameterDeclaration3ES6
 destructuringParameterDeclaration5
-destructuringParameterDeclaration8
 destructuringParameterProperties5
 destructuringVariableDeclaration1ES5
 destructuringVariableDeclaration1ES6
@@ -110,7 +108,6 @@ for-inStatementsInvalid
 for-of-excess-declarations
 for-of16
 for-of29
-for-of46
 generatorReturnContextualType
 generatorTypeCheck25
 generatorTypeCheck31
@@ -138,11 +135,9 @@ instantiationExpressionErrors
 interfaceDoesNotDependOnBaseTypes
 interfaceExtendsObjectIntersectionErrors
 intersectionAsWeakTypeSource
-intersectionNarrowing
 intersectionReduction
 intersectionReductionStrict
 intersectionWithIndexSignatures
-intersectionWithUnionConstraint
 intraExpressionInferences
 intrinsicTypes
 invalidBooleanAssignments
@@ -169,7 +164,6 @@ lateBoundClassMemberAssignmentJS
 lateBoundClassMemberAssignmentJS3
 logicalOrOperatorWithTypeParameters
 mappedTypeAsClauseRelationships
-mappedTypeAsClauses
 mappedTypeConstraints2
 mappedTypeErrors
 mappedTypeErrors2
@@ -238,7 +232,6 @@ recursiveTypeReferences2
 restTupleElements1
 restTuplesFromContextualTypes
 spreadNonObject1
-spreadObjectOrFalsy
 strictBindCallApply1
 stringEnumLiteralTypes3
 stringLiteralTypesAndParenthesizedExpressions01
