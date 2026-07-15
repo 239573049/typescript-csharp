@@ -61,8 +61,6 @@ generatorTypeCheck39
 generatorTypeCheck62
 generatorTypeCheck63
 genericRestParameters1
-importCallExpressionGrammarError
-importCallExpressionSpecifierNotStringTypeError
 importTypeAmbientMissing
 indexSignatures1
 inferTypes1
@@ -83,8 +81,6 @@ mixinAccessors3
 moduleExportAlias4
 moduleExportsAliasLoop1
 moduleExportsAliasLoop2
-moduleResolutionWithoutExtension5
-moduleResolutionWithoutExtension8
 neverReturningFunctions1
 objectTypeHidingMembersOfExtendedObject
 objectTypeWithStringIndexerHidingObjectIndexer
