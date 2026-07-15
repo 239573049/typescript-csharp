@@ -35,7 +35,6 @@ everyTypeWithAnnotationAndInvalidInitializer
 for-of29
 generatorReturnContextualType
 genericRestParameters1
-importTypeAmbientMissing
 indexSignatures1
 initializerReferencingConstructorLocals
 initializerReferencingConstructorParameters

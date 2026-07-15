@@ -959,16 +959,30 @@ internal sealed class FileLoader
         var parent = usage.Parent!;
         if (NodeTests.IsImportDeclaration(parent) || parent.Kind == SyntaxKind.JSImportDeclaration || NodeTests.IsExportDeclaration(parent) || NodeTests.IsJSDocImportTag(parent))
         {
-            // PORT-NOTE (phase 4/5): the type-only resolution-mode override reads
-            // IsExclusivelyTypeOnlyImportOrExport + Attributes.GetResolutionModeOverride, neither of which
-            // is ported yet. Deferred; without it, non-type-only imports (the milestone case) fall through
-            // to the format-based logic below exactly as in Go.
+            var isTypeOnly = AstUtilities.IsExclusivelyTypeOnlyImportOrExport(parent);
+            if (isTypeOnly)
+            {
+                Node? attributes = parent.Kind switch
+                {
+                    SyntaxKind.ImportDeclaration or SyntaxKind.JSImportDeclaration => parent.AsImportDeclaration().Attributes,
+                    SyntaxKind.ExportDeclaration => parent.AsExportDeclaration().Attributes,
+                    SyntaxKind.JSDocImportTag => parent.AsJSDocImportTag().Attributes,
+                    _ => null,
+                };
+                var (over, ok) = ImportAttributesResolutionModeOverride(attributes);
+                if (ok)
+                {
+                    return over;
+                }
+            }
         }
         if (NodeTests.IsLiteralTypeNode(parent) && parent.Parent is not null && NodeTests.IsImportTypeNode(parent.Parent))
         {
-            // PORT-NOTE (phase 4/5): import-type resolution-mode override (AsImportTypeNode().Attributes
-            // .GetResolutionModeOverride) deferred; not reached by the milestone inputs.
-            throw new NotImplementedException("import-type resolution-mode override is deferred (phase 4/5)");
+            var (over, ok) = ImportAttributesResolutionModeOverride(parent.Parent.AsImportTypeNode().Attributes);
+            if (ok)
+            {
+                return over;
+            }
         }
 
         if (options is not null && ImportSyntaxAffectsModuleResolution(options))
@@ -977,6 +991,46 @@ internal sealed class FileLoader
         }
 
         return global::Ts.Core.Core.ResolutionModeNone;
+    }
+
+    // ast.go:2215 — ImportAttributesNode.GetResolutionModeOverride() (nil-receiver → static helper).
+    // Grammar-error reporting (the optional grammarErrorOnNode callback) is elided here, matching Go's
+    // nil-callback call sites; the checker's GetResolutionModeOverride(ImportAttributes, reportErrors)
+    // owns the reporting path.
+    private static (ResolutionMode, bool) ImportAttributesResolutionModeOverride(Node? node)
+    {
+        if (node is null)
+        {
+            return (global::Ts.Core.Core.ResolutionModeNone, false);
+        }
+        var attributes = node.AsImportAttributes().Attributes;
+        if (attributes is null || attributes.Nodes.Length != 1)
+        {
+            return (global::Ts.Core.Core.ResolutionModeNone, false);
+        }
+        var elem = attributes.Nodes[0];
+        if (!AstUtilities.IsStringLiteralLike(elem.Name()!))
+        {
+            return (global::Ts.Core.Core.ResolutionModeNone, false);
+        }
+        if (elem.Name()!.Text() != "resolution-mode")
+        {
+            return (global::Ts.Core.Core.ResolutionModeNone, false);
+        }
+        var value = elem.AsImportAttribute().Value!;
+        if (!AstUtilities.IsStringLiteralLike(value))
+        {
+            return (global::Ts.Core.Core.ResolutionModeNone, false);
+        }
+        if (value.Text() != "import" && value.Text() != "require")
+        {
+            return (global::Ts.Core.Core.ResolutionModeNone, false);
+        }
+        if (value.Text() == "import")
+        {
+            return (ModuleKind.ESNext, true);
+        }
+        return (ModuleKind.CommonJS, true);
     }
 
     // fileloader.go:758-762
