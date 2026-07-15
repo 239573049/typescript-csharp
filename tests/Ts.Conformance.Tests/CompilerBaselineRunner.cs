@@ -57,6 +57,13 @@ public static partial class CompilerBaselineRunner
 {
     private const string SourceFolder = "/.src";
     private const string LibraryFolder = "/.lib";
+    // The default bundled libs (lib.es5.d.ts, …) live under the `bundled:///libs` scheme, exactly as
+    // the Go harness does (bundled.LibPath() → "bundled:///libs", embed.go). This is NOT the same as
+    // LibraryFolder ("/.lib" = harnessutil.go:39 testLibFolder for the submodule tests/lib content).
+    // The distinction is load-bearing for diagnostic ordering: CompareDiagnostics sorts by full
+    // FileName, and "bundled:///libs/…" sorts AFTER "/.src/…" ('b' > '/') while "/.lib/…" wrongly
+    // sorts before it ('l' < 's'). ErrorBaseline.RemoveTestPathPrefixes already strips this scheme.
+    private const string BundledLibraryFolder = "bundled:///libs";
 
     public static bool TypesAndSymbolsEnabled => string.Equals(
         Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_TYPES"),
@@ -121,20 +128,10 @@ public static partial class CompilerBaselineRunner
         ["nocheck"] = "noCheck",
     };
 
-    // The bundled lib texts are identical for every case; reading the ~90 files from disk once
-    // keeps the multi-hundred-case corpus wave IO-bound on test inputs only.
-    private static readonly Lazy<IReadOnlyDictionary<string, string>> s_bundledLibContents = new(
-        () =>
-        {
-            string bundledLibRoot = Path.Combine(RepoPaths.RootPath, "src", "Ts.Compiler", "Bundled", "libs");
-            var contents = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (string libName in global::Ts.Bundled.Bundled.LibNames)
-            {
-                contents[libName] = File.ReadAllText(Path.Combine(bundledLibRoot, libName), Encoding.UTF8);
-            }
-            return contents;
-        },
-        LazyThreadSafetyMode.ExecutionAndPublication);
+    // The default bundled libs are served by Bundled.WrapFS (the `bundled:///libs` overlay, ported
+    // from bundled/embed.go) rather than mounted into the test VFS map — matching the Go harness
+    // (harnessutil.go:212 bundled.WrapFS(fs)). This keeps their FileName under `bundled:///libs/…`,
+    // which is what CompareDiagnostics sorts by.
 
     // Go harnessutil.go:241-264 testLibFolderMap (sync.OnceValue): every file under the
     // TypeScript submodule's tests/lib directory, keyed by its `/.lib/<relative path>` VFS path.
@@ -279,14 +276,6 @@ public static partial class CompilerBaselineRunner
             }
         }
 
-        // The product-side bundled.WrapFS equivalent is not exported yet. Load the generated lib
-        // copies into this test VFS so Program sees the same `/.lib` namespace as the Go harness.
-        // map-iter: 序无关 — dictionary insertion into the VFS map; VFS lookup is by path.
-        foreach ((string libName, string libContent) in s_bundledLibContents.Value)
-        {
-            vfsEntries[global::Ts.TsPath.TsPath.CombinePaths(LibraryFolder, libName)] = libContent;
-        }
-
         // map-iter: 已排序 — symlink creation order is deterministic and has no output effect.
         foreach (string link in parsed.Symlinks.Keys.OrderBy(key => key, StringComparer.Ordinal))
         {
@@ -306,7 +295,10 @@ public static partial class CompilerBaselineRunner
             }
         }
 
-        IFileSystem fs = VfsTestUtil.FromMap(vfsEntries, useCaseSensitiveFileNames: true);
+        // harnessutil.go:212 — wrap with the bundled overlay so `bundled:///libs/*` resolves to the
+        // embedded default libs (kept out of the rooted-disk-path test VFS map, exactly as Go does).
+        IFileSystem fs = global::Ts.Bundled.Bundled.WrapFS(
+            VfsTestUtil.FromMap(vfsEntries, useCaseSensitiveFileNames: true));
         var configHost = new VfsParseConfigHost(fs, currentDirectory);
         ParsedCommandLine config = ParseCompilerOptions(configHost, parsed.GlobalOptions, programRoots);
         CompilerOptions options = config.CompilerOptions()!;
@@ -324,7 +316,7 @@ public static partial class CompilerBaselineRunner
         CompilerHost host = CompilerHosts.NewCompilerHost(
             currentDirectory,
             fs,
-            LibraryFolder,
+            BundledLibraryFolder,
             extendedConfigCache: null,
             trace: null);
         bool singleThreaded = string.Equals(

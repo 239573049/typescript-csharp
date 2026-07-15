@@ -26,7 +26,6 @@ jsdocTemplateTag
 jsdocTemplateTag5
 mappedTypeProperties
 mixinAccessors3
-moduleExportAlias4
 moduleExportsAliasLoop1
 moduleExportsAliasLoop2
 neverReturningFunctions1
