@@ -68,7 +68,6 @@ plainJSBinderErrors
 plainJSGrammarErrors
 plainJSGrammarErrors4
 plainJSRedeclare
-plainJSReservedStrict
 privateNameUnused
 propertyAssignmentUseParentType2
 prototypePropertyAssignmentMergedTypeReference

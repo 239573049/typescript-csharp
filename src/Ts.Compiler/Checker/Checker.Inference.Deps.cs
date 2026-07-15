@@ -178,7 +178,8 @@ public partial class Checker
     }
 
     // ---- bigint literal type (checker.go, later wave) ----
-    internal Type ParseBigIntLiteralType(string text) => throw new NotImplementedException("parseBigIntLiteralType");
+    // checker.go — parseBigIntLiteralType.
+    internal Type ParseBigIntLiteralType(string text) => GetBigIntLiteralType(global::Ts.JsNum.JsNum.ParseValidBigInt(text));
 
     // ---- contextual (#21) ----
     // getContextualTypeForObjectLiteralMethod (29721): real body landed in Checker.ContextualType.cs.

@@ -192,7 +192,91 @@ public partial class Checker
         }
     }
 
-    // checker.go:14127 — duplicate-declaration reporting; deferred (owning wave: addDuplicateDeclarationError
-    // + lookupOrIssueError + related-info chaining). Reached only on symbol-merge conflicts.
-    internal void ReportMergeSymbolError(Symbol target, Symbol source) => throw new NotImplementedException("reportMergeSymbolError");
+    // checker.go — reportMergeSymbolError.
+    internal void ReportMergeSymbolError(Symbol target, Symbol source)
+    {
+        var isEitherEnum = (target.Flags & SymbolFlags.Enum) != 0 || (source.Flags & SymbolFlags.Enum) != 0;
+        var isEitherBlockScoped = (target.Flags & SymbolFlags.BlockScopedVariable) != 0 || (source.Flags & SymbolFlags.BlockScopedVariable) != 0;
+        global::Ts.Diagnostics.Message message;
+        if (isEitherEnum)
+        {
+            message = Diag.Enum_declarations_can_only_merge_with_namespace_or_other_enum_declarations;
+        }
+        else if (isEitherBlockScoped)
+        {
+            message = Diag.Cannot_redeclare_block_scoped_variable_0;
+        }
+        else
+        {
+            message = Diag.Duplicate_identifier_0;
+        }
+        var sourceSymbolFile = AstUtilities.GetSourceFileOfNode(GetFirstDeclaration(source));
+        var targetSymbolFile = AstUtilities.GetSourceFileOfNode(GetFirstDeclaration(target));
+        var isSourcePlainJS = AstUtilities.IsPlainJSFile(sourceSymbolFile, compilerOptions.CheckJs);
+        var isTargetPlainJS = AstUtilities.IsPlainJSFile(targetSymbolFile, compilerOptions.CheckJs);
+        var symbolName = SymbolToString(source);
+        if (!isSourcePlainJS)
+        {
+            AddDuplicateDeclarationErrorsForSymbols(source, message, symbolName, target);
+        }
+        if (!isTargetPlainJS)
+        {
+            AddDuplicateDeclarationErrorsForSymbols(target, message, symbolName, source);
+        }
+    }
+
+    // checker.go — addDuplicateDeclarationErrorsForSymbols.
+    private void AddDuplicateDeclarationErrorsForSymbols(Symbol target, global::Ts.Diagnostics.Message message, string symbolName, Symbol source)
+    {
+        foreach (var node in target.Declarations ?? [])
+        {
+            AddDuplicateDeclarationError(node, message, symbolName, source.Declarations);
+        }
+    }
+
+    // checker.go — getAdjustedNodeForError (free func).
+    private static Node GetAdjustedNodeForError(Node node) => AstUtilities.GetNameOfDeclaration(node) ?? node;
+
+    // checker.go — addDuplicateDeclarationError.
+    private void AddDuplicateDeclarationError(Node node, global::Ts.Diagnostics.Message message, string symbolName, Node[]? relatedNodes)
+    {
+        var errorNode = GetAdjustedNodeForError(node);
+        var err = LookupOrIssueError(errorNode, message, symbolName);
+        foreach (var relatedNode in relatedNodes ?? [])
+        {
+            var adjustedNode = GetAdjustedNodeForError(relatedNode);
+            if (adjustedNode == errorNode)
+            {
+                continue;
+            }
+            var leadingMessage = CreateDiagnosticForNode(adjustedNode, Diag.X_0_was_also_declared_here, symbolName);
+            var followOnMessage = CreateDiagnosticForNode(adjustedNode, Diag.X_and_here);
+            var related = err.RelatedInformation();
+            if ((related?.Length ?? 0) >= 5 || CoreUtil.Some(related, d => DiagnosticsCollection.CompareDiagnostics(d, followOnMessage) == 0 || DiagnosticsCollection.CompareDiagnostics(d, leadingMessage) == 0))
+            {
+                continue;
+            }
+            if ((related?.Length ?? 0) == 0)
+            {
+                err.AddRelatedInfo(leadingMessage);
+            }
+            else
+            {
+                err.AddRelatedInfo(followOnMessage);
+            }
+        }
+    }
+
+    // checker.go — lookupOrIssueError.
+    private Diagnostic LookupOrIssueError(Node location, global::Ts.Diagnostics.Message message, params object?[] args)
+    {
+        var diagnostic = NewDiagnosticForNode(location, message, args);
+        var existing = diagnostics.Lookup(diagnostic);
+        if (existing != null)
+        {
+            return existing;
+        }
+        AddDiagnostic(diagnostic);
+        return diagnostic;
+    }
 }
