@@ -19,9 +19,6 @@ assignmentCompatWithCallSignatures4
 assignmentCompatWithCallSignaturesWithRestParameters
 assignmentCompatWithConstructSignatures3
 assignmentCompatWithConstructSignatures4
-awaitAndYield
-awaitAndYieldInProperty
-awaitUsingDeclarations.13
 awaitUsingDeclarationsWithIteratorObject
 checkJsdocOptionalParamOrder
 checkJsdocSatisfiesTag12
@@ -36,7 +33,6 @@ computedPropertyNamesContextualType10_ES6
 computedPropertyNamesContextualType8_ES6
 computedPropertyNamesContextualType9_ES6
 constructableDecoratorOnClass01
-controlFlowAliasing
 controlFlowOptionalChain3
 declarationFiles
 decoratorCallGeneric
@@ -118,7 +114,6 @@ privateNameUnused
 propertyAssignmentUseParentType2
 prototypePropertyAssignmentMergedTypeReference
 recursiveMappedTypes
-restTuplesFromContextualTypes
 stringEnumLiteralTypes3
 symbolProperty21
 symbolProperty53
@@ -147,8 +142,6 @@ undefinedIsSubtypeOfEverything
 unicodeEscapesInJsxtags
 unionAndIntersectionInference1
 unionSubtypeIfEveryConstituentTypeIsSubtype
-uniqueSymbols
-uniqueSymbolsDeclarations
 usingDeclarationsWithIteratorObject
 usingDeclarationsWithObjectLiterals1
 variadicTuples1
