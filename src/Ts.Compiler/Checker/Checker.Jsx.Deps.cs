@@ -298,7 +298,47 @@ public partial class Checker
     // ---- index symbol (checker.go:31839) ----
 
     // checker.go:31839
-    internal Symbol? GetApplicableIndexSymbol(Type t, Type keyType) => throw new NotImplementedException("getApplicableIndexSymbol");
+    // checker.go:31839
+    internal Symbol? GetApplicableIndexSymbol(Type t, Type keyType)
+    {
+        var info = GetApplicableIndexInfo(t, keyType);
+        if (info != null && info != anyBaseTypeIndexInfo)
+        {
+            if (info.indexSymbol == null)
+            {
+                List<Node> declarations = [];
+                if (info.declaration != null)
+                {
+                    declarations = [info.declaration];
+                }
+                else
+                {
+                    // map-iter: 序无关 — appends by index-info declaration; downstream Declarations order
+                    // follows the source index-info order (GetIndexInfosOfType), matching Go.
+                    foreach (var other in GetIndexInfosOfType(t))
+                    {
+                        if (other.declaration != null && IsApplicableIndexType(keyType, other.keyType))
+                        {
+                            declarations.Add(other.declaration);
+                        }
+                    }
+                }
+                if (declarations.Count != 0)
+                {
+                    var symbol = NewSymbol(SymbolFlags.Property, InternalSymbolName.Index);
+                    symbol.CheckFlags |= CheckFlags.IndexSymbol;
+                    symbol.Declarations = [.. declarations];
+                    symbol.ValueDeclaration = declarations[0];
+                    symbol.Parent = t.symbol;
+                    var links = valueSymbolLinks.Get(symbol);
+                    links.resolvedType = info.valueType;
+                    info.indexSymbol = symbol;
+                }
+            }
+            return info.indexSymbol;
+        }
+        return null;
+    }
 
     // ---- iteration types (checker.go iteration wave) ----
 
