@@ -79,7 +79,10 @@ public partial class Checker
             // to the top of the stack ensures all transient types are computed from a known point.
             var saveFlowLoopStack = flowLoopStack;
             var saveFlowTypeCache = flowTypeCache;
-            flowLoopStack = null!;
+            // Go `c.flowLoopStack = nil`: a nil slice ranges as empty and append() lazily creates a fresh
+            // backing array. The C# equivalent is a fresh empty list — null would NRE the foreach/Add in
+            // getTypeAtFlowLoopLabel (and the len==0 reads in call resolution).
+            flowLoopStack = [];
             flowTypeCache = null!;
             links.resolvedType = CheckExpressionEx(node, checkMode);
             flowTypeCache = saveFlowTypeCache;
