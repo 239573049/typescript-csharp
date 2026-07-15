@@ -226,7 +226,6 @@ recursiveTypeReferences2
 restTupleElements1
 restTuplesFromContextualTypes
 spreadNonObject1
-strictBindCallApply1
 stringEnumLiteralTypes3
 stringLiteralTypesAndParenthesizedExpressions01
 stringLiteralsAssignedToStringMappings
