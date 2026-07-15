@@ -279,8 +279,12 @@ public sealed partial class NodeBuilder
             return typeNode;
         }
 
-        // Remaining deep arm — conditional — is still deferred (needs conditionalTypeToTypeNode);
-        // the leaf core renders its neutral fallback.
+        // nodebuilderimpl.go:3096 — conditional type.
+        if ((t.flags & TypeFlags.Conditional) != 0)
+        {
+            return VisitAndTransformType(t, static (b, ty) => b.ConditionalTypeToTypeNode(ty));
+        }
+
         return TypeToTypeNodeLeaf(t);
     }
 
@@ -724,6 +728,47 @@ public sealed partial class NodeBuilder
             return f.NewTypeQueryNode(entityName, null);
         }
         return f.NewTypeReferenceNode(entityName, null);
+    }
+
+    // nodebuilderimpl.go:3131 — conditionalTypeToTypeNode.
+    // PORT-NOTE: the FlagsGenerateNamesForShadowedTypeParams distributive-rename branch
+    // (nodebuilderimpl.go:3138-3165, a .d.ts-emit-only path) is deferred; error-message rendering never
+    // sets that flag and takes the simple path below.
+    private Node ConditionalTypeToTypeNode(Type conditional)
+    {
+        if (CheckTruncationLength())
+        {
+            return CreateElidedInformationPlaceholder();
+        }
+        var t = conditional.AsConditionalType();
+        var checkTypeNode = TypeToTypeNodeCore(t.checkType!);
+        ctx!.approximateLength += 15;
+        var saveInferTypeParameters = ctx.inferTypeParameters;
+        ctx.inferTypeParameters = t.root.inferTypeParameters;
+        var extendsTypeNode = TypeToTypeNodeCore(t.extendsType!);
+        ctx.inferTypeParameters = saveInferTypeParameters;
+        var trueTypeNode = TypeToTypeNodeOrCircularityElision(ch.GetTrueTypeFromConditionalType(conditional));
+        var falseTypeNode = TypeToTypeNodeOrCircularityElision(ch.GetFalseTypeFromConditionalType(conditional));
+        return f.NewConditionalTypeNode(checkTypeNode, extendsTypeNode, trueTypeNode, falseTypeNode);
+    }
+
+    // nodebuilderimpl.go:3170 — typeToTypeNodeOrCircularityElision.
+    private Node TypeToTypeNodeOrCircularityElision(Type t)
+    {
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            if (ctx!.visitedTypes.Contains(t.id))
+            {
+                if ((ctx.flags & global::Ts.NodeBuilder.Flags.AllowAnonymousIdentifier) == 0)
+                {
+                    ctx.encounteredError = true;
+                    ctx.tracker?.ReportCyclicStructureError();
+                }
+                return CreateElidedInformationPlaceholder();
+            }
+            return VisitAndTransformType(t, static (b, ty) => b.TypeToTypeNodeCore(ty));
+        }
+        return TypeToTypeNodeCore(t);
     }
 
     // nodebuilderimpl.go:3089 — visitAndTransformType (circular-reference / symbol-depth guard).
