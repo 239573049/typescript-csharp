@@ -764,7 +764,7 @@ public sealed partial class NodeBuilder
                 }
                 else
                 {
-                    return SymbolToNodeImplTypeNode(resolvedSymbol, isInstanceType);
+                    return SymbolToTypeNode(resolvedSymbol, isInstanceType, null)!;
                 }
             }
             if (ctx!.visitedTypes.Contains(typeId))
@@ -774,7 +774,7 @@ public sealed partial class NodeBuilder
                 if (typeAlias is not null)
                 {
                     // The specified symbol flags need to be reinterpreted as type flags.
-                    return SymbolToNodeImplTypeNode(typeAlias, SymbolFlags.Type);
+                    return SymbolToTypeNode(typeAlias, SymbolFlags.Type, null)!;
                 }
                 return CreateElidedInformationPlaceholder();
             }

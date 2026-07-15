@@ -48,7 +48,6 @@ symbolProperty54
 thisInObjectLiterals
 thisTypeInFunctionsNegative
 typeArgumentInferenceWithClassExpression2
-typeFromPropertyAssignment29
 typeTagModuleExports
 typeTagPrototypeAssignment
 typeofThis
