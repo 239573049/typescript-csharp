@@ -82,29 +82,42 @@ public sealed partial class Program
     }
 
     // program.go:581-602
+    // program.go:583-604 — collectCheckerDiagnosticsFromFiles.
     private Diagnostic[][] CollectCheckerDiagnosticsFromFiles(CancellationToken ctx, SourceFile[] sourceFiles, Func<CancellationToken, global::Ts.Checker.Checker, SourceFile, Diagnostic[]> collect)
     {
         var diagnostics = new Diagnostic[sourceFiles.Length][];
-        // PORT-NOTE: the compiler checker pool's forEachCheckerGroupDo grouping (program.go:583-586)
-        // is not yet exposed on the C# pool; fall back to the per-file concurrent path, which produces
-        // the same diagnostics (grouping is a locality optimization, not a semantic difference).
-        var wg = WorkGroup.Create(SingleThreaded());
-        for (int i = 0; i < sourceFiles.Length; i++)
+        if (compilerCheckerPool is not null)
         {
-            int idx = i;
-            var file = sourceFiles[i];
-            if (SkipTypeChecking(file, false))
+            // Group by checker: one task per checker, each holding its checker's lock while it visits its
+            // assigned files in order. This is load-bearing for correctness — the checker carries mutable
+            // per-instance state (the typeResolutions stack, resolution caches), so two files pinned to the
+            // same checker (index%N) must never be checked concurrently. The earlier per-file fallback
+            // used GetCheckerForFileNonExclusive (no lock) and raced that state under 4-checker mode.
+            compilerCheckerPool.ForEachCheckerGroupDo(ctx, sourceFiles, SingleThreaded(), (c, fileIndex, file) =>
             {
-                continue;
-            }
-            wg.Queue(() =>
-            {
-                var (c, done) = GetTypeCheckerForFile(ctx, file);
-                diagnostics[idx] = collect(ctx, c, file);
-                done();
+                diagnostics[fileIndex] = collect(ctx, c, file);
             });
         }
-        wg.RunAndWait();
+        else
+        {
+            var wg = WorkGroup.Create(SingleThreaded());
+            for (int i = 0; i < sourceFiles.Length; i++)
+            {
+                int idx = i;
+                var file = sourceFiles[i];
+                if (SkipTypeChecking(file, false))
+                {
+                    continue;
+                }
+                wg.Queue(() =>
+                {
+                    var (c, done) = GetTypeCheckerForFile(ctx, file);
+                    diagnostics[idx] = collect(ctx, c, file);
+                    done();
+                });
+            }
+            wg.RunAndWait();
+        }
         return diagnostics;
     }
 

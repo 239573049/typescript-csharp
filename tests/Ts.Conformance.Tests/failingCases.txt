@@ -16,7 +16,6 @@ assignmentCompatWithCallSignaturesWithRestParameters
 classStaticBlock19
 declarationFiles
 dependentDestructuredVariables
-duplicateNumericIndexers
 generatorReturnContextualType
 genericRestParameters1
 initializerReferencingConstructorLocals
@@ -29,8 +28,6 @@ mixinAccessors3
 moduleExportsAliasLoop1
 moduleExportsAliasLoop2
 neverReturningFunctions1
-objectTypeHidingMembersOfExtendedObject
-objectTypeWithStringIndexerHidingObjectIndexer
 parserClassDeclaration1
 parserClassDeclaration6
 parserComputedPropertyName16
@@ -44,7 +41,6 @@ parserForOfStatement2
 parserForOfStatement21
 parserMissingLambdaOpenBrace1
 parserRealSource6
-parserStrictMode8
 plainJSBinderErrors
 plainJSGrammarErrors
 plainJSGrammarErrors4
