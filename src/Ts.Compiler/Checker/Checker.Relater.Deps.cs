@@ -16,7 +16,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // ---- printer / to-string (printer.go) ----
-    internal string SignatureToString(Signature signature) => throw new NotImplementedException("signatureToString");
+    // signatureToString / signatureToStringEx: real bodies in Checker.SymbolToString.cs (printer.go:309).
     internal string TypePredicateToString(TypePredicate predicate) => throw new NotImplementedException("typePredicateToString");
     internal string ValueToString(object? value) => throw new NotImplementedException("valueToString");
 

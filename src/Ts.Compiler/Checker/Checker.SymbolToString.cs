@@ -84,6 +84,57 @@ public sealed partial class Checker
         }
     }
 
+    // printer.go:309 — signatureToString.
+    internal string SignatureToString(Signature signature) =>
+        SignatureToStringEx(signature, null, TypeFormatFlags.None, null);
+
+    // printer.go:317 — signatureToStringEx.
+    internal string SignatureToStringEx(Signature signature, Node? enclosingDeclaration, TypeFormatFlags flags, object? vc)
+    {
+        bool isConstructor = (signature.flags & SignatureFlags.Construct) != 0 && (flags & TypeFormatFlags.WriteCallStyleSignature) == 0;
+        SyntaxKind sigOutput;
+        if ((flags & TypeFormatFlags.WriteArrowStyleSignature) != 0)
+        {
+            sigOutput = isConstructor ? SyntaxKind.ConstructorType : SyntaxKind.FunctionType;
+        }
+        else
+        {
+            sigOutput = isConstructor ? SyntaxKind.ConstructSignature : SyntaxKind.CallSignature;
+        }
+
+        // PORT-NOTE: pooled getNodeBuilder + verbosity threading deferred; a fresh builder per call is
+        // behaviorally identical (vc == null in this wave).
+        var emitContext = PrinterNs.EmitContext.NewEmitContext();
+        var nodeBuilder = NewNodeBuilder(emitContext);
+        var combinedFlags = (NodeBuilderNs.Flags)(flags & TypeFormatFlags.NodeBuilderFlagsMask)
+            | NodeBuilderNs.Flags.IgnoreErrors | NodeBuilderNs.Flags.WriteTypeParametersInQualifiedName;
+        var sig = nodeBuilder.SignatureToSignatureDeclaration(signature, sigOutput, enclosingDeclaration, combinedFlags, NodeBuilderNs.InternalFlags.None, null);
+
+        var printerOptions = new PrinterNs.PrinterOptions { RemoveComments = true };
+        var p = PrinterNs.Printer.NewPrinter(printerOptions, new PrinterNs.PrintHandlers(), emitContext);
+        SourceFile? sourceFile = null;
+        if (enclosingDeclaration != null)
+        {
+            sourceFile = AstUtilities.GetSourceFileOfNode(enclosingDeclaration);
+        }
+        if ((flags & TypeFormatFlags.MultilineObjectLiterals) != 0)
+        {
+            var mlWriter = PrinterNs.TextWriter.NewTextWriter("\n", 0);
+            p.Write(sig!, sourceFile, GetTrailingSemicolonDeferringWriter(mlWriter), null);
+            return mlWriter.String();
+        }
+        var (writer, putWriter) = PrinterNs.SingleLineStringWriter.GetSingleLineStringWriter();
+        try
+        {
+            p.Write(sig!, sourceFile, GetTrailingSemicolonDeferringWriter(writer), null);
+            return writer.String();
+        }
+        finally
+        {
+            putWriter();
+        }
+    }
+
     // printer.go:169 — getTrailingSemicolonDeferringWriter.
     private static PrinterNs.EmitTextWriter GetTrailingSemicolonDeferringWriter(PrinterNs.EmitTextWriter writer)
     {

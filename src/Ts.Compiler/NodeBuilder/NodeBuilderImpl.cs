@@ -245,6 +245,15 @@ public sealed partial class NodeBuilder
         return ExitContext(SymbolToNodeImpl(symbol, meaning));
     }
 
+    // nodebuilder.go — SignatureToSignatureDeclaration.
+    internal Node? SignatureToSignatureDeclaration(Signature signature, SyntaxKind kind, Node? enclosingDeclaration,
+        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(SignatureToSignatureDeclarationHelper(signature, kind, null));
+    }
+
     // nodebuilder.go:267 — TypeToTypeNode.
     internal Node? TypeToTypeNode(Type type, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
