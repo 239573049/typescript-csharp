@@ -157,7 +157,6 @@ jsdocPrefixPostfixParsing
 jsdocTemplateTag
 jsdocTemplateTag5
 jsdocTemplateTag8
-keyofAndIndexedAccess
 keyofAndIndexedAccess2
 keyofAndIndexedAccessErrors
 lateBoundClassMemberAssignmentJS
@@ -183,8 +182,6 @@ namedTupleMembersErrors
 neverReturningFunctions1
 noAssertForUnparseableTypedefs
 noInfer
-noUncheckedIndexedAccess
-nonPrimitiveConstraintOfIndexAccessType
 numericLiteralTypes3
 objectSpreadStrictNull
 objectTypeHidingMembersOfExtendedObject
@@ -222,7 +219,6 @@ privateNameStaticFieldDerivedClasses
 privateNameStaticMethodAsync
 privateNameStaticMethodClassExpression
 privateNameUnused
-privateNamesAndkeyof
 propertyAssignmentUseParentType2
 prototypePropertyAssignmentMergedTypeReference
 recursiveIntersectionTypes
@@ -249,7 +245,6 @@ templateLiteralTypes4
 templateLiteralTypes5
 templateLiteralTypes7
 templateLiteralTypesPatterns
-templateLiteralTypesPatternsPrefixSuffixAssignability
 thisInObjectLiterals
 thisTypeInFunctionsNegative
 tsxAttributeResolution15
@@ -294,7 +289,6 @@ unionsOfTupleTypes1
 uniqueSymbols
 uniqueSymbolsDeclarations
 uniqueSymbolsErrors
-unknownControlFlow
 unknownType2
 usingDeclarationsWithIteratorObject
 usingDeclarationsWithObjectLiterals1
