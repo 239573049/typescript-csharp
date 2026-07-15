@@ -1291,7 +1291,7 @@ public sealed partial class EmitResolver : global::Ts.Printer.EmitResolver
 
     // ── emitresolver.go:311-332 — helper (package-level in Go) ──────────────────────────────────
 
-    private static SymbolFlags GetMeaningOfEntityNameReference(Node entityName)
+    internal static SymbolFlags GetMeaningOfEntityNameReference(Node entityName)
     {
         // get symbol of the first identifier of the entityName
         if (entityName.Parent!.Kind == SyntaxKind.TypeQuery ||

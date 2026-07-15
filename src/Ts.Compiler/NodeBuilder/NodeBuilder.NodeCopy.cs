@@ -133,6 +133,111 @@ internal sealed class WrappingTracker : global::Ts.NodeBuilder.ISymbolTracker
 
 public sealed partial class NodeBuilder
 {
+    // nodecopy.go:293 — attachSymbolToLeftmostIdentifier (inner closure of getExistingNodeTreeVisitor).
+    // Renames the leftmost identifier of an entity name to the symbol's written/typeparameter name.
+    private Node AttachSymbolToLeftmostIdentifier(Node leftmost, Node node, Symbol? sym)
+    {
+        global::Ts.Ast.NodeVisitor vis = null!;
+        Node? VisitorFunc(Node n)
+        {
+            if (n == leftmost)
+            {
+                Node? name = null;
+                if (sym != null)
+                {
+                    var type_ = ch.GetDeclaredTypeOfSymbol(sym);
+                    if ((sym.Flags & SymbolFlags.TypeParameter) != 0)
+                    {
+                        name = TypeParameterToName(type_);
+                    }
+                }
+                name ??= NewIdentifier(n.Text(), sym);
+                name = SetTextRangeLocal(name, n);
+                e.AddEmitFlags(name!, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+                return name;
+            }
+            return SetTextRangeLocal(n.VisitEachChild(vis), n);
+        }
+        vis = new global::Ts.Ast.NodeVisitor(VisitorFunc, f, default);
+        return VisitorFunc(node)!;
+    }
+
+    // nodecopy.go:316 — trackExistingEntityName. Returns (introducesError, transformed node, symbol).
+    private (bool IntroducesError, Node Node, Symbol? Sym) TrackExistingEntityName(Node node, Node? overrideEnclosing)
+    {
+        var enclosingDeclaration = ctx!.enclosingDeclaration;
+        if (overrideEnclosing != null)
+        {
+            enclosingDeclaration = overrideEnclosing;
+        }
+        var introducesError = false;
+        var leftmost = global::Ts.Checker.Checker.GetFirstIdentifier(node);
+        if (AstUtilities.IsInJSFile(node) && (AstUtilities.IsExportsIdentifier(leftmost) || AstUtilities.IsModuleExportsAccessExpression(leftmost.Parent!) ||
+            (NodeTests.IsQualifiedName(leftmost.Parent!) && AstUtilities.IsModuleIdentifier(leftmost.Parent!.AsQualifiedName().Left!) && AstUtilities.IsExportsIdentifier(leftmost.Parent!.AsQualifiedName().Right!))))
+        {
+            introducesError = true;
+            return (introducesError, SetTextRangeLocal(f.DeepCloneNode(node), node)!, null);
+        }
+        var meaning = global::Ts.Checker.EmitResolver.GetMeaningOfEntityNameReference(node);
+        Symbol? sym;
+        if (JSDocReparseAstGaps.IsThisIdentifier(leftmost))
+        {
+            // `this` isn't a bindable identifier - find a relevant `this` symbol directly.
+            sym = ch.GetSymbolOfDeclaration(ch.GetThisContainer(leftmost, false, false));
+            if (ch.IsSymbolAccessible(sym, leftmost, meaning, false).Accessibility != global::Ts.Printer.SymbolAccessibility.Accessible)
+            {
+                introducesError = true;
+                ctx.tracker?.ReportInaccessibleThisError();
+            }
+            return (introducesError, AttachSymbolToLeftmostIdentifier(leftmost, node, sym), null);
+        }
+        sym = ch.ResolveEntityName(leftmost, meaning, true, true, null);
+        if (ctx.enclosingDeclaration != null && !(sym != null && (sym.Flags & SymbolFlags.TypeParameter) != 0))
+        {
+            sym = ch.GetExportSymbolOfValueSymbolIfExported(sym);
+            // Some declarations may be transplanted to a new location; ensure the name has the same meaning at both.
+            var symAtLocation = ch.ResolveEntityName(leftmost, meaning, true, true, ctx.enclosingDeclaration);
+            if (symAtLocation == ch.unknownSymbol ||
+                (symAtLocation == null && sym != null) ||
+                (symAtLocation != null && sym != null && ch.GetSymbolIfSameReference(ch.GetExportSymbolOfValueSymbolIfExported(symAtLocation)!, sym) == null))
+            {
+                if (symAtLocation != ch.unknownSymbol)
+                {
+                    ctx.tracker?.ReportInferenceFallback(node);
+                }
+                introducesError = true;
+                return (introducesError, SetTextRangeLocal(f.DeepCloneNode(node), node)!, sym);
+            }
+            else
+            {
+                sym = symAtLocation;
+            }
+        }
+        if (sym != null)
+        {
+            // If a parameter is resolvable in the current context it is also visible, so no need to go to symbol accessibility.
+            if ((sym.Flags & SymbolFlags.FunctionScopedVariable) != 0 && sym.ValueDeclaration != null)
+            {
+                if (AstUtilities.IsPartOfParameterDeclaration(sym.ValueDeclaration) || NodeTests.IsJSDocParameterTag(sym.ValueDeclaration))
+                {
+                    return (introducesError, AttachSymbolToLeftmostIdentifier(leftmost, node, sym), null);
+                }
+            }
+            if ((sym.Flags & SymbolFlags.TypeParameter) == 0 && !AstUtilities.IsDeclarationName(node) &&
+                ch.IsSymbolAccessible(sym, enclosingDeclaration, meaning, false).Accessibility != global::Ts.Printer.SymbolAccessibility.Accessible)
+            {
+                ctx.tracker?.ReportInferenceFallback(node);
+                introducesError = true;
+            }
+            else
+            {
+                ctx.tracker?.TrackSymbol(sym, enclosingDeclaration, meaning);
+            }
+            return (introducesError, AttachSymbolToLeftmostIdentifier(leftmost, node, sym), null);
+        }
+        return (introducesError, SetTextRangeLocal(f.DeepCloneNode(node), node)!, null);
+    }
+
     // nodecopy.go:195 — createRecoveryBoundary. (Sets ctx.tracker = WrappingTracker directly; see the
     // file PORT-NOTE on the deferred SymbolTrackerImpl wrap.)
     private RecoveryBoundary CreateRecoveryBoundary()
