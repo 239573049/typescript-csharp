@@ -194,7 +194,30 @@ public partial class Checker
         var n = global::Ts.JsNum.JsNum.FromString(s);
         return !n.IsNaN() && !n.IsInf() && (!roundTripOnly || n.ToString() == s);
     }
-    internal static bool IsValidBigIntString(string s, bool roundTripOnly) => throw new NotImplementedException("isValidBigIntString");
+    // utilities.go:912
+    internal static bool IsValidBigIntString(string s, bool roundTripOnly)
+    {
+        if (s == "")
+        {
+            return false;
+        }
+        var scanner = new global::Ts.Scanner.Scanner();
+        scanner.SetSkipTrivia(false);
+        var success = true;
+        scanner.SetOnError((diagnostic, start, length, args) => { success = false; });
+        scanner.SetText(s + "n");
+        var result = scanner.Scan();
+        var negative = result == SyntaxKind.MinusToken;
+        if (negative)
+        {
+            result = scanner.Scan();
+        }
+        var flags = scanner.TokenFlags();
+        // validate that scanning proceeded without error, a bigint was scanned covering the full input
+        // (scanner one char beyond the augmented length), with no numeric separator.
+        return success && result == SyntaxKind.BigIntLiteral && scanner.TokenEnd() == s.Length + 1 && (flags & TokenFlags.ContainsSeparator) == 0 &&
+            (!roundTripOnly || s == new global::Ts.JsNum.PseudoBigInt(global::Ts.JsNum.JsNum.ParsePseudoBigInt(scanner.TokenValue()), negative).ToString());
+    }
     // checker.go:28999-29013 — real body (lib-gate wave P); previously a stub here.
     internal static string ApplyStringMapping(Symbol symbol, string str)
     {
