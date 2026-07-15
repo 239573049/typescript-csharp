@@ -143,7 +143,7 @@ public partial class Checker
     internal Type CheckTruthinessExpression(Node node, CheckMode checkMode) =>
         CheckTruthinessOfType(CheckExpressionEx(node, checkMode), node);
     // CheckReferenceExpression owned by the operator-expressions cluster.
-    internal Type CheckDestructuringAssignment(Node exprOrAssignment, Type rightType, CheckMode checkMode, bool rightIsThis) => throw new NotImplementedException("checkDestructuringAssignment");
+    // checkDestructuringAssignment family (checker.go:12514-12680): real bodies in Checker.OperatorExpressions.cs.
     // utilities.go:324-326
     internal static bool IsTypeAssertion(Node node) => AstUtilities.IsAssertionExpression(AstUtilities.SkipParentheses(node));
 

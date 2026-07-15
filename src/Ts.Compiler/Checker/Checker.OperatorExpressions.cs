@@ -981,4 +981,218 @@ public partial class Checker
                 return Diag.Cannot_find_name_0;
         }
     }
+
+    // checker.go:12514 — checkDestructuringAssignment
+    internal Type CheckDestructuringAssignment(Node exprOrAssignment, Type sourceType, CheckMode checkMode, bool rightIsThis)
+    {
+        Node node = exprOrAssignment;
+        Node target;
+        if (NodeTests.IsShorthandPropertyAssignment(node))
+        {
+            var initializer = node.AsShorthandPropertyAssignment().ObjectAssignmentInitializer;
+            if (initializer != null)
+            {
+                // In strict null checking mode, if a default value of a non-undefined type is specified, remove
+                // undefined from the final type.
+                if (strictNullChecks && !HasTypeFacts(CheckExpression(initializer), TypeFacts.IsUndefined))
+                {
+                    sourceType = GetTypeWithFacts(sourceType, TypeFacts.NEUndefined);
+                }
+                CheckBinaryLikeExpression(node.Name()!, node.AsShorthandPropertyAssignment().EqualsToken!, initializer, checkMode, null);
+            }
+            target = node.Name()!;
+        }
+        else
+        {
+            target = node;
+        }
+        if (NodeTests.IsBinaryExpression(target) && target.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.EqualsToken)
+        {
+            CheckBinaryExpression(target, checkMode);
+            target = target.AsBinaryExpression().Left!;
+            // A default value is specified, so remove undefined from the final type.
+            if (strictNullChecks)
+            {
+                sourceType = GetTypeWithFacts(sourceType, TypeFacts.NEUndefined);
+            }
+        }
+        if (NodeTests.IsObjectLiteralExpression(target))
+        {
+            return CheckObjectLiteralAssignment(target, sourceType, rightIsThis);
+        }
+        if (NodeTests.IsArrayLiteralExpression(target))
+        {
+            return CheckArrayLiteralAssignment(target, sourceType, checkMode);
+        }
+        return CheckReferenceAssignment(target, sourceType, checkMode);
+    }
+
+    // checker.go:12547 — checkObjectLiteralAssignment
+    internal Type CheckObjectLiteralAssignment(Node node, Type sourceType, bool rightIsThis)
+    {
+        var properties = node.PropertyList()!;
+        if (strictNullChecks && properties.Nodes.Length == 0)
+        {
+            return CheckNonNullType(sourceType, node);
+        }
+        for (int i = 0; i < properties.Nodes.Length; i++)
+        {
+            CheckObjectLiteralDestructuringPropertyAssignment(node, sourceType, i, properties, rightIsThis);
+        }
+        return sourceType;
+    }
+
+    // checker.go:12559 — checkObjectLiteralDestructuringPropertyAssignment
+    // Note: If property cannot be a SpreadAssignment, then allProperties does not need to be provided.
+    internal Type? CheckObjectLiteralDestructuringPropertyAssignment(Node node, Type objectLiteralType, int propertyIndex, NodeList? allProperties, bool rightIsThis)
+    {
+        var properties = node.Properties()!;
+        var property = properties[propertyIndex];
+        if (NodeTests.IsPropertyAssignment(property) || NodeTests.IsShorthandPropertyAssignment(property))
+        {
+            var name = property.Name()!;
+            var exprType = GetLiteralTypeFromPropertyName(name);
+            if (IsTypeUsableAsPropertyName(exprType))
+            {
+                var text = GetPropertyNameFromType(exprType);
+                var prop = GetPropertyOfType(objectLiteralType, text);
+                if (prop != null)
+                {
+                    MarkPropertyAsReferenced(prop, property, rightIsThis);
+                    CheckPropertyAccessibility(property, false /*isSuper*/, true /*writing*/, objectLiteralType, prop);
+                }
+            }
+            var elementType = GetIndexedAccessTypeEx(objectLiteralType, exprType, AccessFlags.ExpressionPosition | (HasDefaultValue(property) ? AccessFlags.AllowMissing : AccessFlags.None), name, null);
+            var t = GetFlowTypeOfDestructuring(property, elementType);
+            var expr = property;
+            if (NodeTests.IsPropertyAssignment(property))
+            {
+                expr = property.Initializer()!;
+            }
+            return CheckDestructuringAssignment(expr, t, CheckMode.Normal, false);
+        }
+        if (NodeTests.IsSpreadAssignment(property))
+        {
+            if (propertyIndex < properties.Length - 1)
+            {
+                Error(property, Diag.A_rest_element_must_be_last_in_a_destructuring_pattern);
+                return null;
+            }
+            if (languageVersion < LanguageFeatureMinimum.LanguageFeatureMinimumTarget.ObjectSpreadRest)
+            {
+                CheckExternalEmitHelpers(property, ExternalEmitHelpers.Rest);
+            }
+            List<Node> nonRestNames = [];
+            if (allProperties != null)
+            {
+                foreach (var otherProperty in allProperties.Nodes)
+                {
+                    if (!NodeTests.IsSpreadAssignment(otherProperty))
+                    {
+                        nonRestNames.Add(otherProperty.Name()!);
+                    }
+                }
+            }
+            var t = GetRestType(objectLiteralType, [.. nonRestNames], objectLiteralType.symbol);
+            CheckGrammarForDisallowedTrailingComma(allProperties, Diag.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma);
+            return CheckDestructuringAssignment(property.Expression()!, t, CheckMode.Normal, false);
+        }
+        Error(property, Diag.Property_assignment_expected);
+        return null;
+    }
+
+    // checker.go:12605 — checkArrayLiteralAssignment
+    internal Type CheckArrayLiteralAssignment(Node node, Type sourceType, CheckMode checkMode)
+    {
+        var elements = node.Elements()!;
+        // This elementType will be used if the specific property corresponding to this index is not
+        // present (aka the tuple element property). This call also checks that the parentType is in
+        // fact an iterable or array (depending on target language).
+        var possiblyOutOfBoundsType = CheckIteratedTypeOrElementType(IterationUse.Destructuring | IterationUse.PossiblyOutOfBounds, sourceType, undefinedType!, node) ?? errorType!;
+        Type? inBoundsType = compilerOptions.NoUncheckedIndexedAccess == Tristate.True ? null : possiblyOutOfBoundsType;
+        for (int i = 0; i < elements.Length; i++)
+        {
+            var t = possiblyOutOfBoundsType;
+            if (elements[i].Kind == SyntaxKind.SpreadElement)
+            {
+                inBoundsType ??= CheckIteratedTypeOrElementType(IterationUse.Destructuring, sourceType, undefinedType!, node) ?? errorType!;
+                t = inBoundsType;
+            }
+            CheckArrayLiteralDestructuringElementAssignment(node, sourceType, i, t, checkMode);
+        }
+        return sourceType;
+    }
+
+    // checker.go:12625 — checkArrayLiteralDestructuringElementAssignment
+    internal Type? CheckArrayLiteralDestructuringElementAssignment(Node node, Type sourceType, int elementIndex, Type elementType, CheckMode checkMode)
+    {
+        var elements = node.ElementList()!;
+        var element = elements.Nodes[elementIndex];
+        if (!NodeTests.IsOmittedExpression(element))
+        {
+            if (!NodeTests.IsSpreadElement(element))
+            {
+                var indexType = GetNumberLiteralType(new global::Ts.JsNum.Number(elementIndex));
+                if (IsArrayLikeType(sourceType))
+                {
+                    // We create a synthetic expression so that getIndexedAccessType doesn't get confused
+                    // when the element is a SyntaxKind.ElementAccessExpression.
+                    var accessFlags = AccessFlags.ExpressionPosition | (HasDefaultValue(element) ? AccessFlags.AllowMissing : AccessFlags.None);
+                    var accessedType = GetIndexedAccessTypeOrUndefined(sourceType, indexType, accessFlags, CreateSyntheticExpression(element, indexType, false, null), null) ?? errorType!;
+                    var assignedType = accessedType;
+                    if (HasDefaultValue(element))
+                    {
+                        assignedType = GetTypeWithFacts(accessedType, TypeFacts.NEUndefined);
+                    }
+                    var t = GetFlowTypeOfDestructuring(element, assignedType);
+                    return CheckDestructuringAssignment(element, t, checkMode, false);
+                }
+                return CheckDestructuringAssignment(element, elementType, checkMode, false);
+            }
+            if (elementIndex < elements.Nodes.Length - 1)
+            {
+                Error(element, Diag.A_rest_element_must_be_last_in_a_destructuring_pattern);
+            }
+            else
+            {
+                var restExpression = element.Expression()!;
+                if (NodeTests.IsBinaryExpression(restExpression) && restExpression.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.EqualsToken)
+                {
+                    Error(restExpression.AsBinaryExpression().OperatorToken, Diag.A_rest_element_cannot_have_an_initializer);
+                }
+                else
+                {
+                    CheckGrammarForDisallowedTrailingComma(elements, Diag.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma);
+                    Type t;
+                    if (EveryType(sourceType, IsTupleType))
+                    {
+                        t = MapType(sourceType, ty => SliceTupleType(ty, elementIndex, 0));
+                    }
+                    else
+                    {
+                        t = CreateArrayType(elementType);
+                    }
+                    return CheckDestructuringAssignment(restExpression, t, checkMode, false);
+                }
+            }
+        }
+        return null;
+    }
+
+    // checker.go:12666 — checkReferenceAssignment
+    internal Type CheckReferenceAssignment(Node target, Type sourceType, CheckMode checkMode)
+    {
+        var targetType = CheckExpressionEx(target, checkMode);
+        var message = NodeTests.IsSpreadAssignment(target.Parent!)
+            ? Diag.The_target_of_an_object_rest_assignment_must_be_a_variable_or_a_property_access
+            : Diag.The_left_hand_side_of_an_assignment_expression_must_be_a_variable_or_a_property_access;
+        var optionalMessage = NodeTests.IsSpreadAssignment(target.Parent!)
+            ? Diag.The_target_of_an_object_rest_assignment_may_not_be_an_optional_property_access
+            : Diag.The_left_hand_side_of_an_assignment_expression_may_not_be_an_optional_property_access;
+        if (CheckReferenceExpression(target, message, optionalMessage))
+        {
+            CheckTypeAssignableToAndOptionallyElaborate(sourceType, targetType, target, target, null, null);
+        }
+        return sourceType;
+    }
 }
