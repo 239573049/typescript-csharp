@@ -43,10 +43,6 @@ everyTypeWithAnnotationAndInvalidInitializer
 for-of16
 for-of29
 generatorReturnContextualType
-generatorTypeCheck25
-generatorTypeCheck31
-generatorTypeCheck62
-generatorTypeCheck63
 genericRestParameters1
 importTypeAmbientMissing
 indexSignatures1
@@ -109,8 +105,6 @@ typeTagModuleExports
 typeTagPrototypeAssignment
 typeofThis
 typeofThisWithImplicitThis
-types.asyncGenerators.es2018.2
-types.forAwait.es2018.2
 unicodeEscapesInJsxtags
 unionAndIntersectionInference1
 usingDeclarationsWithIteratorObject

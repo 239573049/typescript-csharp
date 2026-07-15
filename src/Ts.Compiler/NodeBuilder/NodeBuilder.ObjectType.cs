@@ -570,8 +570,7 @@ public sealed partial class NodeBuilder
         // nodebuilderimpl.go:3050-3075 — own-type-argument slice: typeArguments[i:typeParameterCount]
         // with typeParameterCount = min(len(TypeParameters), len(typeArguments)), which drops the
         // trailing this-type argument. DEFERRED: the outer-type-parameter grouping (3020-3049, i stays 0
-        // here) and the Iterable-family default elision (3053-3073, needs getGlobalIterableType which is
-        // still stubbed); both PORT-NOTEs land with the deep-reference wave.
+        // here) lands with the deep-reference wave.
         TypeList? typeArgumentNodes = null;
         if (typeArguments.Length > 0)
         {
@@ -580,6 +579,31 @@ public sealed partial class NodeBuilder
             if (typeParams != null)
             {
                 typeParameterCount = Math.Min(typeParams.Length, typeArguments.Length);
+
+                // nodebuilderimpl.go:3056-3072 — elide type arguments identical to their type parameters'
+                // defaults, but only for `Iterable`, `IterableIterator`, `AsyncIterable`, and
+                // `AsyncIterableIterator` (each now has three type parameters instead of one), for
+                // backwards-compatible .d.ts emit. Only when the reference has no as-written type-argument
+                // node list covering typeParameterCount.
+                if (ch.IsReferenceToType(t, ch.GetGlobalIterableType()) || ch.IsReferenceToType(t, ch.GetGlobalIterableIteratorType()) ||
+                    ch.IsReferenceToType(t, ch.GetGlobalAsyncIterableType()) || ch.IsReferenceToType(t, ch.GetGlobalAsyncIterableIteratorType()))
+                {
+                    var refNode = t.AsTypeReference()!.node;
+                    if (refNode is null || !NodeTests.IsTypeReferenceNode(refNode) || refNode.TypeArguments() is null || refNode.TypeArguments()!.Length < typeParameterCount)
+                    {
+                        while (typeParameterCount > 0)
+                        {
+                            var typeArgument = typeArguments[typeParameterCount - 1];
+                            var typeParameter = typeParams[typeParameterCount - 1];
+                            var defaultType = ch.GetDefaultFromTypeParameter(typeParameter);
+                            if (defaultType is null || !ch.IsTypeIdenticalTo(typeArgument, defaultType))
+                            {
+                                break;
+                            }
+                            typeParameterCount--;
+                        }
+                    }
+                }
             }
             typeArgumentNodes = MapToTypeNodesLocal(typeArguments[0..typeParameterCount], false /*isBareList*/);
         }
