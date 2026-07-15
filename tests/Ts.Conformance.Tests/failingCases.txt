@@ -28,7 +28,6 @@ controlFlowOptionalChain3
 declarationFiles
 dependentDestructuredVariables
 duplicateNumericIndexers
-everyTypeWithAnnotationAndInvalidInitializer
 generatorReturnContextualType
 genericRestParameters1
 initializerReferencingConstructorLocals

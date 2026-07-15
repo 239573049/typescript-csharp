@@ -189,7 +189,7 @@ public partial class Checker
         name.Length >= 2 && name[0] == '\xFE' && name[1] != '@' && name[1] != '#';
 
     // utilities.go:339-341 — sortSymbols over the [start, end) subrange (slices.SortFunc is non-stable).
-    private void SortSymbols(List<Symbol> symbols, int start, int end)
+    internal void SortSymbols(List<Symbol> symbols, int start, int end)
     {
         if (end - start > 1)
         {

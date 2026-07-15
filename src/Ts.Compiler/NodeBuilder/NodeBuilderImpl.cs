@@ -736,6 +736,209 @@ public sealed partial class NodeBuilder
     private string GetSpecifierForModuleSymbol(Symbol symbol, ResolutionMode overrideImportMode) =>
         throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol");
 
+    // nodebuilderimpl.go:1123 — lookupTypeParameterNodes.
+    // The WriteTypeParametersInQualifiedName branch (qualified generic names) is deferred, matching
+    // LookupExpressionChainTypeArgumentNodes; the common path returns null after guarding the symbol id.
+    private TypeParameterList? LookupTypeParameterNodes(Symbol[] chain, int index)
+    {
+        global::Ts.Core.Debug.Assert(0 <= index && index < chain.Length);
+        var symbol = chain[index];
+        var symbolId = AstUtilities.GetSymbolId(symbol);
+        if (ctx!.typeParameterSymbolList.Contains(symbolId))
+        {
+            return null;
+        }
+        ctx.typeParameterSymbolList.Add(symbolId);
+
+        if ((ctx.flags & global::Ts.NodeBuilder.Flags.WriteTypeParametersInQualifiedName) != 0 && index < chain.Length - 1)
+        {
+            // DEFERRED: lookupInstantiatedTypeArgumentNodes / typeParametersToTypeParameterDeclarations.
+            throw new NotImplementedException("nodeBuilder.lookupTypeParameterNodes(WriteTypeParametersInQualifiedName)");
+        }
+        return null;
+    }
+
+    // nodebuilderimpl.go:751 — createAccessFromSymbolChain.
+    private Node CreateAccessFromSymbolChain(Symbol[] chain, int index, int stopper, TypeList? overrideTypeArguments)
+    {
+        TypeList? typeParameterNodes = overrideTypeArguments;
+        if (index != chain.Length - 1)
+        {
+            typeParameterNodes = LookupTypeParameterNodes(chain, index);
+        }
+        var symbol = chain[index];
+        Symbol? parent = null;
+        if (index > 0)
+        {
+            parent = chain[index - 1];
+        }
+
+        string symbolName = "";
+        if (index == 0)
+        {
+            ctx!.flags |= global::Ts.NodeBuilder.Flags.InInitialEntityName;
+            symbolName = GetNameOfSymbolAsWritten(symbol);
+            ctx.approximateLength += symbolName.Length + 1;
+            ctx.flags ^= global::Ts.NodeBuilder.Flags.InInitialEntityName;
+        }
+        else
+        {
+            // lookup a ref to symbol within parent to handle export aliases
+            if (parent != null)
+            {
+                var exports = ch.GetExportsOfSymbol(parent);
+                if (exports != null)
+                {
+                    // avoid exhaustive iteration in the common case
+                    if (symbol.Name != InternalSymbolName.ExportEquals && !global::Ts.Checker.Checker.IsLateBoundName(symbol.Name) &&
+                        exports.TryGetValue(symbol.Name, out var res) && res != null && ch.GetSymbolIfSameReference(res, symbol) != null)
+                    {
+                        symbolName = symbol.Name;
+                    }
+                    else
+                    {
+                        var results = new Dictionary<Symbol, string>();
+                        foreach (var (name, ex) in exports) // map-iter: 已排序 — sortSymbols below stabilizes the pick
+                        {
+                            if (ch.GetSymbolIfSameReference(ex, symbol) != null && !global::Ts.Checker.Checker.IsLateBoundName(name) && name != InternalSymbolName.ExportEquals)
+                            {
+                                results[ex] = name;
+                            }
+                        }
+                        var resultSymbols = results.Keys.ToList();
+                        if (resultSymbols.Count > 0)
+                        {
+                            ch.SortSymbols(resultSymbols, 0, resultSymbols.Count);
+                            symbolName = results[resultSymbols[0]];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (symbolName.Length == 0)
+        {
+            Node? name = null;
+            foreach (var d in symbol.Declarations ?? [])
+            {
+                name = AstUtilities.GetNameOfDeclaration(d);
+                if (name != null)
+                {
+                    break;
+                }
+            }
+            if (name != null && NodeTests.IsComputedPropertyName(name) && name.Expression() != null && AstUtilities.IsEntityName(name.Expression()!))
+            {
+                var lhsComputed = CreateAccessFromSymbolChain(chain, index - 1, stopper, overrideTypeArguments);
+                if (AstUtilities.IsEntityName(lhsComputed))
+                {
+                    return f.NewIndexedAccessTypeNode(
+                        f.NewParenthesizedTypeNode(f.NewTypeQueryNode(lhsComputed, null)),
+                        f.NewTypeQueryNode(name.Expression()!, null));
+                }
+                return lhsComputed;
+            }
+            symbolName = GetNameOfSymbolAsWritten(symbol);
+        }
+        ctx!.approximateLength += symbolName.Length + 1;
+
+        if ((ctx.flags & global::Ts.NodeBuilder.Flags.ForbidIndexedAccessSymbolReferences) == 0 && parent != null &&
+            ch.GetMembersOfSymbol(parent) is { } members && members.TryGetValue(symbol.Name, out var memberSym) && memberSym != null &&
+            ch.GetSymbolIfSameReference(memberSym, symbol) != null)
+        {
+            // Should use an indexed access
+            var lhsMember = CreateAccessFromSymbolChain(chain, index - 1, stopper, overrideTypeArguments);
+            if (NodeTests.IsIndexedAccessTypeNode(lhsMember))
+            {
+                return f.NewIndexedAccessTypeNode(lhsMember, f.NewLiteralTypeNode(NewStringLiteralEx(symbolName, false)));
+            }
+            return f.NewIndexedAccessTypeNode(
+                f.NewTypeReferenceNode(lhsMember, typeParameterNodes),
+                f.NewLiteralTypeNode(NewStringLiteralEx(symbolName, false)));
+        }
+
+        var identifier = NewIdentifier(symbolName, symbol);
+        e.AddEmitFlags(identifier, global::Ts.Printer.EmitFlags.NoAsciiEscaping);
+
+        if (index > stopper)
+        {
+            var lhs = CreateAccessFromSymbolChain(chain, index - 1, stopper, overrideTypeArguments);
+            if ((ctx.flags & global::Ts.NodeBuilder.Flags.UseInstantiationExpressions) == 0 || (AstUtilities.IsEntityName(lhs) && (typeParameterNodes == null || typeParameterNodes.Nodes.Length == 0)))
+            {
+                return f.NewQualifiedName(lhs, identifier);
+            }
+            // DEFERRED: UseInstantiationExpressions path (createAccessExpression unported); the flag is not set on these paths.
+            throw new NotImplementedException("nodeBuilder.createAccessFromSymbolChain(UseInstantiationExpressions)");
+        }
+        return identifier;
+    }
+
+    // nodebuilderimpl.go:638 — symbolToTypeNode.
+    // PORT-NOTE: getSpecifierForModuleSymbol is still stubbed, so the external-module (ImportTypeNode)
+    // branch throws when chain[0] is a non-global-augmentation external module. Reached only for those
+    // symbols; the common qualified-name path below (createAccessFromSymbolChain) is fully real.
+    private Node? SymbolToTypeNode(Symbol symbol, SymbolFlags mask, TypeList? typeArguments)
+    {
+        var chain = LookupSymbolChain(symbol, mask, (ctx!.flags & global::Ts.NodeBuilder.Flags.UseAliasDefinedOutsideCurrentScope) == 0);
+        if (chain.Length == 0)
+        {
+            return null;
+        }
+        var isTypeOf = mask == SymbolFlags.Value;
+        if (CoreUtil.Some(chain[0].Declarations, global::Ts.Checker.Checker.HasNonGlobalAugmentationExternalModuleSymbol))
+        {
+            // module is root, must use `ImportTypeNode`
+            Node? nonRootParts = null;
+            if (chain.Length > 1)
+            {
+                nonRootParts = CreateAccessFromSymbolChain(chain, chain.Length - 1, 1, typeArguments);
+            }
+            var typeParameterNodes = typeArguments ?? LookupTypeParameterNodes(chain, 0);
+            var specifier = GetSpecifierForModuleSymbol(chain[0], global::Ts.Core.Core.ResolutionModeNone);
+            var lit = f.NewLiteralTypeNode(NewStringLiteralEx(specifier, false));
+            ctx.approximateLength += specifier.Length + 10;
+            if (nonRootParts == null || AstUtilities.IsEntityName(nonRootParts))
+            {
+                return f.NewImportTypeNode(isTypeOf, lit, null, nonRootParts, typeParameterNodes);
+            }
+            var splitNode = GetTopmostIndexedAccessType(nonRootParts.AsIndexedAccessTypeNode());
+            var qualifier = splitNode.ObjectType!.AsTypeReferenceNode().TypeName!;
+            return f.NewIndexedAccessTypeNode(
+                f.NewImportTypeNode(isTypeOf, lit, null, qualifier, typeParameterNodes),
+                splitNode.IndexType!);
+        }
+
+        var entityName = CreateAccessFromSymbolChain(chain, chain.Length - 1, 0, typeArguments);
+        if (NodeTests.IsIndexedAccessTypeNode(entityName))
+        {
+            return entityName; // Indexed accesses can never be `typeof`
+        }
+        if (AstUtilities.IsEntityName(entityName))
+        {
+            if (isTypeOf)
+            {
+                return f.NewTypeQueryNode(entityName, null);
+            }
+            return f.NewTypeReferenceNode(entityName, typeArguments);
+        }
+        if (isTypeOf && NodeTests.IsExpressionWithTypeArguments(entityName))
+        {
+            var expr = entityName.AsExpressionWithTypeArguments();
+            return f.NewTypeQueryNode(f.DeepCloneNode(expr.Expression!), expr.TypeArguments);
+        }
+        return entityName;
+    }
+
+    // nodebuilderimpl.go:846 — getTopmostIndexedAccessType.
+    private static IndexedAccessTypeNode GetTopmostIndexedAccessType(IndexedAccessTypeNode node)
+    {
+        if (NodeTests.IsIndexedAccessTypeNode(node.ObjectType!))
+        {
+            return GetTopmostIndexedAccessType(node.ObjectType!.AsIndexedAccessTypeNode());
+        }
+        return node;
+    }
+
     // nodebuilderimpl.go:1074 — sortedSymbolNamePair
     private readonly struct SortedSymbolNamePair(Symbol sym, string name)
     {

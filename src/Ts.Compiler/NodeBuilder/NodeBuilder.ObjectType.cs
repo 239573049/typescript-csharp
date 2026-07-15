@@ -607,7 +607,14 @@ public sealed partial class NodeBuilder
             }
             typeArgumentNodes = MapToTypeNodesLocal(typeArguments[0..typeParameterCount], false /*isBareList*/);
         }
-        return SymbolToTypeReferenceNodeLocal(t.symbol!, typeArgumentNodes);
+        // nodebuilderimpl.go:3074 — finalRef := symbolToTypeNode(t.symbol, Type, typeArgumentNodes).
+        // The outer-type-parameter grouping (resultType / appendReferenceToType) is deferred, so resultType
+        // is always nil here and we return finalRef directly.
+        var restoreFlags = SaveRestoreFlags();
+        ctx!.flags |= global::Ts.NodeBuilder.Flags.ForbidIndexedAccessSymbolReferences;
+        var finalRef = SymbolToTypeNode(t.symbol!, SymbolFlags.Type, typeArgumentNodes);
+        restoreFlags();
+        return finalRef!;
     }
 
     // A bare symbol-name type reference (nodebuilderimpl.go:638 symbolToTypeNode, reduced form) that accepts
