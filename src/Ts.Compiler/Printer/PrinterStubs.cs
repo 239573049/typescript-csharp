@@ -28,34 +28,10 @@ internal static partial class PrinterUtilities
         throw new NotImplementedException("IsRecognizedTripleSlashComment: internal/printer/utilities.go, not yet ported");
     }
 
-    // Go: isJSDocLikeText (utilities.go:861)
-    internal static bool IsJSDocLikeText(string text, CommentRange comment)
-    {
-        throw new NotImplementedException("isJSDocLikeText: internal/printer/utilities.go, not yet ported");
-    }
-
-    // Go: IsPinnedComment (utilities.go:868)
-    internal static bool IsPinnedComment(string text, CommentRange comment)
-    {
-        throw new NotImplementedException("IsPinnedComment: internal/printer/utilities.go, not yet ported");
-    }
-
-    // Go: calculateIndent (utilities.go:874)
-    internal static int CalculateIndent(string text, int pos, int end)
-    {
-        throw new NotImplementedException("calculateIndent: internal/printer/utilities.go, not yet ported");
-    }
-
     // Go: siblingNodePositionsAreComparable (utilities.go:422)
     internal static bool SiblingNodePositionsAreComparable(EmitContext emitContext, Node previousNode, Node nextNode)
     {
         throw new NotImplementedException("siblingNodePositionsAreComparable: internal/printer/utilities.go, not yet ported");
-    }
-
-    // Go: originalNodesHaveSameParent (utilities.go:567)
-    internal static bool OriginalNodesHaveSameParent(EmitContext emitContext, Node nodeA, Node nodeB)
-    {
-        throw new NotImplementedException("originalNodesHaveSameParent: internal/printer/utilities.go, not yet ported");
     }
 }
 

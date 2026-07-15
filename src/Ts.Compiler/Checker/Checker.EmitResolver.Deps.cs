@@ -102,8 +102,39 @@ public partial class Checker
         throw new NotImplementedException("getExternalModuleFileFromDeclaration");
 
     // services.go:859 — GetConstantValue (const-enum inlining source of truth).
-    internal object? GetConstantValue(Node node) =>
-        throw new NotImplementedException("GetConstantValue");
+    internal object? GetConstantValue(Node node)
+    {
+        if (node.Kind == SyntaxKind.EnumMember)
+        {
+            return GetEnumMemberValue(node).Value;
+        }
+
+        if (symbolNodeLinks.Get(node).resolvedSymbol == null)
+        {
+            CheckExpressionCached(node); // ensure cached resolved symbol is set
+        }
+        var symbol = symbolNodeLinks.Get(node).resolvedSymbol;
+        if (symbol == null && AstUtilities.IsEntityNameExpression(node))
+        {
+            symbol = ResolveEntityName(
+                node,
+                SymbolFlags.Value,
+                true,  /*ignoreErrors*/
+                false, /*dontResolveAlias*/
+                null   /*location*/);
+        }
+        if (symbol != null && (symbol.Flags & SymbolFlags.EnumMember) != 0)
+        {
+            // inline property\index accesses only for const enums
+            var member = symbol.ValueDeclaration;
+            if (AstUtilities.IsEnumConst(member!.Parent!))
+            {
+                return GetEnumMemberValue(member).Value;
+            }
+        }
+
+        return null;
+    }
 
     // symbolaccessibility.go:839 — IsSymbolAccessible.
     internal global::Ts.Printer.SymbolAccessibilityResult IsSymbolAccessible(
