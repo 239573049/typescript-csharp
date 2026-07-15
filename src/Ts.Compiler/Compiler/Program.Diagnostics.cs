@@ -254,10 +254,9 @@ public sealed partial class Program
         bool isPlainJS = IsPlainJSFile(sourceFile, compilerOptions.CheckJs);
         if (isPlainJS)
         {
-            // PORT-NOTE (deferred): the plain-JS diagnostic-code allowlist (plainJSErrors, ~100 codes) is
-            // filled with the checker's JS surface. A legal .ts type-check-and-report run never reaches
-            // this branch; keep all diagnostics until the allowlist lands.
-            return diags.ToArray();
+            // program.go:1340-1345 — for plain (unchecked) JS files, report only the allowlisted
+            // binder/grammar/type diagnostic codes; everything else the checker produced is dropped.
+            return CoreUtil.Filter(diags.ToArray(), d => PlainJSErrors.Contains(d.Code())) ?? [];
         }
 
         bool isJS = sourceFile.ScriptKind == ScriptKind.JS || sourceFile.ScriptKind == ScriptKind.Jsx;
