@@ -291,7 +291,19 @@ public partial class Checker
         }
         return null;
     }
-    private Type? GetContextualTypeForStaticPropertyDeclaration(Node declaration, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForStaticPropertyDeclaration");
+    // checker.go:29369
+    private Type? GetContextualTypeForStaticPropertyDeclaration(Node declaration, ContextFlags contextFlags)
+    {
+        if (AstUtilities.IsExpression(declaration.Parent!))
+        {
+            var parentType = GetContextualType(declaration.Parent!, contextFlags);
+            if (parentType != null)
+            {
+                return GetTypeOfPropertyOfContextualType(parentType, GetSymbolOfDeclaration(declaration)!.Name);
+            }
+        }
+        return null;
+    }
     // checker.go:29600-29675 — assignment-expression contextual type (JS assignment-declaration cluster).
     private Type? GetContextualTypeForAssignmentExpression(BinaryExpression binary)
     {
