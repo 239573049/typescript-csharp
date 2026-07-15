@@ -16,18 +16,6 @@ namespace Ts.Printer;
 // currentSourceFile (IsFileLevelUniqueName). Port them with the rest of utilities.go and remove these.
 internal static partial class PrinterUtilities
 {
-    // Go: IsFileLevelUniqueName (utilities.go:651)
-    internal static bool IsFileLevelUniqueName(SourceFile sourceFile, string name, Func<string, bool>? hasGlobalName)
-    {
-        throw new NotImplementedException("IsFileLevelUniqueName: internal/printer/utilities.go, not yet ported");
-    }
-
-    // Go: IsRecognizedTripleSlashComment (utilities.go:804)
-    internal static bool IsRecognizedTripleSlashComment(string text, CommentRange commentRange)
-    {
-        throw new NotImplementedException("IsRecognizedTripleSlashComment: internal/printer/utilities.go, not yet ported");
-    }
-
     // Go: siblingNodePositionsAreComparable (utilities.go:422)
     internal static bool SiblingNodePositionsAreComparable(EmitContext emitContext, Node previousNode, Node nextNode)
     {

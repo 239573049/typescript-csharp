@@ -3,10 +3,181 @@
 
 namespace Ts.Printer;
 
+using System;
+
 using Ts.Ast;
 
 internal static partial class PrinterUtilities
 {
+    // utilities.go:651 — IsFileLevelUniqueName.
+    internal static bool IsFileLevelUniqueName(SourceFile sourceFile, string name, Func<string, bool>? hasGlobalName)
+    {
+        if (hasGlobalName != null && hasGlobalName(name))
+        {
+            return false;
+        }
+        return !(sourceFile.Identifiers?.ContainsKey(name) ?? false);
+    }
+
+    // utilities.go:804 — IsRecognizedTripleSlashComment.
+    internal static bool IsRecognizedTripleSlashComment(string text, CommentRange commentRange)
+    {
+        if (commentRange.Kind == SyntaxKind.SingleLineCommentTrivia &&
+            commentRange.Len > 2 &&
+            text[commentRange.Pos + 1] == '/' &&
+            text[commentRange.Pos + 2] == '/')
+        {
+            string sub = text[(commentRange.Pos + 3)..commentRange.End];
+            int pos = 0;
+            SkipWhiteSpaceSingleLine(sub, ref pos);
+            if (!MatchRune(sub, ref pos, '<'))
+            {
+                return false;
+            }
+            if (MatchString(sub, ref pos, "reference"))
+            {
+                if (!MatchWhiteSpaceSingleLine(sub, ref pos))
+                {
+                    return false;
+                }
+                if (!MatchString(sub, ref pos, "path") &&
+                    !MatchString(sub, ref pos, "types") &&
+                    !MatchString(sub, ref pos, "lib") &&
+                    !MatchString(sub, ref pos, "no-default-lib"))
+                {
+                    return false;
+                }
+                SkipWhiteSpaceSingleLine(sub, ref pos);
+                if (!MatchRune(sub, ref pos, '='))
+                {
+                    return false;
+                }
+                SkipWhiteSpaceSingleLine(sub, ref pos);
+                if (!MatchQuotedString(sub, ref pos))
+                {
+                    return false;
+                }
+            }
+            else if (MatchString(sub, ref pos, "amd-dependency"))
+            {
+                if (!MatchWhiteSpaceSingleLine(sub, ref pos))
+                {
+                    return false;
+                }
+                if (!MatchString(sub, ref pos, "path"))
+                {
+                    return false;
+                }
+                SkipWhiteSpaceSingleLine(sub, ref pos);
+                if (!MatchRune(sub, ref pos, '='))
+                {
+                    return false;
+                }
+                SkipWhiteSpaceSingleLine(sub, ref pos);
+                if (!MatchQuotedString(sub, ref pos))
+                {
+                    return false;
+                }
+            }
+            else if (MatchString(sub, ref pos, "amd-module"))
+            {
+                SkipWhiteSpaceSingleLine(sub, ref pos);
+            }
+            else
+            {
+                return false;
+            }
+            int index = sub[pos..].IndexOf("/>", StringComparison.Ordinal);
+            return index != -1;
+        }
+
+        return false;
+    }
+
+    // utilities.go — skipWhiteSpaceSingleLine. PORT-NOTE: Go decodes UTF-8 runes; single-line whitespace
+    // is all BMP, so char iteration is equivalent.
+    private static void SkipWhiteSpaceSingleLine(string text, ref int pos)
+    {
+        while (pos < text.Length)
+        {
+            if (!global::Ts.StringUtil.StringUtil.IsWhiteSpaceSingleLine(text[pos]))
+            {
+                break;
+            }
+            pos++;
+        }
+    }
+
+    // utilities.go — matchRune (matched runes are ASCII here, so char comparison is faithful).
+    private static bool MatchRune(string text, ref int pos, char expected)
+    {
+        if (pos < text.Length && text[pos] == expected)
+        {
+            pos++;
+            return true;
+        }
+        return false;
+    }
+
+    // utilities.go — matchString.
+    private static bool MatchString(string text, ref int pos, string expected)
+    {
+        int textPos = pos;
+        int expectedPos = 0;
+        while (expectedPos < expected.Length)
+        {
+            if (textPos >= text.Length)
+            {
+                return false;
+            }
+            if (!MatchRune(text, ref textPos, expected[expectedPos]))
+            {
+                return false;
+            }
+            expectedPos++;
+        }
+        pos = textPos;
+        return true;
+    }
+
+    // utilities.go — matchWhiteSpaceSingleLine.
+    private static bool MatchWhiteSpaceSingleLine(string text, ref int pos)
+    {
+        int startPos = pos;
+        SkipWhiteSpaceSingleLine(text, ref pos);
+        return pos != startPos;
+    }
+
+    // utilities.go — matchQuotedString.
+    private static bool MatchQuotedString(string text, ref int pos)
+    {
+        int textPos = pos;
+        char quoteChar;
+        if (MatchRune(text, ref textPos, '\''))
+        {
+            quoteChar = '\'';
+        }
+        else if (MatchRune(text, ref textPos, '"'))
+        {
+            quoteChar = '"';
+        }
+        else
+        {
+            return false;
+        }
+        while (textPos < text.Length)
+        {
+            char ch = text[textPos];
+            textPos++;
+            if (ch == quoteChar)
+            {
+                pos = textPos;
+                return true;
+            }
+        }
+        return false;
+    }
+
     // utilities.go:861 — isJSDocLikeText.
     internal static bool IsJSDocLikeText(string text, CommentRange comment) =>
         comment.Kind == SyntaxKind.MultiLineCommentTrivia &&

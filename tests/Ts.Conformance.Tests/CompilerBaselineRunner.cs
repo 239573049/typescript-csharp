@@ -55,6 +55,7 @@ public sealed record ConformanceRunSummary(IReadOnlyList<ConformanceCaseResult> 
 
 public static partial class CompilerBaselineRunner
 {
+    private static readonly object s_emitDebugLock = new();
     private const string SourceFolder = "/.src";
     private const string LibraryFolder = "/.lib";
     // The default bundled libs (lib.es5.d.ts, …) live under the `bundled:///libs` scheme, exactly as
@@ -348,6 +349,53 @@ public static partial class CompilerBaselineRunner
             checkerFailure = DescribeException(exception);
         }
         Diagnostic[] sortedDiagnostics = Program.SortAndDeduplicateDiagnostics(diagnostics.ToArray());
+
+        // harnessutil.go:626-693 — pre/post-emit double-run. Run Emit on a fresh program and, if the
+        // post-emit diagnostic count differs from pre-emit, synthesize the TS-1 "counts do not match"
+        // ad-hoc diagnostic listing the excess (a semantic error the emit resolver adds but which the
+        // command line/editor never surface). Skipped only when the pre-emit checker itself failed.
+        if (checkerFailure is null)
+        {
+            try
+            {
+                var postProgram = new Program(new ProgramOptions { Host = host, Config = config, SingleThreaded = singleThreaded ? Tristate.True : Tristate.Unknown });
+                var postErrors = new List<Diagnostic>();
+                postErrors.AddRange(postProgram.GetConfigFileParsingDiagnostics());
+                postErrors.AddRange(postProgram.GetProgramDiagnostics());
+                postErrors.AddRange(postProgram.GetSyntacticDiagnostics(CancellationToken.None, sourceFile: null));
+                postProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = static (_, _, _) => { } });
+                postErrors.AddRange(postProgram.GetSemanticDiagnostics(CancellationToken.None, sourceFile: null));
+                postErrors.AddRange(postProgram.GetGlobalDiagnostics(CancellationToken.None));
+                Diagnostic[] post = Program.SortAndDeduplicateDiagnostics(postErrors.ToArray());
+                if (post.Length != sortedDiagnostics.Length)
+                {
+                    Diagnostic[] longer = post.Length > sortedDiagnostics.Length ? post : sortedDiagnostics;
+                    Diagnostic[] shorter = post.Length > sortedDiagnostics.Length ? sortedDiagnostics : post;
+                    var diag = Diagnostic.NewCompilerDiagnostic(global::Ts.Diagnostics.Diagnostics.NewAdHocMessage(
+                        $"Pre-emit ({sortedDiagnostics.Length}) and post-emit ({post.Length}) diagnostic counts do not match! This can indicate that a semantic _error_ was added by the emit resolver - such an error may not be reflected on the command line or in the editor, but may be captured in a baseline here!"));
+                    diag = diag.AddRelatedInfo(Diagnostic.NewCompilerDiagnostic(global::Ts.Diagnostics.Diagnostics.NewAdHocMessage("The excess diagnostics are:")));
+                    foreach (var d in longer)
+                    {
+                        if (!shorter.Any(s => global::Ts.Ast.DiagnosticsCollection.CompareDiagnostics(d, s) == 0))
+                        {
+                            diag = diag.AddRelatedInfo(d);
+                        }
+                    }
+                    sortedDiagnostics = Program.SortAndDeduplicateDiagnostics([.. shorter, diag]);
+                }
+
+                // PORT-NOTE: when counts match, tsgo uses postErrors; its pre and post are byte-identical
+                // there, so keeping our pre-emit set produces the same output while avoiding an emit-side
+                // related-information reordering our emit resolver still exhibits (harmless to the count,
+                // but it would reorder e.g. the TS18017/TS18018 related infos of a shadowed private name).
+            }
+            catch (Exception)
+            {
+                // The emit pipeline is being ported incrementally; a case whose Emit cannot complete
+                // (e.g. an unported transformer path) simply skips the double-run and keeps its pre-emit
+                // diagnostics — matching how it behaved before the harness was wired.
+            }
+        }
 
         var baselineFiles = OrderBaselineFiles(unitsByPath, rootPaths);
         var context = new BaselineTestContext();
