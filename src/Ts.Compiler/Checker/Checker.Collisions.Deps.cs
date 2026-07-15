@@ -23,13 +23,16 @@ using Ts.Ast;
 
 namespace Ts.Checker;
 
+// checker.go:7054 — UnusedKind
+internal enum UnusedKind
+{
+    Local = 0,
+    Parameter,
+}
+
 public partial class Checker
 {
-    // ---- (1) unused-identifier dispatch (checker.go:7050-7290) ----
-    internal void CheckUnusedClassMembers(Node node) => throw new NotImplementedException("checkUnusedClassMembers");
-    internal void CheckUnusedLocalsAndParameters(Node nodeWithLocals) => throw new NotImplementedException("checkUnusedLocalsAndParameters");
-    internal void CheckUnusedTypeParameters(Node node) => throw new NotImplementedException("checkUnusedTypeParameters");
-    internal void CheckUnusedInferTypeParameter(Node node) => throw new NotImplementedException("checkUnusedInferTypeParameter");
+    // ---- (1) unused-identifier dispatch (checker.go:7050-7290) — real bodies in Checker.Collisions.cs ----
 
     // ---- (2) rare reserved-name collision leaves (checker.go:10524/10558) ----
     internal void CheckWeakMapSetCollision(Node node) => throw new NotImplementedException("checkWeakMapSetCollision");

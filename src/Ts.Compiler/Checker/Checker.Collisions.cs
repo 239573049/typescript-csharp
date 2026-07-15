@@ -18,7 +18,9 @@
 // (Scanner) are `global::`-qualified where referenced.
 
 using System;
+using System.Collections.Generic;
 using Ts.Ast;
+using Ts.Collections;
 using Ts.Core;
 using Diag = global::Ts.Diagnostics.Diagnostics;
 
@@ -98,6 +100,369 @@ public partial class Checker
                 AddDiagnostic(diagnostic);
             }
         }
+    }
+
+    // ==== unused-locals/parameters/type-parameters subsystem (checker.go:7050-7304) ====
+
+    // checker.go:7050
+    internal bool IsReferenced(Symbol symbol) => symbolReferenceLinks.Get(symbol).referenceKinds != 0;
+
+    // checker.go:7061
+    private void ReportUnusedVariable(Node location, Diagnostic diagnostic)
+    {
+        while (NodeTests.IsBindingElement(location) || AstUtilities.IsBindingPattern(location))
+        {
+            location = location.Parent!;
+        }
+        ReportUnused(location, NodeTests.IsParameterDeclaration(location) ? UnusedKind.Parameter : UnusedKind.Local, diagnostic);
+    }
+
+    // checker.go:7068
+    private void ReportUnused(Node location, UnusedKind kind, Diagnostic diagnostic)
+    {
+        if ((location.Flags & (NodeFlags.Ambient | NodeFlags.ThisNodeOrAnySubNodesHasError)) == 0)
+        {
+            if (UnusedIsError(kind))
+            {
+                AddDiagnostic(diagnostic);
+            }
+            else
+            {
+                // PORT-NOTE: Go copies the diagnostic value before lowering to a suggestion; the C#
+                // diagnostic is freshly created for this report and not shared, so we lower it in place.
+                diagnostic.SetCategory(global::Ts.Diagnostics.Category.Suggestion);
+                AddSuggestionDiagnostic(diagnostic);
+            }
+        }
+    }
+
+    // checker.go:7081
+    private bool UnusedIsError(UnusedKind kind)
+    {
+        switch (kind)
+        {
+            case UnusedKind.Local:
+                return compilerOptions.NoUnusedLocals.IsTrue();
+            case UnusedKind.Parameter:
+                return compilerOptions.NoUnusedParameters.IsTrue();
+            default:
+                throw new InvalidOperationException("Unhandled case in unusedIsError");
+        }
+    }
+
+    // checker.go:7092
+    internal void CheckUnusedClassMembers(Node node)
+    {
+        foreach (var member in node.Members() ?? [])
+        {
+            switch (member.Kind)
+            {
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                    if (NodeTests.IsSetAccessorDeclaration(member) && (member.Symbol()!.Flags & SymbolFlags.GetAccessor) != 0)
+                    {
+                        break; // Already would have reported an error on the getter.
+                    }
+                    var symbol = GetSymbolOfDeclaration(member)!;
+                    if (!IsReferenced(symbol) && (HasModifier(member, ModifierFlags.Private) || member.Name() != null && NodeTests.IsPrivateIdentifier(member.Name()!)) && (member.Flags & NodeFlags.Ambient) == 0)
+                    {
+                        ReportUnused(member, UnusedKind.Local, NewDiagnosticForNode(member.Name(), Diag.X_0_is_declared_but_its_value_is_never_read, SymbolToString(symbol)));
+                    }
+                    break;
+                case SyntaxKind.Constructor:
+                    foreach (var parameter in member.AsConstructorDeclaration().Parameters?.Nodes ?? [])
+                    {
+                        if (!IsReferenced(parameter.Symbol()!) && AstUtilities.HasSyntacticModifier(parameter, ModifierFlags.Private))
+                        {
+                            ReportUnused(parameter, UnusedKind.Local, NewDiagnosticForNode(parameter.Name(), Diag.Property_0_is_declared_but_its_value_is_never_read, AstUtilities.SymbolName(parameter.Symbol()!)));
+                        }
+                    }
+                    break;
+                case SyntaxKind.IndexSignature:
+                case SyntaxKind.SemicolonClassElement:
+                case SyntaxKind.ClassStaticBlockDeclaration:
+                case SyntaxKind.JSTypeAliasDeclaration:
+                    // Can't be private
+                    break;
+                default:
+                    throw new InvalidOperationException("Unhandled case in checkUnusedClassMembers");
+            }
+        }
+    }
+
+    // checker.go:7117
+    internal void CheckUnusedLocalsAndParameters(Node nodeWithLocals)
+    {
+        var variableParents = new global::Ts.Collections.Set<Node>();
+        Dictionary<Node, List<Node>>? importClauses = null;
+        foreach (var local in (nodeWithLocals.Locals() ?? []).Values) // map-iter: 序无关 — reports are grouped/sorted downstream
+        {
+            var referenceKinds = symbolReferenceLinks.Get(local).referenceKinds;
+            if ((local.Flags & SymbolFlags.TypeParameter) != 0 && ((local.Flags & SymbolFlags.Variable) == 0 || (referenceKinds & SymbolFlags.Variable) != 0) ||
+                (local.Flags & SymbolFlags.TypeParameter) == 0 && (referenceKinds != 0 || local.ExportSymbol != null ||
+                    (local.Flags & SymbolFlags.ModuleExports) != 0))
+            {
+                continue;
+            }
+            foreach (var declaration in local.Declarations ?? [])
+            {
+                if (NodeTests.IsVariableDeclaration(declaration) || NodeTests.IsParameterDeclaration(declaration) || NodeTests.IsBindingElement(declaration))
+                {
+                    variableParents.Add(AstUtilities.GetRootDeclaration(declaration).Parent!);
+                }
+                else if (NodeTests.IsImportClause(declaration) || NodeTests.IsImportSpecifier(declaration) || NodeTests.IsNamespaceImport(declaration))
+                {
+                    if (!IsIdentifierThatStartsWithUnderscore(declaration.Name()!))
+                    {
+                        importClauses ??= new();
+                        var importClause = ImportClauseFromImported(declaration);
+                        if (!importClauses.TryGetValue(importClause, out var list))
+                        {
+                            list = new();
+                            importClauses[importClause] = list;
+                        }
+                        list.Add(declaration);
+                    }
+                }
+                else if (!NodeTests.IsTypeParameterDeclaration(declaration) && !AstUtilities.IsAmbientModule(declaration))
+                {
+                    ReportUnusedLocal(declaration, AstUtilities.SymbolName(local));
+                }
+            }
+        }
+        foreach (var declaration in variableParents.Keys()) // map-iter: 序无关 — Set insertion, reports sorted downstream
+        {
+            if (NodeTests.IsVariableDeclarationList(declaration))
+            {
+                ReportUnusedVariables(declaration);
+            }
+            else
+            {
+                ReportUnusedParameters(declaration);
+            }
+        }
+        if (importClauses != null)
+        {
+            foreach (var (declaration, unuseds) in importClauses) // map-iter: 序无关 — reports sorted downstream
+            {
+                ReportUnusedImports(declaration, unuseds);
+            }
+        }
+    }
+
+    // checker.go:7158
+    private void ReportUnusedLocal(Node node, string name)
+    {
+        var message = AstUtilities.IsTypeDeclaration(node) ? Diag.X_0_is_declared_but_never_used : Diag.X_0_is_declared_but_its_value_is_never_read;
+        ReportUnused(node, UnusedKind.Local, NewDiagnosticForNode(node.Name() ?? node, message, name));
+    }
+
+    // checker.go:7163
+    private void ReportUnusedVariables(Node node)
+    {
+        var declarations = node.AsVariableDeclarationList().Declarations?.Nodes ?? [];
+        if (declarations.Length > 1 && CoreUtil.Every(declarations, IsUnreferencedVariableDeclaration))
+        {
+            ReportUnusedVariable(node, NewDiagnosticForNode(node, Diag.All_variables_are_unused));
+        }
+        else
+        {
+            ReportUnusedVariableDeclarations(declarations);
+        }
+    }
+
+    // checker.go:7172
+    private void ReportUnusedParameters(Node node)
+    {
+        ReportUnusedVariableDeclarations(node.Parameters() ?? []);
+    }
+
+    // checker.go:7180
+    private void ReportUnusedBindingElements(Node node)
+    {
+        var declarations = node.Elements() ?? [];
+        if (declarations.Length > 1 && CoreUtil.Every(declarations, IsUnreferencedVariableDeclaration))
+        {
+            ReportUnusedVariable(node, NewDiagnosticForNode(node, Diag.All_destructured_elements_are_unused));
+        }
+        else
+        {
+            ReportUnusedVariableDeclarations(declarations);
+        }
+    }
+
+    // checker.go:7189
+    private void ReportUnusedVariableDeclarations(Node[] declarations)
+    {
+        foreach (var declaration in declarations)
+        {
+            var name = declaration.Name();
+            if (name != null && !AstUtilities.IsParameterPropertyDeclaration(declaration, declaration.Parent!) && !AstUtilities.IsThisParameter(declaration))
+            {
+                if (AstUtilities.IsBindingPattern(name))
+                {
+                    ReportUnusedBindingElements(name);
+                }
+                else if (IsUnreferencedVariableDeclaration(declaration))
+                {
+                    ReportUnusedVariable(declaration, NewDiagnosticForNode(name, Diag.X_0_is_declared_but_its_value_is_never_read, name.Text()));
+                }
+            }
+        }
+    }
+
+    // checker.go:7204
+    private bool IsUnreferencedVariableDeclaration(Node node)
+    {
+        var name = node.Name();
+        if (name == null)
+        {
+            return true;
+        }
+        if (AstUtilities.IsBindingPattern(name))
+        {
+            return CoreUtil.Every(node.Name()!.Elements() ?? [], IsUnreferencedVariableDeclaration);
+        }
+        if ((symbolReferenceLinks.Get(GetSymbolOfDeclaration(node)!).referenceKinds & SymbolFlags.Variable) != 0)
+        {
+            return false;
+        }
+        if (NodeTests.IsBindingElement(node) && NodeTests.IsObjectBindingPattern(node.Parent!))
+        {
+            // In `{ a, ...b }, `a` is considered used since it removes a property from `b`. `b` may still be unused though.
+            var lastElement = CoreUtil.LastOrNil(node.Parent!.Elements() ?? []);
+            if (node != lastElement && HasDotDotDotToken(lastElement!))
+            {
+                return false;
+            }
+        }
+        if ((NodeTests.IsParameterDeclaration(node) ||
+            NodeTests.IsVariableDeclaration(node) && (AstUtilities.IsForInOrOfStatement(node.Parent!.Parent!) || (GetCombinedNodeFlagsCached(node) & NodeFlags.Using) != 0) ||
+            NodeTests.IsBindingElement(node) && !(NodeTests.IsObjectBindingPattern(node.Parent!) && node.PropertyName() == null)) &&
+            IsIdentifierThatStartsWithUnderscore(name))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    // checker.go:7225
+    private void ReportUnusedImports(Node node, List<Node> unuseds)
+    {
+        var declarationCount = node.Name() != null ? 1 : 0;
+        var namedBindings = node.AsImportClause().NamedBindings;
+        if (namedBindings != null)
+        {
+            if (NodeTests.IsNamespaceImport(namedBindings))
+            {
+                declarationCount++;
+            }
+            else
+            {
+                declarationCount += (namedBindings.Elements() ?? []).Length;
+            }
+        }
+        if (declarationCount > 1 && declarationCount == unuseds.Count)
+        {
+            ReportUnused(node, UnusedKind.Local, NewDiagnosticForNode(node.Parent, Diag.All_imports_in_import_declaration_are_unused));
+        }
+        else
+        {
+            foreach (var unused in unuseds)
+            {
+                ReportUnusedLocal(unused, unused.Name()!.Text());
+            }
+        }
+    }
+
+    // checker.go:7244
+    private static bool IsIdentifierThatStartsWithUnderscore(Node node) =>
+        NodeTests.IsIdentifier(node) && node.Text() != "" && node.Text()[0] == '_';
+
+    // checker.go:7248
+    private static Node ImportClauseFromImported(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportClause:
+                return node;
+            case SyntaxKind.NamespaceImport:
+                return node.Parent!;
+            default:
+                return node.Parent!.Parent!;
+        }
+    }
+
+    // checker.go:7259
+    internal void CheckUnusedInferTypeParameter(Node node)
+    {
+        var typeParameter = node.AsInferTypeNode().TypeParameter!;
+        if (IsUnreferencedTypeParameter(typeParameter))
+        {
+            ReportUnused(node, UnusedKind.Parameter, NewDiagnosticForNode(typeParameter.Name(), Diag.X_0_is_declared_but_never_used, typeParameter.Name()!.Text()));
+        }
+    }
+
+    // checker.go:7266
+    internal void CheckUnusedTypeParameters(Node node)
+    {
+        if (!AllDeclarationsInSameSourceFile(GetSymbolOfDeclaration(node)!))
+        {
+            return;
+        }
+        var typeParameterList = node.TypeParameterList();
+        if (typeParameterList == null)
+        {
+            return;
+        }
+        if (typeParameterList.Nodes.Length > 1 && CoreUtil.Every(typeParameterList.Nodes, IsUnreferencedTypeParameter))
+        {
+            var file = AstUtilities.GetSourceFileOfNode(node);
+            var loc = RangeOfTypeParameters(file!, typeParameterList);
+            ReportUnused(node, UnusedKind.Parameter, Diagnostic.NewDiagnostic(file, loc, Diag.All_type_parameters_are_unused));
+        }
+        else
+        {
+            foreach (var typeParameter in typeParameterList.Nodes)
+            {
+                if (IsUnreferencedTypeParameter(typeParameter))
+                {
+                    ReportUnused(node, UnusedKind.Parameter, NewDiagnosticForNode(typeParameter, Diag.X_0_is_declared_but_never_used, typeParameter.Name()!.Text()));
+                }
+            }
+        }
+    }
+
+    // checker.go:7287
+    private bool IsUnreferencedTypeParameter(Node typeParameter) =>
+        (symbolReferenceLinks.Get(GetMergedSymbol(typeParameter.Symbol()!)!).referenceKinds & SymbolFlags.TypeParameter) == 0 && !IsIdentifierThatStartsWithUnderscore(typeParameter.Name()!);
+
+    // utilities.go:1531
+    private static TextRange RangeOfTypeParameters(SourceFile sourceFile, NodeList typeParameters) =>
+        new TextRange(typeParameters.Pos - 1, Math.Min(sourceFile.Text().Length, global::Ts.Scanner.Scanner.SkipTrivia(sourceFile.Text(), typeParameters.End) + 1));
+
+    // utilities.go:1555
+    private static bool AllDeclarationsInSameSourceFile(Symbol symbol)
+    {
+        if ((symbol.Declarations?.Length ?? 0) > 1)
+        {
+            SourceFile? sourceFile = null;
+            for (var i = 0; i < symbol.Declarations!.Length; i++)
+            {
+                var d = symbol.Declarations[i];
+                if (i == 0)
+                {
+                    sourceFile = AstUtilities.GetSourceFileOfNode(d);
+                }
+                else if (AstUtilities.GetSourceFileOfNode(d) != sourceFile)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // checker.go:10420-10437
