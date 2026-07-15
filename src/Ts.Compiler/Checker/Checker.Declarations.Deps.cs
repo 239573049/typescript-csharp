@@ -816,7 +816,7 @@ public partial class Checker
         NodeTests.IsImportEqualsDeclaration(node) &&
         node.AsImportEqualsDeclaration().ModuleReference!.Kind != SyntaxKind.ExternalModuleReference;
     // checker.go: module kind display for diagnostics (ModuleKind.String())
-    internal static string ModuleKindToString(ModuleKind moduleKind) => throw new NotImplementedException("ModuleKind.String");
+    internal static string ModuleKindToString(ModuleKind moduleKind) => moduleKind.ToDisplayString();
     // scanner.go:2516 — scanner.ScanTokenAtPosition (positions a fresh scanner at pos and returns the token kind).
     internal static SyntaxKind ScanTokenAtPosition(SourceFile sourceFile, int pos) =>
         global::Ts.Scanner.Scanner.GetScannerForSourceFile(sourceFile, pos).Token();

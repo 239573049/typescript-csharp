@@ -557,6 +557,31 @@ public static class ModuleResolutionKindExtensions
                 throw new InvalidOperationException("unhandled case in ModuleResolutionKind.String");
         }
     }
+
+    // core/modulekind_stringer_generated.go — faithful port of the generated `ModuleKind.String()`
+    // (trimprefix ModuleKind). Unlike ModuleResolutionKind, Go generates this stringer, so it returns
+    // the `ModuleKind(N)` fallback for unknown values rather than panicking.
+    public static string ToDisplayString(this ModuleKind i)
+    {
+        switch (i)
+        {
+            case ModuleKind.None: return "None";
+            case ModuleKind.CommonJS: return "CommonJS";
+            case ModuleKind.AMD: return "AMD";
+            case ModuleKind.UMD: return "UMD";
+            case ModuleKind.System: return "System";
+            case ModuleKind.ES2015: return "ES2015";
+            case ModuleKind.ES2020: return "ES2020";
+            case ModuleKind.ES2022: return "ES2022";
+            case ModuleKind.ESNext: return "ESNext";
+            case ModuleKind.Node16: return "Node16";
+            case ModuleKind.Node18: return "Node18";
+            case ModuleKind.Node20: return "Node20";
+            case ModuleKind.NodeNext: return "NodeNext";
+            case ModuleKind.Preserve: return "Preserve";
+            default: return "ModuleKind(" + ((int)i).ToString(global::System.Globalization.CultureInfo.InvariantCulture) + ")";
+        }
+    }
 }
 
 public enum NewLineKind
