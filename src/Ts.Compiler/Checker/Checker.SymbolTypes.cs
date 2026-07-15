@@ -1276,7 +1276,35 @@ public partial class Checker
     // getResolvedBaseConstraint (27313) / getSimplifiedType (27731) / getSimplifiedTypeOrConstraint (27862)
     // implemented in Checker.Constraints.cs (#19); getIndexedAccessTypeOrUndefined (26801) in Checker.IndexedAccess.cs (#18).
 
-    internal Type SubstituteIndexedMappedType(Type objectType, Type index) => throw new NotImplementedException("substituteIndexedMappedType");
+    // checker.go:29048
+    internal Type SubstituteIndexedMappedType(Type objectType, Type index)
+    {
+        var mapper = TypeMapper.NewSimpleTypeMapper(GetTypeParameterFromMappedType(objectType), index);
+        var templateMapper = CombineTypeMappers(objectType.AsMappedType().mapper, mapper);
+        var instantiatedTemplateType = InstantiateType(GetTemplateTypeFromMappedType(objectType.AsMappedType().target ?? objectType), templateMapper);
+        var isOptional = GetMappedTypeOptionality(objectType) > 0;
+        if (!isOptional)
+        {
+            if (IsGenericType(objectType))
+            {
+                isOptional = GetCombinedMappedTypeOptionality(GetModifiersTypeFromMappedType(objectType)) > 0;
+            }
+            else
+            {
+                isOptional = CouldAccessOptionalProperty(objectType, index);
+            }
+        }
+        return AddOptionalityEx(instantiatedTemplateType, true /*isProperty*/, isOptional);
+    }
+
+    // checker.go:29062 — Return true if an indexed access with the given object and index types could
+    // access an optional property.
+    internal bool CouldAccessOptionalProperty(Type objectType, Type indexType)
+    {
+        var indexConstraint = GetBaseConstraintOfType(indexType);
+        return indexConstraint != null && global::Ts.Core.CoreUtil.Some(GetPropertiesOfType(objectType), p =>
+            (p.Flags & SymbolFlags.Optional) != 0 && IsTypeAssignableTo(GetLiteralTypeFromProperty(p, TypeFlags.StringOrNumberLiteralOrUnique, false), indexConstraint));
+    }
 
 
 

@@ -160,7 +160,12 @@ public partial class Checker
     // getSuggestedSymbolForNonexistentJSXAttribute: real body landed in Checker.Jsx.cs (jsx wave).
     // getSuggestionForNonexistentProperty (27089): real body landed in Checker.IndexedAccess.cs
     // (spelling-suggestion wave).
-    internal Type? GetSuggestedTypeForNonexistentStringLiteralType(Type source, Type target) => throw new NotImplementedException("getSuggestedTypeForNonexistentStringLiteralType");
+    // checker.go:27118
+    internal Type? GetSuggestedTypeForNonexistentStringLiteralType(Type source, Type target)
+    {
+        var candidates = global::Ts.Core.CoreUtil.FilterSeq(target.Types(), t => (t.flags & TypeFlags.StringLiteral) != 0);
+        return global::Ts.Core.CoreUtil.GetSpellingSuggestion(GetStringLiteralValue(source), candidates, GetStringLiteralValue, CompareTypes);
+    }
     internal Symbol[] GetExactOptionalUnassignableProperties(Type source, Type target) => throw new NotImplementedException("getExactOptionalUnassignableProperties");
     // getJsxType / elaborateJsxComponents: real bodies landed in Checker.Jsx.cs (jsx wave).
 

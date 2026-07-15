@@ -16,7 +16,9 @@ public partial class Checker
     // (isMemberOfStringMapping) are OWNED by the relater wave — implemented in Checker.Relater.cs.
 
     // ---- misc type predicates (checker.go, later waves) ----
-    internal bool IsPrimitiveOrObjectOrEmptyType(Type t) => throw new NotImplementedException("isPrimitiveOrObjectOrEmptyType");
+    // checker.go:1247 (wired closure)
+    internal bool IsPrimitiveOrObjectOrEmptyType(Type t) =>
+        (t.flags & (TypeFlags.Primitive | TypeFlags.NonPrimitive)) != 0 || IsEmptyAnonymousObjectType(t);
     // checker.go:1250 — containsMissingType (constructor-bound closure in Go; direct method here).
     internal bool ContainsMissingType(Type t) =>
         t == missingType || (t.flags & TypeFlags.Union) != 0 && t.Types()[0] == missingType;
