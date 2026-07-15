@@ -88,9 +88,7 @@ public partial class Checker
     internal static bool IsInfinityOrNaNString(string name) => name == "Infinity" || name == "-Infinity" || name == "NaN";
 
     // ast/utilities.go:1315-1317 (ast.IsLiteralImportTypeNode)
-    internal static bool IsLiteralImportTypeNode(Node node) =>
-        NodeTests.IsImportTypeNode(node) && NodeTests.IsLiteralTypeNode(node.AsImportTypeNode().Argument!) &&
-        NodeTests.IsStringLiteral(node.AsImportTypeNode().Argument!.AsLiteralTypeNode().Literal!);
+    internal static bool IsLiteralImportTypeNode(Node node) => AstUtilities.IsLiteralImportTypeNode(node);
 
     // ast/utilities.go:1990-2081 (ast.IsPartOfTypeNode). MINIMAL: covers the type-node range and
     // the type keywords; the expression-context walk (ExpressionWithTypeArguments/TypeParameter/

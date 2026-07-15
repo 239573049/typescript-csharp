@@ -11,23 +11,22 @@ namespace Ts.Parser;
 
 internal static class References
 {
-    // PORT-NOTE / DEVIATION (AGENTS §6): faithful port deferred. references.go's
-    // collectModuleReferences depends on ast helpers not yet ported:
-    // IsAnyImportOrReExport, GetExternalModuleName, ForEachDynamicImportOrRequireCall,
-    // IsAmbientModule, IsExternalModule. This populates SourceFile.Imports /
-    // ModuleAugmentations / AmbientModuleNames, consumed by binder/checker in later
-    // phases — not by the parse-tree structure. Left as a no-op until those ast utilities land.
-    // references.go:11 — collectExternalModuleReferences. The static-import/augmentation collection is
-    // ported faithfully; the dynamic-import/require scan (ForEachDynamicImportOrRequireCall, guarded by
-    // PossiblyContainsDynamicImport || IsInJSFile) is DEFERRED — it needs findImportOrRequire (text
-    // scanner) + GetNodeAtPosition (astnav), still unported.
+    // references.go:11 — collectExternalModuleReferences.
     public static void CollectExternalModuleReferences(SourceFile file)
     {
         foreach (var node in file.Statements?.Nodes ?? [])
         {
             CollectModuleReferences(file, node, false /*inAmbientModule*/);
         }
-        // PORT-NOTE (deferred): dynamic-import/require scan — see method comment.
+
+        if ((file.Flags & NodeFlags.PossiblyContainsDynamicImport) != 0 || AstUtilities.IsInJSFile(file.AsNode()))
+        {
+            AstUtilities.ForEachDynamicImportOrRequireCall(file, /*includeTypeSpaceImports*/ true, /*requireStringLiteralLikeArgument*/ true, (node, moduleSpecifier) =>
+            {
+                AstUtilities.SetImportsOfSourceFile(file, [.. file.Imports() ?? [], moduleSpecifier]);
+                return false;
+            });
+        }
     }
 
     // references.go:23 — collectModuleReferences.
