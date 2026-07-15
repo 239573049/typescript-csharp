@@ -94,7 +94,7 @@ public partial class Checker
         return (declaration.Parent!.Flags & NodeFlags.Let) != 0 && !((AstUtilities.GetCombinedModifierFlags(declaration) & ModifierFlags.Export) != 0 || declaration.Parent.Parent!.Kind == SyntaxKind.VariableStatement && AstUtilities.IsGlobalSourceFile(declaration.Parent.Parent.Parent!));
     }
     internal bool IsSomeSymbolAssigned(Node rootDeclaration) => throw new NotImplementedException("isSomeSymbolAssigned");
-    internal Symbol? GetSymbolForPrivateIdentifierExpression(Node privId) => throw new NotImplementedException("getSymbolForPrivateIdentifierExpression");
+    // GetSymbolForPrivateIdentifierExpression: real body in Checker.NodeSymbols.cs.
     internal Symbol? GetGlobalRecordSymbol() => getGlobalRecordSymbol();
     // checker.go:1076 — memoized resolver assigned in the constructor (Checker.Construction.cs).
     internal Symbol? GetGlobalESSymbolConstructorSymbolOrNil() => getGlobalESSymbolConstructorSymbolOrNil();

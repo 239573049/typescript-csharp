@@ -148,7 +148,7 @@ public partial class Checker
     internal static bool IsTypeAssertion(Node node) => AstUtilities.IsAssertionExpression(AstUtilities.SkipParentheses(node));
 
     // ---- symbol / node location helpers (#10/#11 symbol resolution) ----
-    internal Symbol? GetSymbolAtLocation(Node node, bool ignoreErrors) => throw new NotImplementedException("getSymbolAtLocation");
+    // GetSymbolAtLocation / getSymbolAtLocation: real bodies in Checker.NodeSymbols.cs.
 
     // ---- type comparison / awaited / iteration (relater/#22/iteration) ----
     // IsTypeEqualityComparableTo owned by the operator-expressions cluster.

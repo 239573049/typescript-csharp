@@ -1243,6 +1243,63 @@ public static partial class AstUtilities
         return node.Parent.Kind == SyntaxKind.ImportEqualsDeclaration && node.Parent.AsImportEqualsDeclaration().ModuleReference == node ||
             node.Parent.Kind == SyntaxKind.ExportAssignment && node.Parent.Expression() == node;
     }
+
+    // utilities.go — IsDeclarationName.
+    public static bool IsDeclarationName(Node name) =>
+        !NodeTests.IsSourceFile(name) && !IsBindingPattern(name) && IsDeclaration(name.Parent!) && name.Parent!.Name() == name;
+
+    // utilities.go — IsImportOrExportSpecifier.
+    public static bool IsImportOrExportSpecifier(Node node) =>
+        NodeTests.IsImportSpecifier(node) || NodeTests.IsExportSpecifier(node);
+
+    // utilities.go — IsTypeDeclarationName.
+    public static bool IsTypeDeclarationName(Node name) =>
+        name.Kind == SyntaxKind.Identifier && IsTypeDeclaration(name.Parent!) && GetNameOfDeclaration(name.Parent) == name;
+
+    // utilities.go — IsDeclarationNameOrImportPropertyName.
+    public static bool IsDeclarationNameOrImportPropertyName(Node name)
+    {
+        switch (name.Parent!.Kind)
+        {
+            case SyntaxKind.ImportSpecifier:
+            case SyntaxKind.ExportSpecifier:
+                return NodeTests.IsIdentifier(name) || name.Kind == SyntaxKind.StringLiteral;
+            default:
+                return IsDeclarationName(name);
+        }
+    }
+
+    // utilities.go — IsLiteralComputedPropertyDeclarationName.
+    public static bool IsLiteralComputedPropertyDeclarationName(Node node) =>
+        IsStringOrNumericLiteralLike(node) && node.Parent!.Kind == SyntaxKind.ComputedPropertyName && IsDeclaration(node.Parent!.Parent!);
+
+    // utilities.go — TryGetClassImplementingOrExtendingExpressionWithTypeArguments.
+    public static (Node? Class, bool IsImplements) TryGetClassImplementingOrExtendingExpressionWithTypeArguments(Node node)
+    {
+        if (NodeTests.IsExpressionWithTypeArguments(node))
+        {
+            if (NodeTests.IsHeritageClause(node.Parent!) && AstUtilities.IsClassLike(node.Parent!.Parent!))
+            {
+                return (node.Parent.Parent, node.Parent.AsHeritageClause().Token == SyntaxKind.ImplementsKeyword);
+            }
+        }
+        return (null, false);
+    }
+
+    // utilities.go — TryGetClassExtendingExpressionWithTypeArguments.
+    public static Node? TryGetClassExtendingExpressionWithTypeArguments(Node node)
+    {
+        var (cls, isImplements) = TryGetClassImplementingOrExtendingExpressionWithTypeArguments(node);
+        if (cls != null && !isImplements)
+        {
+            return cls;
+        }
+        return null;
+    }
+
+    // utilities.go — IsExpressionWithTypeArgumentsInClassExtendsClause.
+    public static bool IsExpressionWithTypeArgumentsInClassExtendsClause(Node node) =>
+        TryGetClassExtendingExpressionWithTypeArguments(node) != null;
 }
 
 // Go: internal/ast/utilities.go:1500-1520 — `type JSDeclarationKind int` iota block. Members
