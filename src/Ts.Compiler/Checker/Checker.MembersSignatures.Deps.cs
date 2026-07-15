@@ -173,7 +173,51 @@ public partial class Checker
     // branch reaches padObjectLiteralType (checker.go:16736) / padTupleType (checker.go:16776), stubbed
     // here (owning wave: getPropertyNameFromBindingElement / getTypeFromBindingElement / newAnonymousType
     // shapes). Only reachable when a parameter's binding pattern has defaulted elements.
-    internal Type PadObjectLiteralType(Type t, Node pattern) => throw new NotImplementedException("padObjectLiteralType");
+    // checker.go:16736
+    internal Type PadObjectLiteralType(Type t, Node pattern)
+    {
+        List<Node>? missingElements = null;
+        foreach (var e in pattern.Elements() ?? [])
+        {
+            if (e.Initializer() != null)
+            {
+                var name = GetPropertyNameFromBindingElement(e);
+                if (name != InternalSymbolName.Missing && GetPropertyOfType(t, name) == null)
+                {
+                    (missingElements ??= new()).Add(e);
+                }
+            }
+        }
+        if (missingElements == null || missingElements.Count == 0)
+        {
+            return t;
+        }
+        var members = new SymbolTable();
+        foreach (var prop in GetPropertiesOfObjectType(t))
+        {
+            members[prop.Name] = prop;
+        }
+        foreach (var e in missingElements)
+        {
+            var symbol = NewSymbol(SymbolFlags.Property | SymbolFlags.Optional, GetPropertyNameFromBindingElement(e));
+            valueSymbolLinks.Get(symbol).resolvedType = GetTypeFromBindingElement(e, false /*includePatternInType*/, false /*reportErrors*/);
+            members[symbol.Name] = symbol;
+        }
+        var result = NewAnonymousType(t.symbol, members, null, null, GetIndexInfosOfType(t));
+        result.objectFlags = t.objectFlags;
+        return result;
+    }
+
+    // checker.go:16763
+    internal string GetPropertyNameFromBindingElement(Node e)
+    {
+        var exprType = GetLiteralTypeFromPropertyName(e.PropertyNameOrName()!);
+        if (IsTypeUsableAsPropertyName(exprType))
+        {
+            return GetPropertyNameFromType(exprType);
+        }
+        return InternalSymbolName.Missing;
+    }
     internal Type PadTupleType(Type t, Node pattern) => throw new NotImplementedException("padTupleType");
     // WidenTypeInferredFromInitializer is now REAL in Checker.Widening.cs (checker.go:16795).
     // GetWidenedLiteralTypeForInitializer is now REAL in Checker.Widening.cs (checker.go:16810).
