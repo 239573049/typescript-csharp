@@ -1413,14 +1413,65 @@ public sealed partial class NodeBuilder
     // nodebuilderimpl.go:2081 — indexInfoToObjectComputedNamesOrSignatureDeclaration.
     // PORT-NOTE (deferred): the computed-name component-reuse fast path (cloning `a.b.c` computed names) is
     // owned by the node-reuse wave; falls through to the already-ported indexInfoToIndexSignatureDeclarationHelper.
+    // nodebuilderimpl.go — isTriviallySerializableComputedName.
+    private bool IsTriviallySerializableComputedName(Node e)
+    {
+        var name = e.Name();
+        if (name == null || !NodeTests.IsComputedPropertyName(name))
+        {
+            return false;
+        }
+        var expr = name.Expression();
+        if (expr == null || !AstUtilities.IsEntityNameExpression(expr))
+        {
+            return false;
+        }
+        return ch.GetEmitResolver()!.IsEntityNameVisible(expr, ctx!.enclosingDeclaration!).Accessibility == global::Ts.Printer.SymbolAccessibility.Accessible;
+    }
+
     private Node[] IndexInfoToObjectComputedNamesOrSignatureDeclaration(IndexInfo indexInfo, Node? typeNode)
     {
         if (indexInfo.components is not null && indexInfo.components.Length > 0)
         {
-            // DEFERRED: computed-name component reuse. Only reachable when index info derives from object /
-            // class computed property names; the anonymous-object messages here have plain string/number
-            // index signatures, which take the fall-through below.
-            throw new NotImplementedException("nodeBuilder.indexInfoToObjectComputedNamesOrSignatureDeclaration(components)");
+            // Index info is derived from object or class computed property names (plus explicit named
+            // members) - clone those instead of writing out the resulting computed index signature.
+            var allComponentComputedNamesSerializable = ctx!.enclosingDeclaration != null && CoreUtil.Every(indexInfo.components, IsTriviallySerializableComputedName);
+            if (allComponentComputedNamesSerializable)
+            {
+                var newComponents = CoreUtil.Filter(indexInfo.components, c => !ch.HasLateBindableName(c));
+                var bailed = false;
+                var results = CoreUtil.Map(newComponents, ce =>
+                {
+                    var name = ReuseNode(ce.Name());
+                    if (name != null)
+                    {
+                        // Still need to track visibility even if we've already checked it to paint references as used.
+                        TrackComputedName(ce.Name()!.Expression()!, ctx.enclosingDeclaration);
+                        ModifierList? mods = null;
+                        if (indexInfo.isReadonly)
+                        {
+                            mods = f.NewModifierList([f.NewModifier(SyntaxKind.ReadonlyKeyword)]);
+                        }
+                        Node? postfixToken = ce.PostfixToken() != null ? ce.PostfixToken()!.Clone(f) : null;
+                        Node? currentTypeNode = typeNode != null ? f.DeepCloneNode(typeNode) : TypeToTypeNodeImpl(ch.GetTypeOfSymbol(ce.Symbol()!));
+                        var sig = f.NewPropertySignatureDeclaration(mods, (PropertyName?)name, (TokenNode?)postfixToken, (TypeNode?)currentTypeNode, null);
+                        sig.Loc = ce.Loc;
+                        return sig;
+                    }
+                    bailed = true;
+                    return null;
+                });
+                if (!bailed)
+                {
+                    // !bailed guarantees every entry was produced (non-null).
+                    var final = new Node[results!.Length];
+                    for (var i = 0; i < results.Length; i++)
+                    {
+                        final[i] = results[i]!;
+                    }
+                    return final;
+                }
+            }
         }
         return [IndexInfoToIndexSignatureDeclarationHelper(indexInfo, typeNode)];
     }
