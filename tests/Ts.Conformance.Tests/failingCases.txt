@@ -34,7 +34,6 @@ destructuringParameterDeclaration1ES5iterable
 duplicateNumericIndexers
 esDecorators-arguments
 everyTypeWithAnnotationAndInvalidInitializer
-for-of16
 for-of29
 generatorReturnContextualType
 genericRestParameters1
@@ -43,7 +42,6 @@ indexSignatures1
 initializerReferencingConstructorLocals
 initializerReferencingConstructorParameters
 instantiationExpressionErrors
-iteratorSpreadInArray10
 jsdocDisallowedInTypescript
 jsdocTemplateTag
 jsdocTemplateTag5

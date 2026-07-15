@@ -362,8 +362,6 @@ public partial class Checker
                 var diagnostic = ReportTypeNotIterableError(errorNode, t, (use & IterationUse.AllowsAsyncIterablesFlag) != 0);
                 foreach (var d in diags)
                 {
-                    // PORT-NOTE: reportTypeNotIterableError returns null until the statements wave gives
-                    // errorAndMaybeSuggestAwait its real *ast.Diagnostic-returning signature (see file header).
                     diagnostic?.AddRelatedInfo(d);
                 }
             });
@@ -779,8 +777,7 @@ public partial class Checker
             errorNode.Parent!.Expression() == errorNode &&
             getGlobalAsyncIterableType() != emptyGenericType &&
             IsTypeAssignableTo(t, CreateTypeFromGenericGlobalType(getGlobalAsyncIterableType(), [anyType!, anyType!, anyType!])));
-        ErrorAndMaybeSuggestAwait(errorNode, suggestAwait, message, TypeToString(t));
-        return null;
+        return ErrorAndMaybeSuggestAwait(errorNode, suggestAwait, message, TypeToString(t));
     }
 
     // checker.go:6693-6705
