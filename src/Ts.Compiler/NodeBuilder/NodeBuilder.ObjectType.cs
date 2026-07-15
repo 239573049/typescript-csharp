@@ -246,6 +246,15 @@ public sealed partial class NodeBuilder
             ctx!.approximateLength += 2;
             return f.NewTemplateLiteralTypeNode(templateHead, templateSpans);
         }
+        // nodebuilderimpl.go:3466 — string mapping (Uppercase/Lowercase/…) type.
+        // PORT-NOTE: Go uses the full symbolToTypeNode; for the intrinsic string-mapping alias symbol the
+        // reduced SymbolToTypeReferenceNodeLocal renders the same `Name<Arg>`, matching the reference-arm
+        // fallback already used in this file. The full symbol-chain / import-type path lands with that wave.
+        if ((t.flags & TypeFlags.StringMapping) != 0)
+        {
+            var typeNode = TypeToTypeNodeCore(t.Target());
+            return SymbolToTypeReferenceNodeLocal(t.symbol!, f.NewNodeList([typeNode]));
+        }
         // nodebuilderimpl.go:3470 — indexed access (T[K]) type.
         if ((t.flags & TypeFlags.IndexedAccess) != 0)
         {
@@ -254,9 +263,24 @@ public sealed partial class NodeBuilder
             ctx!.approximateLength += 2;
             return f.NewIndexedAccessTypeNode(objectTypeNode, indexTypeNode);
         }
+        // nodebuilderimpl.go:3479 — substitution type (renders base type, or NoInfer<base> for no-infer).
+        if ((t.flags & TypeFlags.Substitution) != 0)
+        {
+            var typeNode = TypeToTypeNodeCore(t.AsSubstitutionType().baseType);
+            if (!ch.IsNoInferType(t))
+            {
+                return typeNode;
+            }
+            var noInferSymbol = ch.GetGlobalTypeAliasSymbol("NoInfer", 1, false);
+            if (noInferSymbol != null)
+            {
+                return SymbolToTypeReferenceNodeLocal(noInferSymbol, f.NewNodeList([typeNode]));
+            }
+            return typeNode;
+        }
 
-        // Remaining deep arms — string mapping / conditional / substitution / unique-symbol — are still
-        // deferred (need symbolToTypeNode / conditionalTypeToTypeNode); the leaf core renders its fallback.
+        // Remaining deep arm — conditional — is still deferred (needs conditionalTypeToTypeNode);
+        // the leaf core renders its neutral fallback.
         return TypeToTypeNodeLeaf(t);
     }
 
