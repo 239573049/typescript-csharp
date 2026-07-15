@@ -995,7 +995,10 @@ public partial class Checker
         if (isJavaScriptImplicitAny || numTypeArguments < numTypeParameters)
         {
             var result = new Type[numTypeParameters];
-            for (int i = 0; i < numTypeArguments; i++)
+            // Go `copy(result, typeArguments)` copies min(len(result), len(typeArguments)) elements;
+            // under isJavaScriptImplicitAny numTypeArguments can exceed numTypeParameters, so clamp to
+            // the destination length to avoid overrunning result.
+            for (int i = 0; i < numTypeArguments && i < numTypeParameters; i++)
             {
                 result[i] = typeArguments![i];
             }
