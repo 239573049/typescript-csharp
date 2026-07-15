@@ -1201,26 +1201,12 @@ public partial class Checker
     // produced; all other type kinds defer to TypeToStringEx (still the NodeBuilder-backed stub).
     // PORT-NOTE: replace with the real typeToStringEx once the NodeBuilder/Printer type-serialization
     // surface (phase 6) lands.
+    // printer.go:177 — typeToString delegates straight to typeToStringEx (no literal fast-paths;
+    // the nodebuilder leaf renders string/number/boolean/enum literals faithfully, and enum-literal
+    // types must NOT be intercepted here — they carry NumberLiteral/StringLiteral flags but need the
+    // EnumLike rendering path to print the enum name instead of the raw value).
     internal string TypeToString(Type type)
     {
-        if ((type.flags & TypeFlags.StringLiteral) != 0)
-        {
-            // The Printer wraps string-literal type nodes in double quotes; EscapeString yields the
-            // escaped inner text for that quote char.
-            return "\"" + global::Ts.Printer.PrinterUtilities.EscapeString((string)type.AsLiteralType().value!, global::Ts.Printer.QuoteChar.DoubleQuote) + "\"";
-        }
-        if ((type.flags & TypeFlags.NumberLiteral) != 0)
-        {
-            return ((global::Ts.JsNum.Number)type.AsLiteralType().value!).ToString();
-        }
-        if ((type.flags & TypeFlags.BooleanLiteral) != 0)
-        {
-            return (bool)type.AsLiteralType().value! ? "true" : "false";
-        }
-        if ((type.flags & TypeFlags.Intrinsic) != 0)
-        {
-            return type.AsIntrinsicType().intrinsicName;
-        }
         return TypeToStringEx(type, null, TypeFormatFlags.AllowUniqueESSymbolType | TypeFormatFlags.UseAliasDefinedOutsideCurrentScope, null);
     }
 
