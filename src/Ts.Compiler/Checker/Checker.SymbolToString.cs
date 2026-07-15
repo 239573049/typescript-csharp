@@ -135,6 +135,32 @@ public sealed partial class Checker
         }
     }
 
+    // printer.go — typePredicateToString.
+    internal string TypePredicateToString(TypePredicate predicate) =>
+        TypePredicateToStringEx(predicate, null, TypeFormatFlags.UseAliasDefinedOutsideCurrentScope);
+
+    // printer.go — typePredicateToStringEx.
+    internal string TypePredicateToStringEx(TypePredicate typePredicate, Node? enclosingDeclaration, TypeFormatFlags flags)
+    {
+        var (writer, putWriter) = PrinterNs.SingleLineStringWriter.GetSingleLineStringWriter();
+        try
+        {
+            var emitContext = PrinterNs.EmitContext.NewEmitContext();
+            var nodeBuilder = NewNodeBuilder(emitContext);
+            var combinedFlags = (NodeBuilderNs.Flags)(flags & TypeFormatFlags.NodeBuilderFlagsMask)
+                | NodeBuilderNs.Flags.IgnoreErrors | NodeBuilderNs.Flags.WriteTypeParametersInQualifiedName;
+            var predicate = nodeBuilder.TypePredicateToTypePredicateNode(typePredicate, enclosingDeclaration, combinedFlags, NodeBuilderNs.InternalFlags.None, null);
+            var p = PrinterNs.Printer.NewPrinter(new PrinterNs.PrinterOptions { RemoveComments = true }, new PrinterNs.PrintHandlers(), emitContext);
+            SourceFile? sourceFile = enclosingDeclaration != null ? AstUtilities.GetSourceFileOfNode(enclosingDeclaration) : null;
+            p.Write(predicate!, sourceFile, writer, null);
+            return writer.String();
+        }
+        finally
+        {
+            putWriter();
+        }
+    }
+
     // printer.go:169 — getTrailingSemicolonDeferringWriter.
     private static PrinterNs.EmitTextWriter GetTrailingSemicolonDeferringWriter(PrinterNs.EmitTextWriter writer)
     {

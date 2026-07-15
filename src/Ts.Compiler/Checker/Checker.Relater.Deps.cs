@@ -17,7 +17,7 @@ public partial class Checker
 {
     // ---- printer / to-string (printer.go) ----
     // signatureToString / signatureToStringEx: real bodies in Checker.SymbolToString.cs (printer.go:309).
-    internal string TypePredicateToString(TypePredicate predicate) => throw new NotImplementedException("typePredicateToString");
+    // typePredicateToString / typePredicateToStringEx: real bodies in Checker.SymbolToString.cs.
     internal string ValueToString(object? value) => throw new NotImplementedException("valueToString");
 
     // ---- union / property helpers (checker.go / members) ----

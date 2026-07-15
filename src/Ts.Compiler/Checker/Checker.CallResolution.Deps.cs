@@ -250,7 +250,20 @@ public partial class Checker
         }
         return null;
     }
-    private Type? GetContextualTypeForAwaitOperand(Node node, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForAwaitOperand");
+    // checker.go
+    private Type? GetContextualTypeForAwaitOperand(Node node, ContextFlags contextFlags)
+    {
+        var contextualType = GetContextualType(node, contextFlags);
+        if (contextualType != null)
+        {
+            var contextualAwaitedType = GetAwaitedTypeNoAlias(contextualType);
+            if (contextualAwaitedType != null)
+            {
+                return GetUnionType([contextualAwaitedType, CreatePromiseLikeType(contextualAwaitedType)]);
+            }
+        }
+        return null;
+    }
     // checker.go:29558 — decorator contextual type (decorator cluster).
     private Type? GetContextualTypeForDecorator(Node decorator) => throw new NotImplementedException("getContextualTypeForDecorator");
     // checker.go:29340/29369 — binding-element / static-property contextual type (binding/JS clusters).
