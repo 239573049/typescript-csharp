@@ -119,6 +119,9 @@ public sealed partial class NodeBuilder
     private readonly global::Ts.Printer.EmitContext e;
     private readonly global::Ts.Ast.NodeFactory f;
 
+    // nodebuilderimpl.go:106 — lazily-initialized (recursive: the visitor's callback is CloneBindingName).
+    private NodeVisitor? cloneBindingNameVisitor;
+
     // state (nodebuilderimpl.go:103)
     private NodeBuilderContext? ctx;
 

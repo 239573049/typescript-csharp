@@ -1118,6 +1118,27 @@ public sealed partial class NodeBuilder
     // nodebuilderimpl.go:2459 — addPropertyToElementList. Ported for the property-signature slice; the
     // accessor (getter/setter), method-signature, reverse-mapped-placeholder, and late-bound-name arms are
     // deferred (see the PORT-NOTEs inline) and throw so a stubbed path never silently drops output.
+    // nodebuilderimpl.go:2334 — trackComputedName.
+    private void TrackComputedName(Node accessExpression, Node? enclosingDeclaration)
+    {
+        // get symbol of the first identifier of the entityName
+        var firstIdentifier = Checker.GetFirstIdentifier(accessExpression);
+        var name = ch.ResolveName(enclosingDeclaration, firstIdentifier.Text(), SymbolFlags.Value | SymbolFlags.ExportValue, null /*nameNotFoundMessage*/, true /*isUse*/, false);
+        if (name != null)
+        {
+            ctx!.tracker?.TrackSymbol(name, enclosingDeclaration, SymbolFlags.Value);
+        }
+        else
+        {
+            // Name does not resolve at target location, track symbol at dest location (should be inaccessible)
+            var fallback = ch.ResolveName(firstIdentifier, firstIdentifier.Text(), SymbolFlags.Value | SymbolFlags.ExportValue, null /*nameNotFoundMessage*/, true /*isUse*/, false);
+            if (fallback != null)
+            {
+                ctx!.tracker?.TrackSymbol(fallback, enclosingDeclaration, SymbolFlags.Value);
+            }
+        }
+    }
+
     private void AddPropertyToElementList(Symbol propertySymbol, List<Node> typeElements)
     {
         var propertyIsReverseMapped = (propertySymbol.CheckFlags & CheckFlags.ReverseMapped) != 0;
@@ -1134,9 +1155,29 @@ public sealed partial class NodeBuilder
         ctx.enclosingDeclaration = null;
         if (Checker.IsLateBoundName(propertySymbol.Name))
         {
-            // DEFERRED: late-bound-name computed-name tracking / ReportNonSerializableProperty. Owned by the
-            // late-binding wave; the anonymous-object messages use only plain (non-late-bound) names.
-            throw new NotImplementedException("nodeBuilder.addPropertyToElementList(lateBoundName)");
+            if (propertySymbol.Declarations is not null && propertySymbol.Declarations.Length > 0)
+            {
+                var decl = propertySymbol.Declarations[0];
+                if (ch.HasLateBindableName(decl))
+                {
+                    if (NodeTests.IsBinaryExpression(decl))
+                    {
+                        var name = AstUtilities.GetNameOfDeclaration(decl);
+                        if (name != null && NodeTests.IsElementAccessExpression(name) && AstUtilities.IsPropertyAccessEntityNameExpression(name.AsElementAccessExpression().ArgumentExpression!, false /*allowJs*/))
+                        {
+                            TrackComputedName(name.AsElementAccessExpression().ArgumentExpression!, saveEnclosingDeclaration);
+                        }
+                    }
+                    else
+                    {
+                        TrackComputedName(decl.Name()!.Expression()!, saveEnclosingDeclaration);
+                    }
+                }
+            }
+            else
+            {
+                ctx.tracker?.ReportNonSerializableProperty(ch.SymbolToString(propertySymbol));
+            }
         }
         if (propertySymbol.ValueDeclaration is not null)
         {

@@ -778,10 +778,35 @@ public sealed partial class NodeBuilder
                 return cloned;
             }
             default:
-                // DEFERRED: cloneBindingName (binding-pattern parameter names — needs the
-                // cloneBindingNameVisitor machinery; nodebuilderimpl.go:1712).
-                throw new NotImplementedException("nodeBuilder.cloneBindingName");
+                return CloneBindingName(name);
         }
+    }
+
+    // nodebuilderimpl.go:1707 — cloneBindingName.
+    private Node CloneBindingName(Node node)
+    {
+        if (NodeTests.IsComputedPropertyName(node) && ch.IsLateBindableName(node))
+        {
+            TrackComputedName(node.Expression()!, ctx!.enclosingDeclaration);
+        }
+        cloneBindingNameVisitor ??= new NodeVisitor(n => CloneBindingName(n), f, default);
+        var visited = cloneBindingNameVisitor.VisitEachChild(node)!;
+        if (NodeTests.IsBindingElement(visited))
+        {
+            var bindingElement = visited.AsBindingElement();
+            visited = f.UpdateBindingElement(
+                bindingElement,
+                bindingElement.DotDotDotToken,
+                bindingElement.PropertyName,
+                bindingElement.Name(),
+                null /*remove initializer*/);
+        }
+        if (!AstUtilities.NodeIsSynthesized(visited))
+        {
+            visited = f.DeepCloneNode(visited)!;
+        }
+        e.SetEmitFlags(visited, PrinterNs.EmitFlags.SingleLine | PrinterNs.EmitFlags.NoAsciiEscaping);
+        return visited;
     }
 
     // nodebuilderimpl.go:1739 — serializeInferredReturnTypeForSignature.
