@@ -719,14 +719,134 @@ public sealed partial class NodeBuilder
         return result;
     }
 
+    // nodebuilderimpl.go:1444 — isMappedTypeHomomorphic.
+    private bool IsMappedTypeHomomorphic(Type mapped) => ch.GetHomomorphicTypeVariable(mapped) != null;
+
+    // nodebuilderimpl.go:1448 — isHomomorphicMappedTypeWithNonHomomorphicInstantiation.
+    private bool IsHomomorphicMappedTypeWithNonHomomorphicInstantiation(MappedType mapped) =>
+        mapped.target != null && !IsMappedTypeHomomorphic(mapped) && IsMappedTypeHomomorphic(mapped.target);
+
+    // nodebuilderimpl.go:2858 — getTypeFromTypeNode (nodebuilder variant with noMappedTypes).
+    // DEFERRED: only reached from the createMappedTypeNodeFromType wrapper branches, which are gated on
+    // FlagsGenerateNamesForShadowedTypeParams — never set by the error-message / TypeToString path.
+    private Type GetTypeFromTypeNodeNb(Node node, bool noMappedTypes) =>
+        throw new NotImplementedException("nodeBuilder.getTypeFromTypeNode");
+
+    // nodebuilderimpl.go:1452 — createMappedTypeNodeFromType.
+    private Node CreateMappedTypeNodeFromType(Type t)
+    {
+        global::Ts.Core.Debug.Assert((t.flags & TypeFlags.Object) != 0);
+        var mapped = t.AsMappedType()!;
+        Node? readonlyToken = null;
+        if (mapped.declaration!.AsMappedTypeNode().ReadonlyToken != null)
+        {
+            readonlyToken = f.NewToken(mapped.declaration.AsMappedTypeNode().ReadonlyToken!.Kind);
+        }
+        Node? questionToken = null;
+        if (mapped.declaration.AsMappedTypeNode().QuestionToken != null)
+        {
+            questionToken = f.NewToken(mapped.declaration.AsMappedTypeNode().QuestionToken!.Kind);
+        }
+        Node? appropriateConstraintTypeNode;
+        Node? newTypeVariable = null;
+        var templateType = ch.GetTemplateTypeFromMappedType(t);
+        var typeParameter = ch.GetTypeParameterFromMappedType(t);
+
+        // If the mapped type isn't `keyof` constraint-declared, _but_ still has modifiers preserved, and its
+        // naive instantiation won't preserve modifiers because its constraint isn't `keyof` constrained, we
+        // have work to do.
+        bool needsModifierPreservingWrapper = !ch.IsMappedTypeWithKeyofConstraintDeclaration(t) &&
+            (ch.GetModifiersTypeFromMappedType(t).flags & TypeFlags.Unknown) == 0 &&
+            (ctx!.flags & global::Ts.NodeBuilder.Flags.GenerateNamesForShadowedTypeParams) != 0 &&
+            !((ch.GetConstraintTypeFromMappedType(t).flags & TypeFlags.TypeParameter) != 0 &&
+                (ch.GetConstraintOfTypeParameter(ch.GetConstraintTypeFromMappedType(t))!.flags & TypeFlags.Index) != 0);
+
+        if (ch.IsMappedTypeWithKeyofConstraintDeclaration(t))
+        {
+            // We have a { [P in keyof T]: X }. Retain the toplevel keyof-ness of the type which may be lost
+            // due to keyof distribution during getConstraintTypeFromMappedType.
+            if ((ctx!.flags & global::Ts.NodeBuilder.Flags.GenerateNamesForShadowedTypeParams) != 0 && IsHomomorphicMappedTypeWithNonHomomorphicInstantiation(mapped))
+            {
+                var newConstraintParam = ch.NewTypeParameter(ch.NewSymbol(SymbolFlags.TypeParameter, "T"));
+                var name = TypeParameterToName(newConstraintParam);
+                var target = t.Target();
+                newTypeVariable = f.NewTypeReferenceNode(name, null);
+                templateType = ch.InstantiateType(ch.GetTemplateTypeFromMappedType(target), TypeMapper.NewTypeMapper(
+                    [ch.GetTypeParameterFromMappedType(target), ch.GetModifiersTypeFromMappedType(target)], [typeParameter, newConstraintParam]));
+            }
+            var indexTarget = newTypeVariable ?? TypeToTypeNodeCore(ch.GetModifiersTypeFromMappedType(t));
+            appropriateConstraintTypeNode = f.NewTypeOperatorNode(SyntaxKind.KeyOfKeyword, indexTarget);
+        }
+        else if (needsModifierPreservingWrapper)
+        {
+            // Step 1: new type variable.
+            var newParam = ch.NewTypeParameter(ch.NewSymbol(SymbolFlags.TypeParameter, "T"));
+            var name = TypeParameterToName(newParam);
+            newTypeVariable = f.NewTypeReferenceNode(name, null);
+            // Step 2: make that new type variable itself the constraint node -> `{[K in T_1]: Template}`.
+            appropriateConstraintTypeNode = newTypeVariable;
+        }
+        else
+        {
+            appropriateConstraintTypeNode = TypeToTypeNodeCore(ch.GetConstraintTypeFromMappedType(t));
+        }
+
+        // nameType and templateType nodes have to be in the new scope.
+        var cleanup = EnterNewScope(mapped.declaration, null, [ch.GetTypeParameterFromMappedType(t)], null, null);
+        var typeParameterDeclarationNode = TypeParameterToDeclarationWithConstraint(typeParameter, appropriateConstraintTypeNode);
+        Node? nameTypeNode = null;
+        if (mapped.declaration.AsMappedTypeNode().NameType != null)
+        {
+            nameTypeNode = TypeToTypeNodeCore(ch.GetNameTypeFromMappedType(t)!);
+        }
+        var templateTypeNode = TypeToTypeNodeCore(ch.RemoveMissingType(templateType,
+            (ch.GetMappedTypeModifiers(t) & MappedTypeModifiers.IncludeOptional) != 0));
+        cleanup();
+        var result = f.NewMappedTypeNode(readonlyToken, typeParameterDeclarationNode, nameTypeNode, questionToken, templateTypeNode, null);
+        ctx!.approximateLength += 10;
+        e.AddEmitFlags(result, global::Ts.Printer.EmitFlags.SingleLine);
+
+        if ((ctx.flags & global::Ts.NodeBuilder.Flags.GenerateNamesForShadowedTypeParams) != 0 && IsHomomorphicMappedTypeWithNonHomomorphicInstantiation(mapped))
+        {
+            // Homomorphic mapped type with a non-homomorphic naive inlining: wrap it with a conditional like
+            // `SomeModifiersType extends infer U ? {..the mapped type...} : never` to keep it homomorphic.
+            var rawConstraintTypeFromDeclaration = GetTypeFromTypeNodeNb(mapped.declaration.AsMappedTypeNode().TypeParameter!.AsTypeParameterDeclaration().Constraint!.Type()!, false);
+            if (rawConstraintTypeFromDeclaration != null)
+            {
+                rawConstraintTypeFromDeclaration = ch.GetConstraintOfTypeParameter(rawConstraintTypeFromDeclaration);
+            }
+            rawConstraintTypeFromDeclaration ??= ch.unknownType;
+            var originalConstraint = ch.InstantiateType(rawConstraintTypeFromDeclaration, mapped.mapper);
+            Node? originalConstraintNode = null;
+            if ((originalConstraint.flags & TypeFlags.Unknown) == 0)
+            {
+                originalConstraintNode = TypeToTypeNodeCore(originalConstraint);
+            }
+            return f.NewConditionalTypeNode(
+                TypeToTypeNodeCore(ch.GetModifiersTypeFromMappedType(t)),
+                f.NewInferTypeNode(f.NewTypeParameterDeclaration(null, newTypeVariable!.AsTypeReferenceNode().TypeName!.Clone(f), originalConstraintNode, null, null)),
+                result,
+                f.NewKeywordTypeNode(SyntaxKind.NeverKeyword));
+        }
+        else if (needsModifierPreservingWrapper)
+        {
+            // Step 3: `ConstraintType extends infer T_1 extends keyof ModifiersType ? {[K in T_1]: Template} : never`.
+            return f.NewConditionalTypeNode(
+                TypeToTypeNodeCore(ch.GetConstraintTypeFromMappedType(t)),
+                f.NewInferTypeNode(f.NewTypeParameterDeclaration(null, newTypeVariable!.AsTypeReferenceNode().TypeName!.Clone(f),
+                    f.NewTypeOperatorNode(SyntaxKind.KeyOfKeyword, TypeToTypeNodeCore(ch.GetModifiersTypeFromMappedType(t))), null, null)),
+                result,
+                f.NewKeywordTypeNode(SyntaxKind.NeverKeyword));
+        }
+        return result;
+    }
+
     // nodebuilderimpl.go:2663 — createTypeNodeFromObjectType.
     private Node CreateTypeNodeFromObjectType(Type t)
     {
         if (ch.IsGenericMappedType(t) || ((t.objectFlags & ObjectFlags.Mapped) != 0 && t.AsMappedType()!.containsError))
         {
-            // DEFERRED: createMappedTypeNodeFromType (`{ [K in T]: ... }` synthesis). Owned by the mapped-
-            // type wave; the anonymous-object assignability messages never reach it.
-            throw new NotImplementedException("nodeBuilder.createMappedTypeNodeFromType");
+            return CreateMappedTypeNodeFromType(t);
         }
 
         var resolved = ch.ResolveStructuredTypeMembers(t);
