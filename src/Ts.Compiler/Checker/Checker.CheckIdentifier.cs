@@ -257,7 +257,30 @@ public partial class Checker
     // checker.go:11196 — parameter-initializer undefined probe; deferred (owning wave:
     // pushTypeResolution/reportCircularityError/popTypeResolution + NodeCheckFlags.InitializerIsUndefined
     // bookkeeping). Reached only via removeOptionalityFromDeclaredType on a parameter with an initializer.
-    internal bool ParameterInitializerContainsUndefined(Node declaration) => throw new NotImplementedException("parameterInitializerContainsUndefined");
+    // checker.go — parameterInitializerContainsUndefined.
+    internal bool ParameterInitializerContainsUndefined(Node declaration)
+    {
+        var links = nodeLinks.Get(declaration);
+        if ((links.flags & NodeCheckFlags.InitializerIsUndefinedComputed) == 0)
+        {
+            if (!PushTypeResolution(declaration, TypeSystemPropertyName.InitializerIsUndefined))
+            {
+                ReportCircularityError(declaration.Symbol()!);
+                return true;
+            }
+            var containsUndefined = HasTypeFacts(CheckDeclarationInitializer(declaration, CheckMode.Normal, null), TypeFacts.IsUndefined);
+            if (!PopTypeResolution())
+            {
+                ReportCircularityError(declaration.Symbol()!);
+                return true;
+            }
+            if ((links.flags & NodeCheckFlags.InitializerIsUndefinedComputed) == 0)
+            {
+                links.flags |= NodeCheckFlags.InitializerIsUndefinedComputed | (containsUndefined ? NodeCheckFlags.InitializerIsUndefined : NodeCheckFlags.None);
+            }
+        }
+        return (links.flags & NodeCheckFlags.InitializerIsUndefined) != 0;
+    }
 
     // checker.go:11662 — uncalled deprecated function-reference probe; deferred (owning wave:
     // hasMatchingArgument). Reached only for deprecated function/method symbols.

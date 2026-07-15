@@ -93,7 +93,18 @@ public partial class Checker
     {
         return (declaration.Parent!.Flags & NodeFlags.Let) != 0 && !((AstUtilities.GetCombinedModifierFlags(declaration) & ModifierFlags.Export) != 0 || declaration.Parent.Parent!.Kind == SyntaxKind.VariableStatement && AstUtilities.IsGlobalSourceFile(declaration.Parent.Parent.Parent!));
     }
-    internal bool IsSomeSymbolAssigned(Node rootDeclaration) => throw new NotImplementedException("isSomeSymbolAssigned");
+    // checker.go — isSomeSymbolAssigned.
+    internal bool IsSomeSymbolAssigned(Node rootDeclaration) => IsSomeSymbolAssignedWorker(rootDeclaration.Name()!);
+
+    // checker.go — isSomeSymbolAssignedWorker.
+    private bool IsSomeSymbolAssignedWorker(Node node)
+    {
+        if (node.Kind == SyntaxKind.Identifier)
+        {
+            return IsSymbolAssigned(GetSymbolOfDeclaration(node.Parent!)!);
+        }
+        return global::Ts.Core.CoreUtil.Some(node.Elements(), e => e.Name() != null && IsSomeSymbolAssignedWorker(e.Name()!));
+    }
     // GetSymbolForPrivateIdentifierExpression: real body in Checker.NodeSymbols.cs.
     internal Symbol? GetGlobalRecordSymbol() => getGlobalRecordSymbol();
     // checker.go:1076 — memoized resolver assigned in the constructor (Checker.Construction.cs).

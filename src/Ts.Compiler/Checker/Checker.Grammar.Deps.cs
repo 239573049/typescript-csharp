@@ -235,5 +235,6 @@ public partial class Checker
     // IsInParameterInitializerBeforeContainingFunction is now REAL in Checker.Expressions.cs (checker.go:12204).
     internal static global::Ts.Diagnostics.Message GetVerbatimModuleSyntaxErrorMessage(Node node) => throw new NotImplementedException("getVerbatimModuleSyntaxErrorMessage");
     // IsDeclarationReadonly is now REAL in Checker.Widening.cs (utilities.go:805).
-    internal static bool HasAsyncModifier(Node node) => throw new NotImplementedException("hasAsyncModifier");
+    // checker.go — hasAsyncModifier.
+    internal static bool HasAsyncModifier(Node node) => AstUtilities.HasSyntacticModifier(node, ModifierFlags.Async);
 }
