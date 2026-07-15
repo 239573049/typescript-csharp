@@ -53,11 +53,11 @@ public partial class Checker
     // ---- leaves ----
 
     // symbolaccessibility.go — qualified-left meaning.
-    private static SymbolFlags GetQualifiedLeftMeaning(SymbolFlags rightMeaning) =>
+    internal static SymbolFlags GetQualifiedLeftMeaning(SymbolFlags rightMeaning) =>
         rightMeaning == SymbolFlags.Value ? SymbolFlags.Value : SymbolFlags.Namespace;
 
     // symbolaccessibility.go:_ hasNonGlobalAugmentationExternalModuleSymbol.
-    private static bool HasNonGlobalAugmentationExternalModuleSymbol(Node declaration) =>
+    internal static bool HasNonGlobalAugmentationExternalModuleSymbol(Node declaration) =>
         AstUtilities.IsModuleWithStringLiteralName(declaration) ||
         (declaration.Kind == SyntaxKind.SourceFile && AstUtilities.IsExternalOrCommonJSModule(declaration.AsSourceFile()));
 
@@ -255,7 +255,7 @@ public partial class Checker
     }
 
     // symbolaccessibility.go needsQualification.
-    private bool NeedsQualification(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning)
+    internal bool NeedsQualification(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning)
     {
         var qualify = false;
         SomeSymbolTableInScope(enclosingDeclaration, (symbolTable, _, _, _) =>
@@ -436,7 +436,7 @@ public partial class Checker
     }
 
     // symbolaccessibility.go getAccessibleSymbolChain.
-    private List<Symbol> GetAccessibleSymbolChain(Symbol? symbol, Node? enclosingDeclaration, SymbolFlags meaning, bool useOnlyExternalAliasing)
+    internal List<Symbol> GetAccessibleSymbolChain(Symbol? symbol, Node? enclosingDeclaration, SymbolFlags meaning, bool useOnlyExternalAliasing)
     {
         return GetAccessibleSymbolChainEx(new AccessibleSymbolChainContext(symbol, enclosingDeclaration, meaning,
             useOnlyExternalAliasing, new Dictionary<SymbolId, HashSet<SymbolTable>>()));
@@ -482,7 +482,45 @@ public partial class Checker
 
     // symbolaccessibility.go getContainersOfSymbol — SIMPLIFIED to the parent-based branch (declaration-scanning
     // module-export container discovery deferred, PORT-NOTE at file head).
-    private List<Symbol> GetContainersOfSymbol(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning)
+    // symbolaccessibility.go:342 — getAliasForSymbolInContainer
+    internal Symbol? GetAliasForSymbolInContainer(Symbol container, Symbol symbol)
+    {
+        if (container == GetParentOfSymbol(symbol))
+        {
+            // fast path, `symbol` is either already the alias or isn't aliased
+            return symbol;
+        }
+        // Check if container is a thing with an `export=` which points directly at `symbol`, and if so,
+        // return the container itself as the alias for the symbol
+        if (container.Exports != null)
+        {
+            if (container.Exports.TryGetValue(InternalSymbolName.ExportEquals, out var exportEquals) && exportEquals != null && GetSymbolIfSameReference(exportEquals, symbol) != null)
+            {
+                return container;
+            }
+        }
+        var exports = GetExportsOfSymbol(container) ?? new SymbolTable();
+        if (exports.TryGetValue(symbol.Name, out var quick) && quick != null && GetSymbolIfSameReference(quick, symbol) != null)
+        {
+            return quick;
+        }
+        List<Symbol>? candidates = null;
+        foreach (var exported in exports.Values) // map-iter: 已排序 — sortSymbols below stabilizes result
+        {
+            if (GetSymbolIfSameReference(exported, symbol) != null)
+            {
+                (candidates ??= new()).Add(exported);
+            }
+        }
+        if (candidates != null && candidates.Count > 0)
+        {
+            SortSymbols(candidates, 0, candidates.Count); // _must_ sort exports for stable results - symbol table is randomly iterated
+            return candidates[0];
+        }
+        return null;
+    }
+
+    internal List<Symbol> GetContainersOfSymbol(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning)
     {
         var container = GetParentOfSymbol(symbol);
         if (container != null && (symbol.Flags & SymbolFlags.TypeParameter) == 0)

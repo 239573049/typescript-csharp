@@ -13,7 +13,6 @@ YieldExpression17_es6
 YieldExpression2_es6
 ambientExternalModuleInsideNonAmbientExternalModule
 arbitraryModuleNamespaceIdentifiers_importEmpty
-assignFromStringInterface2
 assignmentCompatWithCallSignatures3
 assignmentCompatWithCallSignatures4
 assignmentCompatWithCallSignaturesWithRestParameters
@@ -30,10 +29,8 @@ declarationFiles
 dependentDestructuredVariables
 duplicateNumericIndexers
 everyTypeWithAnnotationAndInvalidInitializer
-for-of29
 generatorReturnContextualType
 genericRestParameters1
-indexSignatures1
 initializerReferencingConstructorLocals
 initializerReferencingConstructorParameters
 instantiationExpressionErrors
@@ -69,7 +66,6 @@ plainJSRedeclare
 propertyAssignmentUseParentType2
 prototypePropertyAssignmentMergedTypeReference
 recursiveMappedTypes
-symbolProperty21
 symbolProperty53
 symbolProperty54
 symbolType2
@@ -85,5 +81,4 @@ typeofThisWithImplicitThis
 unicodeEscapesInJsxtags
 unionAndIntersectionInference1
 usingDeclarationsWithIteratorObject
-usingDeclarationsWithObjectLiterals1
 withStatements

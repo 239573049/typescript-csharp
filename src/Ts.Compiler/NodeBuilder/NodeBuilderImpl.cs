@@ -33,6 +33,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Ts.Ast;
 using Ts.Core;
 
@@ -728,13 +729,129 @@ public sealed partial class NodeBuilder
         return [symbol];
     }
 
+    // nodebuilderimpl.go:1243 — getSpecifierForModuleSymbol.
+    // DEFERRED: full module-specifier synthesis (modulespecifiers package). Reached only for a parent
+    // symbol that is a non-global-augmentation external module; the common qualified-name path never
+    // calls it. Kept a throwing stub so external-module-parent qualification stays deferred.
+    private string GetSpecifierForModuleSymbol(Symbol symbol, ResolutionMode overrideImportMode) =>
+        throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol");
+
+    // nodebuilderimpl.go:1074 — sortedSymbolNamePair
+    private readonly struct SortedSymbolNamePair(Symbol sym, string name)
+    {
+        internal readonly Symbol sym = sym;
+        internal readonly string name = name;
+    }
+
     // nodebuilderimpl.go:1081 — getSymbolChain.
-    // DEFERRED: the qualified-name path needs getAccessibleSymbolChain / needsQualification /
-    // getContainersOfSymbol / getSpecifierForModuleSymbol (the symbolaccessibility.go someSymbolTableInScope
-    // machinery). Reached only when an enclosingDeclaration is present or FlagsUseFullyQualifiedType is set;
-    // the symbolToString error paths in this wave pass neither, so lookupSymbolChainWorker never calls this.
-    private Symbol[] GetSymbolChain(Symbol symbol, SymbolFlags meaning, bool endOfChain, bool yieldModuleSymbol) =>
-        throw new NotImplementedException("nodeBuilder.getSymbolChain");
+    // PORT-NOTE: getSpecifierForModuleSymbol is still stubbed; it is reached only when a parent symbol has
+    // a non-global-augmentation external-module declaration, which those paths do not hit — non-module
+    // parents take the `{symbol, ""}` branch. External-module-parent qualification remains deferred.
+    private Symbol[] GetSymbolChain(Symbol symbol, SymbolFlags meaning, bool endOfChain, bool yieldModuleSymbol)
+    {
+        var accessibleSymbolChain = ch.GetAccessibleSymbolChain(symbol, ctx!.enclosingDeclaration, meaning, (ctx.flags & global::Ts.NodeBuilder.Flags.UseOnlyExternalAliasing) != 0);
+        var qualifierMeaning = meaning;
+        if (accessibleSymbolChain.Count > 1)
+        {
+            qualifierMeaning = global::Ts.Checker.Checker.GetQualifiedLeftMeaning(meaning);
+        }
+        if (accessibleSymbolChain.Count == 0 ||
+            ch.NeedsQualification(accessibleSymbolChain[0], ctx.enclosingDeclaration, qualifierMeaning))
+        {
+            // Go up and add our parent.
+            var root = symbol;
+            if (accessibleSymbolChain.Count > 0)
+            {
+                root = accessibleSymbolChain[0];
+            }
+            var parents = ch.GetContainersOfSymbol(root, ctx.enclosingDeclaration, meaning);
+            if (parents.Count > 0)
+            {
+                var parentSpecifiers = new List<SortedSymbolNamePair>(parents.Count);
+                foreach (var parentSym in parents)
+                {
+                    if (CoreUtil.Some(parentSym.Declarations, global::Ts.Checker.Checker.HasNonGlobalAugmentationExternalModuleSymbol))
+                    {
+                        parentSpecifiers.Add(new SortedSymbolNamePair(parentSym, GetSpecifierForModuleSymbol(parentSym, global::Ts.Core.Core.ResolutionModeNone)));
+                    }
+                    else
+                    {
+                        parentSpecifiers.Add(new SortedSymbolNamePair(parentSym, ""));
+                    }
+                }
+                // slices.SortStableFunc — OrderBy is a stable sort.
+                parentSpecifiers = parentSpecifiers.OrderBy(static p => p, Comparer<SortedSymbolNamePair>.Create(SortByBestName)).ToList();
+                foreach (var pair in parentSpecifiers)
+                {
+                    var parent = pair.sym;
+                    var parentChain = GetSymbolChain(parent, global::Ts.Checker.Checker.GetQualifiedLeftMeaning(meaning), false, yieldModuleSymbol);
+                    if (parentChain.Length > 0)
+                    {
+                        if (parent.Exports != null &&
+                            parent.Exports.TryGetValue(InternalSymbolName.ExportEquals, out var exported) &&
+                            ch.GetSymbolIfSameReference(exported, symbol) != null)
+                        {
+                            // parentChain root _is_ symbol - symbol is a module export=, so it kinda looks like it's own parent
+                            // No need to lookup an alias for the symbol in itself
+                            accessibleSymbolChain = new List<Symbol>(parentChain);
+                            break;
+                        }
+                        List<Symbol> nextSyms = accessibleSymbolChain;
+                        if (nextSyms.Count == 0)
+                        {
+                            var fallback = ch.GetAliasForSymbolInContainer(parent, symbol) ?? symbol;
+                            nextSyms = new List<Symbol> { fallback };
+                        }
+                        accessibleSymbolChain = new List<Symbol>(parentChain);
+                        accessibleSymbolChain.AddRange(nextSyms);
+                        break;
+                    }
+                }
+            }
+        }
+        if (accessibleSymbolChain.Count > 0)
+        {
+            return accessibleSymbolChain.ToArray();
+        }
+        if (
+            // If this is the last part of outputting the symbol, always output. The cases apply only to parent symbols.
+            endOfChain ||
+            // If a parent symbol is an anonymous type, don't write it.
+            (symbol.Flags & (SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) == 0)
+        {
+            // If a parent symbol is an external module, don't write it. (We prefer just `x` vs `"foo/bar".x`.)
+            if (!endOfChain && !yieldModuleSymbol && CoreUtil.Some(symbol.Declarations, global::Ts.Checker.Checker.HasNonGlobalAugmentationExternalModuleSymbol))
+            {
+                return [];
+            }
+            return [symbol];
+        }
+        return [];
+    }
+
+    // nodebuilderimpl.go:1181 — sortByBestName
+    private int SortByBestName(SortedSymbolNamePair a, SortedSymbolNamePair b)
+    {
+        var specifierA = a.name;
+        var specifierB = b.name;
+        if (specifierA.Length > 0 && specifierB.Length > 0)
+        {
+            var isBRelative = global::Ts.TsPath.TsPath.PathIsRelative(specifierB);
+            if (global::Ts.TsPath.TsPath.PathIsRelative(specifierA) == isBRelative)
+            {
+                // Both relative or both non-relative, sort by number of parts
+                return global::Ts.ModuleSpecifiers.Compare.CountPathComponents(specifierA) - global::Ts.ModuleSpecifiers.Compare.CountPathComponents(specifierB);
+            }
+            if (isBRelative)
+            {
+                // A is non-relative, B is relative: prefer A
+                return -1;
+            }
+            // A is relative, B is non-relative: prefer B
+            return 1;
+        }
+        return ch.compareSymbols(a.sym, b.sym); // must sort symbols for stable ordering
+    }
 
     // nodebuilderimpl.go:3563 — lookupExpressionChainTypeArgumentNodes.
     // PORT-NOTE: only WriteTypeParametersInQualifiedName (qualified generic names) exercises the body; the
