@@ -201,7 +201,38 @@ public partial class Checker
     // (checker.go:2568) remains stubbed below — it is only dispatched for JSDoc type-node kinds
     // (JSDocNonNullableType/JSDocNullableType/...) and lands with the deep JSDoc type-resolution
     // chain (checkJSDocTypeIsInJsFile + getNullableType wiring).
-    internal void CheckJSDocType(Node node) => throw new NotImplementedException("checkJSDocType");
+    // checker.go:2567
+    internal void CheckJSDocType(Node node)
+    {
+        CheckJSDocTypeIsInJsFile(node);
+        node.ForEachChild(CheckSourceElement);
+    }
+
+    // checker.go:2573
+    internal void CheckJSDocTypeIsInJsFile(Node node)
+    {
+        if (!AstUtilities.IsInJSFile(node))
+        {
+            if (NodeTests.IsJSDocNonNullableType(node) || NodeTests.IsJSDocNullableType(node))
+            {
+                var token = NodeTests.IsJSDocNonNullableType(node) ? "!" : "?";
+                var postfix = node.Pos == node.Type()!.Pos;
+                var message = postfix
+                    ? Diag.X_0_at_the_end_of_a_type_is_not_valid_TypeScript_syntax_Did_you_mean_to_write_1
+                    : Diag.X_0_at_the_start_of_a_type_is_not_valid_TypeScript_syntax_Did_you_mean_to_write_1;
+                var t = GetTypeFromTypeNode(node.Type()!);
+                if (NodeTests.IsJSDocNullableType(node) && t != neverType && t != voidType)
+                {
+                    t = GetNullableType(t, postfix ? TypeFlags.Undefined : TypeFlags.Nullable);
+                }
+                GrammarErrorOnNode(node, message, token, TypeToString(t));
+            }
+            else
+            {
+                GrammarErrorOnNode(node, Diag.JSDoc_types_can_only_be_used_inside_documentation_comments);
+            }
+        }
+    }
 
     // ---- misc helpers (utilities) ----
     // ContainerAllowsBlockScopedVariable is now REAL in Checker.Grammar.cs (grammar wave).

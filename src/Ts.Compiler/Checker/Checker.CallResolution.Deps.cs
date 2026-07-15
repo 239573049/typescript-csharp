@@ -254,7 +254,43 @@ public partial class Checker
     // checker.go:29558 — decorator contextual type (decorator cluster).
     private Type? GetContextualTypeForDecorator(Node decorator) => throw new NotImplementedException("getContextualTypeForDecorator");
     // checker.go:29340/29369 — binding-element / static-property contextual type (binding/JS clusters).
-    private Type? GetContextualTypeForBindingElement(Node declaration, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForBindingElement");
+    // checker.go:29340
+    private Type? GetContextualTypeForBindingElement(Node declaration, ContextFlags contextFlags)
+    {
+        var name = declaration.PropertyNameOrName()!;
+        if (AstUtilities.IsBindingPattern(name) || AstUtilities.IsComputedNonLiteralName(name))
+        {
+            return null;
+        }
+        var parent = declaration.Parent!.Parent!;
+        var parentType = GetContextualTypeForVariableLikeDeclaration(parent, contextFlags);
+        if (parentType == null)
+        {
+            if (!NodeTests.IsBindingElement(parent) && parent.Initializer() != null)
+            {
+                parentType = CheckDeclarationInitializer(parent, global::Ts.Core.CoreUtil.IfElse(HasDotDotDotToken(declaration), CheckMode.RestBindingElement, CheckMode.Normal), null);
+            }
+        }
+        if (parentType == null)
+        {
+            return null;
+        }
+        if (NodeTests.IsArrayBindingPattern(parent.Name()!))
+        {
+            var index = global::System.Array.IndexOf(declaration.Parent!.Elements() ?? [], declaration);
+            if (index < 0)
+            {
+                return null;
+            }
+            return GetContextualTypeForElementExpression(parentType, index, -1, -1, -1);
+        }
+        var nameType = GetLiteralTypeFromPropertyName(name);
+        if (IsTypeUsableAsPropertyName(nameType))
+        {
+            return GetTypeOfPropertyOfType(parentType, GetPropertyNameFromType(nameType));
+        }
+        return null;
+    }
     private Type? GetContextualTypeForStaticPropertyDeclaration(Node declaration, ContextFlags contextFlags) => throw new NotImplementedException("getContextualTypeForStaticPropertyDeclaration");
     // checker.go:29600-29675 — assignment-expression contextual type (JS assignment-declaration cluster).
     private Type? GetContextualTypeForAssignmentExpression(BinaryExpression binary)
