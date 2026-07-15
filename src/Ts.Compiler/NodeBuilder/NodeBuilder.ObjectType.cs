@@ -58,7 +58,7 @@ public sealed partial class NodeBuilder
     // not including) the this-type arm — intrinsics, literals, enum-like — plus `boolean` when unaliased
     // (checked separately because Go also requires t.alias == nil). These flags are disjoint from the
     // reference / type-parameter / union / object arms below, so dispatching them via one mask preserves
-    // the Go arm order. (UniqueESSymbol is deliberately absent: its Go arm reads ctx and is deferred; it
+    // the Go arm order. (UniqueESSymbol has a ctx-reading arm below in TypeToTypeNodeCore; it
     // falls through to the leaf fallback exactly as before.)
     private const TypeFlags LeafTypeKinds =
         TypeFlags.Any | TypeFlags.Unknown | TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt
@@ -299,6 +299,23 @@ public sealed partial class NodeBuilder
         if ((t.flags & TypeFlags.Conditional) != 0)
         {
             return VisitAndTransformType(t, static (b, ty) => b.ConditionalTypeToTypeNode(ty));
+        }
+        // nodebuilderimpl.go:3286 — unique ES symbol (renders `typeof x` when the value symbol is
+        // accessible, else `unique symbol`). PORT-NOTE: symbolToTypeNode approximated by the reduced
+        // SymbolToNodeImplTypeNode (typeof form).
+        if ((t.flags & TypeFlags.UniqueESSymbol) != 0)
+        {
+            if ((ctx.flags & global::Ts.NodeBuilder.Flags.AllowUniqueESSymbolType) == 0)
+            {
+                if (ch.IsValueSymbolAccessible(t.symbol!, ctx.enclosingDeclaration))
+                {
+                    ctx.approximateLength += 6;
+                    return SymbolToNodeImplTypeNode(t.symbol!, SymbolFlags.Value);
+                }
+                ctx.tracker?.ReportInaccessibleUniqueSymbolError();
+            }
+            ctx.approximateLength += 13;
+            return f.NewTypeOperatorNode(SyntaxKind.UniqueKeyword, f.NewKeywordTypeNode(SyntaxKind.SymbolKeyword));
         }
 
         return TypeToTypeNodeLeaf(t);
