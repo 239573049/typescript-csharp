@@ -153,10 +153,269 @@ public partial class Checker
         return links.decoratorSignature;
     }
 
-    // checker.go — getESDecoratorCallSignature. DEFERRED: the ES-decorator context-type machinery
-    // (newClassDecoratorContextType / newESDecoratorCallSignature / … from the global ES-decorator lib
-    // types). ES decorators error here; legacy decorators take the path above.
-    private Signature? GetESDecoratorCallSignature(Node decorator) => throw new NotImplementedException("getESDecoratorCallSignature");
+    // checker.go — getESDecoratorCallSignature. The ES-decorator context-type machinery: the signature
+    // `(target, context) => output | void` whose target/context/return types are synthesized from the
+    // global ClassDecoratorContext/ClassMemberDecoratorContext/... lib types per the decorated element.
+    private Signature? GetESDecoratorCallSignature(Node decorator)
+    {
+        var node = decorator.Parent!;
+        var links = signatureLinks.Get(node);
+        if (links.decoratorSignature == null)
+        {
+            links.decoratorSignature = anySignature;
+            switch (node.Kind)
+            {
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.ClassExpression:
+                {
+                    // Class decorators have a `context` of `ClassDecoratorContext<Class>`.
+                    var targetType = GetTypeOfSymbol(GetSymbolOfDeclaration(node)!);
+                    var contextType = NewClassDecoratorContextType(targetType);
+                    links.decoratorSignature = NewESDecoratorCallSignature(targetType, contextType, targetType);
+                    break;
+                }
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                {
+                    if (!AstUtilities.IsClassLike(node.Parent!))
+                    {
+                        break;
+                    }
+                    Type valueType;
+                    if (NodeTests.IsMethodDeclaration(node))
+                    {
+                        valueType = GetOrCreateTypeFromSignature(GetSignatureFromDeclaration(node));
+                    }
+                    else
+                    {
+                        valueType = GetTypeOfNode(node);
+                    }
+                    Type thisType;
+                    if (AstUtilities.HasStaticModifier(node))
+                    {
+                        thisType = GetTypeOfSymbol(GetSymbolOfDeclaration(node.Parent!)!);
+                    }
+                    else
+                    {
+                        thisType = GetDeclaredTypeOfClassOrInterface(GetSymbolOfDeclaration(node.Parent!)!);
+                    }
+                    // Wrap the "input type" to match the decoration target: getters `() => inputType`,
+                    // setters `(value: inputType) => void`, methods just the input type.
+                    Type targetType;
+                    if (NodeTests.IsGetAccessorDeclaration(node))
+                    {
+                        targetType = NewGetterFunctionType(valueType);
+                    }
+                    else if (NodeTests.IsSetAccessorDeclaration(node))
+                    {
+                        targetType = NewSetterFunctionType(valueType);
+                    }
+                    else
+                    {
+                        targetType = valueType;
+                    }
+                    var contextType = NewClassMemberDecoratorContextTypeForNode(node, thisType, valueType);
+                    links.decoratorSignature = NewESDecoratorCallSignature(targetType, contextType, targetType);
+                    break;
+                }
+                case SyntaxKind.PropertyDeclaration:
+                {
+                    if (!AstUtilities.IsClassLike(node.Parent!))
+                    {
+                        break;
+                    }
+                    var valueType = GetTypeOfNode(node);
+                    Type thisType;
+                    if (AstUtilities.HasStaticModifier(node))
+                    {
+                        thisType = GetTypeOfSymbol(GetSymbolOfDeclaration(node.Parent!)!);
+                    }
+                    else
+                    {
+                        thisType = GetDeclaredTypeOfClassOrInterface(GetSymbolOfDeclaration(node.Parent!)!);
+                    }
+                    // The `target` of an auto-accessor decorator is a `{ get, set }` object; the `target`
+                    // of a regular field decorator is always `undefined`.
+                    Type targetType;
+                    if (AstUtilities.HasAccessorModifier(node))
+                    {
+                        targetType = NewClassAccessorDecoratorTargetType(thisType, valueType);
+                    }
+                    else
+                    {
+                        targetType = undefinedType!;
+                    }
+                    // Wrap the "output type": auto-accessors in `ClassAccessorDecoratorResult<This, In, Out>`,
+                    // regular fields in an initializer-mutator function.
+                    Type returnType;
+                    if (AstUtilities.HasAccessorModifier(node))
+                    {
+                        returnType = NewClassAccessorDecoratorResultType(thisType, valueType);
+                    }
+                    else
+                    {
+                        returnType = NewClassFieldDecoratorInitializerMutatorType(thisType, valueType);
+                    }
+                    var contextType = NewClassMemberDecoratorContextTypeForNode(node, thisType, valueType);
+                    links.decoratorSignature = NewESDecoratorCallSignature(targetType, contextType, returnType);
+                    break;
+                }
+            }
+        }
+        if (links.decoratorSignature == anySignature)
+        {
+            return null;
+        }
+        return links.decoratorSignature;
+    }
+
+    // checker.go — newProperty.
+    private Symbol NewProperty(string name, Type t)
+    {
+        var symbol = NewSymbol(SymbolFlags.Property, name);
+        valueSymbolLinks.Get(symbol).resolvedType = t;
+        return symbol;
+    }
+
+    // checker.go — newFunctionType.
+    private Type NewFunctionType(Type[]? typeParameters, Symbol? thisParameter, Symbol[] parameters, Type returnType) =>
+        GetOrCreateTypeFromSignature(NewCallSignature(typeParameters, thisParameter, parameters, returnType));
+
+    // checker.go — tryCreateTypeReference.
+    private Type TryCreateTypeReference(Type target, Type[]? typeArguments)
+    {
+        if ((typeArguments?.Length ?? 0) != 0 && target == emptyGenericType)
+        {
+            return unknownType!;
+        }
+        return CreateTypeReference(target, typeArguments);
+    }
+
+    // checker.go — newESDecoratorCallSignature.
+    private Signature NewESDecoratorCallSignature(Type targetType, Type contextType, Type nonOptionalReturnType)
+    {
+        var targetParam = NewParameter("target", targetType);
+        var contextParam = NewParameter("context", contextType);
+        var returnType = GetUnionType([nonOptionalReturnType, voidType!]);
+        return NewCallSignature(null, null /*thisParameter*/, [targetParam, contextParam], returnType);
+    }
+
+    // checker.go — newClassDecoratorContextType.
+    private Type NewClassDecoratorContextType(Type classType) =>
+        TryCreateTypeReference(getGlobalClassDecoratorContextType(), [classType]);
+
+    // checker.go — newClassMethodDecoratorContextType.
+    private Type NewClassMethodDecoratorContextType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassMethodDecoratorContextType(), [thisType, valueType]);
+
+    // checker.go — newClassGetterDecoratorContextType.
+    private Type NewClassGetterDecoratorContextType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassGetterDecoratorContextType(), [thisType, valueType]);
+
+    // checker.go — newClassSetterDecoratorContextType.
+    private Type NewClassSetterDecoratorContextType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassSetterDecoratorContextType(), [thisType, valueType]);
+
+    // checker.go — newClassAccessorDecoratorContextType.
+    private Type NewClassAccessorDecoratorContextType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassAccessorDecoratorContextType(), [thisType, valueType]);
+
+    // checker.go — newClassFieldDecoratorContextType.
+    private Type NewClassFieldDecoratorContextType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassFieldDecoratorContextType(), [thisType, valueType]);
+
+    // checker.go — newClassAccessorDecoratorTargetType.
+    private Type NewClassAccessorDecoratorTargetType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassAccessorDecoratorTargetType(), [thisType, valueType]);
+
+    // checker.go — newClassAccessorDecoratorResultType.
+    private Type NewClassAccessorDecoratorResultType(Type thisType, Type valueType) =>
+        TryCreateTypeReference(getGlobalClassAccessorDecoratorResultType(), [thisType, valueType]);
+
+    // checker.go — newGetterFunctionType.
+    private Type NewGetterFunctionType(Type t) =>
+        NewFunctionType(null, null /*thisParameter*/, [], t);
+
+    // checker.go — newSetterFunctionType.
+    private Type NewSetterFunctionType(Type t)
+    {
+        var valueParam = NewParameter("value", t);
+        return NewFunctionType(null, null /*thisParameter*/, [valueParam], voidType!);
+    }
+
+    // checker.go — newClassFieldDecoratorInitializerMutatorType.
+    private Type NewClassFieldDecoratorInitializerMutatorType(Type thisType, Type valueType)
+    {
+        var thisParam = NewParameter("this", thisType);
+        var valueParam = NewParameter("value", valueType);
+        return NewFunctionType(null, thisParam, [valueParam], valueType);
+    }
+
+    // checker.go — getClassMemberDecoratorContextOverrideType.
+    private Type GetClassMemberDecoratorContextOverrideType(Type nameType, bool isPrivate, bool isStatic)
+    {
+        var kind = isPrivate
+            ? (isStatic ? CachedTypeKind.DecoratorContextPrivateStatic : CachedTypeKind.DecoratorContextPrivate)
+            : (isStatic ? CachedTypeKind.DecoratorContextStatic : CachedTypeKind.DecoratorContext);
+        var key = new CachedTypeKey(kind, nameType.id);
+        if (cachedTypes.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+        var members = new SymbolTable
+        {
+            ["name"] = NewProperty("name", nameType),
+            ["private"] = NewProperty("private", isPrivate ? trueType! : falseType!),
+            ["static"] = NewProperty("static", isStatic ? trueType! : falseType!),
+        };
+        var overrideType = NewAnonymousType(null, members, null, null, null);
+        cachedTypes[key] = overrideType;
+        return overrideType;
+    }
+
+    // checker.go — newClassMemberDecoratorContextTypeForNode.
+    private Type NewClassMemberDecoratorContextTypeForNode(Node node, Type thisType, Type valueType)
+    {
+        var isStatic = AstUtilities.HasStaticModifier(node);
+        var isPrivate = NodeTests.IsPrivateIdentifier(node.Name()!);
+        Type nameType;
+        if (isPrivate)
+        {
+            nameType = GetStringLiteralType(node.Name()!.Text());
+        }
+        else
+        {
+            nameType = GetLiteralTypeFromPropertyName(node.Name()!);
+        }
+        Type contextType;
+        if (NodeTests.IsMethodDeclaration(node))
+        {
+            contextType = NewClassMethodDecoratorContextType(thisType, valueType);
+        }
+        else if (NodeTests.IsGetAccessorDeclaration(node))
+        {
+            contextType = NewClassGetterDecoratorContextType(thisType, valueType);
+        }
+        else if (NodeTests.IsSetAccessorDeclaration(node))
+        {
+            contextType = NewClassSetterDecoratorContextType(thisType, valueType);
+        }
+        else if (AstUtilities.IsAutoAccessorPropertyDeclaration(node))
+        {
+            contextType = NewClassAccessorDecoratorContextType(thisType, valueType);
+        }
+        else if (NodeTests.IsPropertyDeclaration(node))
+        {
+            contextType = NewClassFieldDecoratorContextType(thisType, valueType);
+        }
+        else
+        {
+            throw new InvalidOperationException("Unhandled case in createClassMemberDecoratorContextTypeForNode");
+        }
+        var overrideType = GetClassMemberDecoratorContextOverrideType(nameType, isPrivate, isStatic);
+        return GetIntersectionType([contextType, overrideType]);
+    }
 
     // checker.go — getDecoratorCallSignature.
     private Signature? GetDecoratorCallSignature(Node decorator)
