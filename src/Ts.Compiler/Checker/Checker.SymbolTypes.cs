@@ -1231,26 +1231,93 @@ public partial class Checker
     }
 
     // checker.go:17027
-    // PORT-NOTE: Partial implementation — handles the common case where t.symbol is null
-    // (synthetic type parameters created by NewTypeParameter(null)) which returns null.
-    // Full inference from 'infer T' declarations requires later wave.
     internal Type? GetInferredTypeParameterConstraint(Type t, bool omitTypeReferences)
     {
-        if (t.symbol == null || (t.symbol.Declarations?.Length ?? 0) == 0)
+        System.Collections.Generic.List<Type>? inferences = null;
+        if (t.symbol != null && (t.symbol.Declarations?.Length ?? 0) != 0)
         {
-            return null;
-        }
-        var inferences = new System.Collections.Generic.List<Type>();
-        foreach (var declaration in t.symbol.Declarations!)
-        {
-            if (declaration.Parent != null && NodeTests.IsInferTypeNode(declaration.Parent))
+            foreach (var declaration in t.symbol.Declarations!)
             {
-                // Full infer-type constraint logic is in the later checker.go wave.
-                // For now, these declarations yield no constraint.
-                _ = declaration;
+                if (declaration.Parent != null && NodeTests.IsInferTypeNode(declaration.Parent))
+                {
+                    // When an 'infer T' declaration is immediately contained in a type reference node
+                    // (such as 'Foo<infer T>'), T's constraint is inferred from the constraint of the
+                    // corresponding type parameter in 'Foo'. When multiple 'infer T' declarations are
+                    // present, we form an intersection of the inferred constraint types.
+                    var child = declaration.Parent;
+                    var parent = child.Parent;
+                    while (parent != null && NodeTests.IsParenthesizedTypeNode(parent))
+                    {
+                        child = parent;
+                        parent = child.Parent;
+                    }
+                    if (parent is null)
+                    {
+                        continue;
+                    }
+                    if (NodeTests.IsTypeReferenceNode(parent) && !omitTypeReferences)
+                    {
+                        var typeParameters = GetTypeParametersForTypeReferenceOrImport(parent);
+                        if (typeParameters != null)
+                        {
+                            var index = System.Array.IndexOf(parent.TypeArguments() ?? [], child);
+                            if (index >= 0 && index < typeParameters.Length)
+                            {
+                                var declaredConstraint = GetConstraintOfTypeParameter(typeParameters[index]);
+                                if (declaredConstraint != null)
+                                {
+                                    // Type parameter constraints can reference other type parameters so
+                                    // constraints need to be instantiated. If instantiation produces the
+                                    // type parameter itself, we discard that inference.
+                                    var tps = typeParameters;
+                                    var refParent = parent;
+                                    var mapper = TypeMapper.NewDeferredTypeMapper(
+                                        tps,
+                                        CoreUtil.MapIndex(tps, (_, i) => (System.Func<Type>)(() => GetEffectiveTypeArgumentAtIndex(refParent, tps, i)))!);
+                                    var constraint = InstantiateType(declaredConstraint, mapper);
+                                    if (constraint != t)
+                                    {
+                                        (inferences ??= new()).Add(constraint);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if ((NodeTests.IsParameterDeclaration(parent) && parent.AsParameterDeclaration().DotDotDotToken != null)
+                        || NodeTests.IsRestTypeNode(parent)
+                        || (NodeTests.IsNamedTupleMember(parent) && parent.AsNamedTupleMember().DotDotDotToken != null))
+                    {
+                        (inferences ??= new()).Add(CreateArrayType(unknownType!));
+                    }
+                    else if (NodeTests.IsTemplateLiteralTypeSpan(parent))
+                    {
+                        (inferences ??= new()).Add(stringType!);
+                    }
+                    else if (NodeTests.IsTypeParameterDeclaration(parent) && parent.Parent != null && NodeTests.IsMappedTypeNode(parent.Parent))
+                    {
+                        (inferences ??= new()).Add(stringNumberSymbolType!);
+                    }
+                    else if (NodeTests.IsMappedTypeNode(parent) && parent.Type() != null
+                        && AstUtilities.SkipParentheses(parent.Type()!) == declaration.Parent
+                        && parent.Parent != null && NodeTests.IsConditionalTypeNode(parent.Parent)
+                        && parent.Parent.AsConditionalTypeNode().ExtendsType == parent
+                        && parent.Parent.AsConditionalTypeNode().CheckType != null && NodeTests.IsMappedTypeNode(parent.Parent.AsConditionalTypeNode().CheckType!)
+                        && parent.Parent.AsConditionalTypeNode().CheckType!.Type() != null)
+                    {
+                        var checkMappedType = parent.Parent.AsConditionalTypeNode().CheckType!;
+                        var nodeType = GetTypeFromTypeNode(checkMappedType.Type()!);
+                        var checkMappedTypeParameter = checkMappedType.AsMappedTypeNode().TypeParameter!;
+                        var mapper = TypeMapper.NewSimpleTypeMapper(
+                            GetDeclaredTypeOfTypeParameter(GetSymbolOfDeclaration(checkMappedTypeParameter)!),
+                            checkMappedTypeParameter.AsTypeParameterDeclaration().Constraint != null
+                                ? GetTypeFromTypeNode(checkMappedTypeParameter.AsTypeParameterDeclaration().Constraint!)
+                                : stringNumberSymbolType!);
+                        (inferences ??= new()).Add(InstantiateType(nodeType, mapper));
+                    }
+                }
             }
         }
-        if (inferences.Count != 0)
+        if (inferences != null && inferences.Count != 0)
         {
             return GetIntersectionType(inferences.ToArray());
         }

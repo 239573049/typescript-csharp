@@ -46,7 +46,6 @@ generatorReturnContextualType
 genericRestParameters1
 importTypeAmbientMissing
 indexSignatures1
-inferTypes1
 initializerReferencingConstructorLocals
 initializerReferencingConstructorParameters
 instantiationExpressionErrors
@@ -90,9 +89,6 @@ symbolProperty21
 symbolProperty53
 symbolProperty54
 symbolType2
-templateLiteralTypes1
-templateLiteralTypes2
-templateLiteralTypes3
 templateLiteralTypes4
 thisInObjectLiterals
 thisTypeInFunctionsNegative
@@ -100,7 +96,6 @@ tsxSpreadAttributesResolution17
 typeArgumentInferenceWithClassExpression2
 typeFromPropertyAssignment29
 typeGuardFunctionErrors
-typeParameterConstModifiers
 typeTagModuleExports
 typeTagPrototypeAssignment
 typeofThis
@@ -109,5 +104,4 @@ unicodeEscapesInJsxtags
 unionAndIntersectionInference1
 usingDeclarationsWithIteratorObject
 usingDeclarationsWithObjectLiterals1
-variadicTuples1
 withStatements
