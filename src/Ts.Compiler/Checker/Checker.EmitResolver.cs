@@ -467,7 +467,7 @@ public sealed partial class EmitResolver : global::Ts.Printer.EmitResolver
     }
 
     // emitresolver.go:384-465
-    private global::Ts.Printer.SymbolAccessibilityResult? HasVisibleDeclarations(
+    internal global::Ts.Printer.SymbolAccessibilityResult? HasVisibleDeclarations(
         Symbol symbol, bool shouldComputeAliasToMakeVisible)
     {
         // map-iter: 已排序 — Go collects a map keyed by NodeId then materializes its values via

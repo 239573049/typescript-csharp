@@ -76,7 +76,6 @@ public sealed partial class NodeBuilder
 
         var inTypeAlias = ctx!.flags & global::Ts.NodeBuilder.Flags.InTypeAlias;
         ctx.flags &= ~global::Ts.NodeBuilder.Flags.InTypeAlias;
-        _ = inTypeAlias; // consumed only by the deferred type-alias reference arm (see PORT-NOTE below)
 
         // nodebuilderimpl.go:3198 — reduce unless NoTypeReduction.
         if ((ctx.flags & global::Ts.NodeBuilder.Flags.NoTypeReduction) == 0)
@@ -105,10 +104,27 @@ public sealed partial class NodeBuilder
             return f.NewThisTypeNode();
         }
 
-        // PORT-NOTE (deferred): the type-alias reference arm (nodebuilderimpl.go:3335, gated on
-        // `inTypeAlias == 0 && t.alias != nil && (UseAliasDefinedOutsideCurrentScope || IsTypeSymbolAccessible)`)
-        // is owned by the symbol-chain wave; aliased types fall through to their underlying structural arm,
-        // exactly as Go does when the alias symbol is inaccessible.
+        // nodebuilderimpl.go:3332 — type-alias reference arm: render a type by its alias name when the alias
+        // symbol is accessible (gated on inTypeAlias == 0). PORT-NOTE: shouldExpandType short-circuits false
+        // for error-message / .d.ts callers (maxExpansionDepth < 0), so the alias is always used; and
+        // symbolToTypeNode's full symbol chain is approximated by the reduced SymbolToTypeReferenceNodeLocal
+        // (correct for accessible top-level aliases — the common case).
+        if (inTypeAlias == global::Ts.NodeBuilder.Flags.None && t.alias != null &&
+            ((ctx.flags & global::Ts.NodeBuilder.Flags.UseAliasDefinedOutsideCurrentScope) != 0 ||
+             ch.IsTypeSymbolAccessible(t.alias.Symbol()!, ctx.enclosingDeclaration)))
+        {
+            var aliasSym = t.alias.Symbol()!;
+            var aliasTypeArgumentNodes = t.alias.TypeArguments() is { } aliasTa ? MapToTypeNodesLocal(aliasTa, false /*isBareList*/) : null;
+            if (Checker.IsReservedMemberName(aliasSym.Name) && (aliasSym.Flags & SymbolFlags.Class) == 0)
+            {
+                return f.NewTypeReferenceNode(f.NewIdentifier(""), aliasTypeArgumentNodes);
+            }
+            if (aliasTypeArgumentNodes != null && aliasTypeArgumentNodes.Nodes.Length == 1 && aliasSym == ch.globalArrayType?.symbol)
+            {
+                return f.NewArrayTypeNode(aliasTypeArgumentNodes.Nodes[0]);
+            }
+            return SymbolToTypeReferenceNodeLocal(aliasSym, aliasTypeArgumentNodes);
+        }
 
         var objectFlags = t.objectFlags;
 

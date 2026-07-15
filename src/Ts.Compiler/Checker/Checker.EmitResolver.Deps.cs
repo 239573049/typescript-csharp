@@ -111,8 +111,9 @@ public partial class Checker
         throw new NotImplementedException("IsSymbolAccessible");
 
     // symbolaccessibility.go:16 — IsValueSymbolAccessible.
+    // IsValueSymbolAccessible: real body in Checker.SymbolAccessibility.cs (symbolaccessibility.go).
     internal bool IsValueSymbolAccessible(Symbol symbol, Node? enclosingDeclaration) =>
-        throw new NotImplementedException("IsValueSymbolAccessible");
+        IsValueSymbolAccessibleCore(symbol, enclosingDeclaration);
 
     // checker.go:843 — getGlobalPromiseConstructorSymbol (getGlobalValueSymbolResolver("Promise")).
     // Wired field resolver (Construction.cs:214); the method just unmasks it.
