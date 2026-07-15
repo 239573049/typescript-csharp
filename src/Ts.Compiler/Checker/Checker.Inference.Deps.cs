@@ -241,6 +241,8 @@ public partial class Checker
         }
         return str;
     }
-    internal static global::Ts.JsNum.PseudoBigInt GetBigIntLiteralValue(Type t) => throw new NotImplementedException("getBigIntLiteralValue");
-    internal static bool GetBooleanLiteralValue(Type t) => throw new NotImplementedException("getBooleanLiteralValue");
+    // checker.go:25262
+    internal static global::Ts.JsNum.PseudoBigInt GetBigIntLiteralValue(Type t) => (global::Ts.JsNum.PseudoBigInt)t.AsLiteralType().value!;
+    // checker.go:25266
+    internal static bool GetBooleanLiteralValue(Type t) => (bool)t.AsLiteralType().value!;
 }

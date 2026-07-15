@@ -656,7 +656,31 @@ public partial class Checker
         return null;
     }
     // checker.go:3097
-    internal bool CheckIfTypePredicateVariableIsDeclaredInBindingPattern(Node pattern, Node predicateVariableNode, string predicateVariableName) => throw new NotImplementedException("checkIfTypePredicateVariableIsDeclaredInBindingPattern");
+    // checker.go: checkIfTypePredicateVariableIsDeclaredInBindingPattern
+    internal bool CheckIfTypePredicateVariableIsDeclaredInBindingPattern(Node pattern, Node predicateVariableNode, string predicateVariableName)
+    {
+        foreach (var element in pattern.Elements() ?? [])
+        {
+            var name = element.Name();
+            if (name is null)
+            {
+                continue;
+            }
+            if (NodeTests.IsIdentifier(name) && name.Text() == predicateVariableName)
+            {
+                Error(predicateVariableNode, Diag.A_type_predicate_cannot_reference_element_0_in_a_binding_pattern, predicateVariableName);
+                return true;
+            }
+            if (NodeTests.IsArrayBindingPattern(name) || NodeTests.IsObjectBindingPattern(name))
+            {
+                if (CheckIfTypePredicateVariableIsDeclaredInBindingPattern(name, predicateVariableNode, predicateVariableName))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     // ---- type-node deep helpers (type-nodes/indexed-access, deferred) ----
     // checker.go:3318

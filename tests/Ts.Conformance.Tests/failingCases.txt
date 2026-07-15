@@ -74,13 +74,11 @@ symbolProperty21
 symbolProperty53
 symbolProperty54
 symbolType2
-templateLiteralTypes4
 thisInObjectLiterals
 thisTypeInFunctionsNegative
 tsxSpreadAttributesResolution17
 typeArgumentInferenceWithClassExpression2
 typeFromPropertyAssignment29
-typeGuardFunctionErrors
 typeTagModuleExports
 typeTagPrototypeAssignment
 typeofThis
