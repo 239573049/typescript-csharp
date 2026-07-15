@@ -184,7 +184,16 @@ public partial class Checker
     // getContextualTypeForObjectLiteralMethod (29721): real body landed in Checker.ContextualType.cs.
 
     // ---- jsnum / literal-value free functions (checker.go package funcs) ----
-    internal static bool IsValidNumberString(string s, bool roundTripOnly) => throw new NotImplementedException("isValidNumberString");
+    // utilities.go:904
+    internal static bool IsValidNumberString(string s, bool roundTripOnly)
+    {
+        if (s == "")
+        {
+            return false;
+        }
+        var n = global::Ts.JsNum.JsNum.FromString(s);
+        return !n.IsNaN() && !n.IsInf() && (!roundTripOnly || n.ToString() == s);
+    }
     internal static bool IsValidBigIntString(string s, bool roundTripOnly) => throw new NotImplementedException("isValidBigIntString");
     // checker.go:28999-29013 — real body (lib-gate wave P); previously a stub here.
     internal static string ApplyStringMapping(Symbol symbol, string str)
