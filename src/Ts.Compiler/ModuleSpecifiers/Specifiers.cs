@@ -10,6 +10,7 @@ using System.Linq;
 using Ts.Ast;
 using Ts.Collections;
 using Ts.Core;
+using Ts.Module;
 using Ts.TsPath;
 
 using TsPathApi = global::Ts.TsPath.TsPath;
@@ -340,6 +341,136 @@ public static partial class Specifiers
             SourceDirectory = sourceDirectory,
             UseCaseSensitiveFileNames = host.UseCaseSensitiveFileNames(),
         };
+    }
+
+    // specifiers.go:359 — computeModuleSpecifiers.
+    internal static (string[] Specifiers, ResultKind Kind) ComputeModuleSpecifiers(
+        ModulePath[] modulePaths,
+        CompilerOptions compilerOptions,
+        SourceFileForSpecifierGeneration importingSourceFile,
+        ModuleSpecifierGenerationHost host,
+        UserPreferences userPreferences,
+        ModuleSpecifierOptions options,
+        bool forAutoImport)
+    {
+        Info info = GetInfo(importingSourceFile.FileName(), host);
+        ModuleSpecifierPreferences preferences = GetModuleSpecifierPreferences(userPreferences, host, compilerOptions, importingSourceFile, "");
+
+        string existingSpecifier = "";
+        foreach (ModulePath modulePath in modulePaths)
+        {
+            Path targetPath = TsPathApi.ToPath(modulePath.FileName, host.GetCurrentDirectory(), info.UseCaseSensitiveFileNames);
+            Node? existingImport = null;
+            foreach (Node importSpecifier in importingSourceFile.Imports() ?? [])
+            {
+                var resolvedModule = host.GetResolvedModuleFromModuleSpecifier(importingSourceFile, importSpecifier);
+                if (resolvedModule.IsResolved() &&
+                    TsPathApi.ToPath(resolvedModule!.ResolvedFileName, host.GetCurrentDirectory(), info.UseCaseSensitiveFileNames).Value == targetPath.Value)
+                {
+                    existingImport = importSpecifier;
+                    break;
+                }
+            }
+            if (existingImport != null)
+            {
+                if (preferences.RelativePreference == RelativePreferenceKind.NonRelative && TsPathApi.PathIsRelative(existingImport.Text()))
+                {
+                    // If the preference is for non-relative and the specifier is relative, ignore it.
+                    continue;
+                }
+                ResolutionMode existingMode = host.GetModeForUsageLocation(importingSourceFile, existingImport);
+                ResolutionMode targetMode = options.OverrideImportMode;
+                if (targetMode == global::Ts.Core.Core.ResolutionModeNone)
+                {
+                    targetMode = host.GetDefaultResolutionModeForFile(importingSourceFile);
+                }
+                if (existingMode != targetMode && existingMode != global::Ts.Core.Core.ResolutionModeNone && targetMode != global::Ts.Core.Core.ResolutionModeNone)
+                {
+                    // If the candidate import mode doesn't match what we're generating for, skip it.
+                    continue;
+                }
+                existingSpecifier = existingImport.Text();
+                break;
+            }
+        }
+
+        if (existingSpecifier != "")
+        {
+            return ([existingSpecifier], ResultKind.None);
+        }
+
+        bool importedFileIsInNodeModules = modulePaths.Any(p => p.IsInNodeModules);
+
+        // Priority: 1. bare package specifiers (node_modules→"types"), 2. tsconfig `paths`,
+        // 3. non-relative node_modules specifiers, 4. relative paths.
+        var pathsSpecifiers = new List<string>();
+        var redirectPathsSpecifiers = new List<string>();
+        var nodeModulesSpecifiers = new List<string>();
+        var relativeSpecifiers = new List<string>();
+
+        foreach (ModulePath modulePath in modulePaths)
+        {
+            string specifier = "";
+            if (modulePath.IsInNodeModules)
+            {
+                specifier = TryGetModuleNameAsNodeModule(modulePath, info, importingSourceFile, host, compilerOptions, userPreferences, false /*packageNameOnly*/, options.OverrideImportMode);
+            }
+            if (specifier.Length > 0 && !(forAutoImport && ModuleSpecifierUtil.IsExcludedByRegex(specifier, preferences.ExcludeRegexes)))
+            {
+                nodeModulesSpecifiers.Add(specifier);
+                if (modulePath.IsRedirect)
+                {
+                    // A specifier for a redirect is a bare package specifier — no other will be this good.
+                    return (nodeModulesSpecifiers.ToArray(), ResultKind.NodeModules);
+                }
+            }
+
+            ResolutionMode importMode = options.OverrideImportMode;
+            if (importMode == global::Ts.Core.Core.ResolutionModeNone)
+            {
+                importMode = host.GetDefaultResolutionModeForFile(importingSourceFile);
+            }
+            string local = GetLocalModuleSpecifier(modulePath.FileName, info, compilerOptions, host, importMode, preferences, modulePath.IsRedirect || specifier.Length > 0);
+            if (local.Length == 0 || (forAutoImport && ModuleSpecifierUtil.IsExcludedByRegex(local, preferences.ExcludeRegexes)))
+            {
+                continue;
+            }
+            if (modulePath.IsRedirect)
+            {
+                redirectPathsSpecifiers.Add(local);
+            }
+            else if (ModuleSpecifierUtil.PathIsBareSpecifier(local))
+            {
+                if (ContainsNodeModules(local))
+                {
+                    // baseUrl-generated specifiers containing /node_modules/ trigger a portability error;
+                    // don't prioritize them.
+                    relativeSpecifiers.Add(local);
+                }
+                else
+                {
+                    pathsSpecifiers.Add(local);
+                }
+            }
+            else if (forAutoImport || !importedFileIsInNodeModules || modulePath.IsInNodeModules)
+            {
+                relativeSpecifiers.Add(local);
+            }
+        }
+
+        if (pathsSpecifiers.Count > 0)
+        {
+            return (pathsSpecifiers.ToArray(), ResultKind.Paths);
+        }
+        if (redirectPathsSpecifiers.Count > 0)
+        {
+            return (redirectPathsSpecifiers.ToArray(), ResultKind.Redirect);
+        }
+        if (nodeModulesSpecifiers.Count > 0)
+        {
+            return (nodeModulesSpecifiers.ToArray(), ResultKind.NodeModules);
+        }
+        return (relativeSpecifiers.ToArray(), ResultKind.Relative);
     }
 
     // specifiers.go:485 — getLocalModuleSpecifier.
