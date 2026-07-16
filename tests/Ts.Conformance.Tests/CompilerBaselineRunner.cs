@@ -340,6 +340,11 @@ public static partial class CompilerBaselineRunner
         {
             diagnostics.AddRange(program.GetSemanticDiagnostics(CancellationToken.None, sourceFile: null));
             diagnostics.AddRange(program.GetGlobalDiagnostics(CancellationToken.None));
+            // harnessutil.go:639-641 — declaration diagnostics are part of both the pre- and post-emit sets.
+            if (program.Options()!.GetEmitDeclarations())
+            {
+                diagnostics.AddRange(program.GetDeclarationDiagnostics(CancellationToken.None, sourceFile: null));
+            }
         }
         catch (Exception exception)
         {
@@ -366,6 +371,11 @@ public static partial class CompilerBaselineRunner
                 postProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = static (_, _, _) => { } });
                 postErrors.AddRange(postProgram.GetSemanticDiagnostics(CancellationToken.None, sourceFile: null));
                 postErrors.AddRange(postProgram.GetGlobalDiagnostics(CancellationToken.None));
+                // harnessutil.go:655-657
+                if (postProgram.Options()!.GetEmitDeclarations())
+                {
+                    postErrors.AddRange(postProgram.GetDeclarationDiagnostics(CancellationToken.None, sourceFile: null));
+                }
                 Diagnostic[] post = Program.SortAndDeduplicateDiagnostics(postErrors.ToArray());
                 if (post.Length != sortedDiagnostics.Length)
                 {

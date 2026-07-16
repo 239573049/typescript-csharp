@@ -187,9 +187,51 @@ public sealed partial class Program
         return [];
     }
 
-    // program.go:1307-1309 — declaration diagnostics need the emit host (phase 6). Deferred.
+    // program.go:1307-1309
     public Diagnostic[] GetDeclarationDiagnostics(CancellationToken ctx, SourceFile? sourceFile) =>
-        throw new NotImplementedException("GetDeclarationDiagnostics needs the emit host (declaration emit, phase 6)");
+        CollectDiagnostics(ctx, sourceFile, true /*concurrent*/, GetDeclarationDiagnosticsForFile);
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<SourceFile, Diagnostic[]> declarationDiagnosticCache = new(global::System.Collections.Generic.ReferenceEqualityComparer.Instance);
+
+    // program.go:1399-1414 — getDeclarationDiagnosticsForFile.
+    private Diagnostic[] GetDeclarationDiagnosticsForFile(CancellationToken ctx, SourceFile sourceFile)
+    {
+        if (sourceFile.IsDeclarationFile)
+        {
+            return [];
+        }
+
+        if (declarationDiagnosticCache.TryGetValue(sourceFile, out var cached))
+        {
+            return cached;
+        }
+
+        var (host, done) = EmitHostImpl.NewEmitHost(ctx, this, sourceFile);
+        try
+        {
+            var diagnostics = Emitter_GetDeclarationDiagnostics(host, sourceFile);
+            return declarationDiagnosticCache.GetOrAdd(sourceFile, diagnostics);
+        }
+        finally
+        {
+            done();
+        }
+    }
+
+    // emitter.go:521-531 — getDeclarationDiagnostics.
+    private Diagnostic[] Emitter_GetDeclarationDiagnostics(EmitHostImpl host, SourceFile file)
+    {
+        // TODO: use p.getSourceFilesToEmit cache
+        var fullFiles = CoreUtil.Filter(GetSourceFilesToEmit(file, false), f => !AstUtilities.IsJsonSourceFile(f)) ?? [];
+        if (!CoreUtil.Some(fullFiles, f => f == file))
+        {
+            return [];
+        }
+        var options = host.Options();
+        var transform = global::Ts.Transformers.Declarations.DeclarationTransformer.NewDeclarationTransformer(host, null, options, "", "");
+        transform.TransformSourceFile(file);
+        return transform.GetDiagnostics();
+    }
 
     // program.go:691-697
     public bool SkipTypeChecking(SourceFile sourceFile, bool ignoreNoCheck) =>

@@ -114,7 +114,7 @@ public sealed class TransformerSmokeTests
         public bool IsExpandoFunctionDeclaration(Node node) => false;
         public bool IsExpandoFunctionDeclarationUnsafe(Node node) => false;
         public bool IsLiteralConstDeclaration(Node node) => false;
-        public bool RequiresAddingImplicitUndefined(Node node, Symbol symbol, Node enclosingDeclaration) => false;
+        public bool RequiresAddingImplicitUndefined(Node node, Symbol? symbol, Node enclosingDeclaration) => false;
         public bool IsDeclarationVisible(Node node) => true;
         public bool IsNameResolvable(Node location, string name) => false;
         public bool IsImportRequiredByAugmentation(ImportDeclaration declaration) => false;
