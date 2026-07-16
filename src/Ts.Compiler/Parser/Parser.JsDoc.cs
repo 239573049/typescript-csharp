@@ -1795,10 +1795,19 @@ public sealed partial class Parser
                         }
                         break;
                     case SyntaxKind.ExpressionStatement:
-                        // !!! ast-gap: GetAssignmentDeclarationKind (ast/utilities.go) + its dependency tree
-                        // (IsModuleExportsAccessExpression / IsBindableObjectDefinePropertyCall / …) are not yet
-                        // ported. JS assignment-declaration (exports.x = …) @type reparse is deferred; control
-                        // falls through to the function-like-host path below, matching the kind==None branch.
+                        // reparser.go:369 — JS assignment-declaration (module.exports = …, exports.x = …,
+                        // C.prototype = …) @type reparse: attach the annotation to the BinaryExpression.
+                        if (parent.Expression()!.Kind == SyntaxKind.BinaryExpression)
+                        {
+                            var bin = parent.Expression()!;
+                            var kind = AstUtilities.GetAssignmentDeclarationKind(bin);
+                            if (kind != JSDeclarationKind.None && tag.TypeExpression() != null)
+                            {
+                                bin.AsMutable().SetType(AddDeepCloneReparse(tag.TypeExpression()!.Type()));
+                                FinishMutatedNode(bin);
+                                return;
+                            }
+                        }
                         break;
                     case SyntaxKind.ReturnStatement:
                     case SyntaxKind.ParenthesizedExpression:

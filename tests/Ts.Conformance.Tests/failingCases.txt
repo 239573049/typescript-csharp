@@ -11,9 +11,6 @@ generatorReturnContextualType
 genericRestParameters1
 mappedTypeProperties
 mixinAccessors3
-propertyAssignmentUseParentType2
 recursiveMappedTypes
 typeArgumentInferenceWithClassExpression2
-typeTagModuleExports
-typeTagPrototypeAssignment
 unionAndIntersectionInference1
