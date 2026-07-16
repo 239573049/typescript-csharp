@@ -342,6 +342,133 @@ public static partial class Specifiers
         };
     }
 
+    // specifiers.go:485 — getLocalModuleSpecifier.
+    internal static string GetLocalModuleSpecifier(
+        string moduleFileName,
+        Info info,
+        CompilerOptions compilerOptions,
+        ModuleSpecifierGenerationHost host,
+        ResolutionMode importMode,
+        ModuleSpecifierPreferences preferences,
+        bool pathsOnly)
+    {
+        OrderedMap<string, string[]>? paths = compilerOptions.Paths;
+        string[]? rootDirs = compilerOptions.RootDirs;
+
+        if (pathsOnly && paths == null)
+        {
+            return "";
+        }
+
+        string sourceDirectory = info.SourceDirectory;
+
+        ModuleSpecifierEnding[] allowedEndings = preferences.GetAllowedEndingsInPreferredOrder(importMode);
+        string relativePath = "";
+        if ((rootDirs?.Length ?? 0) > 0)
+        {
+            relativePath = TryGetModuleNameFromRootDirs(rootDirs, moduleFileName, sourceDirectory, allowedEndings, compilerOptions, host);
+        }
+        if (relativePath.Length == 0)
+        {
+            relativePath = ProcessEnding(ModuleSpecifierUtil.EnsurePathIsNonModuleName(TsPathApi.GetRelativePathFromDirectory(sourceDirectory, moduleFileName, new ComparePathsOptions
+            {
+                UseCaseSensitiveFileNames = host.UseCaseSensitiveFileNames(),
+                CurrentDirectory = host.GetCurrentDirectory(),
+            })), allowedEndings, compilerOptions, host);
+        }
+
+        if ((paths == null && !compilerOptions.GetResolvePackageJsonImports()) || preferences.RelativePreference == RelativePreferenceKind.Relative)
+        {
+            return pathsOnly ? "" : relativePath;
+        }
+
+        string root = compilerOptions.GetPathsBasePath(host.GetCurrentDirectory());
+        string baseDirectory = TsPathApi.GetNormalizedAbsolutePath(root, host.GetCurrentDirectory());
+        string relativeToBaseUrl = ModuleSpecifierUtil.GetRelativePathIfInSameVolume(moduleFileName, baseDirectory, host.UseCaseSensitiveFileNames());
+        if (relativeToBaseUrl.Length == 0)
+        {
+            return pathsOnly ? "" : relativePath;
+        }
+
+        string fromPackageJsonImports = "";
+        if (!pathsOnly)
+        {
+            fromPackageJsonImports = TryGetModuleNameFromPackageJsonImports(moduleFileName, sourceDirectory, compilerOptions, host, importMode, ModuleSpecifierUtil.PrefersTsExtension(allowedEndings));
+        }
+
+        string fromPaths = "";
+        if ((pathsOnly || fromPackageJsonImports.Length == 0) && paths != null)
+        {
+            fromPaths = TryGetModuleNameFromPaths(relativeToBaseUrl, paths, allowedEndings, baseDirectory, host, compilerOptions);
+        }
+
+        if (pathsOnly)
+        {
+            return fromPaths;
+        }
+
+        string maybeNonRelative = fromPackageJsonImports.Length > 0 ? fromPackageJsonImports : fromPaths;
+        if (maybeNonRelative.Length == 0)
+        {
+            return relativePath;
+        }
+
+        bool relativeIsExcluded = ModuleSpecifierUtil.IsExcludedByRegex(relativePath, preferences.ExcludeRegexes);
+        bool nonRelativeIsExcluded = ModuleSpecifierUtil.IsExcludedByRegex(maybeNonRelative, preferences.ExcludeRegexes);
+        if (!relativeIsExcluded && nonRelativeIsExcluded)
+        {
+            return relativePath;
+        }
+        if (relativeIsExcluded && !nonRelativeIsExcluded)
+        {
+            return maybeNonRelative;
+        }
+
+        if (preferences.RelativePreference == RelativePreferenceKind.NonRelative && !TsPathApi.PathIsRelative(maybeNonRelative))
+        {
+            return maybeNonRelative;
+        }
+
+        if (preferences.RelativePreference == RelativePreferenceKind.ExternalNonRelative && !TsPathApi.PathIsRelative(maybeNonRelative))
+        {
+            Path projectDirectory = compilerOptions.ConfigFilePath.Length > 0
+                ? TsPathApi.ToPath(TsPathApi.GetDirectoryPath(compilerOptions.ConfigFilePath), host.GetCurrentDirectory(), host.UseCaseSensitiveFileNames())
+                : TsPathApi.ToPath(host.GetCurrentDirectory(), host.GetCurrentDirectory(), host.UseCaseSensitiveFileNames());
+            Path canonicalSourceDirectory = TsPathApi.ToPath(sourceDirectory, host.GetCurrentDirectory(), host.UseCaseSensitiveFileNames());
+            Path modulePath = TsPathApi.ToPath(moduleFileName, projectDirectory.Value, host.UseCaseSensitiveFileNames());
+
+            bool sourceIsInternal = projectDirectory.ContainsPath(canonicalSourceDirectory);
+            bool targetIsInternal = projectDirectory.ContainsPath(modulePath);
+            if ((sourceIsInternal && !targetIsInternal) || (!sourceIsInternal && targetIsInternal))
+            {
+                // The import path crosses the boundary of the tsconfig.json-containing directory.
+                return maybeNonRelative;
+            }
+
+            string nearestTargetPackageJson = host.GetNearestAncestorDirectoryWithPackageJson(TsPathApi.GetDirectoryPath(modulePath.Value));
+            string nearestSourcePackageJson = host.GetNearestAncestorDirectoryWithPackageJson(sourceDirectory);
+
+            if (!ModuleSpecifierUtil.PackageJsonPathsAreEqual(nearestTargetPackageJson, nearestSourcePackageJson, new ComparePathsOptions
+            {
+                UseCaseSensitiveFileNames = host.UseCaseSensitiveFileNames(),
+                CurrentDirectory = host.GetCurrentDirectory(),
+            }))
+            {
+                // The importing and imported files are part of different packages.
+                return maybeNonRelative;
+            }
+
+            return relativePath;
+        }
+
+        // Prefer a relative import over a baseUrl import if it has fewer components.
+        if (ModuleSpecifierUtil.IsPathRelativeToParent(maybeNonRelative) || Compare.CountPathComponents(relativePath) < Compare.CountPathComponents(maybeNonRelative))
+        {
+            return relativePath;
+        }
+        return maybeNonRelative;
+    }
+
     // specifiers.go:636 — processEnding.
     internal static string ProcessEnding(string fileName, ModuleSpecifierEnding[] allowedEndings, CompilerOptions options, ModuleSpecifierGenerationHost? host)
     {
