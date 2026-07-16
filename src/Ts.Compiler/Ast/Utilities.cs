@@ -1056,6 +1056,41 @@ public static partial class AstUtilities
             member.Initializer() != null;
     }
 
+    // ast/utilities.go:3953 — ContainsObjectRestOrSpread. PORT-NOTE: the binding/assignment-pattern
+    // helpers it uses were ported to Ts.Transformers.TransformerAstAdapters; referenced via global::
+    // (same assembly).
+    public static bool ContainsObjectRestOrSpread(Node node)
+    {
+        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsObjectRestOrSpread) != 0)
+        {
+            return true;
+        }
+        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsESObjectRestOrSpread) != 0)
+        {
+            // check for nested spread assignments, otherwise '{ x: { a, ...b } = foo } = c'
+            // will not be correctly interpreted by the rest/spread transformer
+            foreach (var element in global::Ts.Transformers.TransformerAstAdapters.GetElementsOfBindingOrAssignmentPattern(node))
+            {
+                var target = global::Ts.Transformers.TransformerAstAdapters.GetTargetOfBindingOrAssignmentElement(element);
+                if (target != null && global::Ts.Transformers.TransformerAstAdapters.IsAssignmentPattern(target))
+                {
+                    if ((target.SubtreeFacts() & SubtreeFacts.SubtreeContainsObjectRestOrSpread) != 0)
+                    {
+                        return true;
+                    }
+                    if ((target.SubtreeFacts() & SubtreeFacts.SubtreeContainsESObjectRestOrSpread) != 0)
+                    {
+                        if (ContainsObjectRestOrSpread(target))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     // ast/utilities.go:3063 — GetClassExtendsHeritageElement.
     public static Node? GetClassExtendsHeritageElement(Node node)
     {

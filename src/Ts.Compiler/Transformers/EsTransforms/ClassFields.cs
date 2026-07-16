@@ -1,11 +1,8 @@
 // Ported from tsgo internal/transformers/estransforms/classfields.go — the class-fields / private-name /
 // auto-accessor / static-block downleveling transformer.
 //
-// BATCH 1 of the construction plan (see memory classfields-port-plan): the class lexical/private
-// environment data structures, the computed configuration flags, and the constructor with its nine
-// sub-visitors are ported here; the visit dispatch currently forwards every node unchanged
-// (byte-identical to the previous shell), so behavior is unchanged until the visitor bodies land in
-// batches 2-5 and the dispatch is switched over in batch 6.
+// Full port of classfields.go (3618 lines, 134 functions), constructed in six gate-verified batches
+// (see memory classfields-port-plan).
 
 using System;
 using System.Collections.Generic;
@@ -286,36 +283,90 @@ internal sealed class ClassFieldsTransformer : Transformer
         parentNode = grandparentNode;
     }
 
-    // BATCH-1 PLACEHOLDER DISPATCH — forwards every node unchanged (byte-identical to the previous
-    // shell). Batch 2 lands the real dispatch (classfields.go:276) and the sub-visitor bodies.
+    // classfields.go:276 — visit, the main visitor.
     private Node? Visit(Node node)
     {
         var grandparentNode = PushNode(node);
         try
         {
-            return node;
+            if ((node.SubtreeFacts() & (SubtreeFacts.SubtreeContainsClassFields | SubtreeFacts.SubtreeContainsLexicalThisOrSuper)) == 0)
+            {
+                if (currentClassContainer != null && classAliases is { Count: > 0 })
+                {
+                    // Continue visiting for alias substitution even in non-class-field subtrees.
+                    return VisitForSubstitution(node);
+                }
+                return node;
+            }
+
+            switch (node.Kind)
+            {
+                case SyntaxKind.SourceFile:
+                    return VisitSourceFile(node.AsSourceFile());
+                case SyntaxKind.ClassDeclaration:
+                    return VisitClassDeclaration(node);
+                case SyntaxKind.ClassExpression:
+                    return VisitClassExpression(node);
+                case SyntaxKind.ClassStaticBlockDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                    throw new InvalidOperationException("Use `classElementVisitor` instead.");
+                case SyntaxKind.PropertyAssignment:
+                    return VisitPropertyAssignment(node);
+                case SyntaxKind.VariableStatement:
+                    return VisitVariableStatement(node);
+                case SyntaxKind.VariableDeclaration:
+                    return VisitVariableDeclaration(node);
+                case SyntaxKind.Parameter:
+                    return VisitParameterDeclaration(node);
+                case SyntaxKind.BindingElement:
+                    return VisitBindingElement(node);
+                case SyntaxKind.ExportAssignment:
+                    return VisitExportAssignment(node);
+                case SyntaxKind.PrivateIdentifier:
+                    return VisitPrivateIdentifier(node);
+                case SyntaxKind.PropertyAccessExpression:
+                    return VisitPropertyAccessExpression(node);
+                case SyntaxKind.ElementAccessExpression:
+                    return VisitElementAccessExpression(node);
+                case SyntaxKind.PrefixUnaryExpression:
+                case SyntaxKind.PostfixUnaryExpression:
+                    return VisitPreOrPostfixUnaryExpression(node, false /*discarded*/);
+                case SyntaxKind.BinaryExpression:
+                    return VisitBinaryExpression(node, false /*discarded*/);
+                case SyntaxKind.ParenthesizedExpression:
+                    return VisitParenthesizedExpression(node, false /*discarded*/);
+                case SyntaxKind.CallExpression:
+                    return VisitCallExpression(node);
+                case SyntaxKind.ExpressionStatement:
+                    return VisitExpressionStatement(node);
+                case SyntaxKind.TaggedTemplateExpression:
+                    return VisitTaggedTemplateExpression(node);
+                case SyntaxKind.ForStatement:
+                    return VisitForStatement(node);
+                case SyntaxKind.ForInStatement:
+                case SyntaxKind.ForOfStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.WhileStatement:
+                    return SetInIterationStatementAnd(true, static (tx, n) => tx.VisitEachChildOfNode(n), node);
+                case SyntaxKind.ThisKeyword:
+                    return VisitThisExpression(node);
+                case SyntaxKind.FunctionDeclaration:
+                case SyntaxKind.FunctionExpression:
+                    return SetInIterationStatementAnd(false, static (tx, n) => tx.VisitFunctionExpressionOrDeclaration(n), node);
+                case SyntaxKind.Constructor:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                    return SetInIterationStatementAnd(false, static (tx, n) => tx.SetClassElementAndVisitEachChild(n), node);
+                default:
+                    return Visitor().VisitEachChild(node);
+            }
         }
         finally
         {
             PopNode(grandparentNode);
         }
     }
-
-    // BATCH-1 FIELD ANCHOR — references the state fields the batch-2..5 visitor bodies will use so the
-    // batch-1 slice builds warning-clean (CS0169/CS0649 under TreatWarningsAsErrors). Removed in batch 6.
-    private bool BatchOneFieldAnchor() =>
-        pendingExpressions == null && pendingStatements == null && lexicalEnvironment == null &&
-        currentClassContainer == null && currentClassElement == null && classAliases == null &&
-        !inIterationStatement && !insideComputedPropertyName && !shouldTransformPrivateStaticElementsInFile &&
-        !shouldTransformInitializers && !shouldTransformInitializersUsingDefine &&
-        !shouldTransformPrivateElementsOrClassStaticBlocks && !shouldTransformThisInStaticInitializers &&
-        !shouldTransformSuperInStaticInitializers && !legacyDecorators && resolver == null &&
-        compilerOptions != null && global::Ts.Collections.SetExtensions.Len(enclosingClassDeclarations) == 0 &&
-        modifierVisitor != null && discardedValueVisitor != null && heritageClauseVisitor != null &&
-        assignmentTargetVisitor != null && classElementVisitor != null && accessorFieldResultVisitor != null &&
-        arrayAssignmentElementVisitor != null && objectAssignmentElementVisitor != null &&
-        substitutionVisitor != null && isAnonymousClassNeedingAssignedName != null &&
-        !ClassExpressionNeedsBlockScopedTemp() && VisitModifier(currentNode ?? parentNode ?? null!) == null;
 
     // ── Batch 5a: class lexical / private-identifier environment management (classfields.go:2910-3194,
     // 3391-3398) ────────────────────────────────────────────────────────────────────────────────────
@@ -3958,9 +4009,183 @@ internal sealed class ClassFieldsTransformer : Transformer
         return result.ToArray();
     }
 
-    // ── Forward stubs (batch 5b replaces these; unreachable until the batch-6 dispatch switch) ──
-    private Node? VisitAssignmentPattern(Node node) => throw new NotImplementedException("classfields batch 5b");
-    private Node? WrapPrivateIdentifierForDestructuringTarget(Node node) => throw new NotImplementedException("classfields batch 5b");
-    private Node? VisitArrayAssignmentElement(Node node) => node;
-    private Node? VisitObjectAssignmentElement(Node node) => node;
+    // ── Batch 5b: destructuring-assignment family (classfields.go:3196-3364) ───────────────────────
+
+    // classfields.go:3196 — wrapPrivateIdentifierForDestructuringTarget.
+    private Node? WrapPrivateIdentifierForDestructuringTarget(Node node)
+    {
+        var prop = node.AsPropertyAccessExpression();
+        var parameter = Factory().NewGeneratedNameForNode(node);
+        var info = AccessPrivateIdentifier(prop.Name()!);
+        if (info == null)
+        {
+            return Visitor().VisitEachChild(node);
+        }
+        var receiver = prop.Expression!;
+        // We cannot copy `this` or `super` into the function because they will be bound
+        // differently inside the function.
+        var isThisOrSuperProperty = prop.Expression!.Kind == SyntaxKind.ThisKeyword || prop.Expression!.Kind == SyntaxKind.SuperKeyword;
+        if (isThisOrSuperProperty || !global::Ts.Transformers.Transformers.IsSimpleCopiableExpression(prop.Expression!))
+        {
+            receiver = Factory().NewTempVariableEx(new global::Ts.Printer.AutoGenerateOptions
+            {
+                Flags = global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+            });
+            EmitContext().AddVariableDeclaration(receiver);
+            pendingExpressions ??= new List<Node>();
+            pendingExpressions.Add(
+                Factory().NewAssignmentExpression(receiver, Visitor().VisitNode(prop.Expression!)!));
+        }
+        var assignExpr = CreatePrivateIdentifierAssignment(info, receiver, parameter, SyntaxKind.EqualsToken);
+        return Factory().NewAssignmentTargetWrapper(parameter, assignExpr);
+    }
+
+    // classfields.go:3222 — visitAssignmentElement (13.15.5.5 RS:
+    // IteratorDestructuringAssignmentEvaluation).
+    private Node? VisitAssignmentElement(Node node)
+    {
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, false /*ignoreEmptyStringLiteral*/, "" /*assignedName*/)!;
+        }
+        if (AstUtilities.IsAssignmentExpression(node, true /*excludeCompoundAssignment*/))
+        {
+            var left = VisitDestructuringAssignmentTarget(node.AsBinaryExpression().Left!);
+            var right = Visitor().VisitNode(node.AsBinaryExpression().Right);
+            return Factory().UpdateBinaryExpression(
+                node.AsBinaryExpression(),
+                null,
+                left,
+                null,
+                node.AsBinaryExpression().OperatorToken,
+                right);
+        }
+        return VisitDestructuringAssignmentTarget(node);
+    }
+
+    // classfields.go:3253 — visitAssignmentRestElement.
+    private Node? VisitAssignmentRestElement(Node node)
+    {
+        var spread = node.AsSpreadElement();
+        if (AstUtilities.IsLeftHandSideExpression(spread.Expression!))
+        {
+            var expr = VisitDestructuringAssignmentTarget(spread.Expression!);
+            return Factory().UpdateSpreadElement(spread, expr);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:3262 — visitArrayAssignmentElement.
+    private Node? VisitArrayAssignmentElement(Node node)
+    {
+        if (AstUtilities.IsArrayBindingOrAssignmentElement(node))
+        {
+            if (NodeTests.IsSpreadElement(node))
+            {
+                return VisitAssignmentRestElement(node);
+            }
+            if (node.Kind != SyntaxKind.OmittedExpression)
+            {
+                return VisitAssignmentElement(node);
+            }
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:3274 — visitAssignmentProperty (13.15.5.6 RS:
+    // KeyedDestructuringAssignmentEvaluation).
+    private Node? VisitAssignmentProperty(Node node)
+    {
+        // AssignmentProperty : PropertyName `:` AssignmentElement
+        // AssignmentElement : DestructuringAssignmentTarget Initializer?
+        var prop = node.AsPropertyAssignment();
+        var name = Visitor().VisitNode(prop.Name());
+        var init = prop.Initializer!;
+        if (AstUtilities.IsAssignmentExpression(init, true /*excludeCompoundAssignment*/))
+        {
+            var assignElem = VisitAssignmentElement(init);
+            return Factory().UpdatePropertyAssignment(prop, null, name, null, null, assignElem);
+        }
+        if (AstUtilities.IsLeftHandSideExpression(init))
+        {
+            var target = VisitDestructuringAssignmentTarget(init);
+            return Factory().UpdatePropertyAssignment(prop, null, name, null, null, target);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:3300 — visitShorthandAssignmentProperty (13.15.5.3 RS:
+    // PropertyDestructuringAssignmentEvaluation).
+    private Node? VisitShorthandAssignmentProperty(Node node)
+    {
+        // AssignmentProperty : IdentifierReference Initializer?
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, false /*ignoreEmptyStringLiteral*/, "" /*assignedName*/)!;
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:3315 — visitAssignmentRestProperty.
+    private Node? VisitAssignmentRestProperty(Node node)
+    {
+        var spread = node.AsSpreadAssignment();
+        if (AstUtilities.IsLeftHandSideExpression(spread.Expression!))
+        {
+            var expr = VisitDestructuringAssignmentTarget(spread.Expression!);
+            return Factory().UpdateSpreadAssignment(spread, expr);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:3323 — visitObjectAssignmentElement.
+    private Node? VisitObjectAssignmentElement(Node node)
+    {
+        Debug.Assert(AstUtilities.IsObjectBindingOrAssignmentElement(node));
+        if (NodeTests.IsSpreadAssignment(node))
+        {
+            return VisitAssignmentRestProperty(node);
+        }
+        if (NodeTests.IsShorthandPropertyAssignment(node))
+        {
+            return VisitShorthandAssignmentProperty(node);
+        }
+        if (NodeTests.IsPropertyAssignment(node))
+        {
+            return VisitAssignmentProperty(node);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:3338 — visitAssignmentPattern.
+    private Node? VisitAssignmentPattern(Node node)
+    {
+        if (NodeTests.IsArrayLiteralExpression(node))
+        {
+            // Transforms private names in destructuring assignment array bindings.
+            // Transforms SuperProperty assignments in destructuring assignment array bindings in static initializers.
+            //
+            // Source:
+            // ([ this.#myProp ] = [ "hello" ]);
+            //
+            // Transformation:
+            // [ { set value(x) { this.#myProp = x; } }.value ] = [ "hello" ];
+            return Factory().AsNodeFactory().UpdateArrayLiteralExpression(
+                node.AsArrayLiteralExpression(),
+                arrayAssignmentElementVisitor.VisitNodes(node.AsArrayLiteralExpression().Elements),
+                node.AsArrayLiteralExpression().MultiLine);
+        }
+        // Transforms private names in destructuring assignment object bindings.
+        // Transforms SuperProperty assignments in destructuring assignment object bindings in static initializers.
+        //
+        // Source:
+        // ({ stringProperty: this.#myProp } = { stringProperty: "hello" });
+        //
+        // Transformation:
+        // ({ stringProperty: { set value(x) { this.#myProp = x; } }.value }) = { stringProperty: "hello" };
+        return Factory().AsNodeFactory().UpdateObjectLiteralExpression(
+            node.AsObjectLiteralExpression(),
+            objectAssignmentElementVisitor.VisitNodes(node.AsObjectLiteralExpression().Properties),
+            node.AsObjectLiteralExpression().MultiLine);
+    }
 }
