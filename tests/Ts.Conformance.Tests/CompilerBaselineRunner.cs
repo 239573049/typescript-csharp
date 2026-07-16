@@ -388,6 +388,9 @@ public static partial class CompilerBaselineRunner
                 // there, so keeping our pre-emit set produces the same output while avoiding an emit-side
                 // related-information reordering our emit resolver still exhibits (harmless to the count,
                 // but it would reorder e.g. the TS18017/TS18018 related infos of a shadowed private name).
+                // MEASURED (2026-07-16): switching to post flips recursiveMappedTypes (+1, the TS2615
+                // position shifts to the emit-time re-check location) but regresses six privateName*
+                // cases (net -5) until the emit-time related-info reordering is fixed.
             }
             catch (Exception)
             {
