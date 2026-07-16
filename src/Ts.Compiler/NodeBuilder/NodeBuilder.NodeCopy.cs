@@ -662,13 +662,65 @@ public sealed partial class NodeBuilder
         return visitor.VisitEachChild(node);
     }
 
-    // nodecopy.go:234 — getModuleSpecifierOverride + rewriteModuleSpecifier + getEnclosingDeclarationIgnoringFakeScope.
+    // nodecopy.go:234 — getModuleSpecifierOverride.
+    private string GetModuleSpecifierOverride(Node parent, Node lit)
+    {
+        if (ctx!.enclosingFile != AstUtilities.GetSourceFileOfNode(lit))
+        {
+            ResolutionMode mode = global::Ts.Core.Core.ResolutionModeNone;
+            if (parent.AsImportTypeNode().Attributes != null)
+            {
+                mode = ch.GetResolutionModeOverride(parent.AsImportTypeNode().Attributes!.AsImportAttributes(), false);
+            }
+            string name = lit.Text();
+            string originalName = name;
+            Symbol? nodeSymbol = TryGetResolvedSymbolFromTypeNode(parent);
+            SymbolFlags meaning = SymbolFlags.Type;
+            if (parent.AsImportTypeNode().IsTypeOf)
+            {
+                meaning = SymbolFlags.Value;
+            }
+            Symbol? parentSymbol = null;
+            if (nodeSymbol != null && ch.IsSymbolAccessible(nodeSymbol, ctx.enclosingDeclaration, meaning, false).Accessibility == global::Ts.Printer.SymbolAccessibility.Accessible)
+            {
+                parentSymbol = LookupSymbolChain(nodeSymbol, meaning, true)[0];
+            }
+            if (parentSymbol != null && Checker.IsExternalModuleSymbol(parentSymbol))
+            {
+                name = GetSpecifierForModuleSymbol(parentSymbol, mode);
+            }
+            else
+            {
+                SourceFile? targetFile = ch.GetExternalModuleFileFromDeclaration(parent);
+                if (targetFile != null)
+                {
+                    name = GetSpecifierForModuleSymbol(targetFile.Symbol!, mode);
+                }
+            }
+            if (name.Length > 0 && name.Contains("/node_modules/", StringComparison.Ordinal))
+            {
+                ctx.encounteredError = true;
+                ctx.tracker?.ReportLikelyUnsafeImportRequiredError(name, "");
+            }
+            if (name != originalName)
+            {
+                return name;
+            }
+        }
+        return "";
+    }
+
+    // nodecopy.go:270 — rewriteModuleSpecifier.
     private Node RewriteModuleSpecifier(Node parent, Node lit)
     {
-        // DEFERRED: cross-file module-specifier override needs getSpecifierForModuleSymbol (stubbed) +
-        // getExternalModuleFileFromDeclaration. Same-file import types (the common case) never override,
-        // so the raw literal is returned; cross-file reuse falls through unchanged.
-        return lit;
+        string newName = GetModuleSpecifierOverride(parent, lit);
+        if (newName.Length == 0)
+        {
+            return lit;
+        }
+        Node res = f.NewStringLiteral(newName, TokenFlags.None);
+        e.SetOriginal(res, lit);
+        return res;
     }
 
     private Node? GetEnclosingDeclarationIgnoringFakeScope()

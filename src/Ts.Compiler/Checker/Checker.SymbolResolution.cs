@@ -2317,6 +2317,11 @@ public partial class Checker
     internal static bool IsPartOfTypeOnlyImportOrExportDeclaration(Node node) =>
         FindAncestor(node, IsTypeOnlyImportOrExportDeclaration) != null;
 
+    // checker/utilities.go:1630 — IsExternalModuleSymbol. (Go decodes the first rune; '"' is ASCII, so
+    // the UTF-16 first code unit is equivalent, and an empty name yields false either way.)
+    public static bool IsExternalModuleSymbol(Symbol moduleSymbol) =>
+        (moduleSymbol.Flags & SymbolFlags.Module) != 0 && moduleSymbol.Name.Length > 0 && moduleSymbol.Name[0] == '"';
+
     // Forwarder: real body is AstUtilities.IsDeclarationNode (Ast/Utilities.Binder.cs, ast/utilities.go).
     private static bool IsDeclarationNode(Node node) => AstUtilities.IsDeclarationNode(node);
 

@@ -280,11 +280,16 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilder.go:272 — TryJSTypeNodeToTypeNode.
-    // DEFERRED: needs tryJSTypeNodeToTypeNode (JSDoc type-node reuse).
     internal Node? TryJSTypeNodeToTypeNode(Node node, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new NotImplementedException("NodeBuilder.TryJSTypeNodeToTypeNode");
+        global::Ts.NodeBuilder.ISymbolTracker tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(TryJSTypeNodeToTypeNodeImpl(node));
+    }
+
+    // nodecopy.go:20 — tryJSTypeNodeToTypeNode.
+    private Node? TryJSTypeNodeToTypeNodeImpl(Node node) => ReuseNode(node);
 
     // ── impl body (nodebuilderimpl.go) ──────────────────────────────────────────────────────────────
 
