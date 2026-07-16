@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Ts.Ast;
+using Ts.Collections;
 using Ts.Core;
 using Ts.TsPath;
 
@@ -17,6 +18,81 @@ namespace Ts.ModuleSpecifiers;
 
 public static partial class Specifiers
 {
+    // specifiers.go — specPair (ending + computed value candidate for a paths mapping).
+    private readonly record struct SpecPair(ModuleSpecifierEnding Ending, string Value);
+
+    // specifiers.go:1188 — validateEnding.
+    private static bool ValidateEnding(SpecPair c, string relativeToBaseUrl, CompilerOptions compilerOptions, ModuleSpecifierGenerationHost host) =>
+        c.Ending != ModuleSpecifierEnding.Minimal || c.Value == ProcessEnding(relativeToBaseUrl, [c.Ending], compilerOptions, host);
+
+    // specifiers.go:1089 — tryGetModuleNameFromPaths.
+    internal static string TryGetModuleNameFromPaths(
+        string relativeToBaseUrl,
+        OrderedMap<string, string[]> paths,
+        ModuleSpecifierEnding[] allowedEndings,
+        string baseDirectory,
+        ModuleSpecifierGenerationHost host,
+        CompilerOptions compilerOptions)
+    {
+        bool caseSensitive = host.UseCaseSensitiveFileNames();
+        // map-iter: 已排序 — OrderedMap preserves paths insertion order (first match wins, per Go).
+        foreach ((string key, string[] values) in paths.Entries())
+        {
+            foreach (string patternText in values)
+            {
+                string normalized = TsPathApi.NormalizePath(patternText);
+                string pattern = ModuleSpecifierUtil.GetRelativePathIfInSameVolume(normalized, baseDirectory, caseSensitive);
+                if (pattern.Length == 0)
+                {
+                    pattern = normalized;
+                }
+                int starIdx = pattern.IndexOf('*');
+                string prefix = starIdx < 0 ? pattern : pattern[..starIdx];
+                string suffix = starIdx < 0 ? "" : pattern[(starIdx + 1)..];
+                bool ok = starIdx >= 0;
+
+                // In module resolution, if `pattern` itself has an extension, a file with that extension
+                // is looked up directly; the filename result is a candidate only when `pattern` has an
+                // extension. (See moduleNameResolver.ts; long note in the Go source.)
+                var candidates = new List<SpecPair>();
+                foreach (ModuleSpecifierEnding ending in allowedEndings)
+                {
+                    string result = ProcessEnding(relativeToBaseUrl, [ending], compilerOptions, host);
+                    candidates.Add(new SpecPair(ending, result));
+                }
+                if (TsPathApi.TryGetExtensionFromPath(pattern).Length > 0)
+                {
+                    candidates.Add(new SpecPair(ModuleSpecifierEnding.JsExtension, relativeToBaseUrl));
+                }
+
+                if (ok)
+                {
+                    foreach (SpecPair c in candidates)
+                    {
+                        string value = c.Value;
+                        if (value.Length >= prefix.Length + suffix.Length &&
+                            global::Ts.StringUtil.StringUtil.HasPrefix(value, prefix, caseSensitive) &&
+                            global::Ts.StringUtil.StringUtil.HasSuffix(value, suffix, caseSensitive) &&
+                            ValidateEnding(c, relativeToBaseUrl, compilerOptions, host))
+                        {
+                            string matchedStar = value[prefix.Length..(value.Length - suffix.Length)];
+                            if (!TsPathApi.PathIsRelative(matchedStar))
+                            {
+                                return ModuleSpecifierUtil.ReplaceFirstStar(key, matchedStar);
+                            }
+                        }
+                    }
+                }
+                else if (candidates.Any(c => c.Ending != ModuleSpecifierEnding.Minimal && pattern == c.Value) ||
+                         candidates.Any(c => c.Ending == ModuleSpecifierEnding.Minimal && pattern == c.Value && ValidateEnding(c, relativeToBaseUrl, compilerOptions, host)))
+                {
+                    return key;
+                }
+            }
+        }
+        return "";
+    }
+
     // specifiers.go:107 — tryGetModuleNameFromAmbientModule.
     internal static string TryGetModuleNameFromAmbientModule(Symbol moduleSymbol, CheckerShape checker)
     {
