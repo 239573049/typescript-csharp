@@ -233,7 +233,19 @@ public partial class Checker
 
     // ---- checker-side, not-yet-landed (owned by other clusters) ----
     // IsInParameterInitializerBeforeContainingFunction is now REAL in Checker.Expressions.cs (checker.go:12204).
-    internal static global::Ts.Diagnostics.Message GetVerbatimModuleSyntaxErrorMessage(Node node) => throw new NotImplementedException("getVerbatimModuleSyntaxErrorMessage");
+    // checker.go:5660 — getVerbatimModuleSyntaxErrorMessage.
+    internal static global::Ts.Diagnostics.Message GetVerbatimModuleSyntaxErrorMessage(Node node)
+    {
+        SourceFile sourceFile = AstUtilities.GetSourceFileOfNode(node)!;
+        string fileName = sourceFile.FileName();
+        // Check if the file is .cts or .cjs (CommonJS-specific extensions).
+        if (global::Ts.TsPath.TsPath.FileExtensionIsOneOf(fileName, [global::Ts.TsPath.TsPath.ExtensionCts, global::Ts.TsPath.TsPath.ExtensionCjs]))
+        {
+            return global::Ts.Diagnostics.Diagnostics.ECMAScript_imports_and_exports_cannot_be_written_in_a_CommonJS_file_under_verbatimModuleSyntax;
+        }
+        // For .ts, .tsx, .js, etc.
+        return global::Ts.Diagnostics.Diagnostics.ECMAScript_imports_and_exports_cannot_be_written_in_a_CommonJS_file_under_verbatimModuleSyntax_Adjust_the_type_field_in_the_nearest_package_json_to_make_this_file_an_ECMAScript_module_or_adjust_your_verbatimModuleSyntax_module_and_moduleResolution_settings_in_TypeScript;
+    }
     // IsDeclarationReadonly is now REAL in Checker.Widening.cs (utilities.go:805).
     // checker.go — hasAsyncModifier.
     internal static bool HasAsyncModifier(Node node) => AstUtilities.HasSyntacticModifier(node, ModifierFlags.Async);

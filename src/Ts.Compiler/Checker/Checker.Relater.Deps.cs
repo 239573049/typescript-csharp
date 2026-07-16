@@ -19,7 +19,23 @@ public partial class Checker
     // ---- printer / to-string (printer.go) ----
     // signatureToString / signatureToStringEx: real bodies in Checker.SymbolToString.cs (printer.go:309).
     // typePredicateToString / typePredicateToStringEx: real bodies in Checker.SymbolToString.cs.
-    internal string ValueToString(object? value) => throw new NotImplementedException("valueToString");
+    // printer.go — valueToString / utilities.go:1672 ValueToString.
+    internal string ValueToString(object? value)
+    {
+        switch (value)
+        {
+            case string s:
+                return "\"" + global::Ts.Printer.PrinterUtilities.EscapeString(s, global::Ts.Printer.QuoteChar.DoubleQuote) + "\"";
+            case global::Ts.JsNum.Number n:
+                return n.ToString();
+            case bool b:
+                return b ? "true" : "false";
+            case global::Ts.JsNum.PseudoBigInt pbi:
+                return pbi.ToString() + "n";
+            default:
+                throw new InvalidOperationException("unhandled value type in valueToString");
+        }
+    }
     // checker.go:14835 — reportNonExportedMember.
     internal void ReportNonExportedMember(Node name, string declarationName, Symbol moduleSymbol, string moduleName)
     {
@@ -245,7 +261,16 @@ public partial class Checker
         var candidates = global::Ts.Core.CoreUtil.FilterSeq(target.Types(), t => (t.flags & TypeFlags.StringLiteral) != 0);
         return global::Ts.Core.CoreUtil.GetSpellingSuggestion(GetStringLiteralValue(source), candidates, GetStringLiteralValue, CompareTypes);
     }
-    internal Symbol[] GetExactOptionalUnassignableProperties(Type source, Type target) => throw new NotImplementedException("getExactOptionalUnassignableProperties");
+    // checker.go — getExactOptionalUnassignableProperties.
+    internal Symbol[] GetExactOptionalUnassignableProperties(Type source, Type target)
+    {
+        if (IsTupleType(source) && IsTupleType(target))
+        {
+            return [];
+        }
+        return CoreUtil.Filter(GetPropertiesOfType(target), targetProp =>
+            IsExactOptionalPropertyMismatch(GetTypeOfPropertyOfType(source, targetProp.Name), GetTypeOfSymbol(targetProp))) ?? [];
+    }
     // getJsxType / elaborateJsxComponents: real bodies landed in Checker.Jsx.cs (jsx wave).
 
     // ---- expression checking / contextual (expressions, contextual waves) ----
