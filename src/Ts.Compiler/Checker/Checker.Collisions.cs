@@ -649,4 +649,60 @@ public partial class Checker
         diagnostic.SetSkippedOnNoEmit();
         return diagnostic;
     }
+
+    // checker.go:10524 — checkWeakMapSetCollision.
+    internal void CheckWeakMapSetCollision(Node node)
+    {
+        Node? enclosingBlockScope = AstUtilities.GetEnclosingBlockScopeContainer(node);
+        if ((nodeLinks.Get(enclosingBlockScope!).flags & NodeCheckFlags.ContainsClassWithPrivateIdentifiers) != 0)
+        {
+            Node? name = node.Name();
+            if (name != null && NodeTests.IsIdentifier(name))
+            {
+                ErrorSkippedOnNoEmit(node, Diag.Compiler_reserves_name_0_when_emitting_private_identifier_downlevel, name.Text());
+            }
+        }
+    }
+
+    // checker.go:10558 — checkReflectCollision.
+    internal void CheckReflectCollision(Node node)
+    {
+        bool hasCollision = false;
+        if (NodeTests.IsClassExpression(node))
+        {
+            // ClassExpression names don't contribute to their containers, but do matter for any of their block-scoped members.
+            foreach (Node member in node.Members() ?? [])
+            {
+                if ((nodeLinks.Get(member).flags & NodeCheckFlags.ContainsSuperPropertyInStaticInitializer) != 0)
+                {
+                    hasCollision = true;
+                    break;
+                }
+            }
+        }
+        else if (NodeTests.IsFunctionExpression(node))
+        {
+            // FunctionExpression names don't contribute to their containers, but do matter for their contents.
+            if ((nodeLinks.Get(node).flags & NodeCheckFlags.ContainsSuperPropertyInStaticInitializer) != 0)
+            {
+                hasCollision = true;
+            }
+        }
+        else
+        {
+            Node? container = AstUtilities.GetEnclosingBlockScopeContainer(node);
+            if (container != null && (nodeLinks.Get(container).flags & NodeCheckFlags.ContainsSuperPropertyInStaticInitializer) != 0)
+            {
+                hasCollision = true;
+            }
+        }
+        if (hasCollision)
+        {
+            Node? name = node.Name();
+            if (name != null && NodeTests.IsIdentifier(name))
+            {
+                ErrorSkippedOnNoEmit(node, Diag.Duplicate_identifier_0_Compiler_reserves_name_1_when_emitting_super_references_in_static_initializers, global::Ts.Scanner.Scanner.DeclarationNameToString(name), "Reflect");
+            }
+        }
+    }
 }

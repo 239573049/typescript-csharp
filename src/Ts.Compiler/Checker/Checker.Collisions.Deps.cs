@@ -34,7 +34,5 @@ public partial class Checker
 {
     // ---- (1) unused-identifier dispatch (checker.go:7050-7290) — real bodies in Checker.Collisions.cs ----
 
-    // ---- (2) rare reserved-name collision leaves (checker.go:10524/10558) ----
-    internal void CheckWeakMapSetCollision(Node node) => throw new NotImplementedException("checkWeakMapSetCollision");
-    internal void CheckReflectCollision(Node node) => throw new NotImplementedException("checkReflectCollision");
+    // ---- (2) rare reserved-name collision leaves (checker.go:10524/10558) — real bodies in Checker.Collisions.cs ----
 }
