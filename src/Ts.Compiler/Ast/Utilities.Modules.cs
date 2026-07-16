@@ -58,6 +58,10 @@ public static partial class AstUtilities
         return (ModuleKind.CommonJS, true);
     }
 
+    // ast.go:1829 — IsTypeOrJSTypeAliasDeclaration.
+    public static bool IsTypeOrJSTypeAliasDeclaration(Node node) =>
+        node.Kind == SyntaxKind.TypeAliasDeclaration || node.Kind == SyntaxKind.JSTypeAliasDeclaration;
+
     // ast/utilities.go:1916 — getImportTypeNodeLiteral.
     public static Node? GetImportTypeNodeLiteral(Node node)
     {

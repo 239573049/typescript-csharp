@@ -34,66 +34,16 @@ internal static class TransformerAstAdapters
         _ => [],
     };
 
-    public static bool IsDeclarationBindingElement(Node bindingElement) => bindingElement.Kind is
-        SyntaxKind.VariableDeclaration or SyntaxKind.Parameter or SyntaxKind.BindingElement;
+    // Faithful bodies now live in Ts.Ast.AstUtilities (shared with the printer's rest helper); these
+    // forward to that single home.
+    public static bool IsDeclarationBindingElement(Node bindingElement) =>
+        global::Ts.Ast.AstUtilities.IsDeclarationBindingElement(bindingElement);
 
-    public static Node? GetTargetOfBindingOrAssignmentElement(Node? bindingElement)
-    {
-        if (bindingElement is null)
-        {
-            return null;
-        }
-        if (IsDeclarationBindingElement(bindingElement))
-        {
-            return bindingElement.Name();
-        }
-        if (global::Ts.Ast.AstUtilities.IsObjectLiteralElement(bindingElement))
-        {
-            return bindingElement.Kind switch
-            {
-                SyntaxKind.PropertyAssignment => GetTargetOfBindingOrAssignmentElement(bindingElement.Initializer()),
-                SyntaxKind.ShorthandPropertyAssignment => bindingElement.Name(),
-                SyntaxKind.SpreadAssignment => GetTargetOfBindingOrAssignmentElement(bindingElement.Expression()),
-                _ => null,
-            };
-        }
-        if (global::Ts.Ast.AstUtilities.IsAssignmentExpression(bindingElement, true))
-        {
-            return GetTargetOfBindingOrAssignmentElement(bindingElement.AsBinaryExpression().Left);
-        }
-        if (global::Ts.Ast.NodeTests.IsSpreadElement(bindingElement))
-        {
-            return GetTargetOfBindingOrAssignmentElement(bindingElement.Expression());
-        }
-        return bindingElement;
-    }
+    public static Node? GetTargetOfBindingOrAssignmentElement(Node? bindingElement) =>
+        global::Ts.Ast.AstUtilities.GetTargetOfBindingOrAssignmentElement(bindingElement);
 
-    public static Node? TryGetPropertyNameOfBindingOrAssignmentElement(Node bindingElement)
-    {
-        if (bindingElement.Kind == SyntaxKind.BindingElement && bindingElement.PropertyName() is { } bindingPropertyName)
-        {
-            // if IsPrivateIdentifier(propertyName) { return Debug.failBadSyntaxKind(propertyName) } // !!!
-            return global::Ts.Ast.NodeTests.IsComputedPropertyName(bindingPropertyName) &&
-                global::Ts.Ast.AstUtilities.IsStringOrNumericLiteralLike(bindingPropertyName.Expression()!)
-                    ? bindingPropertyName.Expression()
-                    : bindingPropertyName;
-        }
-        if (bindingElement.Kind == SyntaxKind.PropertyAssignment && bindingElement.Name() is { } assignmentPropertyName)
-        {
-            // if IsPrivateIdentifier(propertyName) { return Debug.failBadSyntaxKind(propertyName) } // !!!
-            return global::Ts.Ast.NodeTests.IsComputedPropertyName(assignmentPropertyName) &&
-                global::Ts.Ast.AstUtilities.IsStringOrNumericLiteralLike(assignmentPropertyName.Expression()!)
-                    ? assignmentPropertyName.Expression()
-                    : assignmentPropertyName;
-        }
-        if (bindingElement.Kind == SyntaxKind.SpreadAssignment)
-        {
-            // if IsPrivateIdentifier(bindingElement.Name()) { return Debug.failBadSyntaxKind(...) } // !!!
-            return bindingElement.Name();
-        }
-        var target = GetTargetOfBindingOrAssignmentElement(bindingElement);
-        return target is not null && global::Ts.Ast.AstUtilities.IsPropertyName(target) ? target : null;
-    }
+    public static Node? TryGetPropertyNameOfBindingOrAssignmentElement(Node bindingElement) =>
+        global::Ts.Ast.AstUtilities.TryGetPropertyNameOfBindingOrAssignmentElement(bindingElement);
 
     public static Node? GetRestIndicatorOfBindingOrAssignmentElement(Node bindingElement) => bindingElement.Kind switch
     {
