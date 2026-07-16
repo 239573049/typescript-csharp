@@ -1091,6 +1091,221 @@ public static partial class AstUtilities
         return false;
     }
 
+    // ast/utilities.go:3292 — ReplaceModifiers.
+    public static Node ReplaceModifiers(NodeFactory factory, Node node, ModifierList? modifierArray)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.TypeParameter:
+                return factory.UpdateTypeParameterDeclaration(
+                    node.AsTypeParameterDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.AsTypeParameterDeclaration().Constraint,
+                    node.AsTypeParameterDeclaration().Expression,
+                    node.AsTypeParameterDeclaration().DefaultType);
+            case SyntaxKind.Parameter:
+                return factory.UpdateParameterDeclaration(
+                    node.AsParameterDeclaration(),
+                    modifierArray,
+                    node.AsParameterDeclaration().DotDotDotToken,
+                    node.Name(),
+                    node.QuestionToken(),
+                    node.Type(),
+                    node.Initializer());
+            case SyntaxKind.ConstructorType:
+                return factory.UpdateConstructorTypeNode(
+                    node.AsConstructorTypeNode(),
+                    modifierArray,
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type());
+            case SyntaxKind.PropertySignature:
+                return factory.UpdatePropertySignatureDeclaration(
+                    node.AsPropertySignatureDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.PostfixToken(),
+                    node.Type(),
+                    node.Initializer());
+            case SyntaxKind.PropertyDeclaration:
+                return factory.UpdatePropertyDeclaration(
+                    node.AsPropertyDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.PostfixToken(),
+                    node.Type(),
+                    node.Initializer());
+            case SyntaxKind.MethodSignature:
+                return factory.UpdateMethodSignatureDeclaration(
+                    node.AsMethodSignatureDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.PostfixToken(),
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type());
+            case SyntaxKind.MethodDeclaration:
+                return factory.UpdateMethodDeclaration(
+                    node.AsMethodDeclaration(),
+                    modifierArray,
+                    node.AsMethodDeclaration().AsteriskToken,
+                    node.Name(),
+                    node.PostfixToken(),
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsMethodDeclaration().FullSignature,
+                    node.Body());
+            case SyntaxKind.Constructor:
+                return factory.UpdateConstructorDeclaration(
+                    node.AsConstructorDeclaration(),
+                    modifierArray,
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsConstructorDeclaration().FullSignature,
+                    node.Body());
+            case SyntaxKind.GetAccessor:
+                return factory.UpdateGetAccessorDeclaration(
+                    node.AsGetAccessorDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsGetAccessorDeclaration().FullSignature,
+                    node.Body());
+            case SyntaxKind.SetAccessor:
+                return factory.UpdateSetAccessorDeclaration(
+                    node.AsSetAccessorDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsSetAccessorDeclaration().FullSignature,
+                    node.Body());
+            case SyntaxKind.IndexSignature:
+                return factory.UpdateIndexSignatureDeclaration(
+                    node.AsIndexSignatureDeclaration(),
+                    modifierArray,
+                    node.ParameterList(),
+                    node.Type());
+            case SyntaxKind.FunctionExpression:
+                return factory.UpdateFunctionExpression(
+                    node.AsFunctionExpression(),
+                    modifierArray,
+                    node.AsFunctionExpression().AsteriskToken,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsFunctionExpression().FullSignature,
+                    node.Body());
+            case SyntaxKind.ArrowFunction:
+                return factory.UpdateArrowFunction(
+                    node.AsArrowFunction(),
+                    modifierArray,
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsArrowFunction().FullSignature,
+                    node.AsArrowFunction().EqualsGreaterThanToken,
+                    node.Body());
+            case SyntaxKind.ClassExpression:
+                return factory.UpdateClassExpression(
+                    node.AsClassExpression(),
+                    modifierArray,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.AsClassExpression().HeritageClauses,
+                    node.MemberList());
+            case SyntaxKind.VariableStatement:
+                return factory.UpdateVariableStatement(
+                    node.AsVariableStatement(),
+                    modifierArray,
+                    node.AsVariableStatement().DeclarationList);
+            case SyntaxKind.FunctionDeclaration:
+                return factory.UpdateFunctionDeclaration(
+                    node.AsFunctionDeclaration(),
+                    modifierArray,
+                    node.AsFunctionDeclaration().AsteriskToken,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.ParameterList(),
+                    node.Type(),
+                    node.AsFunctionDeclaration().FullSignature,
+                    node.Body());
+            case SyntaxKind.ClassDeclaration:
+                return factory.UpdateClassDeclaration(
+                    node.AsClassDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.AsClassDeclaration().HeritageClauses,
+                    node.MemberList());
+            case SyntaxKind.InterfaceDeclaration:
+                return factory.UpdateInterfaceDeclaration(
+                    node.AsInterfaceDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.AsInterfaceDeclaration().HeritageClauses,
+                    node.MemberList());
+            case SyntaxKind.TypeAliasDeclaration:
+                return factory.UpdateTypeAliasDeclaration(
+                    node.AsTypeAliasDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.TypeParameterList(),
+                    node.Type());
+            case SyntaxKind.EnumDeclaration:
+                return factory.UpdateEnumDeclaration(
+                    node.AsEnumDeclaration(),
+                    modifierArray,
+                    node.Name(),
+                    node.MemberList());
+            case SyntaxKind.ModuleDeclaration:
+                return factory.UpdateModuleDeclaration(
+                    node.AsModuleDeclaration(),
+                    modifierArray,
+                    node.AsModuleDeclaration().Keyword,
+                    node.Name(),
+                    node.Body());
+            case SyntaxKind.ImportEqualsDeclaration:
+                return factory.UpdateImportEqualsDeclaration(
+                    node.AsImportEqualsDeclaration(),
+                    modifierArray,
+                    node.IsTypeOnly(),
+                    node.Name(),
+                    node.AsImportEqualsDeclaration().ModuleReference);
+            case SyntaxKind.ImportDeclaration:
+                return factory.UpdateImportDeclaration(
+                    node.AsImportDeclaration(),
+                    modifierArray,
+                    node.ImportClause(),
+                    node.ModuleSpecifier(),
+                    node.AsImportDeclaration().Attributes);
+            case SyntaxKind.ExportAssignment:
+                return factory.UpdateExportAssignment(
+                    node.AsExportAssignment(),
+                    modifierArray,
+                    node.AsExportAssignment().IsExportEquals,
+                    node.Type(),
+                    node.Expression());
+            case SyntaxKind.ExportDeclaration:
+                return factory.UpdateExportDeclaration(
+                    node.AsExportDeclaration(),
+                    modifierArray,
+                    node.IsTypeOnly(),
+                    node.AsExportDeclaration().ExportClause,
+                    node.ModuleSpecifier(),
+                    node.AsExportDeclaration().Attributes);
+        }
+        throw new InvalidOperationException($"Node that does not have modifiers tried to have modifier replaced: {node.Kind}");
+    }
+
     // ast/utilities.go:4058 — IsPrimitiveLiteralValue.
     public static bool IsPrimitiveLiteralValue(Node node, bool includeBigInt)
     {

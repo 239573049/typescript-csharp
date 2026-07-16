@@ -560,8 +560,245 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         });
     }
 
-    // ── rebuild forward stub: replaced when visitDeclarationStatements batch lands ──
-    private Node? TransformTopLevelDeclaration(Node input) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:1674-1753 — transformTopLevelDeclaration: transforms the direct child of a source
+    // file into zero or more replacement statements.
+    private Node? TransformTopLevelDeclaration(Node input)
+    {
+        if (state.LateMarkedStatements.Count > 0)
+        {
+            // Remove duplicates of the current statement from the deferred work queue (this was done via orderedRemoveItem in strada - why? to ensure the same backing array? microop?)
+            state.LateMarkedStatements.RemoveAll(node => node == input);
+        }
+        if (ShouldStripInternal(input))
+        {
+            return null;
+        }
+        if (input.Kind == SyntaxKind.ImportEqualsDeclaration)
+        {
+            return TransformImportEqualsDeclaration(input.AsImportEqualsDeclaration());
+        }
+        if (input.Kind == SyntaxKind.ImportDeclaration || input.Kind == SyntaxKind.JSImportDeclaration)
+        {
+            var res = TransformImportDeclaration(input.AsImportDeclaration());
+            if (res != null && res.Kind != SyntaxKind.ImportDeclaration)
+            {
+                var clone = res.Clone(Factory())!;
+                clone.Kind = SyntaxKind.ImportDeclaration;
+                return clone;
+            }
+            return res;
+        }
+        if (AstUtilities.IsDeclaration(input) && DeclarationUtilities.IsDeclarationAndNotVisible(EmitContext(), resolver!, input))
+        {
+            return null;
+        }
+
+        // !!! TODO: JSDoc support
+        // if (isJSDocImportTag(input)) return;
+
+        // Elide implementation signatures from overload sets
+        if (AstUtilities.IsFunctionLike(input) && resolver!.IsImplementationOfOverload(input))
+        {
+            return null;
+        }
+        var original = EmitContext().MostOriginal(input)!;
+        var id = AstUtilities.GetNodeId(original);
+        var isExpandoHost = expandoHosts.ContainsKey(id);
+        var hasDeferredExpandoAssignments = deferredExpandoAssignments.ContainsKey(id);
+        if (isExpandoHost || hasDeferredExpandoAssignments)
+        {
+            return CreateFullExpandoBlock(id);
+        }
+
+        var previousEnclosingDeclaration = enclosingDeclaration;
+        if (DeclarationUtilities.IsEnclosingDeclaration(input))
+        {
+            enclosingDeclaration = input;
+        }
+
+        var canProdiceDiagnostic = DeclarationUtilities.CanProduceDiagnostics(input);
+        var oldDiag = state.GetSymbolAccessibilityDiagnostic;
+        var oldName = state.ErrorNameNode;
+        if (canProdiceDiagnostic)
+        {
+            state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(input);
+        }
+        var saveNeedsDeclare = needsDeclare;
+
+        Node? result;
+        switch (input.Kind)
+        {
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+                result = TransformTypeAliasDeclaration(input.AsTypeAliasDeclaration());
+                break;
+            case SyntaxKind.InterfaceDeclaration:
+                result = TransformInterfaceDeclaration(input.AsInterfaceDeclaration());
+                break;
+            case SyntaxKind.FunctionDeclaration:
+                result = TransformFunctionDeclaration(input.AsFunctionDeclaration());
+                break;
+            case SyntaxKind.ModuleDeclaration:
+                result = TransformModuleDeclaration(input.AsModuleDeclaration());
+                break;
+            case SyntaxKind.ClassDeclaration:
+                result = TransformClassDeclaration(input.AsClassDeclaration());
+                break;
+            case SyntaxKind.VariableStatement:
+                result = TransformVariableStatement(input.AsVariableStatement());
+                break;
+            case SyntaxKind.EnumDeclaration:
+                result = TransformEnumDeclaration(input.AsEnumDeclaration());
+                break;
+            default:
+                // Anything left unhandled is an error, so this should be unreachable
+                throw new InvalidOperationException($"Unhandled top-level node in declaration emit: {input.Kind}");
+        }
+
+        enclosingDeclaration = previousEnclosingDeclaration;
+        state.GetSymbolAccessibilityDiagnostic = oldDiag;
+        needsDeclare = saveNeedsDeclare;
+        state.ErrorNameNode = oldName;
+        return result;
+    }
+
+    // transform.go:2419-2440 — transformImportEqualsDeclaration.
+    private Node? TransformImportEqualsDeclaration(ImportEqualsDeclaration decl)
+    {
+        if (!resolver!.IsDeclarationVisible(decl.AsNode()))
+        {
+            return null;
+        }
+        if (decl.ModuleReference!.Kind == SyntaxKind.ExternalModuleReference)
+        {
+            // Rewrite external module names if necessary
+            var specifier = decl.ModuleReference.Expression();
+            return Factory().AsNodeFactory().UpdateImportEqualsDeclaration(
+                decl,
+                decl.Modifiers(),
+                decl.IsTypeOnly,
+                decl.Name(),
+                Factory().AsNodeFactory().UpdateExternalModuleReference(decl.ModuleReference.AsExternalModuleReference(), RewriteModuleSpecifier(decl.AsNode(), specifier)));
+        }
+        else
+        {
+            var oldDiag = state.GetSymbolAccessibilityDiagnostic;
+            state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(decl.AsNode());
+            CheckEntityNameVisibility(decl.ModuleReference, enclosingDeclaration!);
+            state.GetSymbolAccessibilityDiagnostic = oldDiag;
+            return decl.AsNode();
+        }
+    }
+
+    // transform.go:2442-2546 — transformImportDeclaration.
+    private Node? TransformImportDeclaration(ImportDeclaration decl)
+    {
+        if (decl.ImportClause == null)
+        {
+            // import "mod" - possibly needed for side effects? (global interface patches, module augmentations, etc)
+            return Factory().AsNodeFactory().UpdateImportDeclaration(
+                decl,
+                decl.Modifiers(),
+                decl.ImportClause,
+                RewriteModuleSpecifier(decl.AsNode(), decl.ModuleSpecifier),
+                TryGetResolutionModeOverride(decl.Attributes));
+        }
+        var phaseModifier = decl.ImportClause.AsImportClause().PhaseModifier;
+        if (phaseModifier == SyntaxKind.DeferKeyword)
+        {
+            phaseModifier = SyntaxKind.Unknown;
+        }
+        // The `importClause` visibility corresponds to the default's visibility.
+        Node? visibleDefaultBinding = null;
+        if (decl.ImportClause != null && decl.ImportClause.Name() != null && resolver!.IsDeclarationVisible(decl.ImportClause))
+        {
+            visibleDefaultBinding = decl.ImportClause.Name();
+        }
+        if (decl.ImportClause!.AsImportClause().NamedBindings == null)
+        {
+            // No named bindings (either namespace or list), meaning the import is just default or should be elided
+            if (visibleDefaultBinding == null)
+            {
+                return null;
+            }
+            return Factory().AsNodeFactory().UpdateImportDeclaration(
+                decl,
+                decl.Modifiers(),
+                Factory().AsNodeFactory().UpdateImportClause(
+                    decl.ImportClause.AsImportClause(),
+                    phaseModifier,
+                    visibleDefaultBinding,
+                    /*namedBindings*/ null),
+                RewriteModuleSpecifier(decl.AsNode(), decl.ModuleSpecifier),
+                TryGetResolutionModeOverride(decl.Attributes));
+        }
+        if (decl.ImportClause.AsImportClause().NamedBindings!.Kind == SyntaxKind.NamespaceImport)
+        {
+            // Namespace import (optionally with visible default)
+            Node? namedBindings = null;
+            if (resolver!.IsDeclarationVisible(decl.ImportClause.AsImportClause().NamedBindings!))
+            {
+                namedBindings = decl.ImportClause.AsImportClause().NamedBindings;
+            }
+            if (visibleDefaultBinding == null && namedBindings == null)
+            {
+                return null;
+            }
+            return Factory().AsNodeFactory().UpdateImportDeclaration(
+                decl,
+                decl.Modifiers(),
+                Factory().AsNodeFactory().UpdateImportClause(
+                    decl.ImportClause.AsImportClause(),
+                    phaseModifier,
+                    visibleDefaultBinding,
+                    namedBindings),
+                RewriteModuleSpecifier(decl.AsNode(), decl.ModuleSpecifier),
+                TryGetResolutionModeOverride(decl.Attributes));
+        }
+        // Named imports (optionally with visible default)
+        var bindingList = CoreUtil.Filter(
+            decl.ImportClause.AsImportClause().NamedBindings!.Elements(),
+            b => resolver!.IsDeclarationVisible(b)) ?? [];
+        if (bindingList.Length > 0 || visibleDefaultBinding != null)
+        {
+            Node? namedImports = null;
+            if (bindingList.Length > 0)
+            {
+                namedImports = Factory().AsNodeFactory().UpdateNamedImports(
+                    decl.ImportClause.AsImportClause().NamedBindings!.AsNamedImports(),
+                    Factory().AsNodeFactory().NewNodeList(bindingList));
+            }
+            return Factory().AsNodeFactory().UpdateImportDeclaration(
+                decl,
+                decl.Modifiers(),
+                Factory().AsNodeFactory().UpdateImportClause(
+                    decl.ImportClause.AsImportClause(),
+                    phaseModifier,
+                    visibleDefaultBinding,
+                    namedImports),
+                RewriteModuleSpecifier(decl.AsNode(), decl.ModuleSpecifier),
+                TryGetResolutionModeOverride(decl.Attributes));
+        }
+        // Augmentation of export depends on import
+        if (resolver!.IsImportRequiredByAugmentation(decl))
+        {
+            if (state.IsolatedDeclarations)
+            {
+                state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(decl.AsNode(), global::Ts.Diagnostics.Diagnostics.Declaration_emit_for_this_file_requires_preserving_this_import_for_augmentations_This_is_not_supported_with_isolatedDeclarations));
+            }
+            return Factory().AsNodeFactory().UpdateImportDeclaration(
+                decl,
+                decl.Modifiers(),
+                /*importClause*/ null,
+                RewriteModuleSpecifier(decl.AsNode(), decl.ModuleSpecifier),
+                TryGetResolutionModeOverride(decl.Attributes));
+        }
+        // Nothing visible
+        return null;
+    }
+
+    // ── rebuild forward stub (expando batch replaces) ──
+    private Node? CreateFullExpandoBlock(NodeId id) => throw new NotImplementedException("declarations rebuild");
 
     // transform.go:573-698 — visitDeclarationSubtree (not yet wired; the wiring batch switches the
     // main dispatch to it).
@@ -1718,7 +1955,30 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
     // visitSourceFile chain is wired) ──
     private Node? VisitBindingName(Node node) => throw new NotImplementedException("declarations rebuild");
     private Node? VisitNestedExpression(Node node) => throw new NotImplementedException("declarations rebuild");
-    private Node? StripExportModifiers(Node node) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:1866-1888 — stripExportModifiers.
+    private Node? StripExportModifiers(Node? statement)
+    {
+        if (statement == null)
+        {
+            return null;
+        }
+        var parseNode = EmitContext().ParseNode(statement);
+        if (NodeTests.IsImportEqualsDeclaration(statement) || (parseNode != null && host!.GetEffectiveDeclarationFlags(parseNode, ModifierFlags.Default) != 0) || !global::Ts.Checker.Checker.CanHaveModifiers(statement))
+        {
+            // `export import` statements should remain as-is, as imports are _not_ implicitly exported in an ambient namespace
+            // Likewise, `export default` classes and the like and just be `default`, so we preserve their `export` modifiers, too
+            return statement;
+        }
+
+        var oldFlags = AstUtilities.GetCombinedModifierFlags(statement);
+        if ((oldFlags & ModifierFlags.Export) == 0)
+        {
+            return statement;
+        }
+        var newFlags = oldFlags & (ModifierFlags.All ^ ModifierFlags.Export);
+        var modifiers = AstUtilities.CreateModifiersFromModifierFlags(newFlags, Factory().AsNodeFactory().NewModifier);
+        return AstUtilities.ReplaceModifiers(Factory().AsNodeFactory(), statement, Factory().AsNodeFactory().NewModifierList(modifiers));
+    }
     private Node? VisitThisPropertyAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
     private Node? VisitCJSExportAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
     private Node? StripDeclareModifiers(Node node) => throw new NotImplementedException("declarations rebuild");
@@ -1881,51 +2141,48 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         return null;
     }
 
+    // transform.go:1754-1764 — transformTypeAliasDeclaration (needsDeclare is restored by
+    // transformTopLevelDeclaration).
     private Node TransformTypeAliasDeclaration(TypeAliasDeclaration input)
     {
-        var oldNeedsDeclare = needsDeclare;
         needsDeclare = false;
-        var result = Factory().AsNodeFactory().UpdateTypeAliasDeclaration(
+        return Factory().AsNodeFactory().UpdateTypeAliasDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
             Visitor().VisitNodes(input.TypeParameters),
             Visitor().VisitNode(input.Type));
-        needsDeclare = oldNeedsDeclare;
-        return result;
     }
 
+    // transform.go:1765-1775 — transformInterfaceDeclaration.
     private Node TransformInterfaceDeclaration(InterfaceDeclaration input)
     {
-        var oldEnclosing = enclosingDeclaration;
-        enclosingDeclaration = input.AsNode();
-        var result = Factory().AsNodeFactory().UpdateInterfaceDeclaration(
+        return Factory().AsNodeFactory().UpdateInterfaceDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
             Visitor().VisitNodes(input.TypeParameters),
             Visitor().VisitNodes(input.HeritageClauses),
             Visitor().VisitNodes(input.Members));
-        enclosingDeclaration = oldEnclosing;
-        return result;
     }
 
+    // transform.go:1776-1792 — transformFunctionDeclaration.
     private Node TransformFunctionDeclaration(FunctionDeclaration input)
     {
-        var oldEnclosing = enclosingDeclaration;
-        enclosingDeclaration = input.AsNode();
-        var result = Factory().AsNodeFactory().UpdateFunctionDeclaration(
+        if (resolver!.IsExpandoFunctionDeclaration(input.AsNode()))
+        {
+            state.ReportExpandoFunctionErrors?.Invoke(input.AsNode());
+        }
+        return Factory().AsNodeFactory().UpdateFunctionDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             null,
             input.Name(),
-            Visitor().VisitNodes(input.TypeParameters),
+            EnsureTypeParams(input.AsNode(), input.TypeParameters),
             UpdateParameterList(input.AsNode(), input.Parameters),
             EnsureType(input.AsNode(), false),
-            null,
+            null, /*fullSignature*/
             null);
-        enclosingDeclaration = oldEnclosing;
-        return result;
     }
 
     private Node TransformClassDeclaration(ClassDeclaration input)
@@ -1948,21 +2205,85 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         return result;
     }
 
+    // transform.go:1793-1865 — transformModuleDeclaration.
+    // !!! TODO: module declarations are now parsed into nested module objects with export modifiers
+    // It'd be good to collapse those back in the declaration output, but the AST can't represent the
+    // `namespace a.b.c` shape for the printer (without using invalid identifier names).
     private Node TransformModuleDeclaration(ModuleDeclaration input)
     {
-        var oldEnclosing = enclosingDeclaration;
-        var oldNeedsDeclare = needsDeclare;
-        enclosingDeclaration = input.AsNode();
+        var mods = EnsureModifiers(input.AsNode());
+        var saveNeedsDeclare = needsDeclare;
         needsDeclare = false;
-        var result = Factory().AsNodeFactory().UpdateModuleDeclaration(
+        var inner = input.Body;
+        var keyword = input.Keyword;
+        if (keyword != SyntaxKind.GlobalKeyword && (input.Name() == null || !NodeTests.IsStringLiteral(input.Name()!)))
+        {
+            keyword = SyntaxKind.NamespaceKeyword;
+        }
+
+        if (inner != null && inner.Kind == SyntaxKind.ModuleBlock)
+        {
+            var oldNeedsScopeFix = needsScopeFixMarker;
+            var oldHasScopeFix = resultHasScopeMarker;
+            resultHasScopeMarker = false;
+            needsScopeFixMarker = false;
+            var statements = Visitor().VisitNodes(inner.StatementList())!;
+            var lateStatements = TransformAndReplaceLatePaintedStatements(statements);
+            if ((input.Flags & NodeFlags.Ambient) != 0)
+            {
+                needsScopeFixMarker = false; // If it was `declare`'d everything is implicitly exported already, ignore late printed "privates"
+            }
+            // With the final list of statements, there are 3 possibilities:
+            // 1. There's an export assignment or export declaration in the namespace - do nothing
+            // 2. Everything is exported and there are no export assignments or export declarations - strip all export modifiers
+            // 3. Some things are exported, some are not, and there's no marker - add an empty marker
+            if (!AstUtilities.IsGlobalScopeAugmentation(input.AsNode()) && !resultHasScopeMarker && !DeclarationUtilities.HasScopeMarker(lateStatements))
+            {
+                if (needsScopeFixMarker)
+                {
+                    var withMarker = new List<Node>(lateStatements.Nodes) { CreateEmptyExports(Factory().AsNodeFactory()) };
+                    lateStatements = Factory().AsNodeFactory().NewNodeList(withMarker.ToArray());
+                }
+                else
+                {
+                    lateStatements = exportStrippingVisitor.VisitNodes(lateStatements)!;
+                }
+            }
+
+            var body = Factory().AsNodeFactory().UpdateModuleBlock(inner.AsModuleBlock(), lateStatements);
+            needsDeclare = saveNeedsDeclare;
+            needsScopeFixMarker = oldNeedsScopeFix;
+            resultHasScopeMarker = oldHasScopeFix;
+
+            return Factory().AsNodeFactory().UpdateModuleDeclaration(
+                input,
+                mods,
+                keyword,
+                input.Name(),
+                body);
+        }
+        if (inner != null)
+        {
+            // trigger visit. ignore result (is deferred, so is just inner unless elided)
+            Visitor().VisitNode(inner);
+            // eagerly transform nested namespaces (the nesting doesn't need any elision or painting done)
+            var original = EmitContext().MostOriginal(inner)!;
+            var id = AstUtilities.GetNodeId(original);
+            lateStatementReplacementMap.TryGetValue(id, out var body);
+            lateStatementReplacementMap.Remove(id);
+            return Factory().AsNodeFactory().UpdateModuleDeclaration(
+                input,
+                mods,
+                keyword,
+                input.Name(),
+                body);
+        }
+        return Factory().AsNodeFactory().UpdateModuleDeclaration(
             input,
-            EnsureModifiers(input.AsNode()),
-            input.Keyword,
+            mods,
+            keyword,
             input.Name(),
-            Visitor().VisitNode(input.Body));
-        needsDeclare = oldNeedsDeclare;
-        enclosingDeclaration = oldEnclosing;
-        return result;
+            null);
     }
 
     private Node TransformVariableStatement(VariableStatement input)
