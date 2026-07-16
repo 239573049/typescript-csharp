@@ -233,6 +233,12 @@ public static class CorpusRunner
     public static ConformanceRunSummary RunCorpus(CorpusSelection selection)
     {
         IReadOnlyList<CuratedConformanceCase> cases = selection.Selected;
+        // TSCS_CONFORMANCE_ONLY="name1,name2": restrict the run to the named cases (diagnostic aid).
+        if (Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_ONLY") is { Length: > 0 } onlyRaw)
+        {
+            var only = onlyRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.Ordinal);
+            cases = cases.Where(c => only.Contains(CompilerBaselineRunner.GetCaseName(c.BaselineName))).ToList();
+        }
         if (Shard is (int shardIndex, int shardCount))
         {
             cases = cases.Where((_, i) => i % shardCount == shardIndex - 1).ToList();

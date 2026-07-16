@@ -541,26 +541,26 @@ public sealed partial class NodeBuilder
                 var tupleConstituentNodes = MapToTypeNodesLocal(typeArguments[0..arity], false /*isBareList*/);
                 if (tupleConstituentNodes != null)
                 {
-                    for (int i = 0; i < tupleConstituentNodes.Nodes.Length; i++)
+                    for (int ti = 0; ti < tupleConstituentNodes.Nodes.Length; ti++)
                     {
-                        var flags = infos[i].flags;
-                        var labeledElementDeclaration = infos[i].labeledDeclaration;
+                        var flags = infos[ti].flags;
+                        var labeledElementDeclaration = infos[ti].labeledDeclaration;
                         if (labeledElementDeclaration != null)
                         {
-                            tupleConstituentNodes.Nodes[i] = f.NewNamedTupleMember(
+                            tupleConstituentNodes.Nodes[ti] = f.NewNamedTupleMember(
                                 (flags & ElementFlags.Variable) != 0 ? f.NewToken(SyntaxKind.DotDotDotToken) : null,
-                                f.NewIdentifier(ch.GetTupleElementLabel(infos[i], null, i)),
+                                f.NewIdentifier(ch.GetTupleElementLabel(infos[ti], null, ti)),
                                 (flags & ElementFlags.Optional) != 0 ? f.NewToken(SyntaxKind.QuestionToken) : null,
-                                (flags & ElementFlags.Rest) != 0 ? f.NewArrayTypeNode(tupleConstituentNodes.Nodes[i]) : tupleConstituentNodes.Nodes[i]);
+                                (flags & ElementFlags.Rest) != 0 ? f.NewArrayTypeNode(tupleConstituentNodes.Nodes[ti]) : tupleConstituentNodes.Nodes[ti]);
                         }
                         else if ((flags & ElementFlags.Variable) != 0)
                         {
-                            tupleConstituentNodes.Nodes[i] = f.NewRestTypeNode(
-                                (flags & ElementFlags.Rest) != 0 ? f.NewArrayTypeNode(tupleConstituentNodes.Nodes[i]) : tupleConstituentNodes.Nodes[i]);
+                            tupleConstituentNodes.Nodes[ti] = f.NewRestTypeNode(
+                                (flags & ElementFlags.Rest) != 0 ? f.NewArrayTypeNode(tupleConstituentNodes.Nodes[ti]) : tupleConstituentNodes.Nodes[ti]);
                         }
                         else if ((flags & ElementFlags.Optional) != 0)
                         {
-                            tupleConstituentNodes.Nodes[i] = f.NewOptionalTypeNode(tupleConstituentNodes.Nodes[i]);
+                            tupleConstituentNodes.Nodes[ti] = f.NewOptionalTypeNode(tupleConstituentNodes.Nodes[ti]);
                         }
                     }
                     var tupleTypeNode = f.NewTupleTypeNode(tupleConstituentNodes);
@@ -589,10 +589,53 @@ public sealed partial class NodeBuilder
             // the anonymous-object assignability messages never set.
             throw new NotImplementedException("nodeBuilder.typeReferenceToTypeNode(classExpressionAsTypeLiteral)");
         }
+        // nodebuilderimpl.go:3018-3047 — outer-type-parameter grouping: for each group of outer type
+        // parameters with the same declaring container, when the group's type arguments differ from the
+        // parameters themselves (i.e. an instantiated context), render the container with that argument
+        // slice and chain the references (mixin<T>'s anonymous class prints `mixin.(Anonymous class)`,
+        // with the outer arguments attached to `mixin` — or elided entirely when they are the defaults).
+        var outerTypeParameters = target.AsInterfaceType()?.OuterTypeParameters();
+        int i = 0;
+        Node? resultType = null;
+        if (outerTypeParameters != null)
+        {
+            int length = outerTypeParameters.Length;
+            while (i < length)
+            {
+                // Find group of type arguments for type parameters with the same declaring container.
+                int start = i;
+                var parent = GetParentSymbolOfTypeParameter(outerTypeParameters[i].AsTypeParameter());
+                do
+                {
+                    i++;
+                }
+                while (i < length && GetParentSymbolOfTypeParameter(outerTypeParameters[i].AsTypeParameter()) == parent);
+                // When type parameters are their own type arguments for the whole group (i.e. we have
+                // the default outer type arguments), we don't show the group.
+                bool groupEqual = true;
+                for (int k = start; k < i; k++)
+                {
+                    if (k >= typeArguments.Length || outerTypeParameters[k] != typeArguments[k])
+                    {
+                        groupEqual = false;
+                        break;
+                    }
+                }
+                if (!groupEqual)
+                {
+                    var typeArgumentSlice = MapToTypeNodesLocal(typeArguments[start..i], false /*isBareList*/);
+                    var restoreOuterFlags = SaveRestoreFlags();
+                    ctx!.flags |= global::Ts.NodeBuilder.Flags.ForbidIndexedAccessSymbolReferences;
+                    var reference = SymbolToTypeNode(parent!, SymbolFlags.Type, typeArgumentSlice);
+                    restoreOuterFlags();
+                    resultType = resultType == null ? reference : AppendReferenceToType(resultType, reference!);
+                }
+            }
+        }
+
         // nodebuilderimpl.go:3050-3075 — own-type-argument slice: typeArguments[i:typeParameterCount]
         // with typeParameterCount = min(len(TypeParameters), len(typeArguments)), which drops the
-        // trailing this-type argument. DEFERRED: the outer-type-parameter grouping (3020-3049, i stays 0
-        // here) lands with the deep-reference wave.
+        // trailing this-type argument.
         TypeList? typeArgumentNodes = null;
         if (typeArguments.Length > 0)
         {
@@ -627,16 +670,95 @@ public sealed partial class NodeBuilder
                     }
                 }
             }
-            typeArgumentNodes = MapToTypeNodesLocal(typeArguments[0..typeParameterCount], false /*isBareList*/);
+            typeArgumentNodes = MapToTypeNodesLocal(typeArguments[i..typeParameterCount], false /*isBareList*/);
         }
         // nodebuilderimpl.go:3074 — finalRef := symbolToTypeNode(t.symbol, Type, typeArgumentNodes).
-        // The outer-type-parameter grouping (resultType / appendReferenceToType) is deferred, so resultType
-        // is always nil here and we return finalRef directly.
         var restoreFlags = SaveRestoreFlags();
         ctx!.flags |= global::Ts.NodeBuilder.Flags.ForbidIndexedAccessSymbolReferences;
         var finalRef = SymbolToTypeNode(t.symbol!, SymbolFlags.Type, typeArgumentNodes);
         restoreFlags();
-        return finalRef!;
+        if (resultType == null)
+        {
+            return finalRef!;
+        }
+        return AppendReferenceToType(resultType, finalRef!);
+    }
+
+    // nodebuilderimpl.go:313 — getAccessStack: the identifiers of a type reference's entity name,
+    // leftmost first.
+    private static List<Node> GetAccessStack(Node reference)
+    {
+        Node state = reference.AsTypeReferenceNode().TypeName!;
+        var ids = new List<Node>();
+        while (!NodeTests.IsIdentifier(state))
+        {
+            var entity = state.AsQualifiedName();
+            ids.Insert(0, entity.Right!);
+            state = entity.Left!;
+        }
+        ids.Insert(0, state);
+        return ids;
+    }
+
+    // nodebuilderimpl.go:3522 — createAccessExpression.
+    private Node CreateAccessExpression(Node node)
+    {
+        if (NodeTests.IsQualifiedName(node))
+        {
+            return f.NewPropertyAccessExpression(CreateAccessExpression(node.AsQualifiedName().Left!), null /*questionDotToken*/, f.DeepCloneNode(node.AsQualifiedName().Right!)!, NodeFlags.None);
+        }
+        if (NodeTests.IsIdentifier(node) || NodeTests.IsPropertyAccessExpression(node) || NodeTests.IsExpressionWithTypeArguments(node))
+        {
+            return f.DeepCloneNode(node)!;
+        }
+        throw new InvalidOperationException($"unexpected access node kind: {node.Kind}");
+    }
+
+    // nodebuilderimpl.go — appendReferenceToType: append `ref`'s qualifiers/type arguments onto `root`
+    // (an import type or type reference), producing the combined qualified reference.
+    private Node AppendReferenceToType(Node root, Node reference)
+    {
+        if (NodeTests.IsImportTypeNode(root))
+        {
+            // first shift type arguments
+            // !!! In the old emitter, an Identifier could have type arguments for use with quickinfo
+            // (see the commented-out identifier-type-argument shifting in Go); without it, nested type
+            // args are silently elided.
+            var import = root.AsImportTypeNode();
+            // then move qualifiers
+            var ids = GetAccessStack(reference);
+            Node? qualifier = import.Qualifier;
+            foreach (var id in ids)
+            {
+                qualifier = qualifier != null ? f.NewQualifiedName(qualifier, id) : id;
+            }
+            return f.UpdateImportTypeNode(import, import.IsTypeOf, import.Argument, import.Attributes, qualifier, reference.TypeArgumentList());
+        }
+        else if (NodeTests.IsTypeReferenceNode(root))
+        {
+            var typeRef = root.AsTypeReferenceNode();
+            if ((ctx!.flags & global::Ts.NodeBuilder.Flags.UseInstantiationExpressions) != 0 && typeRef.TypeArguments != null && typeRef.TypeArguments.Nodes.Length != 0)
+            {
+                Node expr = CreateExpressionWithTypeArguments(CreateAccessExpression(typeRef.TypeName!), typeRef.TypeArguments);
+                foreach (var id in GetAccessStack(reference))
+                {
+                    expr = f.NewPropertyAccessExpression(expr, null, id, NodeFlags.None);
+                }
+                return expr;
+            }
+            Node typeName = typeRef.TypeName!;
+            foreach (var id in GetAccessStack(reference))
+            {
+                typeName = f.NewQualifiedName(typeName, id);
+            }
+            return f.UpdateTypeReferenceNode(typeRef, typeName, reference.TypeArgumentList());
+        }
+        Node fallbackExpr = CreateAccessExpression(root);
+        foreach (var id in GetAccessStack(reference))
+        {
+            fallbackExpr = f.NewPropertyAccessExpression(fallbackExpr, null, id, NodeFlags.None);
+        }
+        return fallbackExpr;
     }
 
     // A bare symbol-name type reference (nodebuilderimpl.go:638 symbolToTypeNode, reduced form) that accepts

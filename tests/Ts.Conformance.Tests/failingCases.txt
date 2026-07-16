@@ -10,7 +10,5 @@ dependentDestructuredVariables
 generatorReturnContextualType
 genericRestParameters1
 mappedTypeProperties
-mixinAccessors3
 recursiveMappedTypes
-typeArgumentInferenceWithClassExpression2
 unionAndIntersectionInference1
