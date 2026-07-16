@@ -149,4 +149,125 @@ public static partial class ModuleSpecifierUtil
         int i = s.IndexOf('*');
         return i < 0 ? s : s[..i] + replacement + s[(i + 1)..];
     }
+
+    // util.go:283 — nodeModulesPathParseState.
+    private enum NodeModulesPathParseState : byte
+    {
+        BeforeNodeModules,
+        NodeModules,
+        Scope,
+        PackageContent,
+    }
+
+    // util.go:290 — GetNodeModulePathParts. Returns null when fullPath can't be a valid module file
+    // within node_modules. Expected pattern:
+    // /base/path/node_modules/[@scope/otherpackage/@otherscope/node_modules/]package/[subdirectory/]file.js
+    public static NodeModulePathParts? GetNodeModulePathParts(string fullPath)
+    {
+        int topLevelNodeModulesIndex = 0;
+        int topLevelPackageNameIndex = 0;
+        int packageRootIndex = 0;
+
+        int partStart = 0;
+        int partEnd = 0;
+        var state = NodeModulesPathParseState.BeforeNodeModules;
+
+        while (partEnd >= 0)
+        {
+            partStart = partEnd;
+            partEnd = global::Ts.Core.CoreUtil.IndexAfter(fullPath, "/", partStart + 1);
+            switch (state)
+            {
+                case NodeModulesPathParseState.BeforeNodeModules:
+                    if (fullPath.AsSpan(partStart).StartsWith("/node_modules/"))
+                    {
+                        topLevelNodeModulesIndex = partStart;
+                        topLevelPackageNameIndex = partEnd;
+                        state = NodeModulesPathParseState.NodeModules;
+                    }
+                    break;
+                case NodeModulesPathParseState.NodeModules:
+                case NodeModulesPathParseState.Scope:
+                    if (state == NodeModulesPathParseState.NodeModules && fullPath[partStart + 1] == '@')
+                    {
+                        state = NodeModulesPathParseState.Scope;
+                    }
+                    else
+                    {
+                        packageRootIndex = partEnd;
+                        state = NodeModulesPathParseState.PackageContent;
+                    }
+                    break;
+                case NodeModulesPathParseState.PackageContent:
+                    if (fullPath.AsSpan(partStart).StartsWith("/node_modules/"))
+                    {
+                        state = NodeModulesPathParseState.NodeModules;
+                    }
+                    else
+                    {
+                        state = NodeModulesPathParseState.PackageContent;
+                    }
+                    break;
+            }
+        }
+
+        int fileNameIndex = partStart;
+
+        if (state > NodeModulesPathParseState.NodeModules)
+        {
+            return new NodeModulePathParts
+            {
+                TopLevelNodeModulesIndex = topLevelNodeModulesIndex,
+                TopLevelPackageNameIndex = topLevelPackageNameIndex,
+                PackageRootIndex = packageRootIndex,
+                FileNameIndex = fileNameIndex,
+            };
+        }
+        return null;
+    }
+
+    // util.go:370 — GetPackageNameFromDirectory.
+    public static string GetPackageNameFromDirectory(string fileOrDirectoryPath)
+    {
+        int idx = fileOrDirectoryPath.LastIndexOf("/node_modules/", StringComparison.Ordinal);
+        if (idx == -1)
+        {
+            return "";
+        }
+
+        string basename = fileOrDirectoryPath[(idx + "/node_modules/".Length)..];
+        if (basename[0] == '.')
+        {
+            return "";
+        }
+
+        int nextSlash = basename.IndexOf('/');
+        if (nextSlash == -1)
+        {
+            return basename;
+        }
+
+        if (basename[0] != '@' || nextSlash == basename.Length - 1)
+        {
+            return basename[..nextSlash];
+        }
+
+        int secondSlash = basename[(nextSlash + 1)..].IndexOf('/');
+        if (secondSlash == -1)
+        {
+            return basename;
+        }
+
+        return basename[..(nextSlash + 1 + secondSlash)];
+    }
+}
+
+// util.go:283 — NodeModulePathParts (Go returns *NodeModulePathParts; class preserves the nullable
+// pointer semantics).
+public sealed class NodeModulePathParts
+{
+    public int TopLevelNodeModulesIndex;
+    public int TopLevelPackageNameIndex;
+    public int PackageRootIndex;
+    public int FileNameIndex;
 }
