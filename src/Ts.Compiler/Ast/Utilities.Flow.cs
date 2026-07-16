@@ -58,6 +58,13 @@ public static partial class AstUtilities
     }
 
     // Go: utilities.go:2114-2127 — returns (string, bool); C# Try pattern (plan/05 §4.1)
+    // ast/utilities.go:2109 — GetTextOfPropertyName.
+    public static string GetTextOfPropertyName(Node name)
+    {
+        TryGetTextOfPropertyName(name, out var text);
+        return text;
+    }
+
     public static bool TryGetTextOfPropertyName(Node name, out string text)
     {
         switch (name.Kind)

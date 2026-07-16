@@ -1935,9 +1935,133 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         }
     }
 
-    // ── rebuild forward stubs (later batches replace these) ──
-    private NodeList? BuildClassMembers(Node input, Node[] extraMembers) => throw new NotImplementedException("declarations rebuild");
-    private Node[] CollectThisPropertyAssignments(Node classExpr) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:2134-2156 — collectThisPropertyAssignments: finds `this.x = expr` assignments in
+    // constructors, methods, and static blocks of JS classes and synthesizes PropertyDeclaration nodes
+    // for each unique property name.
+    private Node[] CollectThisPropertyAssignments(Node classNode)
+    {
+        var members = classNode.ClassLikeData()!.Members!;
+        global::Ts.Collections.SetExtensions.Clear(seenProperties);
+        // Pre-populate seen with existing direct member nodes to avoid duplicates
+        foreach (var member in members.Nodes)
+        {
+            if (member.Name() != null)
+            {
+                var isStatic = AstUtilities.IsStatic(member);
+                seenProperties.Add(ThisPropertyAssignmentKey.For(member.Name(), member, isStatic));
+            }
+        }
+        thisPropertyAssignmentsCollected = new List<Node>();
+        try
+        {
+            foreach (var n in members.Nodes)
+            {
+                thisPropertyVisitor.VisitEachChild(n);
+            }
+            return thisPropertyAssignmentsCollected.ToArray();
+        }
+        finally
+        {
+            global::Ts.Collections.SetExtensions.Clear(seenProperties);
+            thisPropertyAssignmentsCollected = new List<Node>();
+        }
+    }
+
+    // transform.go:2157-2177 — walkBindingPattern.
+    private List<Node> WalkBindingPattern(BindingPattern pattern, Node param)
+    {
+        var elems = new List<Node>();
+        foreach (var elem in pattern.Elements!.Nodes)
+        {
+            if (NodeTests.IsOmittedExpression(elem))
+            {
+                continue;
+            }
+            if (AstUtilities.IsBindingPattern(elem.Name()!))
+            {
+                elems.AddRange(WalkBindingPattern(elem.Name()!.AsBindingPattern(), param));
+                continue;
+            }
+            elems.Add(Factory().AsNodeFactory().NewPropertyDeclaration(
+                EnsureModifiers(param),
+                elem.Name(),
+                null, /*questionOrExclamationToken*/
+                EnsureType(elem, false),
+                null /*initializer*/));
+        }
+        return elems;
+    }
+
+    // transform.go:1889-1948 — buildClassMembers: builds the member list for a class-like node
+    // (ClassDeclaration or ClassExpression). It handles parameter properties, private identifiers,
+    // late-bound index signatures, and visited members. Extra members (e.g., this-property assignments
+    // from JS files) can be passed via extraMembers.
+    private NodeList BuildClassMembers(Node classNode, Node[] extraMembers)
+    {
+        var ctor = AstUtilities.GetFirstConstructorWithBody(classNode);
+        var parameterProperties = new List<Node>();
+        if (ctor != null)
+        {
+            var oldDiag = state.GetSymbolAccessibilityDiagnostic;
+            foreach (var param in ctor.AsConstructorDeclaration().Parameters!.Nodes)
+            {
+                if (!AstUtilities.HasSyntacticModifier(param, ModifierFlags.ParameterPropertyModifier) || ShouldStripInternal(param))
+                {
+                    continue;
+                }
+                state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(param);
+                if (param.Name()!.Kind == SyntaxKind.Identifier)
+                {
+                    var updated = Factory().AsNodeFactory().NewPropertyDeclaration(
+                        EnsureModifiers(param),
+                        param.Name(),
+                        param.QuestionToken(),
+                        EnsureType(param, false),
+                        EnsureNoInitializer(param));
+                    PreserveJsDoc(updated, param);
+                    parameterProperties.Add(updated);
+                }
+                else
+                {
+                    // Pattern - this is currently an error, but we emit declarations for it somewhat correctly
+                    parameterProperties.AddRange(WalkBindingPattern(param.Name()!.AsBindingPattern(), param));
+                }
+            }
+            state.GetSymbolAccessibilityDiagnostic = oldDiag;
+        }
+
+        // When the class has at least one private identifier, create a unique constant identifier to retain the nominal typing behavior
+        // Prevents other classes with the same public members from being used in place of the current class
+        Node? privateIdentifier = null;
+        if (CoreUtil.Some(classNode.ClassLikeData()!.Members!.Nodes, member =>
+            member.Name() != null && NodeTests.IsPrivateIdentifier(member.Name()!)))
+        {
+            privateIdentifier = Factory().AsNodeFactory().NewPropertyDeclaration(null, Factory().NewPrivateIdentifier("#private"), null, null, null);
+        }
+
+        var lateIndexes = resolver!.CreateLateBoundIndexSignatures(
+            EmitContext(),
+            classNode,
+            enclosingDeclaration!,
+            DeclarationEmitNodeBuilderFlags,
+            DeclarationEmitInternalNodeBuilderFlags,
+            tracker);
+
+        var memberNodes = new List<Node>(classNode.ClassLikeData()!.Members!.Nodes.Length);
+        if (privateIdentifier != null)
+        {
+            memberNodes.Add(privateIdentifier);
+        }
+        memberNodes.AddRange(lateIndexes ?? []);
+        memberNodes.AddRange(parameterProperties);
+        memberNodes.AddRange(extraMembers);
+        var visitResult = Visitor().VisitNodes(classNode.ClassLikeData()!.Members);
+        if (visitResult is { Nodes.Length: > 0 })
+        {
+            memberNodes.AddRange(visitResult.Nodes);
+        }
+        return Factory().AsNodeFactory().NewNodeList(memberNodes.ToArray());
+    }
     private Node? TransformJSDocTypeExpression(JSDocTypeExpression input) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocTypeLiteral(JSDocTypeLiteral input) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocPropertyTag(JSDocParameterOrPropertyTag input) => throw new NotImplementedException("declarations rebuild");
@@ -1979,7 +2103,116 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         var modifiers = AstUtilities.CreateModifiersFromModifierFlags(newFlags, Factory().AsNodeFactory().NewModifier);
         return AstUtilities.ReplaceModifiers(Factory().AsNodeFactory(), statement, Factory().AsNodeFactory().NewModifierList(modifiers));
     }
-    private Node? VisitThisPropertyAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:2043-2111 — visitThisPropertyAssignments.
+    private Node? VisitThisPropertyAssignments(Node node)
+    {
+        var isStatic = false;
+        var thisContainer = AstUtilities.GetThisContainer(node, false, false);
+        var thisTarget = thisContainer.Parent;
+        if (thisTarget == null)
+        {
+            return null; // thisContainer was source file, can't have expando-this
+        }
+        if (AstUtilities.HasStaticModifier(thisContainer) || NodeTests.IsClassStaticBlockDeclaration(thisContainer))
+        {
+            isStatic = true;
+        }
+        if (thisTarget != enclosingDeclaration)
+        {
+            return null; // stop searching within new `this` contexts
+        }
+        if (AstUtilities.GetAssignmentDeclarationKind(node) == JSDeclarationKind.ThisProperty)
+        {
+            while (true) // Go labeled-break emulation (`break caseBlock`)
+            {
+                var name = AstUtilities.GetNameOfDeclaration(node);
+                var @base = resolver!.GetReferencedMemberValueDeclaration(node);
+                var key = ThisPropertyAssignmentKey.For(name, node, isStatic);
+                if (@base == null || global::Ts.Collections.SetExtensions.Has(seenProperties, key))
+                {
+                    break;
+                }
+                seenProperties.Add(key);
+
+                // problem: this prop might be overriding a prop from a base type. The checker has special bails for override compat comparisons for binary expression properties,
+                // but what we transform to won't - so we either need to match the base type (for example, if it's a getter/setter) or emit nothing
+                // See `checkKindsOfPropertyMemberOverrides` in the checker for what we're trying to satisfy here
+                if (thisTarget.ClassLikeData()!.HeritageClauses is { Nodes.Length: > 0 } && !IsClassExtendingNull(thisTarget))
+                {
+                    // there is a base type any assignments might be "from"
+                    tracker.ReportInferenceFallback(thisTarget); // Add an isolated declarations error on this class - we can't know how to transform this prop into an assignment without referring to type information
+                    if (resolver.IsThisPropertyAssignmentDeclarationRedundant(node))
+                    {
+                        break; // skip assignments whose member is already provided by an `extends` base type (an inherited accessor/method, or an identical inherited property)
+                        // TODO: If the property has an explicit `@type` annotation, we should probably emit it (maybe with an `override` modifier) instead of skipping it
+                    }
+                }
+
+                ModifierList? mods = null;
+                if (isStatic)
+                {
+                    mods = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.StaticKeyword)]);
+                }
+                if (AstUtilities.HasDynamicName(node))
+                {
+                    if (!global::Ts.Transformers.Transformers.IsSimpleInlineableExpression(name!))
+                    {
+                        break; // Member either becomes an index signature or is a reassignment
+                    }
+                    CheckName(node);
+                    name = Factory().AsNodeFactory().NewComputedPropertyName(name); // Convert `this[foo] = expr` to `[foo]: Type`
+                }
+                if (AstUtilities.GetTextOfPropertyName(name!) == "constructor")
+                {
+                    break; // `constructor` is a builtin class member, not allowed to redeclare it
+                }
+                if (NodeTests.IsIdentifier(name!) && !global::Ts.Scanner.Scanner.IsIdentifierText(name!.Text(), LanguageVariant.Standard))
+                {
+                    name = Factory().NewStringLiteralFromNode(name!);
+                }
+                var prop = Factory().AsNodeFactory().NewPropertyDeclaration(
+                    mods,
+                    name,
+                    null,
+                    EnsureType(node, false),
+                    null);
+                if (NodeTests.IsExpressionStatement(node.Parent!))
+                {
+                    PreserveJsDoc(prop, node.Parent!);
+                }
+                thisPropertyAssignmentsCollected.Add(prop);
+                break;
+            }
+        }
+        return thisPropertyVisitor.VisitEachChild(node);
+    }
+
+    // transform.go:2112-2131 — isClassExtendingNull.
+    private static bool IsClassExtendingNull(Node? node)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+        var heritage = node.ClassLikeData()!.HeritageClauses;
+        if (heritage == null)
+        {
+            return false;
+        }
+        if (heritage.Nodes.Length > 1 || heritage.Nodes.Length == 0)
+        {
+            return false;
+        }
+        foreach (var expA in heritage.Nodes[0].AsHeritageClause().Types!.Nodes)
+        {
+            var expr = expA.AsExpressionWithTypeArguments().Expression;
+            if (expr != null && expr.Kind == SyntaxKind.NullKeyword)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     private Node? VisitCJSExportAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
     private Node? StripDeclareModifiers(Node node) => throw new NotImplementedException("declarations rebuild");
 
@@ -2185,24 +2418,100 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             null);
     }
 
+    // transform.go:1949-2042 — transformClassDeclaration.
     private Node TransformClassDeclaration(ClassDeclaration input)
     {
-        var oldEnclosing = enclosingDeclaration;
+        var previousEnclosingDeclaration = enclosingDeclaration;
         enclosingDeclaration = input.AsNode();
+        state.ErrorNameNode = input.Name();
         tracker.PushErrorFallbackNode(input.AsNode());
+        try
+        {
+            var modifiers = EnsureModifiers(input.AsNode());
+            var typeParameters = EnsureTypeParams(input.AsNode(), input.TypeParameters);
 
-        var members = Visitor().VisitNodes(input.Members) ?? Factory().NewNodeList([]);
-        var result = Factory().AsNodeFactory().UpdateClassDeclaration(
-            input,
-            EnsureModifiers(input.AsNode()),
-            input.Name(),
-            Visitor().VisitNodes(input.TypeParameters),
-            Visitor().VisitNodes(input.HeritageClauses),
-            members);
+            // Collect this.x property assignments from constructors and static blocks in JS files
+            Node[] extraMembers = [];
+            if (AstUtilities.IsInJSFile(input.AsNode()))
+            {
+                extraMembers = CollectThisPropertyAssignments(input.AsNode());
+            }
 
-        tracker.PopErrorFallbackNode();
-        enclosingDeclaration = oldEnclosing;
-        return result;
+            var members = BuildClassMembers(input.AsNode(), extraMembers);
+
+            var extendsClause = DeclarationUtilities.GetEffectiveBaseTypeNode(input.AsNode());
+
+            if (extendsClause != null && !AstUtilities.IsEntityNameExpression(extendsClause.AsExpressionWithTypeArguments().Expression!) && extendsClause.AsExpressionWithTypeArguments().Expression!.Kind != SyntaxKind.NullKeyword)
+            {
+                tracker.ReportInferenceFallback(extendsClause.AsExpressionWithTypeArguments().Expression!); // Add an isolated declarations error on this extends clause
+                var oldId = "default";
+                if (input.Name() != null && NodeTests.IsIdentifier(input.Name()!) && input.Name()!.Text().Length > 0)
+                {
+                    oldId = input.Name()!.Text();
+                }
+                var newId = Factory().NewUniqueNameEx(oldId + "_base", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+                state.GetSymbolAccessibilityDiagnostic = _ => new SymbolAccessibilityDiagnostic
+                {
+                    DiagnosticMessage = global::Ts.Diagnostics.Diagnostics.X_extends_clause_of_exported_class_0_has_or_is_using_private_name_1,
+                    ErrorNode = extendsClause,
+                    TypeName = input.Name(),
+                };
+
+                var varDecl = Factory().AsNodeFactory().NewVariableDeclaration(
+                    newId,
+                    null,
+                    resolver!.CreateTypeOfExpression(EmitContext(), extendsClause.Expression()!, input.AsNode(), DeclarationEmitNodeBuilderFlags, DeclarationEmitInternalNodeBuilderFlags, tracker),
+                    null);
+                ModifierList? mods = null;
+                if (needsDeclare)
+                {
+                    mods = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword)]);
+                }
+                var statement = Factory().AsNodeFactory().NewVariableStatement(
+                    mods,
+                    Factory().AsNodeFactory().NewVariableDeclarationList(Factory().AsNodeFactory().NewNodeList([varDecl]), NodeFlags.Const));
+                var newHeritageClause = Factory().AsNodeFactory().UpdateHeritageClause(
+                    extendsClause.Parent!.AsHeritageClause(),
+                    extendsClause.Parent!.AsHeritageClause().Token,
+                    Factory().AsNodeFactory().NewNodeList([
+                        Factory().UpdateExpressionWithTypeArguments(
+                            extendsClause.AsExpressionWithTypeArguments(),
+                            newId,
+                            Visitor().VisitNodes(extendsClause.AsExpressionWithTypeArguments().TypeArguments)),
+                    ]));
+                var retainedHeritageClauses = Visitor().VisitNodes(input.HeritageClauses); // should just be `implements`
+                var heritageList = new List<Node> { newHeritageClause };
+                if (retainedHeritageClauses is { Nodes.Length: > 0 })
+                {
+                    heritageList.AddRange(retainedHeritageClauses.Nodes);
+                }
+                var heritageClauses = Factory().AsNodeFactory().NewNodeList(heritageList.ToArray());
+
+                return Factory().AsNodeFactory().NewSyntaxList([
+                    statement,
+                    Factory().UpdateClassDeclaration(
+                        input,
+                        modifiers,
+                        input.Name(),
+                        typeParameters,
+                        heritageClauses,
+                        members),
+                ]);
+            }
+
+            return Factory().UpdateClassDeclaration(
+                input,
+                modifiers,
+                input.Name(),
+                typeParameters,
+                Visitor().VisitNodes(input.HeritageClauses),
+                members);
+        }
+        finally
+        {
+            tracker.PopErrorFallbackNode();
+            enclosingDeclaration = previousEnclosingDeclaration;
+        }
     }
 
     // transform.go:1793-1865 — transformModuleDeclaration.
@@ -2286,18 +2595,77 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             null);
     }
 
-    private Node TransformVariableStatement(VariableStatement input)
+    // transform.go:2178-2232 — transformVariableStatement.
+    private Node? TransformVariableStatement(VariableStatement input)
     {
-        var declarations = input.DeclarationList?.AsVariableDeclarationList().Declarations;
-        var visitedDeclarations = Visitor().VisitNodes(declarations) ?? Factory().NewNodeList([]);
-        var declarationList = Factory().AsNodeFactory().UpdateVariableDeclarationList(
-            input.DeclarationList!.AsVariableDeclarationList(),
-            visitedDeclarations,
-            input.DeclarationList.Flags);
-        return Factory().AsNodeFactory().UpdateVariableStatement(
-            input,
-            EnsureModifiers(input.AsNode()),
-            declarationList);
+        var visible = false;
+        foreach (var decl in input.DeclarationList!.AsVariableDeclarationList().Declarations!.Nodes)
+        {
+            visible = DeclarationUtilities.GetBindingNameVisible(resolver!, decl);
+            if (visible)
+            {
+                break;
+            }
+        }
+        if (!visible)
+        {
+            return null;
+        }
+
+        var inputNodes = input.DeclarationList.AsVariableDeclarationList().Declarations!.Nodes;
+        Node[] extraImports = [];
+        if (state.CurrentSourceFile!.CommonJSModuleIndicator != null)
+        {
+            var normalDeclarations = new List<Node>();
+            var imports = new List<Node>();
+            foreach (var n in inputNodes)
+            {
+                if (AstUtilities.IsVariableDeclarationInitializedToRequire(n))
+                {
+                    imports.Add(n);
+                }
+                else
+                {
+                    normalDeclarations.Add(n);
+                }
+            }
+            inputNodes = normalDeclarations.ToArray();
+            var (visitedImports, _) = Visitor().VisitSlice(imports.ToArray());
+            extraImports = visitedImports ?? [];
+        }
+
+        var (nodes, _) = Visitor().VisitSlice(inputNodes);
+        if (nodes == null || nodes.Length == 0)
+        {
+            if (extraImports.Length > 0)
+            {
+                return Factory().AsNodeFactory().NewSyntaxList(extraImports);
+            }
+            return null;
+        }
+        var nodeList = Factory().AsNodeFactory().NewNodeList(nodes);
+
+        var modifiers = EnsureModifiers(input.AsNode());
+
+        Node declList;
+        if (global::Ts.Printer.PrinterUtilities.IsVarUsing(input.DeclarationList) || AstUtilities.IsVarAwaitUsing(input.DeclarationList))
+        {
+            declList = Factory().AsNodeFactory().NewVariableDeclarationList(nodeList, NodeFlags.Const);
+            EmitContext().SetOriginal(declList, input.DeclarationList);
+            EmitContext().SetCommentRange(declList, input.DeclarationList.Loc);
+            declList.Loc = input.DeclarationList.Loc;
+        }
+        else
+        {
+            declList = Factory().AsNodeFactory().UpdateVariableDeclarationList(input.DeclarationList.AsVariableDeclarationList(), nodeList, input.DeclarationList.Flags);
+        }
+        var res = Factory().AsNodeFactory().UpdateVariableStatement(input, modifiers, declList);
+        if (extraImports.Length > 0)
+        {
+            var combined = new List<Node>(extraImports) { res };
+            return Factory().AsNodeFactory().NewSyntaxList(combined.ToArray());
+        }
+        return res;
     }
 
     // transform.go:835-852 — transformVariableDeclaration.
@@ -2321,12 +2689,68 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             EnsureNoInitializer(input.AsNode()));
     }
 
-    private Node TransformEnumDeclaration(EnumDeclaration input) =>
-        Factory().AsNodeFactory().UpdateEnumDeclaration(
+    // transform.go:2233-2283 — transformEnumDeclaration.
+    private Node TransformEnumDeclaration(EnumDeclaration input)
+    {
+        return Factory().AsNodeFactory().UpdateEnumDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
-            Visitor().VisitNodes(input.Members));
+            Factory().AsNodeFactory().NewNodeList(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.OfType<Node>(CoreUtil.MapNonNil(input.Members!.Nodes, Node? (m) =>
+            {
+                if (ShouldStripInternal(m))
+                {
+                    return null;
+                }
+
+                // Rewrite enum values to their constants, if available
+                var enumValue = resolver!.GetEnumMemberValue(m);
+
+                if (state.IsolatedDeclarations && m.Initializer() != null && enumValue.HasExternalReferences &&
+                    // This will be its own compiler error instead, so don't report.
+                    !NodeTests.IsComputedPropertyName(m.Name()!))
+                {
+                    state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(m, global::Ts.Diagnostics.Diagnostics.Enum_member_initializers_must_be_computable_without_references_to_external_symbols_with_isolatedDeclarations));
+                }
+
+                Node? newInitializer = null;
+                if (enumValue.Value is global::Ts.JsNum.Number value)
+                {
+                    if (value.IsInf())
+                    {
+                        if (value.Value > 0)
+                        {
+                            newInitializer = Factory().NewIdentifier("Infinity");
+                        }
+                        else
+                        {
+                            newInitializer = Factory().AsNodeFactory().NewPrefixUnaryExpression(SyntaxKind.MinusToken, Factory().NewIdentifier("Infinity"));
+                        }
+                    }
+                    else if (value.IsNaN())
+                    {
+                        newInitializer = Factory().NewIdentifier("NaN");
+                    }
+                    else if (value.Value >= 0)
+                    {
+                        newInitializer = Factory().AsNodeFactory().NewNumericLiteral(value.ToString(), TokenFlags.None);
+                    }
+                    else
+                    {
+                        newInitializer = Factory().AsNodeFactory().NewPrefixUnaryExpression(
+                            SyntaxKind.MinusToken,
+                            Factory().AsNodeFactory().NewNumericLiteral(new global::Ts.JsNum.Number(-value.Value).ToString(), TokenFlags.None));
+                    }
+                }
+                else if (enumValue.Value is string strValue)
+                {
+                    newInitializer = Factory().NewStringLiteral(strValue, TokenFlags.None);
+                }
+                var result = Factory().AsNodeFactory().UpdateEnumMember(m.AsEnumMember(), m.Name(), newInitializer);
+                PreserveJsDoc(result, m);
+                return result;
+            })!))));
+    }
 
     // transform.go:963-981 — transformPropertyDeclaration.
     private Node? TransformPropertyDeclaration(PropertyDeclaration input)
@@ -2601,49 +3025,52 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         host?.GetEffectiveDeclarationFlags(EmitContext().ParseNode(node) ?? node, flags) ??
         (global::Ts.Ast.AstUtilities.GetCombinedModifierFlags(node) & flags);
 
+    // transform.go:2284-2303 — ensureModifiers.
     private ModifierList? EnsureModifiers(Node node)
     {
-        var flags = global::Ts.Ast.AstUtilities.GetCombinedModifierFlags(node) & ModifierFlags.All;
-        flags &= ~(ModifierFlags.Public | ModifierFlags.Async | ModifierFlags.Override | ModifierFlags.Decorator);
-        if (node.Parent?.Kind == SyntaxKind.SourceFile && needsDeclare &&
-            !DeclarationUtilities.IsAlwaysType(node) &&
-            node.Kind != SyntaxKind.TypeAliasDeclaration &&
-            node.Kind != SyntaxKind.JSTypeAliasDeclaration &&
-            (flags & ModifierFlags.Default) == 0)
+        var currentFlags = AstUtilities.GetCombinedModifierFlags(EmitContext().ParseNode(node)!) & ModifierFlags.All;
+        var newFlags = EnsureModifierFlags(node);
+        if (currentFlags == newFlags)
         {
-            flags |= ModifierFlags.Ambient;
+            // Elide decorators
+            var mods = node.Modifiers();
+            if (mods == null)
+            {
+                return mods;
+            }
+            if (DeclarationUtilities.CanReuseModifierNodes(mods.Nodes))
+            {
+                return Factory().AsNodeFactory().NewModifierList(CoreUtil.Filter(mods.Nodes, AstUtilities.IsModifier) ?? []);
+            }
         }
-        else if (node.Parent?.Kind != SyntaxKind.SourceFile)
+        var result = AstUtilities.CreateModifiersFromModifierFlags(newFlags, Factory().AsNodeFactory().NewModifier);
+        if (result.Length == 0)
         {
-            flags &= ~ModifierFlags.Ambient;
+            return null;
         }
-
-        var modifiers = new List<Node>();
-        AddModifierIf(flags, ModifierFlags.Export, SyntaxKind.ExportKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Default, SyntaxKind.DefaultKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Ambient, SyntaxKind.DeclareKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Private, SyntaxKind.PrivateKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Protected, SyntaxKind.ProtectedKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Static, SyntaxKind.StaticKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Readonly, SyntaxKind.ReadonlyKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Abstract, SyntaxKind.AbstractKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Accessor, SyntaxKind.AccessorKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.In, SyntaxKind.InKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Out, SyntaxKind.OutKeyword, modifiers);
-        AddModifierIf(flags, ModifierFlags.Const, SyntaxKind.ConstKeyword, modifiers);
-        return modifiers.Count == 0 ? null : Factory().AsNodeFactory().NewModifierList(modifiers.ToArray());
+        return Factory().AsNodeFactory().NewModifierList(result);
     }
 
-    private void AddModifierIf(
-        ModifierFlags flags,
-        ModifierFlags flag,
-        SyntaxKind kind,
-        List<Node> modifiers)
+    // transform.go:2304-2320 — ensureModifierFlags.
+    private ModifierFlags EnsureModifierFlags(Node node)
     {
-        if ((flags & flag) != 0)
+        var mask = ModifierFlags.All ^ (ModifierFlags.Public | ModifierFlags.Async | ModifierFlags.Override); // No async and override modifiers in declaration files
+        var additions = ModifierFlags.None;
+        if (needsDeclare && !DeclarationUtilities.IsAlwaysType(node))
         {
-            modifiers.Add(Factory().AsNodeFactory().NewModifier(kind));
+            additions = ModifierFlags.Ambient;
         }
+        var parentIsFile = node.Parent!.Kind == SyntaxKind.SourceFile;
+        if (!parentIsFile)
+        {
+            mask ^= ModifierFlags.Ambient;
+            additions = ModifierFlags.None;
+        }
+        if (AstUtilities.IsImplicitlyExportedJSDocDeclaration(node))
+        {
+            additions |= ModifierFlags.Export;
+        }
+        return DeclarationUtilities.MaskModifierFlags(node, mask, additions);
     }
 
     // These constants document the exact node-builder contract consumed by the deferred resolver path.
