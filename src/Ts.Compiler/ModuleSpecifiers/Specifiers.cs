@@ -19,6 +19,74 @@ namespace Ts.ModuleSpecifiers;
 
 public static partial class Specifiers
 {
+    // specifiers.go:19 — GetModuleSpecifiers.
+    public static string[] GetModuleSpecifiers(
+        Symbol moduleSymbol,
+        CheckerShape checker,
+        CompilerOptions compilerOptions,
+        SourceFileForSpecifierGeneration importingSourceFile,
+        ModuleSpecifierGenerationHost host,
+        UserPreferences userPreferences,
+        ModuleSpecifierOptions options,
+        bool forAutoImports)
+    {
+        var (result, _) = GetModuleSpecifiersWithInfo(moduleSymbol, checker, compilerOptions, importingSourceFile, host, userPreferences, options, forAutoImports);
+        return result;
+    }
+
+    // specifiers.go:42 — GetModuleSpecifiersWithInfo.
+    public static (string[] Specifiers, ResultKind Kind) GetModuleSpecifiersWithInfo(
+        Symbol moduleSymbol,
+        CheckerShape checker,
+        CompilerOptions compilerOptions,
+        SourceFileForSpecifierGeneration importingSourceFile,
+        ModuleSpecifierGenerationHost host,
+        UserPreferences userPreferences,
+        ModuleSpecifierOptions options,
+        bool forAutoImports)
+    {
+        string ambient = TryGetModuleNameFromAmbientModule(moduleSymbol, checker);
+        if (ambient.Length > 0)
+        {
+            if (forAutoImports && ModuleSpecifierUtil.IsExcludedByRegex(ambient, userPreferences.AutoImportSpecifierExcludeRegexes))
+            {
+                return ([], ResultKind.Ambient);
+            }
+            return ([ambient], ResultKind.Ambient);
+        }
+
+        SourceFile? moduleSourceFile = AstUtilities.GetSourceFileOfModule(moduleSymbol);
+        if (moduleSourceFile == null)
+        {
+            return ([], ResultKind.None);
+        }
+
+        // Use the original source file name when the file is from project reference output.
+        string moduleFileName = host.GetSourceOfProjectReferenceIfOutputIncluded(moduleSourceFile);
+
+        return GetModuleSpecifiersForFileWithInfo(importingSourceFile, moduleFileName, compilerOptions, host, userPreferences, options, forAutoImports);
+    }
+
+    // specifiers.go:79 — GetModuleSpecifiersForFileWithInfo.
+    public static (string[] Specifiers, ResultKind Kind) GetModuleSpecifiersForFileWithInfo(
+        SourceFileForSpecifierGeneration importingSourceFile,
+        string moduleFileName,
+        CompilerOptions compilerOptions,
+        ModuleSpecifierGenerationHost host,
+        UserPreferences userPreferences,
+        ModuleSpecifierOptions options,
+        bool forAutoImports)
+    {
+        ModulePath[] modulePaths = GetAllModulePathsWorker(
+            GetInfo(host.GetSourceOfProjectReferenceIfOutputIncluded(importingSourceFile), host),
+            moduleFileName,
+            host,
+            compilerOptions,
+            options);
+
+        return ComputeModuleSpecifiers(modulePaths, compilerOptions, importingSourceFile, host, userPreferences, options, forAutoImports);
+    }
+
     // specifiers.go — specPair (ending + computed value candidate for a paths mapping).
     private readonly record struct SpecPair(ModuleSpecifierEnding Ending, string Value);
 
