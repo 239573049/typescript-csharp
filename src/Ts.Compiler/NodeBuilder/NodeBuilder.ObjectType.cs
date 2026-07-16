@@ -91,6 +91,17 @@ public sealed partial class NodeBuilder
             return TypeAliasToTypeReferenceNode(t.alias);
         }
 
+        // nodebuilderimpl.go:3258-3263 — string-literal type: build here (not via the context-free leaf
+        // core) so the NoAsciiEscaping emit flag lands in this builder's emit context. Enum-like literals
+        // must keep routing to the leaf core's enum arm (Go handles EnumLike before StringLiteral).
+        if ((t.flags & TypeFlags.EnumLike) == 0 && (t.flags & TypeFlags.StringLiteral) != 0)
+        {
+            ctx.approximateLength += ((string)t.AsLiteralType().value!).Length + 2;
+            var lit = NewStringLiteralEx((string)t.AsLiteralType().value!, false);
+            e.AddEmitFlags(lit, PrinterNs.EmitFlags.NoAsciiEscaping);
+            return f.NewLiteralTypeNode(lit);
+        }
+
         // nodebuilderimpl.go:3202-3319 — intrinsic / literal / enum-like leaf arms.
         if ((t.flags & LeafTypeKinds) != 0 || ((t.flags & TypeFlags.Boolean) != 0 && t.alias == null))
         {

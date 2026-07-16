@@ -9,5 +9,4 @@ ModuleWithExportedAndNonExportedEnums
 conditionalTypes1
 parserRealSource8
 parserharness
-scannerS7.6_A4.2_T1
 templateLiteralTypes4
