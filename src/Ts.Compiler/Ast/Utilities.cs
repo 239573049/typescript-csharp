@@ -1091,6 +1091,33 @@ public static partial class AstUtilities
         return false;
     }
 
+    // ast/utilities.go:1865 — IsImportNode.
+    public static bool IsImportNode(Node node)
+    {
+        return IsAnyImportSyntax(node) || node.Kind == SyntaxKind.JSImportDeclaration;
+    }
+
+    // ast/utilities.go:1872 — IsAnyImportSyntax. Checks if the node is a genuine import declaration.
+    // In particular the re-parsed KindJSImportDeclaration is explicitly excluded because the callers of
+    // this function are typically not prepared to handle it properly. For more permissive check, use
+    // IsImportNode.
+    public static bool IsAnyImportSyntax(Node node)
+    {
+        return node.Kind is SyntaxKind.ImportDeclaration or SyntaxKind.ImportEqualsDeclaration;
+    }
+
+    // ast/utilities.go:1861 — IsAnyImportOrReExport.
+    public static bool IsAnyImportOrReExport(Node node)
+    {
+        return IsImportNode(node) || IsExportDeclaration(node);
+    }
+
+    // ast/utilities.go:1658 — IsExternalModuleIndicator. Exported top-level member indicates moduleness.
+    public static bool IsExternalModuleIndicator(Node node)
+    {
+        return IsAnyImportOrReExport(node) || IsExportAssignment(node) || HasSyntacticModifier(node, ModifierFlags.Export);
+    }
+
     // ast/utilities.go:3063 — GetClassExtendsHeritageElement.
     public static Node? GetClassExtendsHeritageElement(Node node)
     {

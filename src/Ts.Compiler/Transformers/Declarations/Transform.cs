@@ -280,6 +280,289 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         thisPropertyVisitor != null && declareStrippingVisitor != null && declarationMapPath != null &&
         !ShouldStripInternal(null) && ThrowDiagnostic(default!) == null;
 
+    // transform.go:311-316 — collectFileReferences.
+    private void CollectFileReferences(SourceFile sourceFile)
+    {
+        foreach (var @ref in sourceFile.ReferencedFiles ?? [])
+        {
+            rawReferencedFiles.Add(new ReferencedFilePair { File = sourceFile, Reference = @ref });
+        }
+        rawTypeReferenceDirectives.AddRange(sourceFile.TypeReferenceDirectives ?? []);
+        rawLibReferenceDirectives.AddRange(sourceFile.LibReferenceDirectives ?? []);
+    }
+
+    // transform.go:317-322 — nodeOrSyntaxListChildren.
+    private static Node[] NodeOrSyntaxListChildren(Node node)
+    {
+        if (NodeTests.IsSyntaxList(node))
+        {
+            return node.AsSyntaxList().Children ?? [];
+        }
+        return [node];
+    }
+
+    // transform.go:323-325 — flattenSyntaxLists.
+    private static Node[] FlattenSyntaxLists(Node[] nodes) =>
+        CoreUtil.FlatMap(nodes, NodeOrSyntaxListChildren) ?? [];
+
+    // transform.go:327-340 — appendCjsExports.
+    private NodeList AppendCjsExports(NodeList combinedStatements)
+    {
+        var result = new List<Node>();
+        if (cjsExportAssignment != null)
+        {
+            result.Add(cjsExportAssignment);
+        }
+        result.AddRange(cjsExportMembers);
+        result.AddRange(combinedStatements.Nodes);
+        var statementNodes = FlattenSyntaxLists(result.ToArray());
+        if (statementNodes.Length != combinedStatements.Nodes.Length)
+        {
+            combinedStatements = Factory().AsNodeFactory().NewNodeList(statementNodes);
+        }
+        return combinedStatements;
+    }
+
+    // transform.go:382-384 — createEmptyExports.
+    private static Node CreateEmptyExports(global::Ts.Ast.NodeFactory factory) =>
+        factory.NewExportDeclaration(null /*modifiers*/, false /*isTypeOnly*/, factory.NewNamedExports(factory.NewNodeList([])), null, null);
+
+    // transform.go:386-462 — transformAndReplaceLatePaintedStatements.
+    // This is a `while` loop because `handleSymbolAccessibilityError` can see additional import aliases
+    // marked as visible during error handling which must now be included in the output and themselves
+    // checked for errors. For example:
+    // ```
+    // module A {
+    //   export module Q {}
+    //   import B = Q;
+    //   import C = B;
+    //   export import D = C;
+    // }
+    // ```
+    // In such a scenario, only Q and D are initially visible, but we don't consider imports as private
+    // names - instead we say they if they are referenced they must be recorded. So while checking D's
+    // visibility we mark C as visible, then we must check C which in turn marks B, completing the chain
+    // of dependent imports and allowing a valid declaration file output. Today, this dependent alias
+    // marking only happens for internal import aliases.
+    private NodeList TransformAndReplaceLatePaintedStatements(NodeList statements)
+    {
+        while (true)
+        {
+            if (state.LateMarkedStatements.Count == 0)
+            {
+                break;
+            }
+
+            var next = state.LateMarkedStatements[0];
+            state.LateMarkedStatements.RemoveAt(0);
+
+            var saveNeedsDeclare = needsDeclare;
+            needsDeclare = next.Parent != null && NodeTests.IsSourceFile(next.Parent);
+
+            var result = TransformTopLevelDeclaration(next);
+
+            needsDeclare = saveNeedsDeclare;
+            var original = EmitContext().MostOriginal(next)!;
+            var id = AstUtilities.GetNodeId(original);
+            lateStatementReplacementMap[id] = result;
+        }
+
+        // And lastly, we need to get the final form of all those indetermine import declarations from
+        // before and add them to the output list (and remove them from the set to examine for outter
+        // declarations)
+        var results = new List<Node>(statements.Nodes.Length);
+        foreach (var statement in statements.Nodes)
+        {
+            if (!global::Ts.Checker.Checker.IsLateVisibilityPaintedStatement(statement))
+            {
+                results.Add(statement);
+                continue;
+            }
+            var original = EmitContext().MostOriginal(statement)!;
+            var id = AstUtilities.GetNodeId(original);
+            if (!lateStatementReplacementMap.TryGetValue(id, out var replacement))
+            {
+                results.Add(statement);
+                continue; // not replaced
+            }
+            if (replacement == null)
+            {
+                continue; // deleted
+            }
+            if (replacement.Kind == SyntaxKind.SyntaxList)
+            {
+                if (!needsScopeFixMarker || !resultHasExternalModuleIndicator)
+                {
+                    foreach (var elem in replacement.AsSyntaxList().Children ?? [])
+                    {
+                        if (DeclarationUtilities.NeedsScopeMarker(elem))
+                        {
+                            needsScopeFixMarker = true;
+                        }
+                        if (NodeTests.IsSourceFile(statement.Parent!) && AstUtilities.IsExternalModuleIndicator(elem))
+                        {
+                            resultHasExternalModuleIndicator = true;
+                        }
+                    }
+                }
+                results.AddRange(replacement.AsSyntaxList().Children ?? []);
+            }
+            else
+            {
+                if (DeclarationUtilities.NeedsScopeMarker(replacement))
+                {
+                    needsScopeFixMarker = true;
+                }
+                if (NodeTests.IsSourceFile(statement.Parent!) && AstUtilities.IsExternalModuleIndicator(replacement))
+                {
+                    resultHasExternalModuleIndicator = true;
+                }
+                results.Add(replacement);
+            }
+        }
+
+        return Factory().AsNodeFactory().NewNodeList(results.ToArray());
+    }
+
+    // transform.go:464-518 — getReferencedFiles: handle path rewrites for triple slash ref comments.
+    private FileReference[] GetReferencedFiles(string outputFilePath)
+    {
+        var results = new List<FileReference>();
+        foreach (var pair in rawReferencedFiles)
+        {
+            var sourceFile = pair.File!;
+            var @ref = pair.Reference!.Value;
+
+            if (!@ref.Preserve)
+            {
+                continue;
+            }
+
+            var file = host!.GetSourceFileFromReference(sourceFile, @ref)!;
+            if (file == null)
+            {
+                continue;
+            }
+
+            string declFileName;
+            if (file.IsDeclarationFile)
+            {
+                declFileName = file.FileName();
+            }
+            else
+            {
+                var paths = host.GetOutputPathsFor(file, true);
+                // Try to use output path for referenced file, or output js path if that doesn't exist, or the input path if all else fails
+                declFileName = paths.DeclarationFilePath();
+                if (declFileName.Length == 0)
+                {
+                    declFileName = paths.JsFilePath();
+                }
+                if (declFileName.Length == 0)
+                {
+                    declFileName = file.FileName();
+                }
+            }
+            // Should only be missing if the source file is missing a fileName (at which point we can't name a reference to it anyway)
+            // TODO: Shouldn't this be a crash or assert instead of a silent continue?
+            if (declFileName.Length == 0)
+            {
+                continue;
+            }
+
+            var fileName = global::Ts.TsPath.TsPath.GetRelativePathToDirectoryOrUrl(
+                outputFilePath,
+                declFileName,
+                false, // TODO: Probably unsafe to assume this isn't a URL, but that's what strada does
+                new global::Ts.TsPath.ComparePathsOptions
+                {
+                    CurrentDirectory = host.GetCurrentDirectory(),
+                    UseCaseSensitiveFileNames = host.UseCaseSensitiveFileNames(),
+                });
+
+            results.Add(new FileReference
+            {
+                TextRange = new TextRange(-1, -1),
+                FileName = fileName,
+                ResolutionMode = @ref.ResolutionMode,
+                Preserve = @ref.Preserve,
+            });
+        }
+        return results.ToArray();
+    }
+
+    // transform.go:519-533 — getLibReferences: clone retained references.
+    private FileReference[] GetLibReferences()
+    {
+        var result = new List<FileReference>();
+        foreach (var @ref in rawLibReferenceDirectives)
+        {
+            if (!@ref.Preserve)
+            {
+                continue;
+            }
+            result.Add(new FileReference
+            {
+                TextRange = new TextRange(-1, -1),
+                FileName = @ref.FileName,
+                ResolutionMode = @ref.ResolutionMode,
+                Preserve = @ref.Preserve,
+            });
+        }
+        return result.ToArray();
+    }
+
+    // transform.go:535-549 — getTypeReferences: clone retained references.
+    private FileReference[] GetTypeReferences()
+    {
+        var result = new List<FileReference>();
+        foreach (var @ref in rawTypeReferenceDirectives)
+        {
+            if (!@ref.Preserve)
+            {
+                continue;
+            }
+            result.Add(new FileReference
+            {
+                TextRange = new TextRange(-1, -1),
+                FileName = @ref.FileName,
+                ResolutionMode = @ref.ResolutionMode,
+                Preserve = @ref.Preserve,
+            });
+        }
+        return result.ToArray();
+    }
+
+    // transform.go:551-571 — setupDiagnosticContext. Returns (canProduceDiagnostic, restore).
+    private (bool canProduceDiagnostic, Action restore) SetupDiagnosticContext(Node input)
+    {
+        var canProdiceDiagnostic = DeclarationUtilities.CanProduceDiagnostics(input);
+        var oldWithinObjectLiteralType = suppressNewDiagnosticContexts;
+        var shouldEnterSuppressNewDiagnosticsContextContext = (input.Kind == SyntaxKind.TypeLiteral || input.Kind == SyntaxKind.MappedType) && !(input.Parent!.Kind == SyntaxKind.TypeAliasDeclaration || input.Parent.Kind == SyntaxKind.JSTypeAliasDeclaration);
+
+        var oldDiag = state.GetSymbolAccessibilityDiagnostic;
+        if (canProdiceDiagnostic && !suppressNewDiagnosticContexts)
+        {
+            state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(input);
+        }
+        var oldName = state.ErrorNameNode;
+
+        if (shouldEnterSuppressNewDiagnosticsContextContext)
+        {
+            suppressNewDiagnosticContexts = true;
+        }
+
+        return (canProdiceDiagnostic, () =>
+        {
+            state.GetSymbolAccessibilityDiagnostic = oldDiag;
+            state.ErrorNameNode = oldName;
+            suppressNewDiagnosticContexts = oldWithinObjectLiteralType;
+        });
+    }
+
+    // ── rebuild forward stub: replaced when visitDeclarationStatements batch lands ──
+    private Node? TransformTopLevelDeclaration(Node input) => throw new NotImplementedException("declarations rebuild");
+
     // transform.go:276-278 — throwDiagnostic.
     private static SymbolAccessibilityDiagnostic ThrowDiagnostic(global::Ts.Printer.SymbolAccessibilityResult result) =>
         throw new InvalidOperationException("Diagnostic emitted without context");
