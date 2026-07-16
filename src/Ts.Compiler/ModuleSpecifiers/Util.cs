@@ -72,6 +72,17 @@ public static partial class ModuleSpecifierUtil
         return before + ext;
     }
 
+    // util.go:174 — getJSExtensionForFile.
+    internal static string GetJSExtensionForFile(string fileName, CompilerOptions options)
+    {
+        string result = global::Ts.Module.Module.TryGetJSExtensionForFile(fileName, options);
+        if (result.Length == 0)
+        {
+            throw new InvalidOperationException($"Extension {ExtensionFromPath(fileName)} is unsupported:: FileName:: {fileName}");
+        }
+        return result;
+    }
+
     // util.go:186 — extensionFromPath. Path must have a valid extension.
     internal static string ExtensionFromPath(string path)
     {
