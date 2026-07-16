@@ -91,10 +91,46 @@ public sealed partial class NodeBuilder
             return TypeAliasToTypeReferenceNode(t.alias);
         }
 
+        // nodebuilderimpl.go:3231-3256 — enum-like arm: build here (not via the context-free leaf core)
+        // so the parent enum renders through the full symbolToTypeNode qualification chain
+        // (`A.Color`, import-type members). shouldExpandType short-circuits false (no VerbosityContext).
+        if ((t.flags & TypeFlags.EnumLike) != 0)
+        {
+            if ((t.symbol!.Flags & SymbolFlags.EnumMember) != 0)
+            {
+                var parentSymbol = ch.GetParentOfSymbol(t.symbol)!;
+                var parentName = SymbolToTypeNode(parentSymbol, SymbolFlags.Type, null)!;
+                if (ch.GetDeclaredTypeOfSymbol(parentSymbol) == t)
+                {
+                    return parentName;
+                }
+                var memberName = AstUtilities.SymbolName(t.symbol);
+                if (global::Ts.Scanner.Scanner.IsIdentifierText(memberName, LanguageVariant.Standard))
+                {
+                    return AppendReferenceToType(parentName /* as TypeReference | ImportTypeNode */, f.NewTypeReferenceNode(f.NewIdentifier(memberName), null /*typeArguments*/));
+                }
+                if (NodeTests.IsImportTypeNode(parentName))
+                {
+                    parentName.AsImportTypeNode().IsTypeOf = true;
+                    // mutably update, node is freshly manufactured anyhow
+                    return f.NewIndexedAccessTypeNode(parentName, f.NewLiteralTypeNode(NewStringLiteralEx(memberName, false)));
+                }
+                else if (NodeTests.IsTypeReferenceNode(parentName))
+                {
+                    return f.NewIndexedAccessTypeNode(f.NewTypeQueryNode(parentName.AsTypeReferenceNode().TypeName, null), f.NewLiteralTypeNode(NewStringLiteralEx(memberName, false)));
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unhandled type node kind returned from `symbolToTypeNode`.");
+                }
+            }
+            // TypeFlagsUnion expansion is shouldExpandType-gated; with no VerbosityContext it is always false.
+            return SymbolToTypeNode(t.symbol, SymbolFlags.Type, null)!;
+        }
+
         // nodebuilderimpl.go:3258-3263 — string-literal type: build here (not via the context-free leaf
-        // core) so the NoAsciiEscaping emit flag lands in this builder's emit context. Enum-like literals
-        // must keep routing to the leaf core's enum arm (Go handles EnumLike before StringLiteral).
-        if ((t.flags & TypeFlags.EnumLike) == 0 && (t.flags & TypeFlags.StringLiteral) != 0)
+        // core) so the NoAsciiEscaping emit flag lands in this builder's emit context.
+        if ((t.flags & TypeFlags.StringLiteral) != 0)
         {
             ctx.approximateLength += ((string)t.AsLiteralType().value!).Length + 2;
             var lit = NewStringLiteralEx((string)t.AsLiteralType().value!, false);
