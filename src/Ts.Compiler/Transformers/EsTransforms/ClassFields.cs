@@ -2640,14 +2640,1327 @@ internal sealed class ClassFieldsTransformer : Transformer
         return expression;
     }
 
-    // ── Forward stubs (batches 4/5b replace these; unreachable until the batch-6 dispatch switch) ──
-    private Node? VisitExpressionWithTypeArgumentsInHeritageClause(Node node) => throw new NotImplementedException("classfields batch 4");
+    // ── Batch 4: class environment (classfields.go:1815-2876) + the private-initializer factories it
+    // consumes (classfields.go:3365-3410) ───────────────────────────────────────────────────────────
+
+    // classfields.go:1815 — visitExpressionWithTypeArgumentsInHeritageClause.
+    private Node? VisitExpressionWithTypeArgumentsInHeritageClause(Node node)
+    {
+        var facts = ClassFacts.None;
+        if (lexicalEnvironment is { data: { } data })
+        {
+            facts = data.facts;
+        }
+        if ((facts & ClassFacts.NeedsClassSuperReference) != 0)
+        {
+            var temp = Factory().NewTempVariableEx(new global::Ts.Printer.AutoGenerateOptions
+            {
+                Flags = global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+            });
+            EmitContext().AddVariableDeclaration(temp);
+            GetClassLexicalEnvironment().superClassReference = temp;
+            return Factory().UpdateExpressionWithTypeArguments(
+                node.AsExpressionWithTypeArguments(),
+                Factory().NewAssignmentExpression(temp, Visitor().VisitNode(node.AsExpressionWithTypeArguments().Expression!)!),
+                null /*typeArguments*/);
+        }
+        return heritageClauseVisitor.VisitEachChild(node);
+    }
+
+    // classfields.go:1835 — visitInNewClassLexicalEnvironment.
+    private Node? VisitInNewClassLexicalEnvironment(Node node, Func<ClassFieldsTransformer, Node, ClassFacts, Node?> visitor)
+    {
+        var savedCurrentClassContainer = currentClassContainer;
+        var savedPendingExpressions = pendingExpressions;
+        var savedLexicalEnvironment = lexicalEnvironment;
+        currentClassContainer = node;
+        pendingExpressions = null;
+        StartClassLexicalEnvironment();
+        var original = EmitContext().MostOriginal(node)!;
+        enclosingClassDeclarations.Add(original);
+
+        if (shouldTransformPrivateElementsOrClassStaticBlocks || NodeHasTransformPrivateStaticElementsFlag(node))
+        {
+            var name = AstUtilities.GetNameOfDeclaration(node);
+            if (name != null && NodeTests.IsIdentifier(name))
+            {
+                GetPrivateIdentifierEnvironment().data.className = name;
+            }
+            else if (EmitContext().AssignedName(node) is { } assignedName)
+            {
+                if (NodeTests.IsStringLiteral(assignedName))
+                {
+                    // If the assigned name has a textSourceNode that is an identifier, use it directly.
+                    if (EmitContext().TextSource(assignedName) is { } textSourceNode && NodeTests.IsIdentifier(textSourceNode))
+                    {
+                        GetPrivateIdentifierEnvironment().data.className = textSourceNode;
+                    }
+                    else if (global::Ts.Scanner.Scanner.IsIdentifierText(assignedName.Text(), LanguageVariant.Standard))
+                    {
+                        // If the text is a valid identifier, create an identifier from it.
+                        var prefixName = Factory().NewIdentifier(assignedName.Text());
+                        GetPrivateIdentifierEnvironment().data.className = prefixName;
+                    }
+                }
+            }
+        }
+
+        if (shouldTransformPrivateElementsOrClassStaticBlocks)
+        {
+            var privateInstanceMethodsAndAccessors = GetPrivateInstanceMethodsAndAccessors(node);
+            if (privateInstanceMethodsAndAccessors.Length > 0)
+            {
+                GetPrivateIdentifierEnvironment().data.weakSetName = CreateHoistedVariableForClass(
+                    "instances",
+                    privateInstanceMethodsAndAccessors[0].Name()!,
+                    "");
+            }
+        }
+
+        var facts = GetClassFacts(node);
+        if (facts != ClassFacts.None)
+        {
+            GetClassLexicalEnvironment().facts = facts;
+        }
+
+        var result = visitor(this, node, facts);
+        enclosingClassDeclarations.Delete(original);
+        EndClassLexicalEnvironment();
+        Debug.Assert(lexicalEnvironment == savedLexicalEnvironment);
+        currentClassContainer = savedCurrentClassContainer;
+        pendingExpressions = savedPendingExpressions;
+        lexicalEnvironment = savedLexicalEnvironment;
+        return result;
+    }
+
+    // classfields.go:1889 — visitClassDeclaration.
+    private Node? VisitClassDeclaration(Node node) =>
+        VisitInNewClassLexicalEnvironment(node, static (tx, n, facts) => tx.VisitClassDeclarationInNewClassLexicalEnvironment(n, facts));
+
+    // classfields.go:1893 — visitClassDeclarationInNewClassLexicalEnvironment.
+    private Node? VisitClassDeclarationInNewClassLexicalEnvironment(Node node, ClassFacts facts)
+    {
+        var classDecl = node.AsClassDeclaration();
+        // If a class has private static fields, or a static field has a `this` or `super` reference,
+        // then we need to allocate a temp variable to hold on to that reference.
+        Node? pendingClassReferenceAssignment = null;
+        if ((facts & ClassFacts.NeedsClassConstructorReference) != 0)
+        {
+            // If we aren't transforming class static blocks, then we can't reuse `_classThis` since in
+            // `class C { ... static { _classThis = ... } }; _classThis = C` the outer assignment would occur *after*
+            // class static blocks evaluate and would overwrite the replacement constructor produced by class
+            // decorators.
+
+            // If we are transforming class static blocks, then we can reuse `_classThis` since the assignment
+            // will be evaluated *before* the transformed static blocks are evaluated and thus won't overwrite
+            // the replacement constructor.
+
+            if (shouldTransformPrivateElementsOrClassStaticBlocks && EmitContext().ClassThis(node) != null)
+            {
+                var classThis = EmitContext().ClassThis(node)!;
+                GetClassLexicalEnvironment().classConstructor = classThis;
+                pendingClassReferenceAssignment = Factory().NewAssignmentExpression(
+                    classThis,
+                    Factory().GetLocalName(node));
+            }
+            else
+            {
+                var temp = Factory().NewTempVariableEx(new global::Ts.Printer.AutoGenerateOptions
+                {
+                    Flags = global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+                });
+                EmitContext().AddVariableDeclaration(temp);
+                GetClassLexicalEnvironment().classConstructor = temp.Clone(Factory());
+                pendingClassReferenceAssignment = Factory().NewAssignmentExpression(
+                    temp,
+                    Factory().GetLocalName(node));
+            }
+        }
+
+        if (EmitContext().ClassThis(node) != null)
+        {
+            GetClassLexicalEnvironment().classThis = EmitContext().ClassThis(node);
+        }
+
+        var isClassWithConstructorReference = ClassContainsConstructorReference(node);
+
+        // Register class alias BEFORE visiting members (Strada registers after, since its
+        // onSubstituteNode runs at emit time; we substitute eagerly during transformation).
+        var alias = GetClassLexicalEnvironment().classConstructor;
+        if (isClassWithConstructorReference && alias != null)
+        {
+            classAliases![EmitContext().MostOriginal(node)!] = alias;
+        }
+
+        var modifiers = modifierVisitor.VisitModifiers(classDecl.Modifiers());
+        var heritageClauses = heritageClauseVisitor.VisitNodes(classDecl.HeritageClauses);
+        var (members, membersPrologue) = TransformClassMembers(node);
+
+        var statements = new List<Node>();
+
+        if (pendingClassReferenceAssignment != null)
+        {
+            var newPending = new List<Node> { pendingClassReferenceAssignment };
+            if (pendingExpressions != null)
+            {
+                newPending.AddRange(pendingExpressions);
+            }
+            pendingExpressions = newPending;
+        }
+
+        // Write any pending expressions from elided or moved computed property names
+        if (pendingExpressions is { Count: > 0 })
+        {
+            statements.Add(Factory().NewExpressionStatement(Factory().InlineExpressions(pendingExpressions.ToArray())));
+        }
+
+        // A class declaration without a name needs a generated name if it has static
+        // initialized properties, since those will be moved outside the class body and
+        // need to reference the class by name.
+        var name = classDecl.Name();
+
+        if (shouldTransformInitializersUsingSet || shouldTransformPrivateElementsOrClassStaticBlocks)
+        {
+            // Emit static property assignment. Because classDeclaration is lexically evaluated,
+            // it is safe to emit static property assignment after classDeclaration
+            // From ES6 specification:
+            //   HasLexicalDeclaration (N) : Determines if the argument identifier has a binding in this environment record that was created using
+            //                               a lexical declaration such as a LexicalDeclaration or a ClassDeclaration.
+            var staticProperties = GetStaticPropertiesAndClassStaticBlock(node);
+            if (staticProperties.Length > 0)
+            {
+                if (name == null)
+                {
+                    name = Factory().NewGeneratedNameForNode(node);
+                }
+                AddPropertyOrClassStaticBlockStatements(statements, staticProperties, Factory().GetLocalName(node));
+            }
+        }
+
+        var isExport = AstUtilities.HasSyntacticModifier(node, ModifierFlags.Export);
+        var isDefault = AstUtilities.HasSyntacticModifier(node, ModifierFlags.Default);
+
+        if (statements.Count > 0 && isExport && isDefault)
+        {
+            modifiers = global::Ts.Transformers.Transformers.ExtractModifiers(EmitContext(), modifiers, ~ModifierFlags.ExportDefault);
+            var exportAssignment = Factory().NewExportAssignment(null, false /*isExportEquals*/, null /*typeNode*/, Factory().GetLocalName(node));
+            statements.Add(exportAssignment);
+        }
+
+        var updatedClass = Factory().UpdateClassDeclaration(
+            classDecl,
+            modifiers,
+            name,
+            null, /*typeParameters*/
+            heritageClauses,
+            members);
+
+        var result = new List<Node>(1 + statements.Count + 1);
+        if (membersPrologue != null)
+        {
+            result.Add(Factory().NewExpressionStatement(membersPrologue));
+        }
+        result.Add(updatedClass);
+        result.AddRange(statements);
+        return Factory().AsNodeFactory().NewSyntaxList(result.ToArray());
+    }
+
+    // classfields.go:2003 — visitClassExpression.
+    private Node? VisitClassExpression(Node node) =>
+        VisitInNewClassLexicalEnvironment(node, static (tx, n, facts) => tx.VisitClassExpressionInNewClassLexicalEnvironment(n, facts));
+
+    // classfields.go:2007 — visitClassExpressionInNewClassLexicalEnvironment.
+    private Node? VisitClassExpressionInNewClassLexicalEnvironment(Node node, ClassFacts facts)
+    {
+        var classExpr = node.AsClassExpression();
+
+        // If this class expression is a transformation of a decorated class declaration,
+        // then we want to output the pendingExpressions as statements, not as inlined
+        // expressions with the class statement.
+        //
+        // In this case, we use pendingStatements to produce the same output as the
+        // class declaration transformation. The VariableStatement visitor will insert
+        // these statements after the class expression variable statement.
+        var isDecoratedClassDeclaration = (facts & ClassFacts.ClassWasDecorated) != 0;
+
+        if (EmitContext().ClassThis(node) != null)
+        {
+            GetClassLexicalEnvironment().classThis = EmitContext().ClassThis(node);
+        }
+
+        Node? temp = null;
+        if ((facts & ClassFacts.NeedsClassConstructorReference) != 0)
+        {
+            if ((shouldTransformPrivateElementsOrClassStaticBlocks || NodeHasTransformPrivateStaticElementsFlag(node)) && EmitContext().ClassThis(node) != null)
+            {
+                var classThis = EmitContext().ClassThis(node);
+                GetClassLexicalEnvironment().classConstructor = classThis;
+                temp = classThis;
+            }
+            else
+            {
+                temp = Factory().NewTempVariableEx(new global::Ts.Printer.AutoGenerateOptions
+                {
+                    Flags = global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+                });
+                if (ClassExpressionNeedsBlockScopedTemp())
+                {
+                    EmitContext().AddLexicalDeclaration(temp);
+                }
+                else
+                {
+                    EmitContext().AddVariableDeclaration(temp);
+                }
+                GetClassLexicalEnvironment().classConstructor = temp.Clone(Factory());
+            }
+        }
+
+        var staticPropertiesOrClassStaticBlocks = GetStaticPropertiesAndClassStaticBlock(node);
+
+        // Pre-compute whether the class expression will need a temp variable wrapper.
+        // Strada registers class aliases AFTER transformClassMembers (since onSubstituteNode runs
+        // at emit time), but we must predict this before visiting members since we substitute
+        // eagerly. This requires pre-detecting willHavePrivatePendingExpressions.
+        var isClassWithConstructorReference = false;
+        var hasTransformableStatics = false;
+        var deferTempDeclaration = false;
+        if (!isDecoratedClassDeclaration)
+        {
+            isClassWithConstructorReference = ClassContainsConstructorReference(node);
+            hasTransformableStatics = (shouldTransformPrivateElementsOrClassStaticBlocks ||
+                NodeHasTransformPrivateStaticElementsFlag(node)) &&
+                CoreUtil.Some(staticPropertiesOrClassStaticBlocks, n =>
+                    NodeTests.IsClassStaticBlockDeclaration(n) ||
+                    AstUtilities.IsPrivateIdentifierClassElementDeclaration(n) ||
+                    (shouldTransformInitializers && AstUtilities.IsInitializedProperty(n)));
+
+            // Private instance elements (fields, methods, accessors) transformed to
+            // WeakMap/WeakSet will add initialization expressions to pendingExpressions
+            // during transformClassMembers. Pre-detect this so we know whether the class
+            // will be wrapped with a temp variable.
+            var willHavePrivatePendingExpressions = shouldTransformPrivateElementsOrClassStaticBlocks &&
+                CoreUtil.Some(node.Members(), n =>
+                    AstUtilities.IsPrivateIdentifierClassElementDeclaration(n) && !AstUtilities.HasStaticModifier(n) && ShouldTransformClassElementToWeakMap(n));
+            var willNeedTempWrapper = hasTransformableStatics || willHavePrivatePendingExpressions;
+
+            // Register class alias BEFORE visiting members (Strada registers after, since its
+            // onSubstituteNode runs at emit time). Only register when the class will be wrapped
+            // with a temp, matching Strada's conditional registration.
+            if (isClassWithConstructorReference && willNeedTempWrapper && GetClassLexicalEnvironment().classConstructor == null)
+            {
+                // Create temp early so the alias is available during member visiting, even though in the Strada
+                // reference the temp would be created later in the pendingExpressions branch.
+                temp = Factory().NewTempVariableEx(new global::Ts.Printer.AutoGenerateOptions
+                {
+                    Flags = global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+                });
+                // Defer AddVariableDeclaration to preserve Strada's variable declaration ordering.
+                deferTempDeclaration = true;
+                GetClassLexicalEnvironment().classConstructor = temp.Clone(Factory());
+            }
+            if (GetClassLexicalEnvironment().classConstructor is { } alias && isClassWithConstructorReference && willNeedTempWrapper)
+            {
+                classAliases![EmitContext().MostOriginal(node)!] = alias;
+            }
+        }
+
+        var modifiers = modifierVisitor.VisitModifiers(classExpr.Modifiers());
+        var heritageClauses = heritageClauseVisitor.VisitNodes(classExpr.HeritageClauses);
+        var (members, membersPrologue) = TransformClassMembers(node);
+
+        if (deferTempDeclaration)
+        {
+            if (ClassExpressionNeedsBlockScopedTemp())
+            {
+                EmitContext().AddLexicalDeclaration(temp!);
+            }
+            else
+            {
+                EmitContext().AddVariableDeclaration(temp!);
+            }
+        }
+
+        var classExpression = Factory().AsNodeFactory().UpdateClassExpression(
+            classExpr,
+            modifiers,
+            classExpr.Name(),
+            null, /*typeParameters*/
+            heritageClauses,
+            members);
+
+        var expressions = new List<Node>();
+        if (membersPrologue != null)
+        {
+            expressions.Add(membersPrologue);
+        }
+
+        if (!isDecoratedClassDeclaration)
+        {
+            if (hasTransformableStatics || pendingExpressions is { Count: > 0 })
+            {
+                if (temp == null)
+                {
+                    temp = Factory().NewTempVariableEx(new global::Ts.Printer.AutoGenerateOptions
+                    {
+                        Flags = global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+                    });
+                    if (ClassExpressionNeedsBlockScopedTemp())
+                    {
+                        EmitContext().AddLexicalDeclaration(temp);
+                    }
+                    else
+                    {
+                        EmitContext().AddVariableDeclaration(temp);
+                    }
+                    GetClassLexicalEnvironment().classConstructor = temp.Clone(Factory());
+                    if (isClassWithConstructorReference)
+                    {
+                        classAliases![EmitContext().MostOriginal(node)!] = GetClassLexicalEnvironment().classConstructor!;
+                    }
+                }
+
+                expressions.Add(Factory().NewAssignmentExpression(temp, classExpression));
+
+                // Add any pending expressions leftover from elided or relocated computed property names
+                if (pendingExpressions != null)
+                {
+                    expressions.AddRange(pendingExpressions);
+                }
+
+                expressions.AddRange(GenerateInitializedPropertyExpressionsOrClassStaticBlock(staticPropertiesOrClassStaticBlocks, temp));
+                expressions.Add(temp.Clone(Factory())!);
+            }
+            else
+            {
+                expressions.Add(classExpression);
+            }
+        }
+        else
+        {
+            // Decorated class declaration path: emit static properties as separate statements
+            // via pendingStatements, matching the class declaration output structure.
+
+            // Write any pending expressions from elided or moved computed property names
+            if (pendingExpressions is { Count: > 0 })
+            {
+                pendingStatements ??= new List<Node>();
+                foreach (var expr in pendingExpressions)
+                {
+                    pendingStatements.Add(Factory().NewExpressionStatement(expr));
+                }
+            }
+
+            // Emit static properties as statements (via pendingStatements) using the class's
+            // internal name as the receiver, matching the class declaration output structure.
+            if (staticPropertiesOrClassStaticBlocks.Length > 0)
+            {
+                var classThisOrName = EmitContext().ClassThis(node);
+                if (classThisOrName == null)
+                {
+                    classThisOrName = Factory().GetLocalName(node);
+                }
+                pendingStatements ??= new List<Node>();
+                AddPropertyOrClassStaticBlockStatements(pendingStatements, staticPropertiesOrClassStaticBlocks, classThisOrName);
+            }
+
+            if (temp != null)
+            {
+                expressions.Add(Factory().NewAssignmentExpression(temp, classExpression));
+            }
+            else if (shouldTransformPrivateElementsOrClassStaticBlocks && EmitContext().ClassThis(node) != null)
+            {
+                expressions.Add(Factory().NewAssignmentExpression(EmitContext().ClassThis(node)!, classExpression));
+            }
+            else
+            {
+                expressions.Add(classExpression);
+            }
+        }
+
+        if (expressions.Count > 1)
+        {
+            EmitContext().AddEmitFlags(classExpression, global::Ts.Printer.EmitFlags.Indented);
+            foreach (var expr in expressions)
+            {
+                EmitContext().AddEmitFlags(expr, global::Ts.Printer.EmitFlags.StartOnNewLine);
+            }
+        }
+        return Factory().InlineExpressions(expressions.ToArray());
+    }
+
+    // classfields.go:2181 — visitClassStaticBlockDeclaration.
+    private Node? VisitClassStaticBlockDeclaration(Node node)
+    {
+        if (!shouldTransformPrivateElementsOrClassStaticBlocks)
+        {
+            return Visitor().VisitEachChild(node);
+        }
+        // ClassStaticBlockDeclaration for classes are transformed in visitClassDeclaration/visitClassExpression.
+        return null;
+    }
+
+    // classfields.go:2194 — visitThisExpression replaces Strada's substituteThisExpression /
+    // onSubstituteNode. Strada substitutes `this` at emit time; we do it eagerly during transformation.
+    //
+    // The Strada noSubstitution set (ensureDynamicThisIfNeeded) is not needed because
+    // transformAutoAccessor() passes the receiver directly rather than emitting `this`.
+    private Node VisitThisExpression(Node node)
+    {
+        if (insideComputedPropertyName && shouldTransformThisInStaticInitializers &&
+            lexicalEnvironment is { data: { } data })
+        {
+            // Don't replace `this` in computed property names for ES-decorated classes.
+            // The esDecorator transformer wraps them in an arrow IIFE where `this` already
+            // refers to the correct outer scope.
+            if ((data.facts & ClassFacts.ClassWasDecorated) == 0 || legacyDecorators)
+            {
+                if (TryGetClassThisNoContainer() is { } classThis)
+                {
+                    return classThis;
+                }
+            }
+        }
+        if (shouldTransformThisInStaticInitializers && currentClassElement != null &&
+            (NodeTests.IsClassStaticBlockDeclaration(currentClassElement) ||
+                (NodeTests.IsPropertyDeclaration(currentClassElement) && AstUtilities.HasStaticModifier(currentClassElement))) &&
+            lexicalEnvironment is { data: { } data2 })
+        {
+            if (TryGetClassThisNoContainer() is { } classThis)
+            {
+                return classThis;
+            }
+            // When the class was decorated with legacy decorators and no class constructor
+            // reference is available, the decorator may replace the constructor, so `this`
+            // cannot reliably point to the class. Use `(void 0)` instead.
+            if ((data2.facts & ClassFacts.ClassWasDecorated) != 0 && legacyDecorators)
+            {
+                return Factory().NewParenthesizedExpression(Factory().NewVoidZeroExpression());
+            }
+        }
+        return node;
+    }
+
+    // classfields.go:2223 — transformClassMembers.
+    private (NodeList? members, Node? prologue) TransformClassMembers(Node node)
+    {
+        var shouldTransformPrivateStaticElementsInClass = (EmitContext().EmitFlags(node) & global::Ts.Printer.EmitFlags.TransformPrivateStaticElements) != 0;
+        Node? prologue = null;
+
+        // Declare private names
+        if (shouldTransformPrivateElementsOrClassStaticBlocks || shouldTransformPrivateStaticElementsInFile)
+        {
+            foreach (var member in node.Members() ?? [])
+            {
+                if (AstUtilities.IsPrivateIdentifierClassElementDeclaration(member))
+                {
+                    if (ShouldTransformClassElementToWeakMap(member))
+                    {
+                        AddPrivateIdentifierToEnvironment(member);
+                    }
+                    else
+                    {
+                        var env = GetPrivateIdentifierEnvironment();
+                        SetPrivateIdentifier(env, member.Name()!, new PrivateIdentifierInfo
+                        {
+                            kind = global::Ts.Printer.PrivateIdentifierKind.Untransformed,
+                        });
+                    }
+                }
+            }
+
+            if (shouldTransformPrivateElementsOrClassStaticBlocks)
+            {
+                if (GetPrivateInstanceMethodsAndAccessors(node).Length > 0)
+                {
+                    CreateBrandCheckWeakSetForPrivateMethods();
+                }
+            }
+
+            if (ShouldTransformAutoAccessorsInCurrentClass())
+            {
+                foreach (var member in node.Members() ?? [])
+                {
+                    if (AstUtilities.IsAutoAccessorPropertyDeclaration(member))
+                    {
+                        var storageName = Factory().NewGeneratedPrivateNameForNodeEx(member.Name()!, new global::Ts.Printer.AutoGenerateOptions { Suffix = "_accessor_storage" });
+                        if (shouldTransformPrivateElementsOrClassStaticBlocks ||
+                            shouldTransformPrivateStaticElementsInClass && AstUtilities.HasStaticModifier(member))
+                        {
+                            AddPrivateIdentifierPropertyDeclarationToEnvironment(member, storageName);
+                        }
+                        else
+                        {
+                            var env = GetPrivateIdentifierEnvironment();
+                            // Only register as untransformed if it hasn't already been registered
+                            // by the first loop (e.g., if esDecorators expanded a private auto-accessor
+                            // into a backing field with the same generated name).
+                            var (_, ok) = GetPrivateIdentifier(env, storageName);
+                            if (!ok)
+                            {
+                                SetPrivateIdentifier(env, storageName, new PrivateIdentifierInfo
+                                {
+                                    kind = global::Ts.Printer.PrivateIdentifierKind.Untransformed,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        var members = classElementVisitor.VisitNodes(node.MemberList())!;
+
+        // Create a synthetic constructor if necessary
+        Node? syntheticConstructor = null;
+        if (!CoreUtil.Some(members.Nodes, NodeTests.IsConstructorDeclaration))
+        {
+            syntheticConstructor = TransformConstructor(null, node);
+        }
+
+        // If there are pending expressions create a class static block in which to evaluate them, but only if
+        // class static blocks are not also being transformed. This block will be injected at the top of the class
+        // to ensure that expressions from computed property names are evaluated before any other static
+        // initializers.
+        Node? syntheticStaticBlock = null;
+        if (!shouldTransformPrivateElementsOrClassStaticBlocks && pendingExpressions is { Count: > 0 })
+        {
+            var statement = Factory().NewExpressionStatement(Factory().InlineExpressions(pendingExpressions.ToArray()));
+            if ((statement.SubtreeFacts() & SubtreeFacts.SubtreeContainsLexicalThisOrSuper) != 0)
+            {
+                // If there are `this` or `super` references from computed property names, shift the expression
+                // into an arrow function to be evaluated in the outer scope so that `this` and `super` are
+                // properly captured.
+                var temp = Factory().NewTempVariable();
+                EmitContext().AddVariableDeclaration(temp);
+                var arrow = Factory().AsNodeFactory().NewArrowFunction(
+                    null, /*modifiers*/
+                    null, /*typeParameters*/
+                    Factory().AsNodeFactory().NewNodeList([]), /*parameters*/
+                    null, /*returnType*/
+                    null, /*fullSignature*/
+                    Factory().NewToken(SyntaxKind.EqualsGreaterThanToken), /*equalsGreaterThanToken*/
+                    Factory().NewBlock(Factory().AsNodeFactory().NewNodeList([statement]), false /*multiline*/));
+                prologue = Factory().NewAssignmentExpression(temp, arrow);
+                statement = Factory().NewExpressionStatement(
+                    Factory().NewCallExpression(temp, null /*questionDotToken*/, null /*typeArguments*/, Factory().AsNodeFactory().NewNodeList([]), NodeFlags.None));
+            }
+
+            var block = Factory().NewBlock(Factory().AsNodeFactory().NewNodeList([statement]), false /*multiline*/);
+            syntheticStaticBlock = Factory().AsNodeFactory().NewClassStaticBlockDeclaration(null /*modifiers*/, block);
+            pendingExpressions = null;
+        }
+
+        // If we created a synthetic constructor or class static block, add them to the visited members
+        if (syntheticConstructor != null || syntheticStaticBlock != null)
+        {
+            var membersArray = new List<Node>(members.Nodes.Length + 2);
+
+            // Find and preserve classThis assignment block and named evaluation helper block at the top
+            var classThisIdx = -1;
+            var namedEvalIdx = -1;
+            for (var i = 0; i < members.Nodes.Length; i++)
+            {
+                if (classThisIdx < 0 && ClassThisUtilities.IsClassThisAssignmentBlock(EmitContext(), members.Nodes[i]))
+                {
+                    classThisIdx = i;
+                }
+                if (namedEvalIdx < 0 && NamedEvaluationUtilities.IsClassNamedEvaluationHelperBlock(EmitContext(), members.Nodes[i]))
+                {
+                    namedEvalIdx = i;
+                }
+            }
+
+            if (classThisIdx >= 0)
+            {
+                membersArray.Add(members.Nodes[classThisIdx]);
+            }
+            if (namedEvalIdx >= 0)
+            {
+                membersArray.Add(members.Nodes[namedEvalIdx]);
+            }
+            if (syntheticConstructor != null)
+            {
+                membersArray.Add(syntheticConstructor);
+            }
+            if (syntheticStaticBlock != null)
+            {
+                membersArray.Add(syntheticStaticBlock);
+            }
+
+            for (var i = 0; i < members.Nodes.Length; i++)
+            {
+                if (i != classThisIdx && i != namedEvalIdx)
+                {
+                    membersArray.Add(members.Nodes[i]);
+                }
+            }
+            members = Factory().AsNodeFactory().NewNodeList(membersArray.ToArray());
+            members.Loc = node.MemberList()!.Loc;
+        }
+
+        return (members, prologue);
+    }
+
+    // classfields.go:2348 — createBrandCheckWeakSetForPrivateMethods.
+    private void CreateBrandCheckWeakSetForPrivateMethods()
+    {
+        var env = GetPrivateIdentifierEnvironment();
+        var weakSetName = env.data.weakSetName;
+        Debug.Assert(weakSetName != null, "weakSetName should be set in private identifier environment");
+
+        AddPendingExpressions(
+            Factory().NewAssignmentExpression(
+                weakSetName!,
+                Factory().AsNodeFactory().NewNewExpression(
+                    Factory().NewIdentifier("WeakSet"),
+                    null, /*typeArguments*/
+                    Factory().AsNodeFactory().NewNodeList([]))));
+    }
+
+    // classfields.go:2365 — transformConstructor.
+    // NOTE: The Strada reference pre-visits the constructor via `visitNode(constructor, visitor)` before
+    // checking WillHoistInitializersToConstructor. This is not done here because Go's variable environment
+    // (StartVariableEnvironment/EndAndMergeVariableEnvironment) is scoped inside transformConstructorBody.
+    // Pre-visiting would hoist variables outside that scope, causing them to appear after field initializers
+    // instead of before. Instead, we visit parameters and body separately within the correct scopes.
+    private Node? TransformConstructor(Node? constructor, Node container)
+    {
+        if (lexicalEnvironment is not { data: { } data } ||
+            (data.facts & ClassFacts.WillHoistInitializersToConstructor) == 0)
+        {
+            if (constructor != null)
+            {
+                return Visitor().VisitEachChild(constructor);
+            }
+            return null;
+        }
+
+        var extendsClauseElement = AstUtilities.GetClassExtendsHeritageElement(container);
+        var isDerivedClass = extendsClauseElement != null && AstUtilities.SkipOuterExpressions(extendsClauseElement.Expression()!, OuterExpressionKinds.All).Kind != SyntaxKind.NullKeyword;
+
+        NodeList? parameters = null;
+        if (constructor != null)
+        {
+            parameters = Visitor().VisitNodes(constructor.AsConstructorDeclaration().Parameters);
+        }
+
+        var body = TransformConstructorBody(container, constructor, isDerivedClass);
+        if (body == null)
+        {
+            if (constructor != null)
+            {
+                return Visitor().VisitEachChild(constructor);
+            }
+            return null;
+        }
+
+        if (constructor != null)
+        {
+            Debug.Assert(parameters != null);
+            return Factory().AsNodeFactory().UpdateConstructorDeclaration(
+                constructor.AsConstructorDeclaration(),
+                null, /*modifiers*/
+                null, /*typeParameters*/
+                parameters,
+                null, /*returnType*/
+                null, /*fullSignature*/
+                body);
+        }
+
+        if (parameters == null)
+        {
+            parameters = Factory().AsNodeFactory().NewNodeList([]);
+        }
+
+        var result = Factory().AsNodeFactory().NewConstructorDeclaration(
+            null, /*modifiers*/
+            null, /*typeParameters*/
+            parameters,
+            null, /*returnType*/
+            null, /*fullSignature*/
+            body);
+        result.Loc = container.Loc;
+        return result;
+    }
+
+    // classfields.go:2424 — transformConstructorBodyWorker.
+    private List<Node> TransformConstructorBodyWorker(
+        List<Node> statementsOut,
+        Node[] statementsIn,
+        int statementOffset,
+        int[] superPath,
+        int superPathDepth,
+        List<Node> initializerStatements,
+        Node constructor)
+    {
+        var superStatementIndex = superPath[superPathDepth];
+        var superStatement = statementsIn[superStatementIndex];
+
+        // Visit statements before super
+        var (visited, _) = Visitor().VisitSlice(statementsIn[statementOffset..superStatementIndex]);
+        statementsOut.AddRange(visited ?? []);
+        statementOffset = superStatementIndex + 1;
+
+        if (NodeTests.IsTryStatement(superStatement))
+        {
+            var tryBlock = superStatement.AsTryStatement().TryBlock!.AsBlock();
+            var tryBlockStatements = TransformConstructorBodyWorker(
+                new List<Node>(),
+                tryBlock.Statements!.Nodes,
+                0, /*statementOffset*/
+                superPath,
+                superPathDepth + 1,
+                initializerStatements,
+                constructor);
+            var tryStatementList = Factory().AsNodeFactory().NewNodeList(tryBlockStatements.ToArray());
+            tryStatementList.Loc = tryBlock.Statements.Loc;
+
+            var catchClause = Visitor().VisitNode(superStatement.AsTryStatement().CatchClause);
+            var finallyBlock = Visitor().VisitNode(superStatement.AsTryStatement().FinallyBlock);
+
+            var updated = Factory().AsNodeFactory().UpdateTryStatement(
+                superStatement.AsTryStatement(),
+                Factory().UpdateBlock(tryBlock, tryStatementList, tryBlock.MultiLine),
+                catchClause,
+                finallyBlock);
+            statementsOut.Add(updated);
+        }
+        else
+        {
+            var (visitedSuper, _) = Visitor().VisitSlice(statementsIn[superStatementIndex..(superStatementIndex + 1)]);
+            statementsOut.AddRange(visitedSuper ?? []);
+
+            // Add the property initializers. Transforms this:
+            //
+            //  public x = 1;
+            //
+            // Into this:
+            //
+            //  constructor() {
+            //      this.x = 1;
+            //  }
+            //
+            // If we do useDefineForClassFields, they'll be converted elsewhere.
+            // We instead *remove* them from the transformed output at this stage.
+
+            // parameter-property assignments should occur immediately after the prologue and `super()`,
+            // so only count the statements that immediately follow.
+            while (statementOffset < statementsIn.Length)
+            {
+                var stmt = statementsIn[statementOffset];
+                var orig = EmitContext().MostOriginal(stmt)!;
+                if (AstUtilities.IsParameterPropertyDeclaration(orig, constructor))
+                {
+                    statementOffset++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            statementsOut.AddRange(initializerStatements);
+        }
+
+        // Visit remaining statements
+        var (visited2, _) = Visitor().VisitSlice(statementsIn[statementOffset..]);
+        statementsOut.AddRange(visited2 ?? []);
+        return statementsOut;
+    }
+
+    // classfields.go:2503 — transformConstructorBody.
+    private Node? TransformConstructorBody(Node container, Node? constructor, bool isDerivedClass)
+    {
+        var instanceProperties = GetProperties(container, false /*requireInitializer*/, false /*isStatic*/);
+        var properties = instanceProperties;
+        if (!compilerOptions.GetUseDefineForClassFields())
+        {
+            properties = CoreUtil.Filter(properties, prop =>
+                prop.Initializer() != null || NodeTests.IsPrivateIdentifier(prop.Name()!) || AstUtilities.HasAccessorModifier(prop)) ?? [];
+        }
+
+        var privateMethodsAndAccessors = GetPrivateInstanceMethodsAndAccessors(container);
+        var needsConstructorBody = properties.Length > 0 || privateMethodsAndAccessors.Length > 0;
+
+        // Only generate synthetic constructor when there are property initializers to move.
+        if (constructor == null && !needsConstructorBody)
+        {
+            return EmitContext().VisitFunctionBody(null, Visitor());
+        }
+
+        EmitContext().StartVariableEnvironment();
+
+        var needsSyntheticConstructor = constructor == null && isDerivedClass;
+        var statements = new List<Node>();
+
+        // Add the property initializers. Transforms this:
+        //
+        //  public x = 1;
+        //
+        // Into this:
+        //
+        //  constructor() {
+        //      this.x = 1;
+        //  }
+        //
+        var initializerStatements = new List<Node>();
+        var receiver = Factory().NewThisExpression();
+
+        // private methods can be called in property initializers, they should execute first
+        AddInstanceMethodStatements(initializerStatements, privateMethodsAndAccessors, receiver);
+
+        if (constructor != null)
+        {
+            var parameterProperties = CoreUtil.Filter(instanceProperties, prop =>
+                AstUtilities.IsParameterPropertyDeclaration(EmitContext().MostOriginal(prop)!, constructor)) ?? [];
+            var nonParameterProperties = CoreUtil.Filter(properties, prop =>
+                !AstUtilities.IsParameterPropertyDeclaration(EmitContext().MostOriginal(prop)!, constructor)) ?? [];
+            AddPropertyOrClassStaticBlockStatements(initializerStatements, parameterProperties, receiver);
+            AddPropertyOrClassStaticBlockStatements(initializerStatements, nonParameterProperties, receiver);
+        }
+        else
+        {
+            AddPropertyOrClassStaticBlockStatements(initializerStatements, properties, receiver);
+        }
+
+        if (constructor != null && constructor.AsConstructorDeclaration().Body != null)
+        {
+            var body = constructor.AsConstructorDeclaration().Body!.AsBlock();
+
+            // Copy prologue
+            foreach (var stmt in body.Statements!.Nodes)
+            {
+                if (AstUtilities.IsPrologueDirective(stmt))
+                {
+                    statements.Add(stmt);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            var statementOffset = statements.Count;
+
+            var superPath = global::Ts.Transformers.Transformers.FindSuperStatementIndexPath(body.Statements.Nodes, statementOffset);
+            if (superPath is { Length: > 0 })
+            {
+                statements = TransformConstructorBodyWorker(statements, body.Statements.Nodes, statementOffset, superPath, 0, initializerStatements, constructor);
+            }
+            else
+            {
+                // parameter-property assignments should occur immediately after the prologue and `super()`,
+                // so only count the statements that immediately follow.
+                while (statementOffset < body.Statements.Nodes.Length)
+                {
+                    var stmt = body.Statements.Nodes[statementOffset];
+                    var orig = EmitContext().MostOriginal(stmt)!;
+                    if (AstUtilities.IsParameterPropertyDeclaration(orig, constructor))
+                    {
+                        statementOffset++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                statements.AddRange(initializerStatements);
+                var (visited, _) = Visitor().VisitSlice(body.Statements.Nodes[statementOffset..]);
+                statements.AddRange(visited ?? []);
+            }
+        }
+        else
+        {
+            if (needsSyntheticConstructor)
+            {
+                // Add a synthetic `super` call:
+                //
+                //  super(...arguments);
+                //
+                var superCall = Factory().NewExpressionStatement(
+                    Factory().NewCallExpression(
+                        Factory().NewKeywordExpression(SyntaxKind.SuperKeyword),
+                        null, /*questionDotToken*/
+                        null, /*typeArguments*/
+                        Factory().AsNodeFactory().NewNodeList([
+                            Factory().NewSpreadElement(Factory().NewIdentifier("arguments")),
+                        ]),
+                        NodeFlags.None));
+                statements.Add(superCall);
+            }
+            statements.AddRange(initializerStatements);
+        }
+
+        var statementsArray = EmitContext().EndAndMergeVariableEnvironment(statements.ToArray());
+
+        if ((statementsArray == null || statementsArray.Length == 0) && constructor == null)
+        {
+            return null;
+        }
+
+        bool multiLine;
+        if (constructor != null && constructor.AsConstructorDeclaration().Body != null &&
+            constructor.AsConstructorDeclaration().Body!.AsBlock().Statements!.Nodes.Length >= (statementsArray?.Length ?? 0))
+        {
+            multiLine = constructor.AsConstructorDeclaration().Body!.AsBlock().MultiLine;
+        }
+        else
+        {
+            multiLine = statementsArray is { Length: > 0 };
+        }
+
+        var statementList = Factory().AsNodeFactory().NewNodeList(statementsArray ?? []);
+        if (constructor != null && constructor.AsConstructorDeclaration().Body != null)
+        {
+            statementList.Loc = constructor.AsConstructorDeclaration().Body!.AsBlock().Statements!.Loc;
+        }
+        else
+        {
+            statementList.Loc = new TextRange(container.MemberList()!.Loc.Pos, container.MemberList()!.Loc.End);
+        }
+
+        var block = Factory().NewBlock(statementList, multiLine);
+        if (constructor != null && constructor.AsConstructorDeclaration().Body != null)
+        {
+            block.Loc = constructor.AsConstructorDeclaration().Body!.Loc;
+        }
+        return block;
+    }
+
+    // classfields.go:2637 — addPropertyOrClassStaticBlockStatements generates assignment statements for
+    // property initializers. (Go append-slice → the C# List is mutated in place.)
+    private void AddPropertyOrClassStaticBlockStatements(List<Node> statements, Node[] properties, Node receiver)
+    {
+        foreach (var property in properties)
+        {
+            if (AstUtilities.IsStatic(property) && !shouldTransformPrivateElementsOrClassStaticBlocks)
+            {
+                continue;
+            }
+            var statement = TransformPropertyOrClassStaticBlock(property, receiver);
+            if (statement != null)
+            {
+                statements.Add(statement);
+            }
+        }
+    }
+
+    // classfields.go:2650 — transformPropertyOrClassStaticBlock.
+    private Node? TransformPropertyOrClassStaticBlock(Node property, Node receiver)
+    {
+        Node? expression;
+        if (NodeTests.IsClassStaticBlockDeclaration(property))
+        {
+            expression = SetCurrentClassElementAnd(property, static (tx, n) => tx.TransformClassStaticBlockDeclaration(n), property);
+        }
+        else
+        {
+            expression = TransformProperty(property, receiver);
+        }
+        if (expression == null)
+        {
+            return null;
+        }
+        var statement = Factory().NewExpressionStatement(expression);
+        EmitContext().SetOriginal(statement, property);
+        EmitContext().AddEmitFlags(statement, EmitContext().EmitFlags(property) & global::Ts.Printer.EmitFlags.NoComments);
+        EmitContext().SetCommentRange(statement, property.Loc);
+
+        var propertyOriginalNode = EmitContext().MostOriginal(property)!;
+        if (NodeTests.IsParameterDeclaration(propertyOriginalNode))
+        {
+            EmitContext().SetSourceMapRange(statement, propertyOriginalNode.Loc);
+            EmitContext().AddEmitFlags(statement, global::Ts.Printer.EmitFlags.NoComments);
+        }
+        else
+        {
+            EmitContext().SetSourceMapRange(statement, global::Ts.Transformers.Transformers.MoveRangePastModifiers(property));
+        }
+
+        // `setOriginalNode` *copies* the `emitNode` from `property`, so now both
+        // `statement` and `expression` have a copy of the synthesized comments.
+        // Drop the comments from expression to avoid printing them twice.
+        EmitContext().SetSyntheticLeadingComments(expression, null);
+        EmitContext().SetSyntheticTrailingComments(expression, null);
+
+        // If the property was originally an auto-accessor, don't emit comments here since they will be attached to
+        // the synthesized getter.
+        if (AstUtilities.HasAccessorModifier(propertyOriginalNode))
+        {
+            EmitContext().AddEmitFlags(statement, global::Ts.Printer.EmitFlags.NoComments);
+        }
+
+        return statement;
+    }
+
+    // classfields.go:2690 — generateInitializedPropertyExpressionsOrClassStaticBlock generates
+    // assignment expressions for property initializers.
+    private List<Node> GenerateInitializedPropertyExpressionsOrClassStaticBlock(
+        Node[] propertiesOrClassStaticBlocks,
+        Node receiver)
+    {
+        var expressions = new List<Node>();
+        foreach (var property in propertiesOrClassStaticBlocks)
+        {
+            Node? expression;
+            if (NodeTests.IsClassStaticBlockDeclaration(property))
+            {
+                expression = SetCurrentClassElementAnd(property, static (tx, n) => tx.TransformClassStaticBlockDeclaration(n), property);
+            }
+            else
+            {
+                expression = TransformProperty(property, receiver);
+            }
+            if (expression == null)
+            {
+                continue;
+            }
+            EmitContext().SetOriginalEx(expression, property, true /*allowOverwrite*/);
+            EmitContext().AssignCommentAndSourceMapRanges(expression, property);
+            expressions.Add(expression);
+        }
+        return expressions;
+    }
+
+    // classfields.go:2713 — transformProperty transforms a property initializer into an assignment
+    // expression.
+    private Node? TransformProperty(Node property, Node receiver)
+    {
+        var savedCurrentClassElement = currentClassElement;
+        var transformed = TransformPropertyWorker(property, receiver);
+        if (transformed != null && AstUtilities.HasStaticModifier(property))
+        {
+            EmitContext().AddEmitFlags(transformed, global::Ts.Printer.EmitFlags.NoLexicalThis);
+        }
+        if (transformed != null && AstUtilities.HasStaticModifier(property) &&
+            lexicalEnvironment is { data: { } data } && data.facts != 0)
+        {
+            // capture the lexical environment for the member
+            EmitContext().SetOriginal(transformed, property);
+            EmitContext().SetSourceMapRange(transformed, EmitContext().SourceMapRange(property.Name()!));
+        }
+        currentClassElement = savedCurrentClassElement;
+        return transformed;
+    }
+
+    // classfields.go:2729 — transformPropertyWorker.
+    private Node? TransformPropertyWorker(Node property, Node receiver)
+    {
+        // We generate a name here in order to reuse the value cached by the relocated computed name expression (which uses the same generated name)
+        var emitAssignment = !compilerOptions.GetUseDefineForClassFields();
+
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), property, isAnonymousClassNeedingAssignedName))
+        {
+            property = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), property, false, "")!;
+        }
+
+        var propDecl = property.AsPropertyDeclaration();
+        var propertyName = property.Name()!;
+        if (AstUtilities.HasAccessorModifier(property))
+        {
+            propertyName = Factory().NewGeneratedPrivateNameForNodeEx(property.Name()!, new global::Ts.Printer.AutoGenerateOptions { Suffix = "_accessor_storage" });
+        }
+        else if (NodeTests.IsComputedPropertyName(propertyName) && !global::Ts.Transformers.Transformers.IsSimpleInlineableExpression(propertyName.Expression()!))
+        {
+            propertyName = Factory().AsNodeFactory().UpdateComputedPropertyName(
+                propertyName.AsComputedPropertyName(),
+                Factory().NewGeneratedNameForNode(propertyName));
+        }
+
+        if (AstUtilities.HasStaticModifier(property))
+        {
+            currentClassElement = property;
+        }
+
+        if (NodeTests.IsPrivateIdentifier(propertyName) && ShouldTransformClassElementToWeakMap(property))
+        {
+            var info = AccessPrivateIdentifier(propertyName);
+            if (info != null)
+            {
+                if (info.kind == global::Ts.Printer.PrivateIdentifierKind.Field)
+                {
+                    if (!info.isStatic)
+                    {
+                        return CreatePrivateInstanceFieldInitializer(
+                            Factory(),
+                            receiver,
+                            Visitor().VisitNode(propDecl.Initializer),
+                            info.brandCheckIdentifier!);
+                    }
+                    return CreatePrivateStaticFieldInitializer(
+                        Factory(),
+                        info.variableName!,
+                        Visitor().VisitNode(propDecl.Initializer));
+                }
+                return null;
+            }
+            else
+            {
+                Debug.Fail("Undeclared private name for property declaration.");
+            }
+        }
+
+        if ((NodeTests.IsPrivateIdentifier(propertyName) || AstUtilities.HasStaticModifier(property)) && propDecl.Initializer == null)
+        {
+            return null;
+        }
+
+        // TODO: can we get rid of this original checking and better coordinate with runtimesyntax?
+        if (AstUtilities.HasAbstractModifier(EmitContext().MostOriginal(property)!))
+        {
+            return null;
+        }
+
+        var initializer = Visitor().VisitNode(propDecl.Initializer);
+        var propertyOriginalNode = EmitContext().MostOriginal(property)!;
+        if (AstUtilities.IsParameterPropertyDeclaration(propertyOriginalNode, propertyOriginalNode.Parent!) && NodeTests.IsIdentifier(propertyName))
+        {
+            // A parameter-property declaration always overrides the initializer. The only time a parameter-property
+            // declaration *should* have an initializer is when decorators have added initializers that need to run before
+            // any other initializer
+            var localName = propertyName.Clone(Factory())!;
+            if (initializer != null)
+            {
+                // unwrap `(__runInitializers(this, _instanceExtraInitializers), void 0)`
+                if (NodeTests.IsParenthesizedExpression(initializer) &&
+                    AstUtilities.IsCommaExpression(initializer.Expression()!) &&
+                    EmitContext().IsCallToHelper(initializer.Expression()!.AsBinaryExpression().Left!, "__runInitializers") &&
+                    NodeTests.IsVoidExpression(initializer.Expression()!.AsBinaryExpression().Right!) &&
+                    NodeTests.IsNumericLiteral(initializer.Expression()!.AsBinaryExpression().Right!.Expression()!))
+                {
+                    initializer = initializer.Expression()!.AsBinaryExpression().Left;
+                }
+                initializer = Factory().InlineExpressions([initializer!, localName]);
+            }
+            else
+            {
+                initializer = localName;
+            }
+            EmitContext().AddEmitFlags(propertyName, global::Ts.Printer.EmitFlags.NoComments | global::Ts.Printer.EmitFlags.NoSourceMap);
+            EmitContext().SetSourceMapRange(localName, propertyOriginalNode.Name()!.Loc);
+            EmitContext().AddEmitFlags(localName, global::Ts.Printer.EmitFlags.NoComments);
+        }
+        else if (initializer == null)
+        {
+            initializer = Factory().NewVoidZeroExpression();
+        }
+
+        if (emitAssignment || NodeTests.IsPrivateIdentifier(propertyName))
+        {
+            var memberAccess = CreateMemberAccessForPropertyName(Factory(), EmitContext(), receiver, propertyName, propertyName);
+            EmitContext().AddEmitFlags(memberAccess, global::Ts.Printer.EmitFlags.NoLeadingComments);
+            return Factory().NewAssignmentExpression(memberAccess, initializer!);
+        }
+
+        // useDefineForClassFields: Object.defineProperty
+        Node? name;
+        if (NodeTests.IsComputedPropertyName(propertyName))
+        {
+            name = propertyName.Expression();
+        }
+        else if (NodeTests.IsIdentifier(propertyName))
+        {
+            name = Factory().NewStringLiteral(propertyName.Text(), TokenFlags.None);
+        }
+        else
+        {
+            name = propertyName;
+        }
+        var descriptor = Factory().NewObjectLiteralExpression(Factory().AsNodeFactory().NewNodeList([
+            Factory().NewPropertyAssignment(null, Factory().NewIdentifier("enumerable"), null, null, Factory().NewTrueExpression()),
+            Factory().NewPropertyAssignment(null, Factory().NewIdentifier("configurable"), null, null, Factory().NewTrueExpression()),
+            Factory().NewPropertyAssignment(null, Factory().NewIdentifier("writable"), null, null, Factory().NewTrueExpression()),
+            Factory().NewPropertyAssignment(null, Factory().NewIdentifier("value"), null, null, initializer),
+        ]), true);
+        return Factory().NewObjectDefinePropertyCall(receiver, name!, descriptor);
+    }
+
+    // classfields.go:2836 — addInstanceMethodStatements generates brand-check initializer for private
+    // methods. (Go append-slice → the C# List is mutated in place.)
+    private void AddInstanceMethodStatements(List<Node> statements, Node[] methods, Node receiver)
+    {
+        if (!shouldTransformPrivateElementsOrClassStaticBlocks || methods.Length == 0)
+        {
+            return;
+        }
+
+        var env = GetPrivateIdentifierEnvironment();
+        var weakSetName = env.data.weakSetName;
+        Debug.Assert(weakSetName != null, "weakSetName should be set in private identifier environment");
+
+        statements.Add(
+            Factory().NewExpressionStatement(
+                CreatePrivateInstanceMethodInitializer(Factory(), receiver, weakSetName!)));
+    }
+
+    // classfields.go:2853 — visitInvalidSuperProperty.
+    private Node VisitInvalidSuperProperty(Node node)
+    {
+        if (NodeTests.IsPropertyAccessExpression(node))
+        {
+            return Factory().AsNodeFactory().UpdatePropertyAccessExpression(
+                node.AsPropertyAccessExpression(),
+                Factory().NewVoidZeroExpression(),
+                null,
+                node.Name(),
+                node.Flags);
+        }
+        return Factory().AsNodeFactory().UpdateElementAccessExpression(
+            node.AsElementAccessExpression(),
+            Factory().NewVoidZeroExpression(),
+            null,
+            Visitor().VisitNode(node.AsElementAccessExpression().ArgumentExpression),
+            node.Flags);
+    }
+
+    // classfields.go:3365 — createPrivateStaticFieldInitializer.
+    private static Node CreatePrivateStaticFieldInitializer(global::Ts.Printer.NodeFactory factory, Node variableName, Node? initializer)
+    {
+        if (initializer == null)
+        {
+            initializer = factory.NewVoidZeroExpression();
+        }
+        return factory.NewAssignmentExpression(
+            variableName,
+            factory.NewObjectLiteralExpression(
+                factory.AsNodeFactory().NewNodeList([
+                    factory.NewPropertyAssignment(null, factory.NewIdentifier("value"), null, null, initializer),
+                ]),
+                false));
+    }
+
+    // classfields.go:3380 — createPrivateInstanceFieldInitializer.
+    private static Node CreatePrivateInstanceFieldInitializer(global::Ts.Printer.NodeFactory factory, Node receiver, Node? initializer, Node weakMapName)
+    {
+        if (initializer == null)
+        {
+            initializer = factory.NewVoidZeroExpression();
+        }
+        return factory.NewMethodCall(weakMapName, factory.NewIdentifier("set"), [receiver, initializer]);
+    }
+
+    // classfields.go:3387 — createPrivateInstanceMethodInitializer.
+    private static Node CreatePrivateInstanceMethodInitializer(global::Ts.Printer.NodeFactory factory, Node receiver, Node weakSetName) =>
+        factory.NewMethodCall(weakSetName, factory.NewIdentifier("add"), [receiver]);
+
+    // classfields.go:3400 — getProperties.
+    private Node[] GetProperties(Node node, bool requireInitializer, bool isStatic)
+    {
+        var result = new List<Node>();
+        foreach (var member in node.Members() ?? [])
+        {
+            if (NodeTests.IsPropertyDeclaration(member) &&
+                (!requireInitializer || member.Initializer() != null) &&
+                AstUtilities.HasStaticModifier(member) == isStatic)
+            {
+                result.Add(member);
+            }
+        }
+        return result.ToArray();
+    }
+
+    // ── Forward stubs (batch 5b replaces these; unreachable until the batch-6 dispatch switch) ──
     private Node? VisitAssignmentPattern(Node node) => throw new NotImplementedException("classfields batch 5b");
     private Node? WrapPrivateIdentifierForDestructuringTarget(Node node) => throw new NotImplementedException("classfields batch 5b");
-    private Node? VisitInvalidSuperProperty(Node node) => throw new NotImplementedException("classfields batch 4");
-    private Node? TransformConstructor(Node node, Node container) => throw new NotImplementedException("classfields batch 4");
-    private Node? VisitClassStaticBlockDeclaration(Node node) => throw new NotImplementedException("classfields batch 4");
-    private Node? TransformPropertyOrClassStaticBlock(Node property, Node receiver) => throw new NotImplementedException("classfields batch 4");
     private Node? VisitArrayAssignmentElement(Node node) => node;
     private Node? VisitObjectAssignmentElement(Node node) => node;
 }

@@ -1056,6 +1056,17 @@ public static partial class AstUtilities
             member.Initializer() != null;
     }
 
+    // ast/utilities.go:3063 — GetClassExtendsHeritageElement.
+    public static Node? GetClassExtendsHeritageElement(Node node)
+    {
+        var heritageElements = GetHeritageElements(node, SyntaxKind.ExtendsKeyword);
+        if (heritageElements.Length > 0)
+        {
+            return heritageElements[0];
+        }
+        return null;
+    }
+
     // utilities.go:566-570
     public static bool IsObjectLiteralOrClassExpressionMethodOrAccessor(Node node)
     {
