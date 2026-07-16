@@ -108,8 +108,32 @@ public partial class Checker
     // ── checker methods from not-yet-ported waves ───────────────────────────────────────────────
 
     // checker.go:15047 — getExternalModuleFileFromDeclaration.
-    internal SourceFile? GetExternalModuleFileFromDeclaration(Node declaration) =>
-        throw new NotImplementedException("getExternalModuleFileFromDeclaration");
+    internal SourceFile? GetExternalModuleFileFromDeclaration(Node declaration)
+    {
+        Node? specifier = null;
+        if (declaration.Kind == SyntaxKind.ModuleDeclaration)
+        {
+            if (NodeTests.IsStringLiteral(declaration.Name()!))
+            {
+                specifier = declaration.Name();
+            }
+        }
+        else
+        {
+            specifier = global::Ts.Printer.PrinterUtilities.GetExternalModuleName(declaration);
+        }
+        Symbol? moduleSymbol = ResolveExternalModuleNameWorker(specifier!, specifier, null /*moduleNotFoundError*/, false /*ignoreErrors*/, false /*isForAugmentation*/);
+        if (moduleSymbol == null)
+        {
+            return null;
+        }
+        Node? decl = AstUtilities.GetDeclarationOfKind(moduleSymbol, SyntaxKind.SourceFile);
+        if (decl == null)
+        {
+            return null;
+        }
+        return decl.AsSourceFile();
+    }
 
     // services.go:859 — GetConstantValue (const-enum inlining source of truth).
     internal object? GetConstantValue(Node node)

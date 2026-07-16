@@ -1584,8 +1584,40 @@ public partial class Checker
         return exportDefaultSymbol;
     }
 
-    // reportNonDefaultExport (checker.go) — deferred (rare error branch; see getTargetOfModuleDefault).
-    private void ReportNonDefaultExport(Symbol moduleSymbol, Node node) => throw new NotImplementedException("reportNonDefaultExport");
+    // checker.go — reportNonDefaultExport.
+    private void ReportNonDefaultExport(Symbol moduleSymbol, Node node)
+    {
+        if (moduleSymbol.Exports != null && moduleSymbol.Exports.TryGetValue(node.Symbol()!.Name, out Symbol? existing) && existing != null)
+        {
+            Error(node, global::Ts.Diagnostics.Diagnostics.Module_0_has_no_default_export_Did_you_mean_to_use_import_1_from_0_instead, SymbolToString(moduleSymbol), SymbolToString(node.Symbol()));
+        }
+        else
+        {
+            Diagnostic diagnostic = Error(node.Name(), global::Ts.Diagnostics.Diagnostics.Module_0_has_no_default_export, SymbolToString(moduleSymbol));
+            Symbol? exportStar = null;
+            if (moduleSymbol.Exports != null)
+            {
+                moduleSymbol.Exports.TryGetValue(InternalSymbolName.ExportStar, out exportStar);
+            }
+            if (exportStar != null)
+            {
+                Node? defaultExport = CoreUtil.Find(exportStar.Declarations, decl =>
+                {
+                    if (!(NodeTests.IsExportDeclaration(decl) && decl.ModuleSpecifier() != null))
+                    {
+                        return false;
+                    }
+                    Symbol? resolvedExternalModuleName = ResolveExternalModuleName(decl, decl.ModuleSpecifier(), false /*ignoreErrors*/);
+                    return resolvedExternalModuleName?.Exports != null &&
+                        resolvedExternalModuleName.Exports.TryGetValue(InternalSymbolName.Default, out Symbol? d) && d != null;
+                });
+                if (defaultExport != null)
+                {
+                    diagnostic.AddRelatedInfo(CreateDiagnosticForNode(defaultExport, global::Ts.Diagnostics.Diagnostics.X_export_Asterisk_does_not_re_export_a_default));
+                }
+            }
+        }
+    }
 
 
 

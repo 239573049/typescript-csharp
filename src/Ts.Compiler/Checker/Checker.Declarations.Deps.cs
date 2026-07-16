@@ -905,7 +905,8 @@ public partial class Checker
         }
     }
     // ast/utilities.go:4054
-    internal static bool IsImportOrImportEqualsDeclaration(Node node) => throw new NotImplementedException("ast.IsImportOrImportEqualsDeclaration");
+    internal static bool IsImportOrImportEqualsDeclaration(Node node) =>
+        NodeTests.IsImportDeclaration(node) || NodeTests.IsImportEqualsDeclaration(node);
     // ast/utilities.go:4113
     internal static bool HasModifier(Node node, ModifierFlags flags) => (node.ModifierFlags() & flags) != 0;
     // ast/utilities.go:1705 — delegates to the ast utility.
