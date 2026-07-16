@@ -1162,8 +1162,545 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         return result;
     }
 
+    // transform.go:1553-1560 — rewriteModuleSpecifier.
+    private Node? RewriteModuleSpecifier(Node parent, Node? input)
+    {
+        if (input == null)
+        {
+            return null;
+        }
+        resultHasExternalModuleIndicator = resultHasExternalModuleIndicator || (parent.Kind != SyntaxKind.ModuleDeclaration && parent.Kind != SyntaxKind.ImportType);
+        return input;
+    }
+
+    // transform.go:1561-1571 — tryGetResolutionModeOverride.
+    private Node? TryGetResolutionModeOverride(Node? node)
+    {
+        if (node == null)
+        {
+            return node;
+        }
+        var mode = host!.GetResolutionModeOverride(node);
+        if (mode != ResolutionMode.None)
+        {
+            return node;
+        }
+        return null;
+    }
+
+    // transform.go:1128-1157 — visitDeclarationStatements (not yet wired).
+    private Node? VisitDeclarationStatements(Node input)
+    {
+        if (ShouldStripInternal(input))
+        {
+            return null;
+        }
+        switch (input.Kind)
+        {
+            case SyntaxKind.ExportDeclaration:
+                if (NodeTests.IsSourceFile(input.Parent!))
+                {
+                    resultHasExternalModuleIndicator = true;
+                }
+                resultHasScopeMarker = true;
+                // Rewrite external module names if necessary
+                return Factory().AsNodeFactory().UpdateExportDeclaration(
+                    input.AsExportDeclaration(),
+                    input.Modifiers(),
+                    input.IsTypeOnly(),
+                    input.AsExportDeclaration().ExportClause,
+                    RewriteModuleSpecifier(input, input.ModuleSpecifier()),
+                    TryGetResolutionModeOverride(input.AsExportDeclaration().Attributes));
+            case SyntaxKind.ExportAssignment:
+                return TransformExportAssignment(input, input, input.Expression()!, input.AsExportAssignment().IsExportEquals);
+            default:
+                var id = AstUtilities.GetNodeId(EmitContext().MostOriginal(input)!);
+                if (!lateStatementReplacementMap.TryGetValue(id, out var existing) || existing == null)
+                {
+                    if (!lateStatementReplacementMap.ContainsKey(id))
+                    {
+                        // Don't actually transform yet; just leave as original node - will be elided/swapped by late pass
+                        lateStatementReplacementMap[id] = TransformTopLevelDeclaration(input);
+                    }
+                }
+                return input;
+        }
+    }
+
+    // transform.go:1159-1178 — tryGetNameOfAssignedExpression.
+    private Node? TryGetNameOfAssignedExpression(Node unwrapped)
+    {
+        Node? nameNode = null;
+        var nameText = "";
+        if (!NodeTests.IsPropertyAccessExpression(unwrapped) && unwrapped.Name() != null)
+        {
+            nameText = unwrapped.Name()!.Text();
+        }
+        else if (NodeTests.IsIdentifier(unwrapped))
+        {
+            nameText = unwrapped.Text();
+        }
+        if (nameText.Length != 0 && nameText != "default")
+        {
+            if (resolver!.IsNameResolvable(enclosingDeclaration!, nameText))
+            {
+                // create a unique name that shares the same text as its' base
+                nameNode = Factory().NewUniqueNameEx(nameText, new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+            }
+            else
+            {
+                // use the node's name as-is, since it's not otherwise in-scope
+                nameNode = Factory().NewIdentifier(nameText);
+            }
+        }
+        return nameNode;
+    }
+
+    // transform.go:1179-1193 — getNameOfExportedAssignedExpression.
+    private Node GetNameOfExportedAssignedExpression(Node unwrapped, bool isExportEquals)
+    {
+        var nameNode = TryGetNameOfAssignedExpression(unwrapped);
+        if (nameNode == null)
+        {
+            // fallback to a default name
+            if (isExportEquals && AstUtilities.IsSourceFileJS(state.CurrentSourceFile!))
+            {
+                // only JS files prefer to use `_exports` for export assignments - TS has always used `_default` for both `export=` and `export default`
+                nameNode = Factory().NewUniqueNameEx("_exports", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+            }
+            else
+            {
+                nameNode = Factory().NewUniqueNameEx("_default", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+            }
+        }
+        cjsExportAssignmentName = nameNode;
+        return nameNode;
+    }
+
+    // transform.go:1194-1263 — transformExportAssignment (full form; the single-arg approximation
+    // overload is replaced by the wiring batch).
+    private Node? TransformExportAssignment(Node input, Node assignment, Node expression, bool isExportEquals)
+    {
+        if (NodeTests.IsSourceFile(input.Parent!))
+        {
+            resultHasExternalModuleIndicator = true;
+        }
+        resultHasScopeMarker = true;
+        if (NodeTests.IsIdentifier(expression) && (NodeTests.IsSourceFile(input.Parent!) || NodeTests.IsModuleBlock(input.Parent!)))
+        {
+            var identExportAssignment = Factory().NewExportAssignment(null, isExportEquals, null, expression);
+            PreserveJsDoc(identExportAssignment, input);
+            return identExportAssignment;
+        }
+
+        // Check if the expression is a class expression - emit as a class declaration + export assignment
+        var unwrapped = AstUtilities.SkipOuterExpressions(expression, OuterExpressionKinds.ExpressionTypePassthrough);
+        var newId = GetNameOfExportedAssignedExpression(unwrapped, isExportEquals);
+        if (NodeTests.IsClassExpression(unwrapped))
+        {
+            var mods = new List<Node>();
+            if (needsDeclare)
+            {
+                mods.Add(Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword));
+            }
+            var classDecl = TransformClassExpressionToDeclaration(unwrapped, newId, Factory().AsNodeFactory().NewModifierList(mods.ToArray()));
+            PreserveJsDoc(classDecl, input);
+            // Reuse the same name node for the export so unique names resolve consistently
+            var classExportAssignment = Factory().NewExportAssignment(null, isExportEquals, null, newId);
+            RemoveAllComments(classExportAssignment);
+            return Factory().AsNodeFactory().NewSyntaxList([classExportAssignment, classDecl]);
+        }
+        else if (AstUtilities.IsFunctionLike(unwrapped))
+        {
+            // Promote function or arrow function expressions to a function declaration
+            var mods = new List<Node>();
+            if (needsDeclare)
+            {
+                mods.Add(Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword));
+            }
+            var funcDecl = TransformFunctionLikeToDeclaration(unwrapped, newId, Factory().AsNodeFactory().NewModifierList(mods.ToArray()));
+            PreserveJsDoc(funcDecl, input);
+            // Reuse the same name node for the export so unique names resolve consistently
+            var funcExportAssignment = Factory().NewExportAssignment(null, isExportEquals, null, newId);
+            RemoveAllComments(funcExportAssignment);
+            return Factory().AsNodeFactory().NewSyntaxList([funcExportAssignment, funcDecl]);
+        }
+
+        // expression is non-identifier, create _default typed variable to reference
+        state.GetSymbolAccessibilityDiagnostic = _ => new SymbolAccessibilityDiagnostic
+        {
+            DiagnosticMessage = global::Ts.Diagnostics.Diagnostics.Default_export_of_the_module_has_or_is_using_private_name_0,
+            ErrorNode = input,
+        };
+        cjsExportAssignmentName = newId;
+        tracker.PushErrorFallbackNode(assignment);
+        Node? type_ = null;
+        Node? initializer = null;
+        if (AstUtilities.IsPrimitiveLiteralValue(DeclarationUtilities.UnwrapParenthesizedExpression(expression), true))
+        {
+            initializer = resolver!.CreateLiteralConstValue(EmitContext(), EmitContext().ParseNode(assignment)!, tracker);
+        }
+        if (initializer == null)
+        {
+            type_ = EnsureType(assignment, false);
+        }
+        var varDecl = Factory().AsNodeFactory().NewVariableDeclaration(newId, null, type_, initializer);
+        tracker.PopErrorFallbackNode();
+        ModifierList modList;
+        if (needsDeclare)
+        {
+            modList = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword)]);
+        }
+        else
+        {
+            modList = Factory().AsNodeFactory().NewModifierList([]);
+        }
+        var statement = Factory().AsNodeFactory().NewVariableStatement(modList, Factory().AsNodeFactory().NewVariableDeclarationList(Factory().AsNodeFactory().NewNodeList([varDecl]), NodeFlags.Const));
+        var exportAssignment = Factory().NewExportAssignment(null, isExportEquals, null, newId);
+        // Remove comments from the export declaration and copy them onto the synthetic _default declaration
+        PreserveJsDoc(statement, input);
+        return Factory().AsNodeFactory().NewSyntaxList([statement, exportAssignment]);
+    }
+
+    // transform.go:1264-1277 — transformFunctionLikeToDeclaration.
+    private Node TransformFunctionLikeToDeclaration(Node unwrapped, Node funcName, ModifierList mods)
+    {
+        var d = unwrapped.FunctionLikeData()!;
+        return Factory().AsNodeFactory().NewFunctionDeclaration(
+            mods,
+            null,
+            funcName,
+            EnsureTypeParams(unwrapped, d.TypeParameters),
+            UpdateParameterList(unwrapped, d.Parameters),
+            EnsureType(unwrapped, false),
+            Visitor().VisitNode(d.FullSignature),
+            null);
+    }
+
+    // transform.go:1278-1296 — transformBinaryExpressionToExportDeclaration.
+    private Node TransformBinaryExpressionToExportDeclaration(Node input, Node name)
+    {
+        var propertyName = input.AsBinaryExpression().Right;
+
+        // track alias target so referenced declarations are included in the output
+        tracker.HandleSymbolAccessibilityError(resolver!.IsEntityNameVisible(propertyName!, enclosingDeclaration!));
+
+        if (NodeTests.IsIdentifier(name) && propertyName!.Text() == name.Text())
+        {
+            propertyName = null;
+        }
+
+        return Factory().AsNodeFactory().NewExportDeclaration(
+            null,
+            false,
+            Factory().AsNodeFactory().NewNamedExports(Factory().AsNodeFactory().NewNodeList([Factory().AsNodeFactory().NewExportSpecifier(false, propertyName, name)])),
+            null,
+            null);
+    }
+
+    // transform.go:1297-1304 — transformCommonJSExport.
+    private Node? TransformCommonJSExport(Node input, Node name)
+    {
+        var res = TransformCommonJSExportWorker(input, name);
+        if (res == null)
+        {
+            return res;
+        }
+        return WrapInCJSExportNamespace(res);
+    }
+
+    // transform.go:1305-1488 — transformCommonJSExportWorker.
+    private Node? TransformCommonJSExportWorker(Node input, Node name)
+    {
+        var nameText = "";
+        if (NodeTests.IsIdentifier(name) || NodeTests.IsStringLiteral(name))
+        {
+            nameText = name.Text();
+        }
+        if (global::Ts.Collections.SetExtensions.Has(witnessedCjsExports, nameText) && nameText.Length != 0)
+        {
+            return null; // Already emitted this export name
+        }
+        witnessedCjsExports.Add(nameText);
+        resultHasExternalModuleIndicator = true;
+        resultHasScopeMarker = true;
+        // only transform cjs exports to shorthand at the top-level of a source file, otherwise we uniformly emit nested exports with a type annotation
+        if (IsCommonJSAliasExport(input) && NodeTests.IsExpressionStatement(input.Parent!) && NodeTests.IsSourceFile(input.Parent!.Parent!))
+        {
+            // export { name }
+            // export { source as name }
+            return TransformBinaryExpressionToExportDeclaration(input, name);
+        }
+
+        // Check if the RHS is a class expression - emit as a class declaration instead of a typed variable
+        if (NodeTests.IsBinaryExpression(input))
+        {
+            var rhs = DeclarationUtilities.UnwrapParenthesizedExpression(input.AsBinaryExpression().Right!);
+            if (NodeTests.IsClassExpression(rhs))
+            {
+                var ce = rhs.AsClassExpression();
+                var classExprName = ce.Name();
+                var hasExprName = classExprName != null && classExprName!.Text().Length > 0;
+
+                if (hasExprName)
+                {
+                    // Set up TrackSymbol watch to detect if the class expression's own
+                    // symbol is referenced during member type serialization.
+                    tracker.WatchClassSymbol(rhs.Symbol());
+                    try
+                    {
+                        // Serialize class members using the class expression name, which
+                        // triggers TrackSymbol for any self-referential member types.
+                        var className2 = Factory().NewIdentifier(classExprName!.Text());
+                        var classMods = new Node[] { Factory().AsNodeFactory().NewModifier(SyntaxKind.ExportKeyword) };
+                        var classDecl2 = TransformClassExpressionToDeclaration(rhs, className2, Factory().AsNodeFactory().NewModifierList(classMods));
+                        PreserveJsDoc(classDecl2, input);
+
+                        // Determine if namespace isolation is needed:
+                        // - The class expression name differs from the export name, OR
+                        // - The class's own symbol was used in a member's serialized type
+                        var namesDiffer = !NodeTests.IsIdentifier(name) || classExprName!.Text() != name.Text();
+                        var needsIsolation = namesDiffer || tracker.ClassSymbolTracked;
+
+                        if (needsIsolation)
+                        {
+                            var nsName = Factory().NewUniqueNameEx("_ns", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+                            var nsMods = new List<Node>();
+                            if (needsDeclare)
+                            {
+                                nsMods.Add(Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword));
+                            }
+                            var nsDecl = Factory().AsNodeFactory().NewModuleDeclaration(
+                                Factory().AsNodeFactory().NewModifierList(nsMods.ToArray()),
+                                SyntaxKind.NamespaceKeyword,
+                                nsName,
+                                Factory().AsNodeFactory().NewModuleBlock(Factory().AsNodeFactory().NewNodeList([classDecl2])));
+
+                            var aliasBase = "_exported";
+                            var nameText2 = name!.Text();
+                            if (NodeTests.IsIdentifier(name) && global::Ts.Scanner.Scanner.IsIdentifierText("_" + nameText2, LanguageVariant.Standard))
+                            {
+                                aliasBase = "_" + nameText2;
+                            }
+                            var importAlias = Factory().NewUniqueNameEx(aliasBase, new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+                            var qualifiedName = Factory().AsNodeFactory().NewQualifiedName(nsName, className2);
+                            var importDecl = Factory().AsNodeFactory().NewImportEqualsDeclaration(null, false, importAlias, qualifiedName);
+
+                            var exportSpecifier = Factory().AsNodeFactory().NewExportSpecifier(false, importAlias, name);
+                            var exportDecl2 = Factory().AsNodeFactory().NewExportDeclaration(null, false, Factory().AsNodeFactory().NewNamedExports(Factory().AsNodeFactory().NewNodeList([exportSpecifier])), null, null);
+                            RemoveAllComments(exportDecl2);
+
+                            return Factory().AsNodeFactory().NewSyntaxList([nsDecl, importDecl, exportDecl2]);
+                        }
+
+                        // No isolation needed: names match and no self-references.
+                        // Update modifiers to include declare if needed.
+                        var mods2 = new List<Node> { Factory().AsNodeFactory().NewModifier(SyntaxKind.ExportKeyword) };
+                        if (needsDeclare)
+                        {
+                            mods2.Add(Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword));
+                        }
+                        classDecl2 = Factory().UpdateClassDeclaration(
+                            classDecl2.AsClassDeclaration(),
+                            Factory().AsNodeFactory().NewModifierList(mods2.ToArray()),
+                            classDecl2.AsClassDeclaration().Name(),
+                            classDecl2.AsClassDeclaration().TypeParameters,
+                            classDecl2.AsClassDeclaration().HeritageClauses,
+                            classDecl2.AsClassDeclaration().Members);
+                        return classDecl2;
+                    }
+                    finally
+                    {
+                        tracker.WatchClassSymbol(null);
+                    }
+                }
+                var mods3 = new List<Node> { Factory().AsNodeFactory().NewModifier(SyntaxKind.ExportKeyword) };
+                if (needsDeclare)
+                {
+                    mods3.Add(Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword));
+                }
+                var className3 = name;
+                if (!NodeTests.IsIdentifier(className3))
+                {
+                    className3 = Factory().NewUniqueNameEx("_class", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+                }
+                var classDecl3 = TransformClassExpressionToDeclaration(rhs, className3, Factory().AsNodeFactory().NewModifierList(mods3.ToArray()));
+                PreserveJsDoc(classDecl3, input);
+                if (!NodeTests.IsIdentifier(name))
+                {
+                    // Non-identifier name: emit class declaration + named export
+                    var exportDecl3 = Factory().AsNodeFactory().NewExportDeclaration(null, false, Factory().AsNodeFactory().NewNamedExports(Factory().AsNodeFactory().NewNodeList([Factory().AsNodeFactory().NewExportSpecifier(false, className3, name)])), null, null);
+                    RemoveAllComments(exportDecl3);
+                    return Factory().AsNodeFactory().NewSyntaxList([classDecl3, exportDecl3]);
+                }
+                return classDecl3;
+            }
+        }
+
+        if (NodeTests.IsIdentifier(name))
+        {
+            if (name.Text() == "default")
+            {
+                // const _default: Type; export default _default;
+                var newId = Factory().NewUniqueNameEx("_default", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+                state.GetSymbolAccessibilityDiagnostic = _ => new SymbolAccessibilityDiagnostic
+                {
+                    DiagnosticMessage = global::Ts.Diagnostics.Diagnostics.Default_export_of_the_module_has_or_is_using_private_name_0,
+                    ErrorNode = input,
+                };
+                tracker.PushErrorFallbackNode(input);
+                var type1 = EnsureType(input, false);
+                var varDecl1 = Factory().AsNodeFactory().NewVariableDeclaration(newId, null, type1, null);
+                tracker.PopErrorFallbackNode();
+                ModifierList modList1;
+                if (needsDeclare)
+                {
+                    modList1 = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword)]);
+                }
+                else
+                {
+                    modList1 = Factory().AsNodeFactory().NewModifierList([]);
+                }
+                var statement1 = Factory().AsNodeFactory().NewVariableStatement(modList1, Factory().AsNodeFactory().NewVariableDeclarationList(Factory().AsNodeFactory().NewNodeList([varDecl1]), NodeFlags.Const));
+
+                var assignment1 = Factory().NewExportAssignment(input.Modifiers(), false, null, newId);
+                // Remove comments from the export declaration and copy them onto the synthetic _default declaration
+                PreserveJsDoc(statement1, input);
+                RemoveAllComments(assignment1);
+                return Factory().AsNodeFactory().NewSyntaxList([statement1, assignment1]);
+            }
+            else if (host!.GetEmitResolver().GetReferencedValueDeclaration(name) == input || host.GetEmitResolver().GetReferencedValueDeclaration(name) == null)
+            {
+                // only inline to a export var if the `name` lookup points at this assignment or nothing - if it points at something else, we must use a temp name
+                // export var name: Type
+                tracker.PushErrorFallbackNode(input);
+                var type2 = EnsureType(input, false);
+                var varDecl2 = Factory().AsNodeFactory().NewVariableDeclaration(name, null, type2, null);
+                tracker.PopErrorFallbackNode();
+                ModifierList modList2;
+                if (needsDeclare)
+                {
+                    modList2 = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.ExportKeyword), Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword)]);
+                }
+                else
+                {
+                    modList2 = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.ExportKeyword)]);
+                }
+                return Factory().AsNodeFactory().NewVariableStatement(modList2, Factory().AsNodeFactory().NewVariableDeclarationList(Factory().AsNodeFactory().NewNodeList([varDecl2]), NodeFlags.None));
+            }
+        }
+        // const _exported: Type; export {_exported as "name"};
+        var newId3 = Factory().NewUniqueNameEx("_exported", new global::Ts.Printer.AutoGenerateOptions { Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic });
+        state.GetSymbolAccessibilityDiagnostic = _ => new SymbolAccessibilityDiagnostic
+        {
+            DiagnosticMessage = global::Ts.Diagnostics.Diagnostics.Default_export_of_the_module_has_or_is_using_private_name_0,
+            ErrorNode = input,
+        };
+        tracker.PushErrorFallbackNode(input);
+        var type3 = EnsureType(input, false);
+        var varDecl3 = Factory().AsNodeFactory().NewVariableDeclaration(newId3, null, type3, null);
+        tracker.PopErrorFallbackNode();
+        ModifierList modList3;
+        if (needsDeclare)
+        {
+            modList3 = Factory().AsNodeFactory().NewModifierList([Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword)]);
+        }
+        else
+        {
+            modList3 = Factory().AsNodeFactory().NewModifierList([]);
+        }
+        var statement3 = Factory().AsNodeFactory().NewVariableStatement(modList3, Factory().AsNodeFactory().NewVariableDeclarationList(Factory().AsNodeFactory().NewNodeList([varDecl3]), NodeFlags.Const));
+
+        var assignment3 = Factory().AsNodeFactory().NewExportDeclaration(null, false, Factory().AsNodeFactory().NewNamedExports(Factory().AsNodeFactory().NewNodeList([Factory().AsNodeFactory().NewExportSpecifier(false, newId3, name)])), null, null);
+        // Remove comments from the export declaration and copy them onto the synthetic _default declaration
+        PreserveJsDoc(statement3, input);
+        RemoveAllComments(assignment3);
+        return Factory().AsNodeFactory().NewSyntaxList([statement3, assignment3]);
+    }
+
+    // transform.go:1489-1513 — wrapInCJSExportNamespace.
+    private Node WrapInCJSExportNamespace(Node content)
+    {
+        if (cjsExportAssignmentName == null)
+        {
+            return content;
+        }
+        // Reuse the same name node so unique names resolve consistently with the class/export
+        var nsName = cjsExportAssignmentName;
+        Node[] members;
+        if (content.Kind == SyntaxKind.SyntaxList)
+        {
+            members = content.AsSyntaxList().Children ?? [];
+        }
+        else
+        {
+            members = [content];
+        }
+        var nsMods = new List<Node>();
+        if (needsDeclare)
+        {
+            nsMods.Add(Factory().AsNodeFactory().NewModifier(SyntaxKind.DeclareKeyword));
+        }
+        var (visitedMembers, _) = declareStrippingVisitor.VisitSlice(members);
+        return Factory().AsNodeFactory().NewModuleDeclaration(
+            Factory().AsNodeFactory().NewModifierList(nsMods.ToArray()),
+            SyntaxKind.NamespaceKeyword,
+            nsName,
+            Factory().AsNodeFactory().NewModuleBlock(Factory().AsNodeFactory().NewNodeList(visitedMembers ?? [])));
+    }
+
+    // transform.go:1514-1525 — isCommonJSAliasExport.
+    private static bool IsCommonJSAliasExport(Node node)
+    {
+        if (NodeTests.IsBinaryExpression(node) && NodeTests.IsIdentifier(node.AsBinaryExpression().Right!))
+        {
+            var symbol = node.Symbol();
+            if (symbol != null && (symbol.Declarations?.Length ?? 0) == 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // transform.go:1526-1552 — transformClassExpressionToDeclaration: converts a class expression into
+    // a class declaration for use in CJS export declarations (e.g., exports.K = class K {} or
+    // module.exports = class Thing {}). This delegates to the shared buildClassMembers helper to stay
+    // in sync with transformClassDeclaration.
+    private Node TransformClassExpressionToDeclaration(Node classExpr, Node className, ModifierList modifiers)
+    {
+        var previousEnclosingDeclaration = enclosingDeclaration;
+        enclosingDeclaration = classExpr;
+        var previousInClassExpressionDeclaration = inClassExpressionDeclaration;
+        inClassExpressionDeclaration = true;
+        try
+        {
+            Node[] extraMembers = [];
+            if (AstUtilities.IsInJSFile(classExpr))
+            {
+                extraMembers = CollectThisPropertyAssignments(classExpr);
+            }
+            var members = BuildClassMembers(classExpr, extraMembers);
+            var typeParameters = EnsureTypeParams(classExpr, classExpr.AsClassExpression().TypeParameters);
+            var heritageClauses = Visitor().VisitNodes(classExpr.AsClassExpression().HeritageClauses);
+
+            return Factory().AsNodeFactory().NewClassDeclaration(
+                modifiers,
+                className,
+                typeParameters,
+                heritageClauses,
+                members);
+        }
+        finally
+        {
+            enclosingDeclaration = previousEnclosingDeclaration;
+            inClassExpressionDeclaration = previousInClassExpressionDeclaration;
+        }
+    }
+
     // ── rebuild forward stubs (later batches replace these) ──
-    private Node RewriteModuleSpecifier(Node parent, Node? input) => throw new NotImplementedException("declarations rebuild");
+    private NodeList? BuildClassMembers(Node input, Node[] extraMembers) => throw new NotImplementedException("declarations rebuild");
+    private Node[] CollectThisPropertyAssignments(Node classExpr) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocTypeExpression(JSDocTypeExpression input) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocTypeLiteral(JSDocTypeLiteral input) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocPropertyTag(JSDocParameterOrPropertyTag input) => throw new NotImplementedException("declarations rebuild");
