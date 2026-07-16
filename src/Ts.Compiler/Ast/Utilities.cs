@@ -1306,6 +1306,24 @@ public static partial class AstUtilities
         throw new InvalidOperationException($"Node that does not have modifiers tried to have modifier replaced: {node.Kind}");
     }
 
+    // ast/utilities.go:2960 — IsContextualKeyword.
+    public static bool IsContextualKeyword(SyntaxKind token)
+    {
+        return SyntaxKind.FirstContextualKeyword <= token && token <= SyntaxKind.LastContextualKeyword;
+    }
+
+    // ast/utilities.go:4105 — IsKeyword.
+    public static bool IsKeyword(SyntaxKind token)
+    {
+        return SyntaxKind.FirstKeyword <= token && token <= SyntaxKind.LastKeyword;
+    }
+
+    // ast/utilities.go:4109 — IsNonContextualKeyword.
+    public static bool IsNonContextualKeyword(SyntaxKind token)
+    {
+        return IsKeyword(token) && !IsContextualKeyword(token);
+    }
+
     // ast/utilities.go:4058 — IsPrimitiveLiteralValue.
     public static bool IsPrimitiveLiteralValue(Node node, bool includeBigInt)
     {

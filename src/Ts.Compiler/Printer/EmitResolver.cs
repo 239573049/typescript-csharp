@@ -99,7 +99,7 @@ public interface EmitResolver : IReferenceResolver
     bool IsExpandoFunctionDeclaration(Node node);
     bool IsExpandoFunctionDeclarationUnsafe(Node node);
     bool IsLiteralConstDeclaration(Node node);
-    bool RequiresAddingImplicitUndefined(Node node, Symbol symbol, Node enclosingDeclaration);
+    bool RequiresAddingImplicitUndefined(Node node, Symbol? symbol, Node enclosingDeclaration);
     bool IsDeclarationVisible(Node node);
     bool IsNameResolvable(Node location, string name);
     bool IsImportRequiredByAugmentation(ImportDeclaration decl);

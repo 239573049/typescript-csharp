@@ -797,8 +797,363 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         return null;
     }
 
-    // ── rebuild forward stub (expando batch replaces) ──
-    private Node? CreateFullExpandoBlock(NodeId id) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:2690-2822 — transformExpandoAssignment.
+    private void TransformExpandoAssignment(BinaryExpression node)
+    {
+        var left = node.Left!;
+
+        var symbol = node.Symbol;
+        if (symbol == null || (symbol.Flags & SymbolFlags.Assignment) == 0)
+        {
+            return;
+        }
+
+        var ns = AstUtilities.GetLeftmostAccessExpression(left);
+        if (ns == null || ns.Kind != SyntaxKind.Identifier)
+        {
+            return;
+        }
+
+        var declaration = resolver!.GetReferencedValueDeclaration(ns);
+        if (declaration == null)
+        {
+            return;
+        }
+
+        if (ShouldStripInternal(declaration))
+        {
+            return;
+        }
+
+        if (NodeTests.IsVariableDeclaration(declaration) && declaration.Type() != null)
+        {
+            return;
+        }
+
+        if (NodeTests.IsFunctionDeclaration(declaration) && declaration.FunctionLikeData()!.FullSignature != null)
+        {
+            return;
+        }
+
+        if (NodeTests.IsVariableDeclaration(declaration) && !AstUtilities.IsFunctionLike(declaration.Initializer()!))
+        {
+            return; // We're going to add a type, no need to dupe members with a namespace
+        }
+
+        var hostSymbol = declaration.Symbol();
+        if (hostSymbol == null)
+        {
+            return;
+        }
+
+        var name = Factory().NewIdentifier(ns.Text());
+        var property = TryGetPropertyName(left);
+        if (property.Length == 0 || !global::Ts.Scanner.Scanner.IsIdentifierText(property, LanguageVariant.Standard))
+        {
+            return;
+        }
+
+        var hostId = GetExpandoHostId(declaration);
+
+        if (AstUtilities.IsDeclaration(declaration) && DeclarationUtilities.IsDeclarationAndNotVisible(EmitContext(), resolver, declaration))
+        {
+            // The host isn't visible (yet) - printing the type of a visible declaration may still
+            // late-mark it as visible (e.g. an exported variable whose type prints as `typeof host`),
+            // so defer the assignment to be processed if and when that happens.
+            if (!deferredExpandoAssignments.TryGetValue(hostId, out var deferredList))
+            {
+                deferredList = new List<BinaryExpression>();
+                deferredExpandoAssignments[hostId] = deferredList;
+            }
+            deferredList.Add(node);
+            return;
+        }
+
+        if (NodeTests.IsFunctionDeclaration(declaration) && !DeclarationUtilities.ShouldEmitFunctionProperties(declaration.AsFunctionDeclaration()))
+        {
+            return;
+        }
+
+        TransformExpandoHost(name, declaration);
+
+        var exportName = Factory().NewIdentifier(property);
+        var localName = TryGetNameOfAssignedExpression(node.AsNode());
+        if (localName == null && !resolver.IsNameResolvable(enclosingDeclaration!, property) && !AstUtilities.IsNonContextualKeyword(global::Ts.Scanner.Scanner.StringToToken(exportName.Text())))
+        {
+            // use exportName as localName if there won't be any conflicts or keyword issues
+            localName = exportName;
+        }
+        if (localName == null || AstUtilities.IsNonContextualKeyword(global::Ts.Scanner.Scanner.StringToToken(localName.Text())))
+        {
+            // fallback to a generated name if the localName doesn't exist or is a keyword
+            localName = Factory().NewGeneratedNameForNode(node.AsNode());
+        }
+
+        var (_, cleanupDiagnosticContext) = SetupDiagnosticContext(node.AsNode());
+        try
+        {
+            if (NodeTests.IsIdentifier(node.Right!))
+            {
+                // alias-like, emit an `export {name}` or `export {name as alias}`
+                var aliasResult = TransformBinaryExpressionToExportDeclaration(node.AsNode(), exportName);
+                AddExpandoMember(hostId, aliasResult);
+                return;
+            }
+
+            var preexistingExpandoHasExport = expandoMembers.TryGetValue(hostId, out var existingMembers) && CoreUtil.Some(existingMembers.ToArray(), NodeTests.IsExportDeclaration);
+            ModifierList? varModifiers = null;
+
+            if (preexistingExpandoHasExport)
+            {
+                varModifiers = Factory().AsNodeFactory().NewModifierList(AstUtilities.CreateModifiersFromModifierFlags(ModifierFlags.Export, Factory().AsNodeFactory().NewModifier));
+            }
+
+            var synthesizedNamespace = Factory().AsNodeFactory().NewModuleDeclaration(null /*modifiers*/, SyntaxKind.NamespaceKeyword, name, Factory().AsNodeFactory().NewModuleBlock(Factory().AsNodeFactory().NewNodeList([])));
+            synthesizedNamespace.Parent = enclosingDeclaration;
+            var declarationData = synthesizedNamespace.DeclarationData()!;
+            declarationData.Symbol = hostSymbol;
+            var containerData = synthesizedNamespace.LocalsContainerData()!;
+            containerData.Locals = new SymbolTable();
+            containerData.Locals[localName.Text()] = symbol;
+
+            var oldEnclosing = enclosingDeclaration;
+            enclosingDeclaration = synthesizedNamespace;
+            try
+            {
+                var statements = new List<Node>
+                {
+                    Factory().AsNodeFactory().NewVariableStatement(
+                        varModifiers,
+                        Factory().AsNodeFactory().NewVariableDeclarationList(
+                            Factory().AsNodeFactory().NewNodeList([
+                                Factory().AsNodeFactory().NewVariableDeclaration(localName, null /*exclamationToken*/, EnsureType(node.AsNode(), false), null /*initializer*/),
+                            ]),
+                            NodeFlags.None)),
+                };
+
+                if (localName.Text() != exportName.Text())
+                {
+                    var namedExports = Factory().AsNodeFactory().NewNamedExports(Factory().AsNodeFactory().NewNodeList([
+                        Factory().AsNodeFactory().NewExportSpecifier(false /*isTypeOnly*/, localName, exportName),
+                    ]));
+                    statements.Add(Factory().AsNodeFactory().NewExportDeclaration(null /*modifiers*/, false /*isTypeOnly*/, namedExports, null /*moduleSpecifier*/, null /*attributes*/));
+                }
+
+                if (statements.Count > 1 && !preexistingExpandoHasExport)
+                {
+                    // Add an `export` modifier to all existing expando members so they remain exported after the `export {}` is added
+                    if (expandoMembers.TryGetValue(hostId, out var decls))
+                    {
+                        foreach (var decl in decls)
+                        {
+                            var modifierFlags = ModifierFlags.Export | AstUtilities.GetCombinedModifierFlags(decl);
+                            decl.SetModifiers(Factory().AsNodeFactory().NewModifierList(AstUtilities.CreateModifiersFromModifierFlags(modifierFlags, Factory().AsNodeFactory().NewModifier)));
+                        }
+                    }
+                }
+                foreach (var s in statements)
+                {
+                    AddExpandoMember(hostId, s);
+                }
+            }
+            finally
+            {
+                enclosingDeclaration = oldEnclosing;
+            }
+        }
+        finally
+        {
+            cleanupDiagnosticContext();
+        }
+    }
+
+    private void AddExpandoMember(NodeId hostId, Node member)
+    {
+        if (!expandoMembers.TryGetValue(hostId, out var list))
+        {
+            list = new List<Node>();
+            expandoMembers[hostId] = list;
+        }
+        list.Add(member);
+    }
+
+    // transform.go:2824-2829 — getExpandoHostId.
+    private NodeId GetExpandoHostId(Node declaration)
+    {
+        var root = NodeTests.IsVariableDeclaration(declaration) ? declaration.Parent!.Parent! : declaration;
+        return AstUtilities.GetNodeId(EmitContext().MostOriginal(root)!);
+    }
+
+    // transform.go:2830-2886 — transformExpandoHost.
+    private void TransformExpandoHost(Node name, Node declaration)
+    {
+        var root = NodeTests.IsVariableDeclaration(declaration) ? declaration.Parent!.Parent! : declaration;
+        var id = GetExpandoHostId(declaration);
+
+        if (expandoHosts.ContainsKey(id))
+        {
+            return;
+        }
+
+        var saveNeedsDeclare = needsDeclare;
+        needsDeclare = true;
+
+        var modifierFlags = EnsureModifierFlags(root);
+        var defaultExport = (modifierFlags & ModifierFlags.Export) != 0 && (modifierFlags & ModifierFlags.Default) != 0;
+
+        needsDeclare = saveNeedsDeclare;
+
+        if (defaultExport)
+        {
+            modifierFlags |= ModifierFlags.Ambient;
+            modifierFlags ^= ModifierFlags.Default;
+            modifierFlags ^= ModifierFlags.Export;
+        }
+
+        var (_, cleanupDiagnosticContext) = SetupDiagnosticContext(declaration);
+        try
+        {
+            var modifiers = Factory().AsNodeFactory().NewModifierList(AstUtilities.CreateModifiersFromModifierFlags(modifierFlags, Factory().AsNodeFactory().NewModifier));
+            var replacement = new List<Node>();
+
+            if (NodeTests.IsFunctionDeclaration(declaration))
+            {
+                var (typeParameters, parameters, asteriskToken) = ExtractExpandoHostParams(declaration);
+                replacement.Add(Factory().AsNodeFactory().UpdateFunctionDeclaration(declaration.AsFunctionDeclaration(), modifiers, asteriskToken, declaration.Name(), EnsureTypeParams(declaration, typeParameters), UpdateParameterList(declaration, parameters), EnsureType(declaration, false), null /*fullSignature*/, null /*body*/));
+            }
+            else if (NodeTests.IsVariableDeclaration(declaration) && AstUtilities.IsFunctionExpressionOrArrowFunction(declaration.Initializer()!))
+            {
+                var fn = declaration.Initializer()!;
+                var (typeParameters, parameters, asteriskToken) = ExtractExpandoHostParams(fn);
+                replacement.Add(Factory().AsNodeFactory().NewFunctionDeclaration(modifiers, asteriskToken, Factory().NewIdentifier(name.Text()), EnsureTypeParams(fn, typeParameters), UpdateParameterList(fn, parameters), EnsureType(fn, false), null /*fullSignature*/, null /*body*/));
+            }
+            else
+            {
+                expandoHosts[id] = TransformTopLevelDeclaration(declaration)!;
+                return;
+            }
+
+            state.ReportExpandoFunctionErrors?.Invoke(declaration);
+
+            if (defaultExport)
+            {
+                if (NodeTests.IsSourceFile(declaration.Parent!))
+                {
+                    resultHasExternalModuleIndicator = true;
+                }
+                resultHasScopeMarker = true;
+                replacement.Add(Factory().NewExportAssignment(null /*modifiers*/, false /*isExportEquals*/, null /*typeNode*/, name));
+            }
+
+            // store host result to be added to the output when it's actually visited
+            expandoHosts[id] = Factory().AsNodeFactory().NewSyntaxList(replacement.ToArray());
+            if (lateStatementReplacementMap.ContainsKey(id))
+            {
+                lateStatementReplacementMap[id] = CreateFullExpandoBlock(id);
+            }
+        }
+        finally
+        {
+            cleanupDiagnosticContext();
+        }
+    }
+
+    // transform.go:2887-2934 — createFullExpandoBlock.
+    private Node? CreateFullExpandoBlock(NodeId id)
+    {
+        // Process any expando assignments on this host that were skipped because it wasn't
+        // visible when they were collected - if it's still not visible, they simply get
+        // re-deferred, and are dropped if the host is never late-marked visible.
+        if (deferredExpandoAssignments.TryGetValue(id, out var deferred))
+        {
+            deferredExpandoAssignments.Remove(id);
+            foreach (var assignment in deferred)
+            {
+                TransformExpandoAssignment(assignment);
+            }
+        }
+        expandoHosts.TryGetValue(id, out var n);
+        if (expandoMembers.TryGetValue(id, out var addOns))
+        {
+            ModifierList? modifiers = null;
+            Node? name = null;
+            Node[] hostNodes = [];
+            if (n != null && n.Kind == SyntaxKind.SyntaxList)
+            {
+                // find the first named syntax list element and use its' name & modifiers
+                foreach (var c in n.AsSyntaxList().Children ?? [])
+                {
+                    if (c.Name() != null)
+                    {
+                        name = c.Name()!.Clone(Factory());
+                        if (c.Modifiers() != null)
+                        {
+                            modifiers = c.Modifiers()!.Clone(Factory().AsNodeFactory());
+                        }
+                        break;
+                    }
+                }
+                hostNodes = n.AsSyntaxList().Children ?? [];
+            }
+            else if (n != null)
+            {
+                name = n.Name()!.Clone(Factory());
+                if (n.Modifiers() != null)
+                {
+                    modifiers = n.Modifiers()!.Clone(Factory().AsNodeFactory());
+                }
+                hostNodes = [n];
+            }
+            if (name != null)
+            {
+                var moduleDecl = Factory().AsNodeFactory().NewModuleDeclaration(
+                    modifiers,
+                    SyntaxKind.NamespaceKeyword,
+                    name,
+                    Factory().AsNodeFactory().NewModuleBlock(Factory().AsNodeFactory().NewNodeList(addOns.ToArray())));
+                var members = new List<Node>(hostNodes) { moduleDecl };
+                return Factory().AsNodeFactory().NewSyntaxList(members.ToArray());
+            }
+        }
+        return n;
+    }
+
+    // transform.go:2935-2948 — extractExpandoHostParams.
+    private static (TypeParameterList? typeParameters, ParameterList? parameters, Node? asteriskToken) ExtractExpandoHostParams(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.FunctionExpression:
+            {
+                var fn = node.AsFunctionExpression();
+                return (fn.TypeParameters, fn.Parameters, fn.AsteriskToken);
+            }
+            case SyntaxKind.ArrowFunction:
+            {
+                var fn = node.AsArrowFunction();
+                return (fn.TypeParameters, fn.Parameters, fn.AsteriskToken);
+            }
+            default:
+            {
+                var fn = node.AsFunctionDeclaration();
+                return (fn.TypeParameters, fn.Parameters, fn.AsteriskToken);
+            }
+        }
+    }
+
+    // transform.go:2949-2957 — tryGetPropertyName.
+    private string TryGetPropertyName(Node node)
+    {
+        if (NodeTests.IsElementAccessExpression(node))
+        {
+            return resolver!.GetElementAccessExpressionName(node.AsElementAccessExpression());
+        }
+        if (NodeTests.IsPropertyAccessExpression(node))
+        {
+            return node.Name()!.Text();
+        }
+        return "";
+    }
 
     // transform.go:573-698 — visitDeclarationSubtree (not yet wired; the wiring batch switches the
     // main dispatch to it).
@@ -2062,14 +2417,101 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         }
         return Factory().AsNodeFactory().NewNodeList(memberNodes.ToArray());
     }
-    private Node? TransformJSDocTypeExpression(JSDocTypeExpression input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocTypeLiteral(JSDocTypeLiteral input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocPropertyTag(JSDocParameterOrPropertyTag input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocAllType(JSDocAllType input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocNullableType(JSDocNullableType input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocNonNullableType(JSDocNonNullableType input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocOptionalType(JSDocOptionalType input) => throw new NotImplementedException("declarations rebuild");
-    private Node? TransformJSDocVariadicType(JSDocVariadicType input) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:2547-2549 — transformJSDocTypeExpression.
+    private Node? TransformJSDocTypeExpression(JSDocTypeExpression input) =>
+        Visitor().VisitNode(input.Type);
+
+    // transform.go:2551-2557 — transformJSDocTypeLiteral.
+    private Node TransformJSDocTypeLiteral(JSDocTypeLiteral input)
+    {
+        var (members, _) = Visitor().VisitSlice(input.JSDocPropertyTags);
+        var replacement = Factory().AsNodeFactory().NewTypeLiteralNode(Factory().AsNodeFactory().NewNodeList(members ?? []));
+        EmitContext().SetOriginal(replacement, input.AsNode());
+        return replacement;
+    }
+
+    // transform.go:2558-2569 — transformJSDocPropertyTag.
+    private Node TransformJSDocPropertyTag(JSDocParameterOrPropertyTag input)
+    {
+        var replacement = Factory().AsNodeFactory().NewPropertySignatureDeclaration(
+            null,
+            Visitor().VisitNode(input.TagName),
+            null,
+            Visitor().VisitNode(input.TypeExpression),
+            null);
+        EmitContext().SetOriginal(replacement, input.AsNode());
+        return replacement;
+    }
+
+    // transform.go:2570-2575 — transformJSDocAllType.
+    private Node TransformJSDocAllType(JSDocAllType input)
+    {
+        var replacement = Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.AnyKeyword);
+        EmitContext().SetOriginal(replacement, input.AsNode());
+        return replacement;
+    }
+
+    // transform.go:2576-2584 — transformJSDocNullableType.
+    private Node TransformJSDocNullableType(JSDocNullableType input)
+    {
+        var replacement = Factory().AsNodeFactory().NewUnionTypeNode(Factory().AsNodeFactory().NewNodeList([
+            Visitor().VisitNode(input.Type)!,
+            Factory().AsNodeFactory().NewLiteralTypeNode(Factory().AsNodeFactory().NewKeywordExpression(SyntaxKind.NullKeyword)),
+        ]));
+        EmitContext().SetOriginal(replacement, input.AsNode());
+        return replacement;
+    }
+
+    // transform.go:2585-2588 — transformJSDocNonNullableType.
+    private Node? TransformJSDocNonNullableType(JSDocNonNullableType input) =>
+        Visitor().VisitNode(input.Type);
+
+    // transform.go:2589-2594 — transformJSDocVariadicType.
+    private Node TransformJSDocVariadicType(JSDocVariadicType input)
+    {
+        var replacement = Factory().AsNodeFactory().NewArrayTypeNode(Visitor().VisitNode(input.Type));
+        EmitContext().SetOriginal(replacement, input.AsNode());
+        return replacement;
+    }
+
+    // transform.go:2595-2603 — transformJSDocOptionalType.
+    private Node TransformJSDocOptionalType(JSDocOptionalType input)
+    {
+        var replacement = Factory().AsNodeFactory().NewUnionTypeNode(Factory().AsNodeFactory().NewNodeList([
+            Visitor().VisitNode(input.Type)!,
+            Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.UndefinedKeyword),
+        ]));
+        EmitContext().SetOriginal(replacement, input.AsNode());
+        return replacement;
+    }
+
+    // transform.go:2604-2623 — getNameExpressionPreferringIdentifier.
+    private Node GetNameExpressionPreferringIdentifier(Node nameExpr)
+    {
+        if (NodeTests.IsNumericLiteral(nameExpr))
+        {
+            // Numeric property names are string properties in JS; convert to string literal
+            nameExpr = Factory().NewStringLiteral(nameExpr.Text(), TokenFlags.None);
+        }
+        if (AstUtilities.IsStringLiteralLike(nameExpr) && global::Ts.Scanner.Scanner.IsIdentifierText(nameExpr.Text(), LanguageVariant.Standard))
+        {
+            var result = Factory().NewIdentifier(nameExpr.Text()); // prefer non-string literal names where possible
+            var kwKind = global::Ts.Scanner.Scanner.IdentifierToKeywordKind(result.AsIdentifier());
+            // keep keywords as strings, except `default`, which has special reformulations in the transformer
+            if (kwKind == SyntaxKind.Unknown || kwKind == SyntaxKind.DefaultKeyword)
+            {
+                // fake this into a parse tree node so the reference resolver resolves the node via `resolveName`
+                result.Parent = nameExpr.Parent;
+                result.Flags &= ~NodeFlags.Synthesized;
+                // intentionally leave Loc unset so the string isn't used as the text source of the identifier
+                return result;
+            }
+        }
+        return nameExpr;
+    }
+
+    // transform.go:2624-2626 — isNotDeclareModifier.
+    private static bool IsNotDeclareModifier(Node mod) => mod.Kind != SyntaxKind.DeclareKeyword;
 
     // transform.go:276-278 — throwDiagnostic.
     private static SymbolAccessibilityDiagnostic ThrowDiagnostic(global::Ts.Printer.SymbolAccessibilityResult result) =>
@@ -2077,8 +2519,70 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
 
     // ── 1:1 rebuild forward stubs (later batches replace these; unreachable until the new
     // visitSourceFile chain is wired) ──
-    private Node? VisitBindingName(Node node) => throw new NotImplementedException("declarations rebuild");
-    private Node? VisitNestedExpression(Node node) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:2403-2418 — visitBindingName.
+    private Node? VisitBindingName(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.Identifier:
+            case SyntaxKind.OmittedExpression:
+                return node;
+            case SyntaxKind.ArrayBindingPattern:
+            case SyntaxKind.ObjectBindingPattern:
+                return node.VisitEachChild(bindingNameVisitor);
+            case SyntaxKind.BindingElement:
+                if (node.PropertyName() != null && NodeTests.IsComputedPropertyName(node.PropertyName()!) && AstUtilities.IsEntityNameExpression(node.PropertyName()!.Expression()!))
+                {
+                    CheckEntityNameVisibility(node.PropertyName()!.Expression()!, enclosingDeclaration!);
+                }
+                return Factory().AsNodeFactory().UpdateBindingElement(node.AsBindingElement(), node.AsBindingElement().DotDotDotToken, node.PropertyName(), bindingNameVisitor.VisitNode(node.Name()), null /*initializer*/);
+            default:
+                return node;
+        }
+    }
+    // transform.go:2663-2689 — visitNestedExpression.
+    private Node? VisitNestedExpression(Node? expression)
+    {
+        if (expression != null)
+        {
+            var (_, cleanupDiagnosticContext) = SetupDiagnosticContext(expression);
+            try
+            {
+                switch (AstUtilities.GetAssignmentDeclarationKind(expression))
+                {
+                    case JSDeclarationKind.Property:
+                        TransformExpandoAssignment(expression.AsBinaryExpression());
+                        break;
+                    case JSDeclarationKind.ExportsProperty:
+                        if (state.CurrentSourceFile!.CommonJSModuleIndicator != null)
+                        {
+                            var result = TransformCommonJSExport(expression, GetNameExpressionPreferringIdentifier(AstUtilities.GetElementOrPropertyAccessName(expression.AsBinaryExpression().Left!)!));
+                            if (result != null)
+                            {
+                                cjsExportMembers.Add(result);
+                            }
+                        }
+                        break;
+                    case JSDeclarationKind.ObjectDefinePropertyExports:
+                        if (state.CurrentSourceFile!.CommonJSModuleIndicator != null)
+                        {
+                            var result = TransformCommonJSExport(expression, GetNameExpressionPreferringIdentifier(expression.Arguments()![1]));
+                            if (result != null)
+                            {
+                                cjsExportMembers.Add(result);
+                            }
+                        }
+                        break;
+                }
+                return expressionVisitor.VisitEachChild(expression); // recur through the whole tree, looking for special assignments
+            }
+            finally
+            {
+                cleanupDiagnosticContext();
+            }
+        }
+        return null;
+    }
     // transform.go:1866-1888 — stripExportModifiers.
     private Node? StripExportModifiers(Node? statement)
     {
@@ -2213,8 +2717,55 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         }
         return false;
     }
-    private Node? VisitCJSExportAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
-    private Node? StripDeclareModifiers(Node node) => throw new NotImplementedException("declarations rebuild");
+    // transform.go:2643-2662 — visitCJSExportAssignments.
+    private Node? VisitCJSExportAssignments(Node? expression)
+    {
+        if (expression != null)
+        {
+            var (_, cleanupDiagnosticContext) = SetupDiagnosticContext(expression);
+            try
+            {
+                if (AstUtilities.GetAssignmentDeclarationKind(expression) == JSDeclarationKind.ModuleExports)
+                {
+                    if (state.CurrentSourceFile!.CommonJSModuleIndicator != null)
+                    {
+                        var result = TransformExportAssignment(expression.Parent!, expression, expression.AsBinaryExpression().Right!, true /*isExportEquals*/);
+                        if (result != null)
+                        {
+                            cjsExportAssignment = result;
+                            resultHasScopeMarker = true;
+                            resultHasExternalModuleIndicator = true;
+                        }
+                    }
+                }
+                return cjsExportAssignmentVisitor.VisitEachChild(expression); // recur through the whole tree, looking for module.exports=
+            }
+            finally
+            {
+                cleanupDiagnosticContext();
+            }
+        }
+        return null;
+    }
+    // transform.go:2628-2642 — stripDeclareModifiers.
+    private Node? StripDeclareModifiers(Node? node)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+        var mods = node.Modifiers();
+        if (mods != null)
+        {
+            var flags = node.ModifierFlags();
+            if ((flags & ModifierFlags.Ambient) != 0)
+            {
+                var filtered = CoreUtil.Filter(mods.Nodes, IsNotDeclareModifier) ?? [];
+                node.SetModifiers(Factory().AsNodeFactory().NewModifierList(filtered));
+            }
+        }
+        return node; // no need to recur into children, only strip at top-level
+    }
 
     // TODO: Convert to TransformerFactory signature to allow more automatic composition with other transforms.
     public static DeclarationTransformer NewDeclarationTransformer(
@@ -2920,58 +3471,135 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             t);
     }
 
-    private ParameterList UpdateParameterList(Node owner, ParameterList? parameters)
+    // transform.go:2355-2365 — updateParamList.
+    private ParameterList UpdateParameterList(Node node, ParameterList? @params)
     {
-        if (GetEffectiveDeclarationFlags(owner, ModifierFlags.Private) != 0 || parameters is null)
+        if (host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(node)!, ModifierFlags.Private) != 0 || @params == null || @params.Nodes.Length == 0)
         {
-            return Factory().NewNodeList([]);
+            return Factory().AsNodeFactory().NewNodeList([]);
         }
-        var results = new List<Node>(parameters.Nodes.Length);
-        foreach (var parameter in parameters.Nodes)
+        var results = new Node[@params.Nodes.Length];
+        for (var i = 0; i < @params.Nodes.Length; i++)
         {
-            results.Add(EnsureParameter(parameter.AsParameterDeclaration()));
+            results[i] = EnsureParameter(@params.Nodes[i].AsParameterDeclaration());
         }
-        return Factory().NewNodeList(results.ToArray());
+        return Factory().AsNodeFactory().NewNodeList(results);
     }
 
-    private Node EnsureParameter(ParameterDeclaration input)
+    // transform.go:2366-2391 — ensureParameter.
+    private Node EnsureParameter(ParameterDeclaration p)
     {
-        var questionToken = input.QuestionToken;
-        if (resolver?.IsOptionalParameter(input.AsNode()) == true && questionToken is null)
+        var oldDiag = state.GetSymbolAccessibilityDiagnostic;
+        if (!suppressNewDiagnosticContexts)
         {
-            questionToken = Factory().NewToken(SyntaxKind.QuestionToken);
+            state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(p.AsNode());
         }
-        return Factory().AsNodeFactory().UpdateParameterDeclaration(
-            input,
+        Node? questionToken = null;
+        if (resolver!.IsOptionalParameter(p.AsNode()))
+        {
+            if (p.QuestionToken != null)
+            {
+                questionToken = p.QuestionToken;
+            }
+            else
+            {
+                questionToken = Factory().NewToken(SyntaxKind.QuestionToken);
+            }
+        }
+        var result = Factory().AsNodeFactory().UpdateParameterDeclaration(
+            p,
             null,
-            input.DotDotDotToken,
-            input.Name(),
+            p.DotDotDotToken,
+            bindingNameVisitor.VisitNode(p.Name()),
             questionToken,
-            EnsureType(input.AsNode(), true),
-            null);
+            EnsureType(p.AsNode(), true),
+            EnsureNoInitializer(p.AsNode()));
+        state.GetSymbolAccessibilityDiagnostic = oldDiag;
+        return result;
     }
 
-    private Node EnsureType(Node node, bool ignorePrivate)
+    // transform.go:1600-1663 — ensureType.
+    private Node? EnsureType(Node node, bool ignorePrivate)
     {
-        if (!ignorePrivate && GetEffectiveDeclarationFlags(node, ModifierFlags.Private) != 0)
+        if (!ignorePrivate && host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(node)!, ModifierFlags.Private) != 0)
         {
-            return null!;
-        }
-        if (node.Type() is { } annotation)
-        {
-            return Visitor().VisitNode(annotation)!;
+            // Private nodes emit no types (except private parameter properties, whose parameter types are actually visible)
+            return null;
         }
 
-        global::Ts.PseudoChecker.PseudoType pseudoType;
-        if (global::Ts.Ast.AstUtilities.IsFunctionLike(node))
+        if (ShouldPrintWithInitializer(node))
         {
-            pseudoType = pseudoChecker.GetReturnTypeOfSignature(node);
+            // Literal const declarations will have an initializer ensured rather than a type
+            return null;
+        }
+
+        // Should be removed createTypeOfDeclaration will actually now reuse the existing annotation so there is no real need to duplicate type walking
+        // Left in for now to minimize diff during syntactic type node builder refactor
+        if (!NodeTests.IsExportAssignment(node) && !NodeTests.IsBindingElement(node) && node.Type() != null && (!NodeTests.IsParameterDeclaration(node) || !resolver!.RequiresAddingImplicitUndefined(node, null, enclosingDeclaration!)))
+        {
+            if (state.CurrentSourceFile!.IsJS())
+            {
+                // JS types have a heap of constructs we can't directly emit into .d.ts files; the node builder contains logic to remap those where possible, so we invoke it here
+                // In strada we always built js declarations symbolically, so all js type nodes went through this postprocessing
+                var jsFlags = DeclarationEmitNodeBuilderFlags;
+                if (inClassExpressionDeclaration)
+                {
+                    jsFlags &= ~global::Ts.NodeBuilder.Flags.WriteClassExpressionAsTypeLiteral;
+                }
+                var res = resolver!.TryJSTypeNodeToTypeNode(EmitContext(), node.Type()!, enclosingDeclaration!, jsFlags, DeclarationEmitInternalNodeBuilderFlags, tracker);
+                if (res != null)
+                {
+                    return res;
+                }
+                // otherwise, fall back to full serialization
+            }
+            else
+            {
+                return Visitor().VisitNode(node.Type());
+            }
+        }
+
+        var oldErrorNameNode = state.ErrorNameNode;
+        state.ErrorNameNode = node.Name();
+        GetSymbolAccessibilityDiagnostic? oldDiag = null;
+        if (!suppressNewDiagnosticContexts)
+        {
+            oldDiag = state.GetSymbolAccessibilityDiagnostic;
+            if (DeclarationUtilities.CanProduceDiagnostics(node))
+            {
+                state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(node);
+            }
+        }
+        Node? typeNode;
+
+        var flags = DeclarationEmitNodeBuilderFlags;
+        if (inClassExpressionDeclaration)
+        {
+            flags &= ~global::Ts.NodeBuilder.Flags.WriteClassExpressionAsTypeLiteral;
+        }
+        if (AstUtilities.HasInferredType(node))
+        {
+            typeNode = resolver!.CreateTypeOfDeclaration(EmitContext(), node, enclosingDeclaration!, flags, DeclarationEmitInternalNodeBuilderFlags, tracker);
+        }
+        else if (AstUtilities.IsFunctionLike(node))
+        {
+            typeNode = resolver!.CreateReturnTypeOfSignatureDeclaration(EmitContext(), node, enclosingDeclaration!, flags, DeclarationEmitInternalNodeBuilderFlags, tracker);
         }
         else
         {
-            pseudoType = pseudoChecker.GetTypeOfDeclaration(node);
+            throw new InvalidOperationException("ensureType: unexpected node kind " + node.Kind);
         }
-        return PseudoTypeToTypeNode(pseudoType);
+
+        state.ErrorNameNode = oldErrorNameNode;
+        if (!suppressNewDiagnosticContexts)
+        {
+            state.GetSymbolAccessibilityDiagnostic = oldDiag;
+        }
+        if (typeNode == null)
+        {
+            return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.AnyKeyword);
+        }
+        return typeNode;
     }
 
     private Node PseudoTypeToTypeNode(global::Ts.PseudoChecker.PseudoType type)

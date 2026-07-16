@@ -696,7 +696,7 @@ public sealed partial class EmitResolver : global::Ts.Printer.EmitResolver
     }
 
     // emitresolver.go:564-571
-    public bool RequiresAddingImplicitUndefined(Node declaration, Symbol symbol, Node enclosingDeclaration)
+    public bool RequiresAddingImplicitUndefined(Node declaration, Symbol? symbol, Node enclosingDeclaration)
     {
         if (!global::Ts.Printer.PrinterUtilities.IsParseTreeNode(declaration))
         {
