@@ -39,11 +39,11 @@ public interface ModuleSpecifierGenerationHost
     ResolutionMode GetModeForUsageLocation(HasFileName file, StringLiteralLikeNode? moduleSpecifier);
 }
 
-// modulespecifiers/types.go:13 — SourceFileForSpecifierGeneration.
-public interface SourceFileForSpecifierGeneration
+// modulespecifiers/types.go:13 — SourceFileForSpecifierGeneration. PORT-NOTE: Go satisfies
+// ast.HasFileName structurally (FileName()/Path()); C# makes the inheritance explicit so instances
+// pass to host methods typed on HasFileName.
+public interface SourceFileForSpecifierGeneration : HasFileName
 {
-    global::Ts.TsPath.Path Path();
-    string FileName();
     StringLiteralLikeNode[]? Imports();
     bool IsJS();
 }
