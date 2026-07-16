@@ -7,18 +7,14 @@ using Ts.Ast;
 
 namespace Ts.ModuleSpecifiers;
 
-// modulespecifiers/types.go:42-62
-public interface ModuleSpecifierGenerationHost
+// modulespecifiers/types.go:42-62. PORT-NOTE: Go satisfies outputpaths.OutputPathsHost structurally
+// (CommonSourceDirectory/GetCurrentDirectory/UseCaseSensitiveFileNames); C# makes the inheritance
+// explicit so instances pass to outputpaths workers.
+public interface ModuleSpecifierGenerationHost : global::Ts.OutputPaths.OutputPathsHost
 {
     global::Ts.Symlinks.KnownSymlinks GetSymlinkCache();
 
-    string CommonSourceDirectory();
-
     string GetGlobalTypingsCacheLocation();
-
-    bool UseCaseSensitiveFileNames();
-
-    string GetCurrentDirectory();
 
     global::Ts.TsOptions.SourceOutputAndProjectReference? GetProjectReferenceFromSource(global::Ts.TsPath.Path path);
 
