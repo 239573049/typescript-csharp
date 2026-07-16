@@ -18,6 +18,10 @@ using static Ts.Ast.AstUtilities;
 
 namespace Ts.Checker;
 
+// utilities.go:1753 — DiagnosticDetails (message + args for a module-resolution diagnostic chain entry;
+// shared between the checker and the incremental builder's diagnostic repopulation).
+public readonly record struct DiagnosticDetails(global::Ts.Diagnostics.Message Message, object?[]? Args);
+
 public partial class Checker
 {
     // checker.go:14358
@@ -629,9 +633,8 @@ public partial class Checker
                 }
                 else if (resolvedModule != null && resolvedModule.AlternateResult != "")
                 {
-                    // !!! checker.go:15370-15372 — createModuleNotFoundChain over AlternateResult
-                    // (package.json exports/typesVersions suggestion chain, checker.go:15424).
-                    throw new NotImplementedException("resolveExternalModule:createModuleNotFoundChain");
+                    var errorInfo = CreateModuleNotFoundChain(resolvedModule, errorNode, moduleReference, mode, moduleReference);
+                    AddDiagnostic(NewDiagnosticChainForNode(errorInfo, errorNode, moduleNotFoundError!, moduleReference));
                 }
                 else
                 {
@@ -687,10 +690,7 @@ public partial class Checker
         Diagnostic? errorInfo = null;
         if (!global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(moduleReference) && !string.IsNullOrEmpty(resolvedModule.PackageId.Name))
         {
-            // !!! checker.go:15414 — createModuleNotFoundChain(resolvedModule, errorNode,
-            // moduleReference, mode, resolvedModule.PackageId.Name) suggestion chain (checker.go:15424;
-            // needs the checker-level CreateModuleNotFoundChain machinery + repopulate info).
-            throw new NotImplementedException("errorOnImplicitAnyModule:createModuleNotFoundChain");
+            errorInfo = CreateModuleNotFoundChain(resolvedModule, errorNode, moduleReference, mode, resolvedModule.PackageId.Name);
         }
         AddErrorOrSuggestion(
             isError,
@@ -700,6 +700,107 @@ public partial class Checker
                 global::Ts.Diagnostics.Diagnostics.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type,
                 moduleReference,
                 resolvedModule.ResolvedFileName));
+    }
+
+    // utilities.go:1762 — CreateModuleNotFoundChain. Computes the message+args for a module-not-found
+    // suggestion chain; shared with the incremental builder (repopulation of cached diagnostics).
+    internal static DiagnosticDetails CreateModuleNotFoundChain(Program program, SourceFile? file, string moduleReference, ResolutionMode mode, string packageName)
+    {
+        global::Ts.Module.ResolvedModule? resolvedModule = program.GetResolvedModule(file!, moduleReference, mode);
+
+        if (resolvedModule != null && resolvedModule.AlternateResult != "")
+        {
+            if (resolvedModule.AlternateResult.Contains("/node_modules/@types/", StringComparison.Ordinal))
+            {
+                packageName = "@types/" + global::Ts.Module.Module.MangleScopedPackageName(packageName);
+            }
+            return new DiagnosticDetails(
+                global::Ts.Diagnostics.Diagnostics.There_are_types_at_0_but_this_result_could_not_be_resolved_when_respecting_package_json_exports_The_1_library_may_need_to_update_its_package_json_or_typings,
+                [resolvedModule.AlternateResult, packageName]);
+        }
+
+        Dictionary<string, bool> packagesMap = program.GetPackagesMap();
+        if (packagesMap.ContainsKey(global::Ts.Module.Module.GetTypesPackageName(packageName)))
+        {
+            return new DiagnosticDetails(
+                global::Ts.Diagnostics.Diagnostics.If_the_0_package_actually_exposes_this_module_consider_sending_a_pull_request_to_amend_https_Colon_Slash_Slashgithub_com_SlashDefinitelyTyped_SlashDefinitelyTyped_Slashtree_Slashmaster_Slashtypes_Slash_1,
+                [packageName, global::Ts.Module.Module.MangleScopedPackageName(packageName)]);
+        }
+        if (packagesMap.TryGetValue(packageName, out bool present) && present)
+        {
+            return new DiagnosticDetails(
+                global::Ts.Diagnostics.Diagnostics.If_the_0_package_actually_exposes_this_module_try_adding_a_new_declaration_d_ts_file_containing_declare_module_1,
+                [packageName, moduleReference]);
+        }
+        return new DiagnosticDetails(
+            global::Ts.Diagnostics.Diagnostics.Try_npm_i_save_dev_types_Slash_1_if_it_exists_or_add_a_new_declaration_d_ts_file_containing_declare_module_0,
+            [moduleReference, global::Ts.Module.Module.MangleScopedPackageName(packageName)]);
+    }
+
+    // utilities.go:1798 — CreateModeMismatchDetails. Message+args for a mode-mismatch chain entry;
+    // shared between initial diagnostic creation and incremental repopulation.
+    internal static DiagnosticDetails CreateModeMismatchDetails(Program program, SourceFile file)
+    {
+        string ext = global::Ts.TsPath.TsPath.TryGetExtensionFromPath(file.FileName());
+        string targetExt = ext == global::Ts.TsPath.TsPath.ExtensionTs
+            ? global::Ts.TsPath.TsPath.ExtensionMts
+            : (ext == global::Ts.TsPath.TsPath.ExtensionJs ? global::Ts.TsPath.TsPath.ExtensionMjs : "");
+        SourceFileMetaData meta = program.GetSourceFileMetaData(file.Path());
+        string packageJsonType = meta.PackageJsonType;
+        string packageJsonDirectory = meta.PackageJsonDirectory;
+
+        if (packageJsonDirectory != "" && packageJsonType == "")
+        {
+            if (targetExt != "")
+            {
+                return new DiagnosticDetails(
+                    global::Ts.Diagnostics.Diagnostics.To_convert_this_file_to_an_ECMAScript_module_change_its_file_extension_to_0_or_add_the_field_type_Colon_module_to_1,
+                    [targetExt, global::Ts.TsPath.TsPath.CombinePaths(packageJsonDirectory, "package.json")]);
+            }
+            return new DiagnosticDetails(
+                global::Ts.Diagnostics.Diagnostics.To_convert_this_file_to_an_ECMAScript_module_add_the_field_type_Colon_module_to_0,
+                [global::Ts.TsPath.TsPath.CombinePaths(packageJsonDirectory, "package.json")]);
+        }
+        if (targetExt != "")
+        {
+            return new DiagnosticDetails(
+                global::Ts.Diagnostics.Diagnostics.To_convert_this_file_to_an_ECMAScript_module_change_its_file_extension_to_0_or_create_a_local_package_json_file_with_type_Colon_module,
+                [targetExt]);
+        }
+        return new DiagnosticDetails(
+            global::Ts.Diagnostics.Diagnostics.To_convert_this_file_to_an_ECMAScript_module_create_a_local_package_json_file_with_type_Colon_module,
+            null);
+    }
+
+    // checker.go:15424 — createModuleNotFoundChain (instance wrapper: builds the diagnostic + repopulate info).
+    private Diagnostic CreateModuleNotFoundChain(global::Ts.Module.ResolvedModule resolvedModule, Node errorNode, string moduleReference, ResolutionMode mode, string packageName)
+    {
+        // Store the original packageName for repopulateInfo before any modifications.
+        string storedPackageName = packageName;
+        if (storedPackageName == moduleReference)
+        {
+            storedPackageName = "";
+        }
+
+        DiagnosticDetails details = CreateModuleNotFoundChain(program, AstUtilities.GetSourceFileOfNode(errorNode), moduleReference, mode, packageName);
+        Diagnostic result = NewDiagnosticForNode(errorNode, details.Message, details.Args ?? []);
+        result.SetRepopulateInfo(new RepopulateDiagnosticInfo
+        {
+            Kind = RepopulateDiagnosticKind.RepopulateModuleNotFound,
+            ModuleReference = moduleReference,
+            Mode = mode,
+            PackageName = storedPackageName,
+        });
+        return result;
+    }
+
+    // checker.go:15442 — createModeMismatchDetails (instance wrapper).
+    private Diagnostic CreateModeMismatchDetails(SourceFile sourceFile, Node errorNode)
+    {
+        DiagnosticDetails details = CreateModeMismatchDetails(program, sourceFile);
+        Diagnostic result = NewDiagnosticForNode(errorNode, details.Message, details.Args ?? []);
+        result.SetRepopulateInfo(new RepopulateDiagnosticInfo { Kind = RepopulateDiagnosticKind.RepopulateModeMismatch });
+        return result;
     }
 
     // checker/utilities.go:206
