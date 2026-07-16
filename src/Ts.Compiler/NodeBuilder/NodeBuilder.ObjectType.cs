@@ -915,10 +915,22 @@ public sealed partial class NodeBuilder
         mapped.target != null && !IsMappedTypeHomomorphic(mapped) && IsMappedTypeHomomorphic(mapped.target);
 
     // nodebuilderimpl.go:2858 — getTypeFromTypeNode (nodebuilder variant with noMappedTypes).
-    // DEFERRED: only reached from the createMappedTypeNodeFromType wrapper branches, which are gated on
-    // FlagsGenerateNamesForShadowedTypeParams — never set by the error-message / TypeToString path.
-    private Type GetTypeFromTypeNodeNb(Node node, bool noMappedTypes) =>
-        throw new NotImplementedException("nodeBuilder.getTypeFromTypeNode");
+    private Type? GetTypeFromTypeNodeNb(Node node, bool noMappedTypes)
+    {
+        // !!! noMappedTypes optional param support
+        var t = ch.GetTypeFromTypeNode(node);
+        if (ctx!.mapper == null)
+        {
+            return t;
+        }
+
+        var instantiated = ch.InstantiateType(t, ctx.mapper);
+        if (noMappedTypes && instantiated != t)
+        {
+            return null;
+        }
+        return instantiated;
+    }
 
     // nodebuilderimpl.go:1452 — createMappedTypeNodeFromType.
     private Node CreateMappedTypeNodeFromType(Type t)

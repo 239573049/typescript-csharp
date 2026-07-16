@@ -140,6 +140,66 @@ public sealed partial class NodeBuilder
     private RecoveryBoundary? reuseBound;
     private bool reuseNonLocalNode;
 
+    // nodecopy.go:56 — reuseTypeNode. PORT-NOTE: the walkNodeForExpandability probe (nodecopy.go:64-66)
+    // is gated on ctx.maxExpansionDepth >= 0, which is fixed at -1 in this wave (no VerbosityContext /
+    // hover expansion — an LS-wave feature); the probe is elided with this note per the ObjectType.cs
+    // shouldExpandType precedent.
+    private Node? ReuseTypeNode(Node? node)
+    {
+        if (node == null)
+        {
+            return node;
+        }
+        var r = ReuseNode(node);
+        if (r != null)
+        {
+            return r;
+        }
+        ctx!.tracker?.ReportInferenceFallback(node);
+        var t = GetTypeFromTypeNodeNb(node, false);
+        return TypeToTypeNodeImpl(t!);
+    }
+
+    // nodecopy.go:35 — reuseName.
+    private Node? ReuseName(Node? node, bool isMethod)
+    {
+        var res = ReuseNode(node);
+        if (res == null)
+        {
+            return res;
+        }
+
+        if (!AstUtilities.TryGetTextOfPropertyName(res, out string text))
+        {
+            return res;
+        }
+
+        var kind = ClassifyPropertyName(text, NodeTests.IsStringLiteral(res), isMethod);
+        if (NodeTests.IsIdentifier(res) && kind == PropertyNameNodeKind.Identifier)
+        {
+            return res;
+        }
+        if (NodeTests.IsStringLiteral(res) && kind == PropertyNameNodeKind.StringLiteral)
+        {
+            return res;
+        }
+
+        Node renamed;
+        switch (kind)
+        {
+            case PropertyNameNodeKind.Identifier:
+                renamed = NewIdentifier(text, null);
+                break;
+            case PropertyNameNodeKind.StringLiteral:
+                renamed = f.NewStringLiteral(text, TokenFlags.None);
+                break;
+            default:
+                return res;
+        }
+        e.SetOriginal(renamed, res);
+        return SetTextRangeLocal(renamed, res);
+    }
+
     // nodecopy.go:12 — reuseNode.
     private Node? ReuseNode(Node? node) => node == null ? node : TryReuseExistingNodeHelper(node);
 
