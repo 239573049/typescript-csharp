@@ -383,14 +383,15 @@ public static partial class CompilerBaselineRunner
                     }
                     sortedDiagnostics = Program.SortAndDeduplicateDiagnostics([.. shorter, diag]);
                 }
-
-                // PORT-NOTE: when counts match, tsgo uses postErrors; its pre and post are byte-identical
-                // there, so keeping our pre-emit set produces the same output while avoiding an emit-side
-                // related-information reordering our emit resolver still exhibits (harmless to the count,
-                // but it would reorder e.g. the TS18017/TS18018 related infos of a shadowed private name).
-                // MEASURED (2026-07-16): switching to post flips recursiveMappedTypes (+1, the TS2615
-                // position shifts to the emit-time re-check location) but regresses six privateName*
-                // cases (net -5) until the emit-time related-info reordering is fixed.
+                else
+                {
+                    // harnessutil.go:693 — when counts match, tsgo returns postErrors. (Historical note:
+                    // before classfields.go was ported, the emit-time const-enum inliner queried
+                    // GetConstantValue on untransformed x.#x nodes and double-reported TS18014, reordering
+                    // related infos in post; with the transformer live, pre and post are byte-identical
+                    // except where the emit resolver legitimately adds/moves diagnostics.)
+                    sortedDiagnostics = post;
+                }
             }
             catch (Exception)
             {
