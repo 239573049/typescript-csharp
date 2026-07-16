@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Ts.Ast;
 using Ts.Core;
 using Ts.TsPath;
 
@@ -16,6 +17,62 @@ namespace Ts.ModuleSpecifiers;
 
 public static partial class Specifiers
 {
+    // specifiers.go:107 — tryGetModuleNameFromAmbientModule.
+    internal static string TryGetModuleNameFromAmbientModule(Symbol moduleSymbol, CheckerShape checker)
+    {
+        foreach (Node decl in moduleSymbol.Declarations ?? [])
+        {
+            if (AstUtilities.IsModuleWithStringLiteralName(decl) &&
+                (!AstUtilities.IsModuleAugmentationExternal(decl) || !TsPathApi.IsExternalModuleNameRelative(decl.Name()!.Text())))
+            {
+                return decl.Name()!.Text();
+            }
+        }
+
+        // The module could be a namespace exported through "export=" from an ambient module:
+        //   declare module "m" { namespace ns { class c {} } export = ns; }
+        // `import {c} from "m";` is valid — moduleSymbol is "ns" but the module name should be "m".
+        foreach (Node d in moduleSymbol.Declarations ?? [])
+        {
+            if (!NodeTests.IsModuleDeclaration(d))
+            {
+                continue;
+            }
+
+            Node? possibleContainer = AstUtilities.FindAncestor(d, AstUtilities.IsModuleWithStringLiteralName);
+            if (possibleContainer == null || possibleContainer.Parent == null || !NodeTests.IsSourceFile(possibleContainer.Parent))
+            {
+                continue;
+            }
+
+            Symbol? sym = possibleContainer.Symbol()!.Exports?.GetValueOrDefault(InternalSymbolName.ExportEquals);
+            if (sym == null)
+            {
+                continue;
+            }
+            Node? exportAssignmentDecl = sym.ValueDeclaration;
+            if (exportAssignmentDecl == null || exportAssignmentDecl.Kind != SyntaxKind.ExportAssignment)
+            {
+                continue;
+            }
+            Symbol? exportSymbol = checker.GetSymbolAtLocation(exportAssignmentDecl.Expression()!);
+            if (exportSymbol == null)
+            {
+                continue;
+            }
+            if ((exportSymbol.Flags & SymbolFlags.Alias) != 0)
+            {
+                exportSymbol = checker.GetAliasedSymbol(exportSymbol);
+            }
+            // TODO: Possible strada bug - isn't this insufficient in the presence of merge symbols?
+            if (exportSymbol == d.Symbol())
+            {
+                return possibleContainer.Name()!.Text();
+            }
+        }
+        return "";
+    }
+
     // specifiers.go:175 — getAllModulePaths. (Module-specifier cache model deferred; delegates to worker.)
     internal static ModulePath[] GetAllModulePaths(
         Info info,
