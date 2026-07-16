@@ -582,12 +582,11 @@ public sealed partial class NodeBuilder
             return null!; // TODO: GH#18217 (Go returns nil here)
         }
         if ((ctx!.flags & global::Ts.NodeBuilder.Flags.WriteClassExpressionAsTypeLiteral) != 0
-            && t.symbol!.ValueDeclaration is not null && AstUtilities.IsClassLike(t.symbol.ValueDeclaration))
+            && t.symbol!.ValueDeclaration is not null && AstUtilities.IsClassLike(t.symbol.ValueDeclaration)
+            && !ch.IsValueSymbolAccessible(t.symbol, ctx.enclosingDeclaration))
         {
-            // DEFERRED: the class-expression-as-type-literal arm needs IsValueSymbolAccessible
-            // (symbolaccessibility.go). Only reachable with the WriteClassExpressionAsTypeLiteral flag, which
-            // the anonymous-object assignability messages never set.
-            throw new NotImplementedException("nodeBuilder.typeReferenceToTypeNode(classExpressionAsTypeLiteral)");
+            // nodebuilderimpl.go:3017-3018
+            return CreateAnonymousTypeNode(t);
         }
         // nodebuilderimpl.go:3018-3047 — outer-type-parameter grouping: for each group of outer type
         // parameters with the same declaring container, when the group's type arguments differ from the

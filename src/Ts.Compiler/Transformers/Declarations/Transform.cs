@@ -2875,7 +2875,8 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             {
                 if (AstUtilities.IsInJSFile(node.AsNode()))
                 {
-                    var exportEquals = node.Symbol?.Exports?[InternalSymbolName.ExportEquals];
+                    Symbol? exportEquals = null;
+                    node.Symbol?.Exports?.TryGetValue(InternalSymbolName.ExportEquals, out exportEquals);
                     if (exportEquals != null && (exportEquals.Declarations?.Length ?? 0) > 1)
                     {
                         foreach (var decl in exportEquals.Declarations!)

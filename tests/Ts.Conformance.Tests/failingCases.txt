@@ -5,6 +5,4 @@
 # Regenerate (run from repo root; rewrites this file from the full eligible corpus):
 #   TSCS_CONFORMANCE_UPDATE_FAILING=1 TSCS_CONFORMANCE_FULL_CORPUS=1 \
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj -c Release
-declarationFiles
-mappedTypeProperties
-recursiveMappedTypes
+mixinAccessors3
