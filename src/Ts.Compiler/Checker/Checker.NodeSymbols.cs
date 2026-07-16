@@ -422,6 +422,10 @@ public partial class Checker
     }
 
     // checker.go:31684 — getTypeOfNode.
+    // checker.go:31912-31914
+    public Type GetTypeAtLocation(Node node) =>
+        GetTypeOfNode(AstUtilities.GetReparsedNodeForNode(node));
+
     internal Type GetTypeOfNode(Node node)
     {
         if (NodeTests.IsSourceFile(node) && !AstUtilities.IsExternalOrCommonJSModule(node.AsSourceFile()))

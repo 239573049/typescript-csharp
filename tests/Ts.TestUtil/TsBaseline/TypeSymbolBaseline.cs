@@ -499,10 +499,19 @@ public static partial class TypeSymbolBaseline
                 return null;
             }
 
-            global::Ts.Checker.Type? type;
+            global::Ts.Checker.Type? type = null;
             try
             {
-                type = GetTypeAtLocation(checker, node);
+                // type_symbol_baseline.go:371-377 — workaround to ensure we output 'C' instead of
+                // 'typeof C' for base class expressions.
+                if (IsExpressionWithTypeArgumentsInClassExtendsClause(parent))
+                {
+                    type = checker.GetTypeAtLocation(parent);
+                }
+                if (type is null || (type.Flags & global::Ts.Checker.TypeFlags.Any) != 0)
+                {
+                    type = checker.GetTypeAtLocation(node);
+                }
             }
             catch (Exception exception)
             {

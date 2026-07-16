@@ -1042,6 +1042,69 @@ public static partial class AstUtilities
         return (IsPropertyDeclaration(node) || IsMethodOrAccessor(node)) && IsPrivateIdentifier(node.Name()!);
     }
 
+    // ast/utilities.go:3730 — CompareNodePositions.
+    public static int CompareNodePositions(Node n1, Node n2) =>
+        TextRange.CompareTextRanges(n1.Loc, n2.Loc);
+
+    // ast/utilities.go:4487-4503 — GetReparsedNodeForNode.
+    public static Node GetReparsedNodeForNode(Node? node)
+    {
+        if (node != null && (node.Flags & NodeFlags.JSDoc) != 0 && (node.Flags & NodeFlags.Reparsed) == 0)
+        {
+            var file = GetSourceFileOfNode(node);
+            if (file != null && (file.ReparsedClones?.Length ?? 0) != 0)
+            {
+                var pos = Array.BinarySearch(file.ReparsedClones!, node, System.Collections.Generic.Comparer<Node>.Create(CompareNodePositions));
+                var found = pos >= 0;
+                if (!found)
+                {
+                    pos = ~pos;
+                    if (pos > 0)
+                    {
+                        pos--;
+                    }
+                }
+                var candidate = file.ReparsedClones![pos];
+                if (node.Loc.ContainedBy(candidate.Loc))
+                {
+                    var reparsed = FindCloneInNode(candidate, node);
+                    if (reparsed != null)
+                    {
+                        return reparsed;
+                    }
+                }
+            }
+        }
+        return node!;
+    }
+
+    // ast/utilities.go:4505-4521 — findCloneInNode.
+    private static Node? FindCloneInNode(Node node, Node original)
+    {
+        while (true)
+        {
+            if (node.Kind == original.Kind && node.Loc == original.Loc)
+            {
+                return node;
+            }
+            var current = node;
+            var foundContainingChild = node.ForEachChild(n =>
+            {
+                if (original.Loc.ContainedBy(n.Loc))
+                {
+                    current = n;
+                    return true;
+                }
+                return false;
+            });
+            if (!foundContainingChild)
+            {
+                return null;
+            }
+            node = current;
+        }
+    }
+
     // ast/utilities.go:4528 — IsSuperProperty checks if a node is super.x or super[x].
     public static bool IsSuperProperty(Node node)
     {
