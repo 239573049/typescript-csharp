@@ -547,7 +547,7 @@ public sealed partial class EmitContext
         {
             return emitNode.emitFlags;
         }
-        return global::Ts.Printer.EmitFlags.None;
+        return EF.None;
     }
 
     public void SetEmitFlags(Node node, EmitFlags flags)
@@ -782,7 +782,7 @@ public sealed partial class EmitContext
         if (parseNode is not null)
         {
             var emitNode = emitNodes.TryGet(parseNode);
-            return emitNode is not null && (emitNode.externalHelpersModuleName is not null || (emitNode.emitFlags & global::Ts.Printer.EmitFlags.ExternalHelpers) != 0);
+            return emitNode is not null && (emitNode.externalHelpersModuleName is not null || (emitNode.emitFlags & EF.ExternalHelpers) != 0);
         }
         return false;
     }
@@ -791,7 +791,7 @@ public sealed partial class EmitContext
     {
         return NodeTests.IsCallExpression(firstSegment) &&
             NodeTests.IsIdentifier(firstSegment.Expression()!) &&
-            (EmitFlags(firstSegment.Expression()!) & global::Ts.Printer.EmitFlags.HelperName) != 0 &&
+            (EmitFlags(firstSegment.Expression()!) & EF.HelperName) != 0 &&
             firstSegment.Expression()!.Text() == helperName;
     }
 
@@ -873,18 +873,66 @@ public sealed partial class EmitContext
         return parameter.AsNode();
     }
 
+    // emitcontext.go:821 — addDefaultValueAssignmentForBindingPattern.
     private Node AddDefaultValueAssignmentForBindingPattern(ParameterDeclaration parameter)
     {
-        // !!! Requires printer NodeFactory helpers NewStrictEqualityExpression / NewVoidZeroExpression
-        // (factory.go, later printer wave). Not exercised by this emit-infrastructure wave.
-        throw new NotImplementedException("addDefaultValueAssignmentForBindingPattern: requires factory.go NodeFactory helpers (later printer wave)");
+        Node initNode;
+        if (parameter.Initializer != null)
+        {
+            initNode = Factory.NewConditionalExpression(
+                Factory.NewStrictEqualityExpression(
+                    Factory.NewGeneratedNameForNode(parameter.AsNode()),
+                    Factory.NewVoidZeroExpression()),
+                Factory.NewToken(SyntaxKind.QuestionToken),
+                parameter.Initializer,
+                Factory.NewToken(SyntaxKind.ColonToken),
+                Factory.NewGeneratedNameForNode(parameter.AsNode()));
+        }
+        else
+        {
+            initNode = Factory.NewGeneratedNameForNode(parameter.AsNode());
+        }
+        AddInitializationStatement(Factory.NewVariableStatement(
+            null,
+            Factory.NewVariableDeclarationList(Factory.NewNodeList([Factory.NewVariableDeclaration(
+                parameter.Name(),
+                null,
+                parameter.Type,
+                initNode)]), NodeFlags.None)));
+        return Factory.AsNodeFactory().UpdateParameterDeclaration(
+            parameter,
+            parameter.Modifiers(),
+            parameter.DotDotDotToken,
+            Factory.NewGeneratedNameForNode(parameter.AsNode()),
+            parameter.QuestionToken,
+            parameter.Type,
+            null);
     }
 
+    // emitcontext.go:857 — addDefaultValueAssignmentForInitializer.
     private Node AddDefaultValueAssignmentForInitializer(ParameterDeclaration parameter, Node? name, Node initializer)
     {
-        // !!! Requires printer NodeFactory helpers NewAssignmentExpression / NewTypeCheck
-        // (factory.go, later printer wave). Not exercised by this emit-infrastructure wave.
-        throw new NotImplementedException("addDefaultValueAssignmentForInitializer: requires factory.go NodeFactory helpers (later printer wave)");
+        AddEmitFlags(initializer, EF.NoSourceMap | EF.NoComments);
+        Node nameClone = name!.Clone(Factory)!;
+        AddEmitFlags(nameClone, EF.NoSourceMap);
+        Node initAssignment = Factory.NewAssignmentExpression(nameClone, initializer);
+        initAssignment.Loc = parameter.Loc;
+        AddEmitFlags(initAssignment, EF.NoComments);
+        Node initBlock = Factory.NewBlock(Factory.NewNodeList([Factory.NewExpressionStatement(initAssignment)]), false);
+        initBlock.Loc = parameter.Loc;
+        AddEmitFlags(initBlock, EF.SingleLine | EF.NoTrailingSourceMap | EF.NoTokenSourceMaps | EF.NoComments);
+        AddInitializationStatement(Factory.AsNodeFactory().NewIfStatement(
+            Factory.NewTypeCheck(name!.Clone(Factory)!, "undefined"),
+            initBlock,
+            null));
+        return Factory.AsNodeFactory().UpdateParameterDeclaration(
+            parameter,
+            parameter.Modifiers(),
+            parameter.DotDotDotToken,
+            parameter.Name(),
+            parameter.QuestionToken,
+            parameter.Type,
+            null);
     }
 
     public void AddInitializationStatement(Node node)
