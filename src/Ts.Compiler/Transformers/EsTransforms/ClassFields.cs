@@ -309,6 +309,367 @@ internal sealed class ClassFieldsTransformer : Transformer
         substitutionVisitor != null && isAnonymousClassNeedingAssignedName != null &&
         !ClassExpressionNeedsBlockScopedTemp() && VisitModifier(currentNode ?? parentNode ?? null!) == null;
 
+    // ── Batch 5a: class lexical / private-identifier environment management (classfields.go:2910-3194,
+    // 3391-3398) ────────────────────────────────────────────────────────────────────────────────────
+
+    // classfields.go:2910 — startClassLexicalEnvironment.
+    private void StartClassLexicalEnvironment() =>
+        lexicalEnvironment = new ClassLexicalEnv { previous = lexicalEnvironment };
+
+    // classfields.go:2914 — endClassLexicalEnvironment.
+    private void EndClassLexicalEnvironment() =>
+        lexicalEnvironment = lexicalEnvironment!.previous;
+
+    // classfields.go:2918 — getClassLexicalEnvironment.
+    private ClassLexicalEnvironment GetClassLexicalEnvironment()
+    {
+        Debug.Assert(lexicalEnvironment != null);
+        lexicalEnvironment!.data ??= new ClassLexicalEnvironment();
+        return lexicalEnvironment.data;
+    }
+
+    // classfields.go:2926 — getPrivateIdentifierEnvironment.
+    private PrivateEnvironment GetPrivateIdentifierEnvironment()
+    {
+        Debug.Assert(lexicalEnvironment != null);
+        lexicalEnvironment!.privateEnv ??= new PrivateEnvironment
+        {
+            members = new Dictionary<string, PrivateIdentifierInfo>(StringComparer.Ordinal),
+        };
+        return lexicalEnvironment.privateEnv;
+    }
+
+    // classfields.go:2936 — addPendingExpressions.
+    private void AddPendingExpressions(params Node[] exprs) =>
+        (pendingExpressions ??= new List<Node>()).AddRange(exprs);
+
+    // classfields.go:2940 — addPrivateIdentifierPropertyDeclarationToEnvironment.
+    private void AddPrivateIdentifierPropertyDeclarationToEnvironment(Node node, Node name)
+    {
+        var lex = GetClassLexicalEnvironment();
+        var env = GetPrivateIdentifierEnvironment();
+        bool isStatic = AstUtilities.HasStaticModifier(node);
+        var (previousInfo, _) = GetPrivateIdentifier(env, name);
+        bool isValid = !IsReservedPrivateName(name) && previousInfo == null;
+
+        if (isStatic)
+        {
+            var brandCheckIdentifier = lex.classThis ?? lex.classConstructor;
+            var variableName = CreateHoistedVariableForPrivateName(name, "");
+            SetPrivateIdentifier(env, name, new PrivateIdentifierInfo
+            {
+                kind = global::Ts.Printer.PrivateIdentifierKind.Field,
+                isStatic = true,
+                brandCheckIdentifier = brandCheckIdentifier,
+                variableName = variableName,
+                isValid = isValid,
+            });
+        }
+        else
+        {
+            var weakMapName = CreateHoistedVariableForPrivateName(name, "");
+            SetPrivateIdentifier(env, name, new PrivateIdentifierInfo
+            {
+                kind = global::Ts.Printer.PrivateIdentifierKind.Field,
+                isStatic = false,
+                brandCheckIdentifier = weakMapName,
+                isValid = isValid,
+            });
+            AddPendingExpressions(
+                Factory().NewAssignmentExpression(
+                    weakMapName,
+                    Factory().AsNodeFactory().NewNewExpression(
+                        Factory().NewIdentifier("WeakMap"),
+                        null /*typeArguments*/,
+                        Factory().NewNodeList([]))));
+        }
+    }
+
+    // classfields.go:2981 — addPrivateIdentifierMethodToEnvironment.
+    private void AddPrivateIdentifierMethodToEnvironment(Node name, ClassLexicalEnvironment lex, PrivateEnvironment env, bool isStatic, bool isValid)
+    {
+        var methodName = CreateHoistedVariableForPrivateName(name, "");
+        Node? brandCheckIdentifier;
+        if (isStatic)
+        {
+            brandCheckIdentifier = lex.classThis ?? lex.classConstructor;
+            Debug.Assert(brandCheckIdentifier != null, "classConstructor should be set in private identifier environment");
+        }
+        else
+        {
+            brandCheckIdentifier = env.data.weakSetName;
+        }
+        SetPrivateIdentifier(env, name, new PrivateIdentifierInfo
+        {
+            kind = global::Ts.Printer.PrivateIdentifierKind.Method,
+            methodName = methodName,
+            brandCheckIdentifier = brandCheckIdentifier,
+            isStatic = isStatic,
+            isValid = isValid,
+        });
+    }
+
+    // classfields.go:3002 — addPrivateIdentifierGetAccessorToEnvironment.
+    private void AddPrivateIdentifierGetAccessorToEnvironment(Node name, ClassLexicalEnvironment lex, PrivateEnvironment env, bool isStatic, bool isValid, PrivateIdentifierInfo? previousInfo)
+    {
+        var getterName = CreateHoistedVariableForPrivateName(name, "_get");
+        Node? brandCheckIdentifier;
+        if (isStatic)
+        {
+            brandCheckIdentifier = lex.classThis ?? lex.classConstructor;
+            Debug.Assert(brandCheckIdentifier != null, "classConstructor should be set in private identifier environment");
+        }
+        else
+        {
+            brandCheckIdentifier = env.data.weakSetName;
+            Debug.Assert(brandCheckIdentifier != null, "weakSetName should be set in private identifier environment");
+        }
+
+        if (previousInfo != null && previousInfo.kind == global::Ts.Printer.PrivateIdentifierKind.Accessor && previousInfo.isStatic == isStatic && previousInfo.getterName == null)
+        {
+            previousInfo.getterName = getterName;
+        }
+        else
+        {
+            SetPrivateIdentifier(env, name, new PrivateIdentifierInfo
+            {
+                kind = global::Ts.Printer.PrivateIdentifierKind.Accessor,
+                getterName = getterName,
+                brandCheckIdentifier = brandCheckIdentifier,
+                isStatic = isStatic,
+                isValid = isValid,
+            });
+        }
+    }
+
+    // classfields.go:3029 — addPrivateIdentifierSetAccessorToEnvironment.
+    private void AddPrivateIdentifierSetAccessorToEnvironment(Node name, ClassLexicalEnvironment lex, PrivateEnvironment env, bool isStatic, bool isValid, PrivateIdentifierInfo? previousInfo)
+    {
+        var setterName = CreateHoistedVariableForPrivateName(name, "_set");
+        Node? brandCheckIdentifier;
+        if (isStatic)
+        {
+            brandCheckIdentifier = lex.classThis ?? lex.classConstructor;
+            Debug.Assert(brandCheckIdentifier != null, "classConstructor should be set in private identifier environment");
+        }
+        else
+        {
+            brandCheckIdentifier = env.data.weakSetName;
+            Debug.Assert(brandCheckIdentifier != null, "weakSetName should be set in private identifier environment");
+        }
+
+        if (previousInfo != null && previousInfo.kind == global::Ts.Printer.PrivateIdentifierKind.Accessor && previousInfo.isStatic == isStatic && previousInfo.setterName == null)
+        {
+            previousInfo.setterName = setterName;
+        }
+        else
+        {
+            SetPrivateIdentifier(env, name, new PrivateIdentifierInfo
+            {
+                kind = global::Ts.Printer.PrivateIdentifierKind.Accessor,
+                setterName = setterName,
+                brandCheckIdentifier = brandCheckIdentifier,
+                isStatic = isStatic,
+                isValid = isValid,
+            });
+        }
+    }
+
+    // classfields.go:3056 — addPrivateIdentifierAutoAccessorToEnvironment.
+    private void AddPrivateIdentifierAutoAccessorToEnvironment(Node node, Node name, ClassLexicalEnvironment lex, PrivateEnvironment env, bool isStatic, bool isValid)
+    {
+        var getterName = CreateHoistedVariableForPrivateName(name, "_get");
+        var setterName = CreateHoistedVariableForPrivateName(name, "_set");
+        Node? brandCheckIdentifier;
+        if (isStatic)
+        {
+            brandCheckIdentifier = lex.classThis ?? lex.classConstructor;
+            Debug.Assert(brandCheckIdentifier != null, "classConstructor should be set in private identifier environment");
+        }
+        else
+        {
+            brandCheckIdentifier = env.data.weakSetName;
+            Debug.Assert(brandCheckIdentifier != null, "weakSetName should be set in private identifier environment");
+        }
+
+        SetPrivateIdentifier(env, name, new PrivateIdentifierInfo
+        {
+            kind = global::Ts.Printer.PrivateIdentifierKind.Accessor,
+            getterName = getterName,
+            setterName = setterName,
+            brandCheckIdentifier = brandCheckIdentifier,
+            isStatic = isStatic,
+            isValid = isValid,
+        });
+    }
+
+    // classfields.go:3081 — addPrivateIdentifierToEnvironment.
+    private void AddPrivateIdentifierToEnvironment(Node node)
+    {
+        var lex = GetClassLexicalEnvironment();
+        var env = GetPrivateIdentifierEnvironment();
+        var name = node.Name()!;
+        bool isStatic = AstUtilities.HasStaticModifier(node);
+        var (previousInfo, _) = GetPrivateIdentifier(env, name);
+        bool isValid = !IsReservedPrivateName(name) && previousInfo == null;
+
+        if (AstUtilities.IsAutoAccessorPropertyDeclaration(node))
+        {
+            AddPrivateIdentifierAutoAccessorToEnvironment(node, name, lex, env, isStatic, isValid);
+        }
+        else if (NodeTests.IsPropertyDeclaration(node))
+        {
+            AddPrivateIdentifierPropertyDeclarationToEnvironment(node, name);
+        }
+        else if (NodeTests.IsMethodDeclaration(node))
+        {
+            AddPrivateIdentifierMethodToEnvironment(name, lex, env, isStatic, isValid);
+        }
+        else if (NodeTests.IsGetAccessorDeclaration(node))
+        {
+            AddPrivateIdentifierGetAccessorToEnvironment(name, lex, env, isStatic, isValid, previousInfo);
+        }
+        else if (NodeTests.IsSetAccessorDeclaration(node))
+        {
+            AddPrivateIdentifierSetAccessorToEnvironment(name, lex, env, isStatic, isValid, previousInfo);
+        }
+    }
+
+    // classfields.go:3102 — setPrivateIdentifier.
+    private void SetPrivateIdentifier(PrivateEnvironment env, Node name, PrivateIdentifierInfo info)
+    {
+        if (EmitContext().HasAutoGenerateInfo(name))
+        {
+            env.generatedIdentifiers ??= new Dictionary<Node, PrivateIdentifierInfo>();
+            env.generatedIdentifiers[EmitContext().GetNodeForGeneratedName(name)] = info;
+        }
+        else
+        {
+            env.members![name.Text()] = info;
+        }
+    }
+
+    // classfields.go:3113 — getPrivateIdentifier.
+    private (PrivateIdentifierInfo? Info, bool Ok) GetPrivateIdentifier(PrivateEnvironment env, Node name)
+    {
+        if (EmitContext().HasAutoGenerateInfo(name))
+        {
+            if (env.generatedIdentifiers != null && env.generatedIdentifiers.TryGetValue(EmitContext().GetNodeForGeneratedName(name), out var ginfo))
+            {
+                return (ginfo, true);
+            }
+            return (null, false);
+        }
+        if (env.members != null && env.members.TryGetValue(name.Text(), out var info))
+        {
+            return (info, true);
+        }
+        return (null, false);
+    }
+
+    // classfields.go:3122 — createHoistedVariableForClass.
+    private Node CreateHoistedVariableForClass(string nameText, Node node, string suffix)
+    {
+        var env = GetPrivateIdentifierEnvironment();
+        Node identifier;
+        if (env.data.className != null)
+        {
+            var prefix = "_" + env.data.className.Text() + "_";
+            identifier = Factory().NewUniqueNameEx(prefix + nameText, new global::Ts.Printer.AutoGenerateOptions
+            {
+                Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic | global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+                Suffix = suffix,
+            });
+        }
+        else
+        {
+            identifier = Factory().NewUniqueNameEx("_" + nameText, new global::Ts.Printer.AutoGenerateOptions
+            {
+                Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic | global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+                Suffix = suffix,
+            });
+        }
+        if (RequiresBlockScopedVar())
+        {
+            EmitContext().AddLexicalDeclaration(identifier);
+        }
+        else
+        {
+            EmitContext().AddVariableDeclaration(identifier);
+        }
+        return identifier;
+    }
+
+    // classfields.go:3145 — createHoistedVariableForClassFromNode.
+    private Node CreateHoistedVariableForClassFromNode(Node name, string suffix)
+    {
+        var env = GetPrivateIdentifierEnvironment();
+        string prefix = env.data.className != null ? "_" + env.data.className.Text() + "_" : "_";
+        var identifier = Factory().NewGeneratedNameForNodeEx(name, new global::Ts.Printer.AutoGenerateOptions
+        {
+            Flags = global::Ts.Printer.GeneratedIdentifierFlags.Optimistic | global::Ts.Printer.GeneratedIdentifierFlags.ReservedInNestedScopes,
+            Prefix = prefix,
+            Suffix = suffix,
+        });
+        if (RequiresBlockScopedVar())
+        {
+            EmitContext().AddLexicalDeclaration(identifier);
+        }
+        else
+        {
+            EmitContext().AddVariableDeclaration(identifier);
+        }
+        return identifier;
+    }
+
+    // classfields.go:3166 — createHoistedVariableForPrivateName. If the name is a generated identifier
+    // (e.g., auto-accessor backing field), use node-based name generation so the emitter can resolve the
+    // name properly.
+    private Node CreateHoistedVariableForPrivateName(Node name, string suffix)
+    {
+        if (EmitContext().HasAutoGenerateInfo(name))
+        {
+            return CreateHoistedVariableForClassFromNode(name, suffix);
+        }
+        var text = name.Text();
+        if (text.Length >= 1 && text[0] == '#')
+        {
+            text = text[1..]; // strip leading '#'
+        }
+        return CreateHoistedVariableForClass(text, name, suffix);
+    }
+
+    // classfields.go:3181 — accessPrivateIdentifier: accesses an already defined PrivateIdentifier in
+    // the current PrivateIdentifierEnvironment.
+    private PrivateIdentifierInfo? AccessPrivateIdentifier(Node name)
+    {
+        for (var env = lexicalEnvironment; env != null; env = env.previous)
+        {
+            if (env.privateEnv != null)
+            {
+                var (info, ok) = GetPrivateIdentifier(env.privateEnv, name);
+                if (ok)
+                {
+                    if (info!.kind == global::Ts.Printer.PrivateIdentifierKind.Untransformed)
+                    {
+                        return null;
+                    }
+                    return info;
+                }
+            }
+        }
+        return null;
+    }
+
+    // classfields.go:3391 — isReservedPrivateName.
+    private bool IsReservedPrivateName(Node node) =>
+        !(NodeTests.IsPrivateIdentifier(node) && EmitContext().HasAutoGenerateInfo(node)) && node.Text() == "#constructor";
+
+    // classfields.go:3395 — isStaticPropertyDeclarationOrClassStaticBlock.
+    private static bool IsStaticPropertyDeclarationOrClassStaticBlock(Node node) =>
+        NodeTests.IsClassStaticBlockDeclaration(node) ||
+        (NodeTests.IsPropertyDeclaration(node) && AstUtilities.HasStaticModifier(node));
+
     // Placeholder sub-visitor bodies (batches 2-5 replace these; the batch-1 dispatch never invokes them).
     private Node? VisitDiscardedValue(Node node) => node;
     private Node? VisitHeritageClause(Node node) => node;

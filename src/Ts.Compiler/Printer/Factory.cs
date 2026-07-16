@@ -1584,4 +1584,11 @@ public readonly struct PrivateIdentifierKind
     public static readonly PrivateIdentifierKind Method = new("m");
     public static readonly PrivateIdentifierKind Accessor = new("a");
     public static readonly PrivateIdentifierKind Untransformed = new("untransformed");
+
+    // Go strings compare with ==; mirror that for the C# value wrapper.
+    public bool Equals(PrivateIdentifierKind other) => string.Equals(value, other.value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is PrivateIdentifierKind other && Equals(other);
+    public override int GetHashCode() => value?.GetHashCode(StringComparison.Ordinal) ?? 0;
+    public static bool operator ==(PrivateIdentifierKind left, PrivateIdentifierKind right) => left.Equals(right);
+    public static bool operator !=(PrivateIdentifierKind left, PrivateIdentifierKind right) => !left.Equals(right);
 }
