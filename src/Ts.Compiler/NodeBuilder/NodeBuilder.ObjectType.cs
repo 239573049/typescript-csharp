@@ -83,6 +83,14 @@ public sealed partial class NodeBuilder
             t = ch.GetReducedType(t);
         }
 
+        // nodebuilderimpl.go:3202-3205 — Any with an alias renders the alias reference unconditionally
+        // (the unresolved-name errorType carries the written name as its alias, e.g. `Iterator<T, ...>`
+        // keeps `T` even though `T` failed to resolve).
+        if ((t.flags & TypeFlags.Any) != 0 && t.alias != null)
+        {
+            return TypeAliasToTypeReferenceNode(t.alias);
+        }
+
         // nodebuilderimpl.go:3202-3319 — intrinsic / literal / enum-like leaf arms.
         if ((t.flags & LeafTypeKinds) != 0 || ((t.flags & TypeFlags.Boolean) != 0 && t.alias == null))
         {
@@ -416,6 +424,21 @@ public sealed partial class NodeBuilder
     // nodebuilderimpl.go:337 — mapToTypeNodes (truncation-aware; the name-collision seenNames de-dup is
     // deferred, see PORT-NOTE). This local override is used by the object/reference paths; the union path in
     // Checker.TypeToString.cs keeps its own bare mapping.
+    // nodebuilderimpl.go:3510 — TypeAlias.ToTypeReferenceNode.
+    private Node TypeAliasToTypeReferenceNode(TypeAlias alias) =>
+        f.NewTypeReferenceNode(SymbolToEntityNameNode(alias.Symbol()!), alias.TypeArguments() is { } ta ? MapToTypeNodesLocal(ta, false /*isBareList*/) : null);
+
+    // nodebuilderimpl.go:630 — symbolToEntityNameNode.
+    private Node SymbolToEntityNameNode(Symbol symbol)
+    {
+        var identifier = NewIdentifier(symbol.Name, symbol);
+        if (symbol.Parent != null)
+        {
+            return f.NewQualifiedName(SymbolToEntityNameNode(symbol.Parent), identifier);
+        }
+        return identifier;
+    }
+
     private TypeList? MapToTypeNodesLocal(Type[] list, bool isBareList)
     {
         if (list.Length == 0)
