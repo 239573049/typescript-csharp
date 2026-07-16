@@ -1443,15 +1443,61 @@ public sealed partial class NodeBuilder
                 var propDeclaration = AstUtilities.GetDeclarationOfKind(propertySymbol, SyntaxKind.PropertyDeclaration);
                 if (propertyType != writeType || (propertySymbol.Parent is not null && (propertySymbol.Parent.Flags & SymbolFlags.Class) != 0 && propDeclaration is null))
                 {
-                    // DEFERRED: getter/setter signature synthesis for accessor properties. Owned by the
-                    // signature-serialization wave; a `{ foo: string; }`-style object literal has no accessors.
-                    throw new NotImplementedException("nodeBuilder.addPropertyToElementList(accessor)");
+                    // nodebuilderimpl.go:2501-2526 — getter/setter signature synthesis.
+                    var symbolMapper = ch.valueSymbolLinks.Get(propertySymbol).mapper;
+                    var getterDeclaration = AstUtilities.GetDeclarationOfKind(propertySymbol, SyntaxKind.GetAccessor);
+                    if (getterDeclaration is not null)
+                    {
+                        var getterSignature = ch.GetSignatureFromDeclaration(getterDeclaration);
+                        if (symbolMapper is not null)
+                        {
+                            getterSignature = ch.InstantiateSignature(getterSignature, symbolMapper);
+                        }
+                        var getter = SignatureToSignatureDeclarationHelper(getterSignature, SyntaxKind.GetAccessor, new SignatureToSignatureDeclarationOptions
+                        {
+                            name = propertyName,
+                        });
+                        SetCommentRange(getter, getterDeclaration);
+                        typeElements.Add(getter);
+                    }
+                    var setterDeclaration = AstUtilities.GetDeclarationOfKind(propertySymbol, SyntaxKind.SetAccessor);
+                    if (setterDeclaration is not null)
+                    {
+                        var setterSignature = ch.GetSignatureFromDeclaration(setterDeclaration);
+                        if (symbolMapper is not null)
+                        {
+                            setterSignature = ch.InstantiateSignature(setterSignature, symbolMapper);
+                        }
+                        var setter = SignatureToSignatureDeclarationHelper(setterSignature, SyntaxKind.SetAccessor, new SignatureToSignatureDeclarationOptions
+                        {
+                            name = propertyName,
+                        });
+                        SetCommentRange(setter, setterDeclaration);
+                        typeElements.Add(setter);
+                    }
+                    return;
                 }
-                // else: the accessor-keyword fake-getter/setter arm (nodebuilderimpl.go:2526) is likewise deferred.
-                if (propertySymbol.Parent is not null && (propertySymbol.Parent.Flags & SymbolFlags.Class) != 0 && propDeclaration is not null
+                else if (propertySymbol.Parent is not null && (propertySymbol.Parent.Flags & SymbolFlags.Class) != 0 && propDeclaration is not null
                     && CoreUtil.Find(propDeclaration.ModifierNodes(), m => m.Kind == SyntaxKind.AccessorKeyword) is not null)
                 {
-                    throw new NotImplementedException("nodeBuilder.addPropertyToElementList(accessorKeyword)");
+                    // nodebuilderimpl.go:2527-2545 — the `accessor` keyword fake getter/setter pair.
+                    var fakeGetterSignature = ch.NewSignature(SignatureFlags.None, null, null, null, null, propertyType, null, 0);
+                    var fakeGetterDeclaration = SignatureToSignatureDeclarationHelper(fakeGetterSignature, SyntaxKind.GetAccessor, new SignatureToSignatureDeclarationOptions
+                    {
+                        name = propertyName,
+                    });
+                    SetCommentRange(fakeGetterDeclaration, propDeclaration);
+                    typeElements.Add(fakeGetterDeclaration);
+
+                    var setterParam = ch.NewSymbol(SymbolFlags.FunctionScopedVariable, "arg");
+                    ch.valueSymbolLinks.Get(setterParam).resolvedType = writeType;
+                    var fakeSetterSignature = ch.NewSignature(SignatureFlags.None, null, null, null, [setterParam], ch.voidType!, null, 0);
+                    var fakeSetterDeclaration = SignatureToSignatureDeclarationHelper(fakeSetterSignature, SyntaxKind.SetAccessor, new SignatureToSignatureDeclarationOptions
+                    {
+                        name = propertyName,
+                    });
+                    typeElements.Add(fakeSetterDeclaration);
+                    return;
                 }
             }
         }
