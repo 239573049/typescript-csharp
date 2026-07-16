@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+using Ts.Collections;
 using Ts.Core;
 using Ts.TsPath;
 
@@ -180,6 +181,43 @@ public static partial class ModuleSpecifierUtil
             throw new InvalidOperationException($"File {path} has unknown extension.");
         }
         return ext;
+    }
+
+    // util.go:194 — tryGetAnyFileFromPath. Checks all js, `node` and `json` extensions in addition to
+    // TS, since node module resolution would also choose those over the directory.
+    internal static bool TryGetAnyFileFromPath(ModuleSpecifierGenerationHost host, string path)
+    {
+        string[][] extGroups = global::Ts.TsOptions.TsConfigParsing.GetSupportedExtensions(
+            new CompilerOptions { AllowJs = Tristate.True },
+            [
+                new global::Ts.TsOptions.FileExtensionInfo { Extension = "node", IsMixedContent = false, ScriptKind = ScriptKind.External },
+                new global::Ts.TsOptions.FileExtensionInfo { Extension = "json", IsMixedContent = false, ScriptKind = ScriptKind.Json },
+            ]);
+        foreach (string[] exts in extGroups)
+        {
+            foreach (string e in exts)
+            {
+                string fullPath = path + e;
+                if (host.FileExists(TsPathApi.GetNormalizedAbsolutePath(fullPath, host.GetCurrentDirectory())))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // util.go:361 — allKeysStartWithDot.
+    internal static bool AllKeysStartWithDot(global::Ts.Collections.OrderedMap<string, global::Ts.PackageJson.ExportsOrImports> obj)
+    {
+        foreach (string k in obj.Keys())
+        {
+            if (!k.StartsWith(".", StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     // util.go:225 — getPathsRelativeToRootDirs.
