@@ -99,12 +99,9 @@ internal sealed class EmitHostImpl : EmitHost
     public global::Ts.Transformers.Declarations.IOutputPaths GetOutputPathsFor(SourceFile file, bool forceDtsPaths) =>
         new OutputPathsAdapter(global::Ts.OutputPaths.OutputPaths.GetOutputPathsFor(file, Options()!, this, forceDtsPaths));
 
-    // emitHost.go:103-105 — declaration emit deep path. GetSourceFileFromReference(origin, ref) on the
-    // program is not yet ported for the (SourceFile, FileReference) shape; the declarations transformer
-    // only reaches this for triple-slash reference emit. Deferred with a note (does not block the simple
-    // .ts→.js path, which never calls it).
+    // emitHost.go:103-105 — delegates to the program (declaration emit's triple-slash reference emit).
     public SourceFile? GetSourceFileFromReference(SourceFile origin, FileReference reference) =>
-        throw new NotImplementedException("EmitHost.GetSourceFileFromReference is deferred (triple-slash declaration reference emit, phase 6 deep path)");
+        program.GetSourceFileFromReference(origin, reference);
 
     // Adapts the concrete outputpaths.OutputPaths to declarations.IOutputPaths (the interface lives in
     // the declarations package; OutputPaths cannot declare it without a cross-package reference).

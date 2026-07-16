@@ -336,6 +336,57 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
         return file;
     }
 
+    // program.go:231 — GetSourceFileFromReference. Resolves the SourceFile a triple-slash
+    // /// <reference path="..."/> points at (used by declaration emit's reference-directive emit).
+    public SourceFile? GetSourceFileFromReference(SourceFile origin, FileReference reference)
+    {
+        string fileName = global::Ts.TsPath.TsPath.ResolvePath(global::Ts.TsPath.TsPath.GetDirectoryPath(origin.FileName()), reference.FileName);
+        string[][] supportedExtensionsBase = global::Ts.TsOptions.TsConfigParsing.GetSupportedExtensions(Options(), null /*extraFileExtensions*/);
+        string[][] supportedExtensions = global::Ts.TsOptions.TsConfigParsing.GetSupportedExtensionsWithJsonIfResolveJsonModule(Options(), supportedExtensionsBase);
+        bool allowNonTsExtensions = Options().AllowNonTsExtensions.IsTrue();
+        if (global::Ts.TsPath.TsPath.HasExtension(fileName))
+        {
+            if (!allowNonTsExtensions)
+            {
+                string canonicalFileName = global::Ts.TsPath.TsPath.GetCanonicalFileName(fileName, UseCaseSensitiveFileNames());
+                bool supported = false;
+                foreach (string[] group in supportedExtensions)
+                {
+                    if (global::Ts.TsPath.TsPath.FileExtensionIsOneOf(canonicalFileName, group))
+                    {
+                        supported = true;
+                        break;
+                    }
+                }
+                if (!supported)
+                {
+                    return null; // unsupported extensions are forced to fail
+                }
+            }
+
+            return GetSourceFileForResolvedModule(fileName);
+        }
+        if (allowNonTsExtensions)
+        {
+            SourceFile? extensionless = GetSourceFileForResolvedModule(fileName);
+            if (extensionless != null)
+            {
+                return extensionless;
+            }
+        }
+
+        // Only try adding extensions from the first supported group (which should be .ts/.tsx/.d.ts).
+        foreach (string ext in supportedExtensions[0])
+        {
+            SourceFile? result = GetSourceFileForResolvedModule(fileName + ext);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
+    }
+
     // program.go:200-202
     public string GetParseFileRedirect(string fileName) =>
         Mapper.GetParseFileRedirect(new CompilerHasFileName(fileName, ToPath(fileName)));
