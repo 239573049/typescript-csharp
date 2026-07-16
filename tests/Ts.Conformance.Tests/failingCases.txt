@@ -6,7 +6,5 @@
 #   TSCS_CONFORMANCE_UPDATE_FAILING=1 TSCS_CONFORMANCE_FULL_CORPUS=1 \
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj -c Release
 declarationFiles
-dependentDestructuredVariables
-genericRestParameters1
 mappedTypeProperties
 recursiveMappedTypes

@@ -393,15 +393,15 @@ public partial class Checker
                     var contextualSignature = GetContextualSignature(fn);
                     if (contextualSignature != null && contextualSignature.parameters.Len() == 1 && SignatureHasRestParameter(contextualSignature))
                     {
+                        // checker.go:13735-13739 — take the inference context's nonFixingMapper directly.
+                        // (Strada cloned the context and ran a ReturnType inference here; tsgo dropped that —
+                        // it re-enters getReturnTypeOfSignature on the very signature being resolved and
+                        // manufactures a false TS7024 circularity.)
                         var context = GetInferenceContext(fn);
                         TypeMapper? mapper = null;
                         if (context != null)
                         {
-                            // We clone the inference context to avoid disturbing a resolution in progress.
-                            var inferenceContext = CloneInferenceContext(context, InferenceFlags.None)!;
-                            var inferenceTargetType = GetReturnTypeOfSignature(contextualSignature);
-                            InferTypes(inferenceContext.inferences, GetReturnTypeOfSignature(GetSignatureFromDeclaration(fn)), inferenceTargetType, InferencePriority.ReturnType, false);
-                            mapper = inferenceContext.nonFixingMapper;
+                            mapper = context.nonFixingMapper;
                         }
                         var restType = GetReducedApparentType(InstantiateType(GetTypeOfSymbol(contextualSignature.parameters![0]), mapper));
                         if ((restType.flags & TypeFlags.Union) != 0 && EveryType(restType, IsTupleType) && !CoreUtil.Some(fn.Parameters(), IsSomeSymbolAssigned))
