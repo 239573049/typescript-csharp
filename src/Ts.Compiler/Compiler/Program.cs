@@ -56,6 +56,9 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     private readonly Once packagesMapOnce = new();
     private Dictionary<string, bool>? packagesMap;
 
+    // program.go:107 — knownSymlinks lazyValue[symlinks.KnownSymlinks].
+    private readonly LazyValue<global::Ts.Symlinks.KnownSymlinks> knownSymlinks = new();
+
     // program.go:274-283 (NewProgram)
     public Program(ProgramOptions opts)
     {
@@ -458,9 +461,104 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
         return allFilesBelongToPath;
     }
 
-    // program.go:2022-2069 — deferred (lazy symlink cache from resolutions/package.json).
+    // program.go:2022 — GetSymlinkCache.
     public global::Ts.Symlinks.KnownSymlinks GetSymlinkCache() =>
-        throw new NotImplementedException("GetSymlinkCache is deferred (symlink cache population, phase 4/5)");
+        knownSymlinks.GetValue(() =>
+        {
+            var cache = new global::Ts.Symlinks.KnownSymlinks(GetCurrentDirectory(), UseCaseSensitiveFileNames());
+
+            // Resolved modules store realpath information when they're resolved inside node_modules.
+            if (processed.ResolvedModules.Count > 0 || processed.TypeResolutionsInFile.Count > 0)
+            {
+                cache.SetSymlinksFromResolutions(ForEachResolvedModule, ForEachResolvedTypeReferenceDirective);
+            }
+
+            // Check other dependencies for symlinks.
+            var seenPackageJsons = new Set<global::Ts.TsPath.Path>();
+            // map-iter: 序无关 (symlink accumulation is commutative; SetDirectory/SetFile are keyed and idempotent)
+            foreach (var (filePath, meta) in processed.SourceFileMetaDatas)
+            {
+                if (meta.PackageJsonDirectory == "" ||
+                    !SourceFileMayBeEmitted(GetSourceFileByPath(filePath)!, false) ||
+                    !seenPackageJsons.AddIfAbsent(ToPath(meta.PackageJsonDirectory)))
+                {
+                    continue;
+                }
+                string packageJsonName = global::Ts.TsPath.TsPath.CombinePaths(meta.PackageJsonDirectory, "package.json");
+                var info = GetPackageJsonInfo(packageJsonName);
+                var contents = info.GetContents();
+                if (contents == null)
+                {
+                    continue;
+                }
+
+                foreach (string dep in contents.DependencyFields.GetRuntimeDependencyNames().Keys())
+                {
+                    // Skip work in common case: we already saved a symlink for this package directory
+                    // in the node_modules adjacent to this package.json.
+                    global::Ts.TsPath.Path possibleDirectoryPath = ToPath(global::Ts.TsPath.TsPath.CombinePaths(meta.PackageJsonDirectory, "node_modules", dep));
+                    if (cache.HasDirectory(possibleDirectoryPath))
+                    {
+                        continue;
+                    }
+                    if (!dep.StartsWith("@types", StringComparison.Ordinal))
+                    {
+                        global::Ts.TsPath.Path possibleTypesDirectoryPath = ToPath(global::Ts.TsPath.TsPath.CombinePaths(meta.PackageJsonDirectory, "node_modules", global::Ts.Module.Module.GetTypesPackageName(dep)));
+                        if (cache.HasDirectory(possibleTypesDirectoryPath))
+                        {
+                            continue;
+                        }
+                    }
+
+                    ResolvedModule? packageResolution = Resolver.ResolvePackageDirectory(dep, packageJsonName, global::Ts.Core.Core.ResolutionModeCommonJS, null);
+                    if (packageResolution.IsResolved())
+                    {
+                        cache.ProcessResolution(
+                            global::Ts.TsPath.TsPath.CombinePaths(packageResolution!.OriginalPath, "package.json"),
+                            global::Ts.TsPath.TsPath.CombinePaths(packageResolution.ResolvedFileName, "package.json"));
+                    }
+                }
+            }
+            return cache;
+        })!;
+
+    // program.go:2076 — ForEachResolvedModule.
+    public void ForEachResolvedModule(Action<ResolvedModule, string, ResolutionMode, global::Ts.TsPath.Path> callback, SourceFile? file) =>
+        ForEachResolution(processed.ResolvedModules, callback, file);
+
+    // program.go:2080 — ForEachResolvedTypeReferenceDirective.
+    public void ForEachResolvedTypeReferenceDirective(Action<ResolvedTypeReferenceDirective, string, ResolutionMode, global::Ts.TsPath.Path> callback, SourceFile? file) =>
+        ForEachResolution(processed.TypeResolutionsInFile, callback, file);
+
+    // program.go:2084 — forEachResolution.
+    private static void ForEachResolution<T>(
+        Dictionary<global::Ts.TsPath.Path, ModeAwareCache<T>> resolutionCache,
+        Action<T, string, ResolutionMode, global::Ts.TsPath.Path> callback,
+        SourceFile? file)
+    {
+        if (file != null)
+        {
+            if (resolutionCache.TryGetValue(file.Path(), out var resolutions))
+            {
+                // map-iter: 序无关 (callback accumulates into the commutative symlink cache)
+                foreach (var (key, resolution) in resolutions)
+                {
+                    callback(resolution, key.Name, key.Mode, file.Path());
+                }
+            }
+        }
+        else
+        {
+            // map-iter: 序无关
+            foreach (var (filePath, resolutions) in resolutionCache)
+            {
+                foreach (var (key, resolution) in resolutions)
+                {
+                    callback(resolution, key.Name, key.Mode, filePath);
+                }
+            }
+        }
+    }
 
     // program.go:729-1223 — verifyCompilerOptions.
     // PORT-NOTE: only the emit-output-path verification tail (program.go:1178-1222 — TS5055
