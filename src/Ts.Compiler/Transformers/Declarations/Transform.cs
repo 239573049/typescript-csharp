@@ -32,6 +32,23 @@ public interface IDeclarationEmitHost
     EmitResolver GetEmitResolver();
 }
 
+// transform.go:46-62 — thisPropertyAssignmentKey.
+internal readonly record struct ThisPropertyAssignmentKey(string? Name, Node? Node, bool IsStatic, bool IsPrivate)
+{
+    internal static ThisPropertyAssignmentKey For(Node? name, Node node, bool isStatic)
+    {
+        var isPrivate = name != null && NodeTests.IsPrivateIdentifier(name);
+        if (name != null && !AstUtilities.IsDynamicName(name))
+        {
+            if (AstUtilities.TryGetTextOfPropertyName(name, out var nameText))
+            {
+                return new ThisPropertyAssignmentKey(nameText, null, isStatic, isPrivate);
+            }
+        }
+        return new ThisPropertyAssignmentKey(null, node, isStatic, isPrivate);
+    }
+}
+
 public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
 {
     // PORT-NOTE: Breadth-first declaration emit slice. The core syntax transforms are live:
@@ -64,18 +81,54 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
     private readonly global::Ts.PseudoChecker.PseudoChecker pseudoChecker;
     private readonly SymbolTrackerSharedState state;
     private readonly SymbolTrackerImpl tracker;
+    private readonly string declarationFilePath;
+    private readonly string declarationMapPath;
     private Node? enclosingDeclaration;
     private bool needsDeclare;
+
+    // transform.go:74-100 — remaining transformer state (populated by the 1:1 rebuild batches).
+    private bool needsScopeFixMarker;
+    private bool resultHasScopeMarker;
+    private bool resultHasExternalModuleIndicator;
+    private bool suppressNewDiagnosticContexts;
+    private readonly global::Ts.Collections.Set<string> witnessedCjsExports = new();
+    private Dictionary<NodeId, Node?> lateStatementReplacementMap = new();
+    // store the result of transforming expando hosts so they can be inserted later if the host is actually referenced
+    private Dictionary<NodeId, Node> expandoHosts = new();
+    // store any found expando _members_ after transforming them so *if* the host is referenced, they can be emitted alongside it
+    private Dictionary<NodeId, List<Node>> expandoMembers = new();
+    // expando assignments whose host wasn't visible when collected, processed if the host is late-marked visible
+    private Dictionary<NodeId, List<BinaryExpression>> deferredExpandoAssignments = new();
+    private readonly global::Ts.Collections.Set<ThisPropertyAssignmentKey> seenProperties = new();
+    private List<Node> thisPropertyAssignmentsCollected = new();
+    private List<ReferencedFilePair> rawReferencedFiles = new();
+    private List<FileReference> rawTypeReferenceDirectives = new();
+    private List<FileReference> rawLibReferenceDirectives = new();
+    private NodeVisitor bindingNameVisitor = null!;
+    private NodeVisitor expressionVisitor = null!;
+    private NodeVisitor cjsExportAssignmentVisitor = null!;
+    private NodeVisitor exportStrippingVisitor = null!;
+    private NodeVisitor thisPropertyVisitor = null!;
+    private NodeVisitor declareStrippingVisitor = null!;
+
+    private Node? cjsExportAssignment;
+    private List<Node> cjsExportMembers = new();
+    private Node? cjsExportAssignmentName; // tracks the name node used for `export =` in CJS module.exports assignments
+    private bool inClassExpressionDeclaration; // true when serializing members of a class expression kept as a class declaration
 
     private DeclarationTransformer(
         IDeclarationEmitHost? host,
         EmitContext? context,
         CompilerOptions? compilerOptions,
-        EmitResolver? resolver)
+        EmitResolver? resolver,
+        string declarationFilePath = "",
+        string declarationMapPath = "")
     {
         this.host = host;
         this.compilerOptions = compilerOptions ?? new CompilerOptions();
         this.resolver = resolver ?? host?.GetEmitResolver();
+        this.declarationFilePath = declarationFilePath;
+        this.declarationMapPath = declarationMapPath;
         pseudoChecker = global::Ts.PseudoChecker.PseudoChecker.NewPseudoChecker(
             this.compilerOptions.StrictNullChecks == Tristate.True,
             this.compilerOptions.ExactOptionalPropertyTypes == Tristate.True);
@@ -86,8 +139,159 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             Resolver = this.resolver,
         };
         tracker = SymbolTracker.NewSymbolTracker(host, this.resolver, state);
+        // transform.go:117-130 — isolatedDeclarations expando-function error reporting callback.
+        state.ReportExpandoFunctionErrors = node =>
+        {
+            if (!state.IsolatedDeclarations)
+            {
+                return;
+            }
+            var props = this.resolver!.GetPropertiesOfContainerFunction(node);
+            foreach (var p in props)
+            {
+                if (global::Ts.Checker.Checker.IsExpandoPropertyDeclaration(p.ValueDeclaration))
+                {
+                    var errorTarget = p.ValueDeclaration!;
+                    if (NodeTests.IsBinaryExpression(errorTarget))
+                    {
+                        errorTarget = errorTarget.AsBinaryExpression().Left!;
+                    }
+                    state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(errorTarget, global::Ts.Diagnostics.Diagnostics.Assigning_properties_to_functions_without_declaring_them_is_not_supported_with_isolatedDeclarations_Add_an_explicit_declaration_for_the_properties_assigned_to_this_function));
+                }
+            }
+        };
+        // REBUILD: explicit Go zero values for state the later batches write (CS0649-clean).
+        needsScopeFixMarker = false;
+        resultHasScopeMarker = false;
+        resultHasExternalModuleIndicator = false;
+        suppressNewDiagnosticContexts = false;
+        cjsExportAssignment = null;
+        cjsExportAssignmentName = null;
+        inClassExpressionDeclaration = false;
         NewTransformer(Visit, context);
+        bindingNameVisitor = EmitContext().NewNodeVisitor(VisitBindingName);
+        expressionVisitor = EmitContext().NewNodeVisitor(VisitNestedExpression);
+        exportStrippingVisitor = EmitContext().NewNodeVisitor(StripExportModifiers);
+        thisPropertyVisitor = EmitContext().NewNodeVisitor(VisitThisPropertyAssignments);
+        cjsExportAssignmentVisitor = EmitContext().NewNodeVisitor(VisitCJSExportAssignments);
+        declareStrippingVisitor = EmitContext().NewNodeVisitor(StripDeclareModifiers);
     }
+
+    // transform.go:146-148 — shouldStripInternal.
+    private bool ShouldStripInternal(Node? node) =>
+        state.StripInternal && node != null && IsInternalDeclaration(node, state.CurrentSourceFile!);
+
+    // transform.go:150-201 — isInternalDeclaration.
+    private bool IsInternalDeclaration(Node? node, SourceFile sourceFile)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+        var parseTreeNode = EmitContext().MostOriginal(node)!;
+        if (!global::Ts.Printer.PrinterUtilities.IsParseTreeNode(parseTreeNode))
+        {
+            return false;
+        }
+        if (parseTreeNode.Kind == SyntaxKind.Parameter)
+        {
+            var params_ = parseTreeNode.Parent!.Parameters()!;
+            var paramIdx = Array.FindIndex(params_, p => p == parseTreeNode);
+            Node? previousSibling = null;
+            if (paramIdx > 0)
+            {
+                previousSibling = params_[paramIdx - 1];
+            }
+
+            var text = sourceFile.Text();
+            var commentRanges = new List<CommentRange>();
+
+            if (previousSibling != null)
+            {
+                // to handle
+                // ... parameters, /** @internal */
+                // public param: string
+                var trailingPos = global::Ts.Scanner.Scanner.SkipTriviaEx(text, previousSibling.End + 1, new global::Ts.Scanner.Scanner.SkipTriviaOptions { StopAtComments = true });
+                foreach (var comment in global::Ts.Parser.CommentScanner.GetTrailingCommentRanges(Factory().AsNodeFactory(), text, trailingPos))
+                {
+                    commentRanges.Add(comment);
+                }
+                foreach (var comment in global::Ts.Parser.CommentScanner.GetLeadingCommentRanges(Factory().AsNodeFactory(), text, node.Pos))
+                {
+                    commentRanges.Add(comment);
+                }
+            }
+            else
+            {
+                var trailingPos = global::Ts.Scanner.Scanner.SkipTriviaEx(text, node.Pos, new global::Ts.Scanner.Scanner.SkipTriviaOptions { StopAtComments = true });
+                foreach (var comment in global::Ts.Parser.CommentScanner.GetTrailingCommentRanges(Factory().AsNodeFactory(), text, trailingPos))
+                {
+                    commentRanges.Add(comment);
+                }
+            }
+
+            if (commentRanges.Count > 0)
+            {
+                return HasInternalAnnotation(commentRanges[^1], sourceFile);
+            }
+            return false;
+        }
+
+        foreach (var commentRange in GetLeadingCommentRangesOfNode(parseTreeNode, sourceFile))
+        {
+            if (HasInternalAnnotation(commentRange, sourceFile))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // transform.go:203-208 — getLeadingCommentRangesOfNode.
+    private IEnumerable<CommentRange> GetLeadingCommentRangesOfNode(Node? node, SourceFile sourceFile)
+    {
+        if (node == null || node.Kind == SyntaxKind.JsxText)
+        {
+            return [];
+        }
+        return global::Ts.Parser.CommentScanner.GetLeadingCommentRanges(Factory().AsNodeFactory(), sourceFile.Text(), node.Pos);
+    }
+
+    // transform.go:210-213 — hasInternalAnnotation.
+    private static bool HasInternalAnnotation(CommentRange commentRange, SourceFile sourceFile)
+    {
+        var comment = sourceFile.Text()[commentRange.Pos..commentRange.End];
+        return comment.Contains("@internal", StringComparison.Ordinal);
+    }
+
+    // REBUILD-ANCHOR — references the state fields the 1:1 rebuild batches will use so the batch-1
+    // slice builds warning-clean (CS0169 under TreatWarningsAsErrors). Removed when the rebuild wires
+    // the new visitSourceFile chain.
+    private bool RebuildFieldAnchor() =>
+        !resultHasScopeMarker && !resultHasExternalModuleIndicator && !suppressNewDiagnosticContexts &&
+        !needsScopeFixMarker && !inClassExpressionDeclaration && cjsExportAssignment == null &&
+        cjsExportAssignmentName == null && cjsExportMembers.Count == 0 &&
+        lateStatementReplacementMap.Count == 0 && expandoHosts.Count == 0 && expandoMembers.Count == 0 &&
+        deferredExpandoAssignments.Count == 0 && thisPropertyAssignmentsCollected.Count == 0 &&
+        rawReferencedFiles.Count == 0 && rawTypeReferenceDirectives.Count == 0 &&
+        rawLibReferenceDirectives.Count == 0 && global::Ts.Collections.SetExtensions.Len(witnessedCjsExports) == 0 &&
+        global::Ts.Collections.SetExtensions.Len(seenProperties) == 0 && bindingNameVisitor != null &&
+        expressionVisitor != null && cjsExportAssignmentVisitor != null && exportStrippingVisitor != null &&
+        thisPropertyVisitor != null && declareStrippingVisitor != null && declarationMapPath != null &&
+        !ShouldStripInternal(null) && ThrowDiagnostic(default!) == null;
+
+    // transform.go:276-278 — throwDiagnostic.
+    private static SymbolAccessibilityDiagnostic ThrowDiagnostic(global::Ts.Printer.SymbolAccessibilityResult result) =>
+        throw new InvalidOperationException("Diagnostic emitted without context");
+
+    // ── 1:1 rebuild forward stubs (later batches replace these; unreachable until the new
+    // visitSourceFile chain is wired) ──
+    private Node? VisitBindingName(Node node) => throw new NotImplementedException("declarations rebuild");
+    private Node? VisitNestedExpression(Node node) => throw new NotImplementedException("declarations rebuild");
+    private Node? StripExportModifiers(Node node) => throw new NotImplementedException("declarations rebuild");
+    private Node? VisitThisPropertyAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
+    private Node? VisitCJSExportAssignments(Node node) => throw new NotImplementedException("declarations rebuild");
+    private Node? StripDeclareModifiers(Node node) => throw new NotImplementedException("declarations rebuild");
 
     // TODO: Convert to TransformerFactory signature to allow more automatic composition with other transforms.
     public static DeclarationTransformer NewDeclarationTransformer(
@@ -97,9 +301,7 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         string declarationFilePath,
         string declarationMapPath)
     {
-        _ = declarationFilePath;
-        _ = declarationMapPath;
-        return new DeclarationTransformer(host, context, compilerOptions, host.GetEmitResolver());
+        return new DeclarationTransformer(host, context, compilerOptions, host.GetEmitResolver(), declarationFilePath, declarationMapPath);
     }
 
     // Local composition adapter used while the compiler's declaration host wiring is still landing.

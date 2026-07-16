@@ -249,6 +249,9 @@ public sealed class SymbolTrackerSharedState
     internal bool StripInternal;
     internal SourceFile? CurrentSourceFile;
     internal EmitResolver? Resolver;
+    // transform.go:117-130 — installed by the transformer constructor; invoked by the tracker for
+    // isolatedDeclarations expando-function errors.
+    internal Action<Node>? ReportExpandoFunctionErrors;
 
     internal void AddDiagnostic(Diagnostic diagnostic) => Diagnostics.Add(diagnostic);
 }
