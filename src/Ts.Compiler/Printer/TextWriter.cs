@@ -9,7 +9,7 @@ namespace Ts.Printer;
 
 using StringUtil = global::Ts.StringUtil.StringUtil;
 
-internal sealed class TextWriter : EmitTextWriter
+public sealed class TextWriter : EmitTextWriter
 {
     private string newLine = "";
     private int indentSize;

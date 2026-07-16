@@ -7,28 +7,11 @@
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
 ModuleWithExportedAndNonExportedEnums
 checkJsxChildrenProperty11
-classDoesNotDependOnBaseTypes
-comparisonOperatorWithNumericLiteral
 conditionalTypes1
-constAssertions
 contextuallyTypedStringLiteralsInJsxAttributes01
-controlFlowBinaryOrExpression
-controlFlowOptionalChain
-discriminatedUnionTypes1
-genericRestParameters1
-intersectionReductionStrict
-intersectionTypeOverloading
-keyofAndIndexedAccessErrors
-mappedTypeProperties
-mappedTypes5
-noInfer
-optionalTupleElements1
-override19
 parserRealSource8
 parserharness
 scannerS7.6_A4.2_T1
-stringEnumLiteralTypes3
-stringLiteralTypeAssertion01
 templateLiteralTypes4
 tsxAttributeResolution1
 tsxAttributeResolution4
@@ -40,7 +23,3 @@ tsxIntrinsicAttributeErrors
 tsxParseTests2
 tsxReactEmit4
 typeAliasesDoNotMerge
-typeSatisfaction_propertyNameFulfillment
-uniqueSymbols
-unknownControlFlow
-variadicTuples1

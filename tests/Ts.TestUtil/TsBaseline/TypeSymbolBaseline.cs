@@ -537,23 +537,41 @@ public static partial class TypeSymbolBaseline
                 }
                 else
                 {
-                    const global::Ts.Checker.TypeFormatFlags flags =
+                    // type_symbol_baseline.go:392-406 — build the type node via the request NodeBuilder,
+                    // apply the complex-alias recreation only when the BUILT NODE is a bare identifier
+                    // matching the alias name (a TypeReferenceNode does not qualify), then print.
+                    const global::Ts.Checker.TypeFormatFlags typeFormatFlags =
                         global::Ts.Checker.TypeFormatFlags.NoTruncation |
                         global::Ts.Checker.TypeFormatFlags.AllowUniqueESSymbolType |
                         global::Ts.Checker.TypeFormatFlags.GenerateNamesForShadowedTypeParams;
-                    typeString = CheckerAccess.TypeToStringEx(checker, type, parent, flags, null);
-                    if (global::Ts.Ast.NodeTests.IsIdentifier(node) &&
+                    var builderFlags = (global::Ts.NodeBuilder.Flags)(typeFormatFlags & global::Ts.Checker.TypeFormatFlags.NodeBuilderFlagsMask)
+                        | global::Ts.NodeBuilder.Flags.IgnoreErrors;
+                    var emitContext = global::Ts.Printer.EmitContext.NewEmitContext();
+                    var builder = CheckerAccess.NewNodeBuilder(checker, emitContext);
+                    var typeNode = CheckerAccess.TypeToTypeNode(builder, type, parent, builderFlags,
+                        global::Ts.NodeBuilder.InternalFlags.AllowUnresolvedNames, null);
+                    if (typeNode is not null &&
+                        global::Ts.Ast.NodeTests.IsIdentifier(node) &&
                         parent.Kind == global::Ts.Ast.SyntaxKind.TypeAliasDeclaration &&
                         parent.Name() == node &&
-                        string.Equals(typeString, node.Text(), StringComparison.Ordinal))
+                        global::Ts.Ast.NodeTests.IsIdentifier(typeNode) &&
+                        string.Equals(typeNode.Text(), node.Text(), StringComparison.Ordinal))
                     {
-                        typeString = CheckerAccess.TypeToStringEx(
-                            checker,
-                            type,
-                            parent,
-                            flags | global::Ts.Checker.TypeFormatFlags.InTypeAlias,
-                            null);
+                        // for a complex type alias `type T = ...`, showing "T : T" isn't very helpful for
+                        // type tests. When the type produced is the same as the name of the type alias,
+                        // recreate the type string without reusing the alias name
+                        typeNode = CheckerAccess.TypeToTypeNode(builder, type, parent,
+                            (global::Ts.NodeBuilder.Flags)((typeFormatFlags | global::Ts.Checker.TypeFormatFlags.InTypeAlias) & global::Ts.Checker.TypeFormatFlags.NodeBuilderFlagsMask)
+                                | global::Ts.NodeBuilder.Flags.IgnoreErrors,
+                            global::Ts.NodeBuilder.InternalFlags.AllowUnresolvedNames, null);
                     }
+                    var writer = global::Ts.Printer.TextWriter.NewTextWriter("", 0);
+                    var p = global::Ts.Printer.Printer.NewPrinter(
+                        new global::Ts.Printer.PrinterOptions { RemoveComments = true },
+                        new global::Ts.Printer.PrintHandlers(),
+                        emitContext);
+                    p.Write(typeNode!, currentSourceFile, writer, null);
+                    typeString = writer.String();
                 }
                 return new TypeSymbolBaselineEntry(line, sourceText, typeString);
             }
@@ -868,6 +886,20 @@ public static partial class TypeSymbolBaseline
         public static extern global::Ts.Checker.Type GetDeclaredTypeOfSymbol(
             global::Ts.Checker.Checker checker,
             global::Ts.Ast.Symbol symbol);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "NewNodeBuilder")]
+        public static extern global::Ts.Checker.NodeBuilder NewNodeBuilder(
+            global::Ts.Checker.Checker checker,
+            global::Ts.Printer.EmitContext emitContext);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "TypeToTypeNode")]
+        public static extern global::Ts.Ast.Node? TypeToTypeNode(
+            global::Ts.Checker.NodeBuilder builder,
+            global::Ts.Checker.Type type,
+            global::Ts.Ast.Node? enclosingDeclaration,
+            global::Ts.NodeBuilder.Flags flags,
+            global::Ts.NodeBuilder.InternalFlags internalFlags,
+            global::Ts.NodeBuilder.ISymbolTracker? tracker);
 
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "TypeToStringEx")]
         public static extern string TypeToStringEx(
