@@ -1364,7 +1364,62 @@ public partial class Checker
     // isErrorType (26509) implemented in Checker.UnionIntersection.cs (#17).
 
     // getTypeOfSymbolAtLocation (checker.go:16367) — leaf public-ish query, large surface — remaining.
-    internal Type GetTypeOfSymbolAtLocation(Symbol symbol, Node? location) => throw new NotImplementedException("getTypeOfSymbolAtLocation");
+    // checker.go:16367 — GetTypeOfSymbolAtLocation.
+    internal Type GetTypeOfSymbolAtLocation(Symbol symbol, Node? location)
+    {
+        symbol = GetExportSymbolOfValueSymbolIfExported(symbol)!;
+        if (location != null)
+        {
+            // If we have an identifier or a property access at the given location, if the location is
+            // a dotted name expression, and if the location is not an assignment target, obtain the type
+            // of the expression (which will reflect control flow analysis). If the expression indeed
+            // resolved to the given symbol, return the narrowed type.
+            if ((NodeTests.IsIdentifier(location) || NodeTests.IsPrivateIdentifier(location)) &&
+                !(AstUtilities.IsJsxTagName(location) || NodeTests.IsJsxAttribute(location.Parent!) || NodeTests.IsJsxNamespacedName(location.Parent!)))
+            {
+                if (AstUtilities.IsRightSideOfQualifiedNameOrPropertyAccess(location))
+                {
+                    location = location.Parent;
+                }
+                if (AstUtilities.IsExpressionNode(location!) && (!AstUtilities.IsAssignmentTarget(location!) || IsWriteAccess(location!)))
+                {
+                    Type t;
+                    if (IsWriteAccess(location!) && location!.Kind == SyntaxKind.PropertyAccessExpression)
+                    {
+                        t = CheckPropertyAccessExpression(location, CheckMode.Normal, true /*writeOnly*/);
+                    }
+                    else
+                    {
+                        t = GetTypeOfExpression(location!);
+                    }
+                    if (GetExportSymbolOfValueSymbolIfExported(symbolNodeLinks.Get(location!).resolvedSymbol) == symbol)
+                    {
+                        return RemoveOptionalTypeMarker(t);
+                    }
+                }
+            }
+            if (AstUtilities.IsDeclarationName(location!) && NodeTests.IsSetAccessorDeclaration(location!.Parent!) && GetAnnotatedAccessorTypeNode(location.Parent) != null)
+            {
+                return GetWriteTypeOfAccessors(location.Parent!.Symbol()!);
+            }
+            // The location isn't a reference to the given symbol, meaning we're being asked
+            // a hypothetical question of what type the symbol would have if there was a reference
+            // to it at the given location. Since we have no control flow information for the
+            // hypothetical reference (control flow information is created and attached by the
+            // binder), we simply return the declared type of the symbol.
+            if (IsRightSideOfAccessExpression(location!) && IsWriteAccess(location!.Parent!))
+            {
+                return GetWriteTypeOfSymbol(symbol);
+            }
+        }
+        return GetNonMissingTypeOfSymbol(symbol);
+    }
+
+    // utilities.go:218 — isRightSideOfAccessExpression.
+    private static bool IsRightSideOfAccessExpression(Node node) =>
+        node.Parent != null && (
+            (NodeTests.IsPropertyAccessExpression(node.Parent) && node.Parent.Name() == node) ||
+            (NodeTests.IsElementAccessExpression(node.Parent) && node.Parent.AsElementAccessExpression().ArgumentExpression == node));
 
     // ===================================================================================
     // Free-function helpers (Go package-level). In-range ones real; others minimal stubs.
