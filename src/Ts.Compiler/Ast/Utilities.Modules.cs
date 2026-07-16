@@ -21,8 +21,9 @@ public static partial class AstUtilities
         GetSourceFileOfNode(module.ValueDeclaration ?? GetNonAugmentationDeclaration(module));
 }
 
-// SourceFile structurally satisfies HasFileName (FileName()/Path()); the inheritance is declared here
-// so instances pass to host methods typed on HasFileName (modulespecifiers/outputpaths).
-public sealed partial class SourceFile : HasFileName
+// SourceFile structurally satisfies SourceFileForSpecifierGeneration (Path()/FileName()/Imports()/IsJS())
+// and, transitively, HasFileName; the inheritance is declared here so instances pass to the
+// modulespecifiers entry points and to host methods typed on HasFileName (modulespecifiers/outputpaths).
+public sealed partial class SourceFile : global::Ts.ModuleSpecifiers.SourceFileForSpecifierGeneration
 {
 }

@@ -824,8 +824,79 @@ public partial class Checker
     // utilities.go:1070
     // utilities.go:1070 — isSuperCall.
     internal static bool IsSuperCall(Node n) => NodeTests.IsCallExpression(n) && n.Expression()!.Kind == SyntaxKind.SuperKeyword;
-    // nodebuilderimpl.go:1187
-    internal static Node? TryGetModuleSpecifierFromDeclaration(Node node) => throw new NotImplementedException("TryGetModuleSpecifierFromDeclaration");
+    // nodebuilderimpl.go:1187 — TryGetModuleSpecifierFromDeclaration.
+    internal static Node? TryGetModuleSpecifierFromDeclaration(Node node)
+    {
+        Node? res = TryGetModuleSpecifierFromDeclarationWorker(node);
+        if (res == null || !NodeTests.IsStringLiteral(res))
+        {
+            return null;
+        }
+        return res;
+    }
+
+    // nodebuilderimpl.go:1196 — tryGetModuleSpecifierFromDeclarationWorker.
+    private static Node? TryGetModuleSpecifierFromDeclarationWorker(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.BindingElement:
+            {
+                Node? requireCall = AstUtilities.FindAncestor(node.Initializer(), static n =>
+                    AstUtilities.IsRequireCall(n, true /*requireStringLiteralLikeArgument*/));
+                if (requireCall == null)
+                {
+                    return null;
+                }
+                return requireCall.Arguments()![0];
+            }
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.ExportDeclaration:
+            case SyntaxKind.JSDocImportTag:
+                return node.ModuleSpecifier();
+            case SyntaxKind.ImportEqualsDeclaration:
+            {
+                Node? reference = node.AsImportEqualsDeclaration().ModuleReference;
+                if (reference == null || reference.Kind != SyntaxKind.ExternalModuleReference)
+                {
+                    return null;
+                }
+                return reference.Expression();
+            }
+            case SyntaxKind.ImportClause:
+                if (NodeTests.IsImportDeclaration(node.Parent!))
+                {
+                    return node.Parent!.ModuleSpecifier();
+                }
+                return node.Parent!.ModuleSpecifier();
+            case SyntaxKind.NamespaceExport:
+                return node.Parent!.ModuleSpecifier();
+            case SyntaxKind.NamespaceImport:
+                if (NodeTests.IsImportDeclaration(node.Parent!.Parent!))
+                {
+                    return node.Parent!.Parent!.ModuleSpecifier();
+                }
+                return node.Parent!.Parent!.ModuleSpecifier();
+            case SyntaxKind.ExportSpecifier:
+                return node.Parent!.Parent!.ModuleSpecifier();
+            case SyntaxKind.ImportSpecifier:
+                if (NodeTests.IsImportDeclaration(node.Parent!.Parent!.Parent!))
+                {
+                    return node.Parent!.Parent!.Parent!.ModuleSpecifier();
+                }
+                return node.Parent!.Parent!.Parent!.ModuleSpecifier();
+            case SyntaxKind.ImportType:
+                if (AstUtilities.IsLiteralImportTypeNode(node))
+                {
+                    return node.AsImportTypeNode().Argument!.AsLiteralTypeNode().Literal;
+                }
+                return null;
+            default:
+                Debug.AssertNever(node);
+                return null;
+        }
+    }
     // ast/utilities.go:4054
     internal static bool IsImportOrImportEqualsDeclaration(Node node) => throw new NotImplementedException("ast.IsImportOrImportEqualsDeclaration");
     // ast/utilities.go:4113

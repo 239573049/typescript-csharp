@@ -761,10 +761,91 @@ public sealed partial class NodeBuilder
             return AstUtilities.GetSourceFileOfModule(symbol)!.FileName();
         }
 
-        // DEFERRED: full module-specifier synthesis (modulespecifiers.GetModuleSpecifiers) needs a
-        // ModuleSpecifierGenerationHost (ctx.host) wired from the program. Reached only when an enclosing
-        // file context is present; the early paths above cover the enclosing-file-less error-render path.
-        throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol (enclosing-file pipeline)");
+        Node? enclosingDeclaration = e.MostOriginal(ctx.enclosingDeclaration);
+        Node? originalModuleSpecifier = null;
+        if (CanHaveModuleSpecifier(enclosingDeclaration))
+        {
+            originalModuleSpecifier = Checker.TryGetModuleSpecifierFromDeclaration(enclosingDeclaration!);
+        }
+        SourceFile contextFile = ctx.enclosingFile;
+        ResolutionMode resolutionMode = overrideImportMode;
+        if (resolutionMode == global::Ts.Core.Core.ResolutionModeNone && originalModuleSpecifier != null)
+        {
+            resolutionMode = ch.program.GetModeForUsageLocation(contextFile, originalModuleSpecifier);
+        }
+        else if (resolutionMode == global::Ts.Core.Core.ResolutionModeNone && contextFile != null)
+        {
+            resolutionMode = ch.program.GetDefaultResolutionModeForFile(contextFile);
+        }
+        var cacheKey = new global::Ts.Module.ModeAwareCacheKey(contextFile!.Path().Value, resolutionMode);
+        NodeBuilderSymbolLinks symLinks = symbolLinks.Get(symbol);
+        symLinks.specifierCache ??= new global::Ts.Module.ModeAwareCache<string>();
+        if (symLinks.specifierCache.TryGetValue(cacheKey, out string? cached))
+        {
+            return cached;
+        }
+        // For declaration bundles, we need to generate absolute paths relative to the common source dir for
+        // imports, just like how the declaration emitter does for the ambient module declarations - we can
+        // easily accomplish this using the `baseUrl` compiler option (which we would otherwise never use in
+        // declaration emit) and a non-relative specifier preference.
+        global::Ts.ModuleSpecifiers.ModuleSpecifierGenerationHost host = ch.program;
+        CompilerOptions specifierCompilerOptions = ch.compilerOptions;
+        var specifierPref = global::Ts.ModuleSpecifiers.ImportModuleSpecifierPreference.ProjectRelative;
+        var endingPref = global::Ts.ModuleSpecifiers.ImportModuleSpecifierEndingPreference.None;
+        if (resolutionMode == global::Ts.Core.Core.ResolutionModeESM)
+        {
+            endingPref = global::Ts.ModuleSpecifiers.ImportModuleSpecifierEndingPreference.Js;
+        }
+
+        string[] allSpecifiers = global::Ts.ModuleSpecifiers.Specifiers.GetModuleSpecifiers(
+            symbol,
+            ch,
+            specifierCompilerOptions,
+            contextFile,
+            host,
+            new global::Ts.ModuleSpecifiers.UserPreferences
+            {
+                ImportModuleSpecifierPreference = specifierPref,
+                ImportModuleSpecifierEnding = endingPref,
+            },
+            new global::Ts.ModuleSpecifiers.ModuleSpecifierOptions
+            {
+                OverrideImportMode = overrideImportMode,
+            },
+            false /*forAutoImports*/);
+        if (allSpecifiers.Length == 0)
+        {
+            symLinks.specifierCache[cacheKey] = "";
+            return "";
+        }
+        string specifier = allSpecifiers[0];
+        symLinks.specifierCache[cacheKey] = specifier;
+        return specifier;
+    }
+
+    // nodebuilderimpl.go:1166 — canHaveModuleSpecifier.
+    private static bool CanHaveModuleSpecifier(Node? node)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+        switch (node.Kind)
+        {
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.ExportDeclaration:
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.ImportClause:
+            case SyntaxKind.NamespaceExport:
+            case SyntaxKind.NamespaceImport:
+            case SyntaxKind.ExportSpecifier:
+            case SyntaxKind.ImportSpecifier:
+            case SyntaxKind.ImportType:
+                return true;
+        }
+        return false;
     }
 
     // nodebuilderimpl.go:430 — serializeTypeName.

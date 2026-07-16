@@ -52,10 +52,20 @@ internal sealed class NodeBuilderLinks
     internal string? fakeScopeForSignatureDeclaration; // If present, this is a fake scope injected into an enclosing declaration chain.
 }
 
+// nodebuilderimpl.go:53-55 — NodeBuilderSymbolLinks. Per-symbol module-specifier cache keyed by
+// (enclosing-file path, resolution mode).
+internal sealed class NodeBuilderSymbolLinks
+{
+    internal global::Ts.Module.ModeAwareCache<string>? specifierCache;
+}
+
 public sealed partial class NodeBuilder
 {
     // nodebuilderimpl.go:99 — links core.LinkStore[*ast.Node, NodeBuilderLinks].
     private readonly LinkStore<Node, NodeBuilderLinks> links = new();
+
+    // nodebuilderimpl.go:100 — symbolLinks core.LinkStore[*ast.Symbol, NodeBuilderSymbolLinks].
+    private readonly LinkStore<Symbol, NodeBuilderSymbolLinks> symbolLinks = new();
 
     // nodebuilderscopes.go:10 — cloneNodeBuilderContext.
     // PORT-NOTE (shape): Go snapshots four CopyOnWrite containers via EnterScope; the C# COW Scope is a
