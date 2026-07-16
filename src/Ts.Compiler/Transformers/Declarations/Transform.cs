@@ -1002,11 +1002,168 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             null); // TODO: possible strada bug - not emitting const initialized binding pattern elements?
     }
 
+    // transform.go:1572-1576 — preserveJsDoc: copy comment range from original to updated node so
+    // JSDoc comments are preserved.
+    private void PreserveJsDoc(Node updated, Node original) =>
+        EmitContext().AssignCommentRange(updated, original);
+
+    // transform.go:1577-1592 — preservePartialJsDoc.
+    private void PreservePartialJsDoc(Node updated, Node original)
+    {
+        if ((original.Flags & NodeFlags.Reparsed) == 0)
+        {
+            return;
+        }
+        var jsdoc = CoreUtil.FirstOrNil(original.EagerJSDoc(AstUtilities.GetSourceFileOfNode(original)));
+        if (jsdoc == null)
+        {
+            return;
+        }
+        var description = global::Ts.Scanner.Scanner.GetTextOfJSDocComment(jsdoc.AsJSDoc().Comment);
+        if (description.Length == 0)
+        {
+            return;
+        }
+        var comment = "*\n * " + description.Replace("\n", "\n * ", StringComparison.Ordinal) + "\n ";
+        EmitContext().AddSyntheticLeadingComment(updated, SyntaxKind.MultiLineCommentTrivia, comment, true /*hasTrailingNewLine*/);
+    }
+
+    // transform.go:1593-1598 — removeAllComments.
+    private void RemoveAllComments(Node node)
+    {
+        EmitContext().AddEmitFlags(node, global::Ts.Printer.EmitFlags.NoComments);
+        // !!! TODO: Also remove synthetic trailing/leading comments added by transforms
+        // emitNode.leadingComments = undefined;
+        // emitNode.trailingComments = undefined;
+    }
+
+    // transform.go:1664-1666 — shouldPrintWithInitializer.
+    private bool ShouldPrintWithInitializer(Node node) =>
+        DeclarationUtilities.CanHaveLiteralInitializer(host, node) && node.Initializer() != null &&
+        resolver!.IsLiteralConstDeclaration(EmitContext().MostOriginal(node)!);
+
+    // transform.go:2392-2401 — ensureNoInitializer.
+    private Node? EnsureNoInitializer(Node node)
+    {
+        if (ShouldPrintWithInitializer(node))
+        {
+            var unwrappedInitializer = DeclarationUtilities.UnwrapParenthesizedExpression(node.Initializer()!);
+            if (!AstUtilities.IsPrimitiveLiteralValue(unwrappedInitializer, true))
+            {
+                tracker.ReportInferenceFallback(node);
+            }
+            return resolver!.CreateLiteralConstValue(EmitContext(), EmitContext().ParseNode(node)!, tracker);
+        }
+        return null;
+    }
+
+    // transform.go:2321-2354 — ensureTypeParams.
+    private TypeParameterList? EnsureTypeParams(Node node, TypeParameterList? @params)
+    {
+        if (host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(node)!, ModifierFlags.Private) != 0)
+        {
+            return null;
+        }
+        var typeParameters = Visitor().VisitNodes(@params);
+        if (typeParameters != null)
+        {
+            return typeParameters;
+        }
+        var oldErrorNameNode = state.ErrorNameNode;
+        state.ErrorNameNode = node.Name();
+        GetSymbolAccessibilityDiagnostic? oldDiag = null;
+        if (!suppressNewDiagnosticContexts)
+        {
+            oldDiag = state.GetSymbolAccessibilityDiagnostic;
+            if (DeclarationUtilities.CanProduceDiagnostics(node))
+            {
+                state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNode(node);
+            }
+        }
+
+        if (node.FunctionLikeData() is { FullSignature: not null })
+        {
+            var nodes = resolver!.CreateTypeParametersOfSignatureDeclaration(EmitContext(), node, enclosingDeclaration!, DeclarationEmitNodeBuilderFlags, DeclarationEmitInternalNodeBuilderFlags, tracker);
+            if (nodes != null)
+            {
+                typeParameters = new NodeList(nodes) { Loc = node.Loc };
+            }
+        }
+
+        state.ErrorNameNode = oldErrorNameNode;
+        if (!suppressNewDiagnosticContexts)
+        {
+            state.GetSymbolAccessibilityDiagnostic = oldDiag;
+        }
+        return typeParameters;
+    }
+
+    // transform.go:1015-1051 — updateAccessorParamList.
+    private ParameterList UpdateAccessorParamList(Node input, bool isPrivate)
+    {
+        var newParams = new List<Node>();
+        if (!isPrivate)
+        {
+            var thisParam = AstUtilities.GetThisParameter(input);
+            if (thisParam != null)
+            {
+                newParams.Add(EnsureParameter(thisParam.AsParameterDeclaration()));
+            }
+        }
+        if (NodeTests.IsSetAccessorDeclaration(input))
+        {
+            Node? valueParam = null;
+            if (!isPrivate)
+            {
+                if (newParams.Count == 1 && input.AsSetAccessorDeclaration().Parameters!.Nodes.Length >= 2)
+                {
+                    valueParam = EnsureParameter(input.AsSetAccessorDeclaration().Parameters!.Nodes[1].AsParameterDeclaration());
+                }
+                else if (newParams.Count == 0 && input.AsSetAccessorDeclaration().Parameters!.Nodes.Length >= 1)
+                {
+                    valueParam = EnsureParameter(input.AsSetAccessorDeclaration().Parameters!.Nodes[0].AsParameterDeclaration());
+                }
+            }
+            if (valueParam == null)
+            {
+                // When synthesizing a missing value parameter, emit `value: any` for non-private accessors to match TypeScript's declaration emit behavior.
+                Node? t = null;
+                if (!isPrivate)
+                {
+                    t = Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.AnyKeyword);
+                }
+                valueParam = Factory().NewParameterDeclaration(
+                    null,
+                    null,
+                    Factory().NewIdentifier("value"),
+                    null,
+                    t,
+                    null);
+            }
+            newParams.Add(valueParam);
+        }
+        return Factory().AsNodeFactory().NewNodeList(newParams.ToArray());
+    }
+
+    // transform.go:1074-1088 — omitPrivateMethodType.
+    private Node? OmitPrivateMethodType(Node input)
+    {
+        if (input.Symbol() != null && (input.Symbol()!.Declarations?.Length ?? 0) > 0 && input.Symbol()!.Declarations![0] != input)
+        {
+            return null;
+        }
+        var result = Factory().AsNodeFactory().NewPropertyDeclaration(
+            EnsureModifiers(input),
+            input.Name(),
+            null,
+            null,
+            null);
+        PreserveJsDoc(result, input);
+        return result;
+    }
+
     // ── rebuild forward stubs (later batches replace these) ──
     private Node RewriteModuleSpecifier(Node parent, Node? input) => throw new NotImplementedException("declarations rebuild");
-    private void PreservePartialJsDoc(Node result, Node input) => throw new NotImplementedException("declarations rebuild");
-    private void PreserveJsDoc(Node result, Node input) => throw new NotImplementedException("declarations rebuild");
-    private ParameterList UpdateAccessorParamList(Node input, bool isPrivate) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocTypeExpression(JSDocTypeExpression input) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocTypeLiteral(JSDocTypeLiteral input) => throw new NotImplementedException("declarations rebuild");
     private Node? TransformJSDocPropertyTag(JSDocParameterOrPropertyTag input) => throw new NotImplementedException("declarations rebuild");
@@ -1285,13 +1442,26 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             declarationList);
     }
 
-    private Node TransformVariableDeclaration(VariableDeclaration input) =>
-        Factory().AsNodeFactory().UpdateVariableDeclaration(
+    // transform.go:835-852 — transformVariableDeclaration.
+    private Node? TransformVariableDeclaration(VariableDeclaration input)
+    {
+        if (state.CurrentSourceFile!.CommonJSModuleIndicator != null && AstUtilities.IsVariableDeclarationInitializedToRequire(input.AsNode()))
+        {
+            return TransformCjsRequireVariableDeclaration(input);
+        }
+        if (AstUtilities.IsBindingPattern(input.Name()!))
+        {
+            return RecreateBindingPattern(input.Name()!.AsBindingPattern());
+        }
+        // Variable declaration types also suppress new diagnostic contexts, provided the contexts wouldn't be made for binding pattern types
+        suppressNewDiagnosticContexts = true;
+        return Factory().AsNodeFactory().UpdateVariableDeclaration(
             input,
             input.Name(),
             null,
             EnsureType(input.AsNode(), false),
-            null);
+            EnsureNoInitializer(input.AsNode()));
+    }
 
     private Node TransformEnumDeclaration(EnumDeclaration input) =>
         Factory().AsNodeFactory().UpdateEnumDeclaration(
@@ -1300,82 +1470,95 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             input.Name(),
             Visitor().VisitNodes(input.Members));
 
+    // transform.go:963-981 — transformPropertyDeclaration.
     private Node? TransformPropertyDeclaration(PropertyDeclaration input)
     {
-        if (input.Name() is { } name && global::Ts.Ast.NodeTests.IsPrivateIdentifier(name))
+        if (NodeTests.IsPrivateIdentifier(input.Name()!))
         {
             return null;
         }
-        var postfixToken = input.PostfixToken?.Kind == SyntaxKind.ExclamationToken
-            ? null
-            : input.PostfixToken;
+        // Remove definite assignment assertion (!) from declaration files
+        var postfixToken = input.PostfixToken;
+        if (postfixToken != null && postfixToken.Kind == SyntaxKind.ExclamationToken)
+        {
+            postfixToken = null;
+        }
         return Factory().AsNodeFactory().UpdatePropertyDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
             postfixToken,
             EnsureType(input.AsNode(), false),
-            null);
+            EnsureNoInitializer(input.AsNode()));
     }
 
+    // transform.go:947-962 — transformPropertySignatureDeclaration.
     private Node? TransformPropertySignatureDeclaration(PropertySignatureDeclaration input)
     {
-        if (input.Name() is { } name && global::Ts.Ast.NodeTests.IsPrivateIdentifier(name))
+        if (NodeTests.IsPrivateIdentifier(input.Name()!))
         {
             return null;
         }
-        return Factory().AsNodeFactory().UpdatePropertySignatureDeclaration(
+        var result = Factory().AsNodeFactory().UpdatePropertySignatureDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
             input.PostfixToken,
             EnsureType(input.AsNode(), false),
-            null);
+            EnsureNoInitializer(input.AsNode())); // TODO: possible strada bug (fixed here) - const property signatures never initialized
+        PreservePartialJsDoc(result, input.AsNode());
+        return result;
     }
 
+    // transform.go:1107-1127 — transformMethodDeclaration.
     private Node? TransformMethodDeclaration(MethodDeclaration input)
     {
-        if (input.Name() is { } name && global::Ts.Ast.NodeTests.IsPrivateIdentifier(name))
+        if (host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(input.AsNode())!, ModifierFlags.Private) != 0)
+        {
+            return OmitPrivateMethodType(input.AsNode());
+        }
+        else if (NodeTests.IsPrivateIdentifier(input.Name()!))
         {
             return null;
         }
-        if (GetEffectiveDeclarationFlags(input.AsNode(), ModifierFlags.Private) != 0)
+        else
         {
-            return Factory().AsNodeFactory().NewPropertyDeclaration(
-                EnsureModifiers(input.AsNode()), input.Name(), null, null, null);
+            return Factory().AsNodeFactory().UpdateMethodDeclaration(
+                input,
+                EnsureModifiers(input.AsNode()),
+                null,
+                input.Name(),
+                input.PostfixToken,
+                EnsureTypeParams(input.AsNode(), input.TypeParameters),
+                UpdateParameterList(input.AsNode(), input.Parameters),
+                EnsureType(input.AsNode(), false),
+                null,
+                null);
         }
-        return Factory().AsNodeFactory().UpdateMethodDeclaration(
-            input,
-            EnsureModifiers(input.AsNode()),
-            null,
-            input.Name(),
-            input.PostfixToken,
-            Visitor().VisitNodes(input.TypeParameters),
-            UpdateParameterList(input.AsNode(), input.Parameters),
-            EnsureType(input.AsNode(), false),
-            null,
-            null);
     }
 
+    // transform.go:1089-1106 — transformMethodSignatureDeclaration.
     private Node? TransformMethodSignatureDeclaration(MethodSignatureDeclaration input)
     {
-        if (input.Name() is { } name && global::Ts.Ast.NodeTests.IsPrivateIdentifier(name))
+        if (host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(input.AsNode())!, ModifierFlags.Private) != 0)
+        {
+            return OmitPrivateMethodType(input.AsNode());
+        }
+        else if (NodeTests.IsPrivateIdentifier(input.Name()!))
         {
             return null;
         }
-        if (GetEffectiveDeclarationFlags(input.AsNode(), ModifierFlags.Private) != 0)
+        else
         {
-            return Factory().AsNodeFactory().NewPropertyDeclaration(
-                EnsureModifiers(input.AsNode()), input.Name(), null, null, null);
+            return Factory().AsNodeFactory().UpdateMethodSignatureDeclaration(
+                input,
+                EnsureModifiers(input.AsNode()),
+                input.Name(),
+                input.PostfixToken,
+                EnsureTypeParams(input.AsNode(), input.TypeParameters),
+                UpdateParameterList(input.AsNode(), input.Parameters),
+                EnsureType(input.AsNode(), false));
         }
-        return Factory().AsNodeFactory().UpdateMethodSignatureDeclaration(
-            input,
-            EnsureModifiers(input.AsNode()),
-            input.Name(),
-            input.PostfixToken,
-            Visitor().VisitNodes(input.TypeParameters),
-            UpdateParameterList(input.AsNode(), input.Parameters),
-            EnsureType(input.AsNode(), false));
     }
 
     private Node TransformConstructorDeclaration(ConstructorDeclaration input) =>
@@ -1388,9 +1571,10 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             null,
             null);
 
+    // transform.go:999-1014 — transformGetAccesorDeclaration.
     private Node? TransformGetAccessorDeclaration(GetAccessorDeclaration input)
     {
-        if (input.Name() is { } name && global::Ts.Ast.NodeTests.IsPrivateIdentifier(name))
+        if (NodeTests.IsPrivateIdentifier(input.Name()!))
         {
             return null;
         }
@@ -1398,16 +1582,17 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
-            null,
-            UpdateParameterList(input.AsNode(), input.Parameters),
+            null, // accessors shouldn't have type params
+            UpdateAccessorParamList(input.AsNode(), host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(input.AsNode())!, ModifierFlags.Private) != 0),
             EnsureType(input.AsNode(), false),
             null,
             null);
     }
 
+    // transform.go:982-998 — transformSetAccessorDeclaration.
     private Node? TransformSetAccessorDeclaration(SetAccessorDeclaration input)
     {
-        if (input.Name() is { } name && global::Ts.Ast.NodeTests.IsPrivateIdentifier(name))
+        if (NodeTests.IsPrivateIdentifier(input.Name()!))
         {
             return null;
         }
@@ -1415,33 +1600,43 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             input,
             EnsureModifiers(input.AsNode()),
             input.Name(),
-            null,
-            UpdateParameterList(input.AsNode(), input.Parameters),
+            null, // accessors shouldn't have type params
+            UpdateAccessorParamList(input.AsNode(), host!.GetEffectiveDeclarationFlags(EmitContext().ParseNode(input.AsNode())!, ModifierFlags.Private) != 0),
             null,
             null,
             null);
     }
 
+    // transform.go:938-946 — transformCallSignatureDeclaration.
     private Node TransformCallSignatureDeclaration(CallSignatureDeclaration input) =>
         Factory().AsNodeFactory().UpdateCallSignatureDeclaration(
             input,
-            Visitor().VisitNodes(input.TypeParameters),
+            EnsureTypeParams(input.AsNode(), input.TypeParameters),
             UpdateParameterList(input.AsNode(), input.Parameters),
             EnsureType(input.AsNode(), false));
 
+    // transform.go:1065-1073 — transformConstructSignatureDeclaration.
     private Node TransformConstructSignatureDeclaration(ConstructSignatureDeclaration input) =>
         Factory().AsNodeFactory().UpdateConstructSignatureDeclaration(
             input,
-            Visitor().VisitNodes(input.TypeParameters),
+            EnsureTypeParams(input.AsNode(), input.TypeParameters),
             UpdateParameterList(input.AsNode(), input.Parameters),
             EnsureType(input.AsNode(), false));
 
-    private Node TransformIndexSignatureDeclaration(IndexSignatureDeclaration input) =>
-        Factory().AsNodeFactory().UpdateIndexSignatureDeclaration(
+    // transform.go:925-937 — transformIndexSignatureDeclaration.
+    private Node TransformIndexSignatureDeclaration(IndexSignatureDeclaration input)
+    {
+        var t = Visitor().VisitNode(input.Type);
+        if (t == null)
+        {
+            t = Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.AnyKeyword);
+        }
+        return Factory().AsNodeFactory().UpdateIndexSignatureDeclaration(
             input,
             EnsureModifiers(input.AsNode()),
             UpdateParameterList(input.AsNode(), input.Parameters),
-            EnsureType(input.AsNode(), false));
+            t);
+    }
 
     private ParameterList UpdateParameterList(Node owner, ParameterList? parameters)
     {

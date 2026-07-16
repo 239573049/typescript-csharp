@@ -1091,6 +1091,33 @@ public static partial class AstUtilities
         return false;
     }
 
+    // ast/utilities.go:4058 — IsPrimitiveLiteralValue.
+    public static bool IsPrimitiveLiteralValue(Node node, bool includeBigInt)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+            case SyntaxKind.NumericLiteral:
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+                return true;
+            case SyntaxKind.BigIntLiteral:
+                return includeBigInt;
+            case SyntaxKind.PrefixUnaryExpression:
+                if (node.AsPrefixUnaryExpression().Operator == SyntaxKind.MinusToken)
+                {
+                    return IsNumericLiteral(node.AsPrefixUnaryExpression().Operand!) || (includeBigInt && IsBigIntLiteral(node.AsPrefixUnaryExpression().Operand!));
+                }
+                if (node.AsPrefixUnaryExpression().Operator == SyntaxKind.PlusToken)
+                {
+                    return IsNumericLiteral(node.AsPrefixUnaryExpression().Operand!);
+                }
+                return false;
+        }
+        return false;
+    }
+
     // ast/utilities.go:1865 — IsImportNode.
     public static bool IsImportNode(Node node)
     {
