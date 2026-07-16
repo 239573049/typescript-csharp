@@ -129,14 +129,17 @@ public sealed partial class NodeBuilder
     // state (nodebuilderimpl.go:103)
     private NodeBuilderContext? ctx;
 
+    // nodebuilderimpl.go:96 — pc: the syntactic pseudochecker backing the JS declaration-emit reuse paths.
+    private readonly global::Ts.PseudoChecker.PseudoChecker pc;
+
     // nodebuilder.go:279 / nodebuilderimpl.go:119 — NewNodeBuilder(ch, e) fused with newNodeBuilderImpl.
-    // PORT-NOTE: the pseudochecker (`pc`) and idToSymbol map are only used by the deferred reuse /
-    // symbol-chain paths; omitted from this breadth-first constructor.
+    // PORT-NOTE: the idToSymbol map is only used by the deferred symbol-chain paths; omitted here.
     internal NodeBuilder(Checker ch, global::Ts.Printer.EmitContext e)
     {
         this.ch = ch;
         this.e = e;
         this.f = e.Factory.AsNodeFactory();
+        this.pc = global::Ts.PseudoChecker.PseudoChecker.NewPseudoChecker(ch.strictNullChecks, ch.exactOptionalPropertyTypes);
     }
 
     // nodebuilderimpl.go:106 — EmitContext(). Exposes the builder's emit context so callers (typeToStringEx)
@@ -349,6 +352,17 @@ public sealed partial class NodeBuilder
     // nodecopy.go:20 — tryJSTypeNodeToTypeNode.
     private Node? TryJSTypeNodeToTypeNodeImpl(Node node) => ReuseNode(node);
 
+    // nodebuilderimpl.go:473 — setCommentRange. Copies comments to node for declaration emit when the
+    // range's source file is the enclosing one.
+    private void SetCommentRange(Node node, Node? range)
+    {
+        if (range != null && ctx!.enclosingFile != null && ctx.enclosingFile == AstUtilities.GetSourceFileOfNode(range))
+        {
+            // Copy comments to node for declaration emit
+            e.AssignCommentRange(node, range);
+        }
+    }
+
     // ── impl body (nodebuilderimpl.go) ──────────────────────────────────────────────────────────────
 
     // nodebuilderimpl.go:3176 — typeToTypeNode. The authoritative dispatch (TypeToTypeNodeCore, in
@@ -423,10 +437,90 @@ public sealed partial class NodeBuilder
             ctx.flags |= global::Ts.NodeBuilder.Flags.AllowUniqueESSymbolType;
         }
 
-        // PORT-NOTE (deferred reuse): the tryReuse pseudo-type fast path is not ported; the guard falls
-        // through directly to typeToTypeNode, which is what the Go code emits when reuse yields no node.
-        Node? result = TypeToTypeNodeImpl(t);
-
+        Node? result = null;
+        bool reportedInferenceFallback = false;
+        // !!! expandable hover support
+        if (!IsActivelyExpanding() && tryReuse && ctx!.enclosingDeclaration != null && declaration != null &&
+            (AstUtilities.IsAccessor(declaration) || (AstUtilities.HasInferredType(declaration) && !AstUtilities.NodeIsSynthesized(declaration) && (t.ObjectFlags & ObjectFlags.RequiresWidening) == 0)))
+        {
+            var remove = AddSymbolTypeToContext(symbol!, t);
+            global::Ts.PseudoChecker.PseudoType? pt;
+            if (AstUtilities.IsAccessor(declaration))
+            {
+                pt = pc.GetTypeOfAccessor(declaration);
+            }
+            else
+            {
+                pt = pc.GetTypeOfDeclaration(declaration);
+            }
+            if ((pt == null || pt.Kind == global::Ts.PseudoChecker.PseudoTypeKind.NoResult) && NodeTests.IsBinaryExpression(declaration))
+            {
+                var decl = CoreUtil.Find(symbol!.Declarations, HasTypeAnnotation);
+                if (decl != null)
+                {
+                    // Binary expressions have a first-in-wins type annotation system. The first one with an
+                    // annotation supplies the type for the rest.
+                    pt = pc.GetTypeOfDeclaration(decl);
+                }
+            }
+            bool reportErrors = !ctx.suppressReportInferenceFallback;
+            if (PseudoTypeEquivalentToType(pt!, t, !requiresAddingUndefined && (NodeTests.IsParameterDeclaration(declaration) || NodeTests.IsPropertySignatureDeclaration(declaration) || NodeTests.IsPropertyDeclaration(declaration)) && Checker.IsOptionalDeclaration(declaration), reportErrors))
+            {
+                // !!! TODO: If annotated type node is a reference with insufficient type arguments, we should
+                // still fall back to type serialization — see: canReuseTypeNodeAnnotation in strada for context
+                var ptt = PseudoTypeToType(pt!);
+                if (ptt != null && requiresAddingUndefined && Checker.ContainsNonMissingUndefinedType(ch, t) && !Checker.ContainsNonMissingUndefinedType(ch, ptt))
+                {
+                    pt = global::Ts.PseudoChecker.PseudoChecker.NewPseudoTypeUnion([pt!, global::Ts.PseudoChecker.PseudoChecker.PseudoTypeUndefined]);
+                }
+                result = PseudoTypeToNodeWithCheckerFallback(pt!, t);
+            }
+            else
+            {
+                // Equivalence failed; if errors from inferred-with-errors pseudo types were
+                // reported, note it so we can suppress nested errors during the fallback
+                // typeToTypeNode serialization (mirroring the suppression that
+                // pseudoTypeToNodeWithCheckerFallback provides).
+                reportedInferenceFallback = reportErrors && pt!.Kind == global::Ts.PseudoChecker.PseudoTypeKind.Inferred && pt.AsPseudoTypeInferred().ErrorNodes is { Length: > 0 };
+                bool shouldAddUndefined = false;
+                if (requiresAddingUndefined)
+                {
+                    var ptt = PseudoTypeToType(pt!);
+                    if (ptt != null)
+                    {
+                        shouldAddUndefined = !Checker.ContainsNonMissingUndefinedType(ch, ptt);
+                    }
+                    else
+                    {
+                        shouldAddUndefined = !global::Ts.PseudoChecker.PseudoChecker.CouldAlreadyReferToUndefinedType(pt!);
+                    }
+                }
+                if (shouldAddUndefined)
+                {
+                    pt = global::Ts.PseudoChecker.PseudoChecker.NewPseudoTypeUnion([pt!, global::Ts.PseudoChecker.PseudoChecker.PseudoTypeUndefined]);
+                    if (PseudoTypeEquivalentToType(pt, t, false, reportErrors))
+                    {
+                        result = PseudoTypeToNodeWithCheckerFallback(pt, t);
+                        reportedInferenceFallback = false;
+                    }
+                }
+            }
+            remove();
+        }
+        if (result == null)
+        {
+            if (reportedInferenceFallback)
+            {
+                bool oldSuppress = ctx!.suppressReportInferenceFallback;
+                ctx.suppressReportInferenceFallback = true;
+                result = TypeToTypeNodeImpl(t);
+                ctx.suppressReportInferenceFallback = oldSuppress;
+            }
+            else
+            {
+                result = TypeToTypeNodeImpl(t);
+            }
+        }
         restoreFlags();
         if (result is null)
         {
@@ -434,6 +528,10 @@ public sealed partial class NodeBuilder
         }
         return result;
     }
+
+    // nodebuilderimpl.go:2156 — hasTypeAnnotation.
+    private static bool HasTypeAnnotation(Node? declaration) =>
+        declaration != null && declaration.Type() != null;
 
     // nodebuilderimpl.go:128 — saveRestoreFlags (flags/internalFlags; `depth` field is part of the
     // deferred expansion state and omitted here).

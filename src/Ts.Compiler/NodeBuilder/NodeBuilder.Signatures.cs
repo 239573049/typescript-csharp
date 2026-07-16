@@ -935,6 +935,35 @@ public sealed partial class NodeBuilder
         }
         if (!(suppressAny && returnType is not null && (returnType.flags & TypeFlags.Any) != 0))
         {
+            if (!IsActivelyExpanding() && tryReuse && ctx.enclosingDeclaration != null && signature.declaration != null && !AstUtilities.NodeIsSynthesized(signature.declaration))
+            {
+                var declarationSymbol = ch.GetSymbolOfDeclaration(signature.declaration);
+                var restore = AddSymbolTypeToContext(declarationSymbol!, returnType!);
+                var pt = pc.GetReturnTypeOfSignature(signature.declaration);
+                if (PseudoTypeEquivalentToType(pt, returnType, false, !ctx.suppressReportInferenceFallback))
+                {
+                    // Also verify the pseudo type captures any inferred type predicate, not just the boolean
+                    // return type. The pseudochecker is unaware of inferred type predicates, so it produces
+                    // boolean where the checker infers e.g. `x is string`.
+                    var typePredicate = ch.GetTypePredicateOfSignature(signature);
+                    if (typePredicate != null && !PseudoReturnTypeMatchesPredicate(pt, typePredicate))
+                    {
+                        if (!ctx.suppressReportInferenceFallback)
+                        {
+                            ctx.tracker?.ReportInferenceFallback(signature.declaration);
+                        }
+                        pt = null;
+                    }
+                    if (pt != null)
+                    {
+                        // !!! TODO: If annotated type node is a reference with insufficient type arguments,
+                        // we should still fall back to type serialization
+                        // see: canReuseTypeNodeAnnotation in strada for context
+                        returnTypeNode = PseudoTypeToNodeWithCheckerFallback(pt, returnType!);
+                    }
+                }
+                restore();
+            }
             if (returnTypeNode is null)
             {
                 returnTypeNode = SerializeInferredReturnTypeForSignature(signature, returnType!);

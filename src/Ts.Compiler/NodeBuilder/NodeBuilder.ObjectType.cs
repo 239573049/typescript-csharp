@@ -1333,9 +1333,7 @@ public sealed partial class NodeBuilder
                     name = propertyName,
                     questionToken = optionalToken,
                 });
-                // PORT-NOTE (deferred): setCommentRange(methodDeclaration, signature.declaration ??
-                // propertySymbol.ValueDeclaration) copies JSDoc/comment ranges for .d.ts emit; the
-                // assignability messages strip comments, so it is a no-op here.
+                SetCommentRange(methodDeclaration, signature.declaration ?? propertySymbol.ValueDeclaration);
                 typeElements.Add(methodDeclaration);
             }
             if (signatures.Length != 0 || optionalToken is null)
@@ -1376,8 +1374,7 @@ public sealed partial class NodeBuilder
         }
         var propertySignature = f.NewPropertySignatureDeclaration(modifiers, propertyName, optionalToken, propertyTypeNode, null);
 
-        // PORT-NOTE (deferred): setCommentRange(propertySignature, propertySymbol.ValueDeclaration) copies
-        // JSDoc/comment ranges for .d.ts emit; the assignability messages strip comments, so it is a no-op here.
+        SetCommentRange(propertySignature, propertySymbol.ValueDeclaration);
         typeElements.Add(propertySignature);
     }
 

@@ -58,6 +58,31 @@ public static partial class AstUtilities
         return (ModuleKind.CommonJS, true);
     }
 
+    // ast/utilities.go:4081 — HasInferredType.
+    public static bool HasInferredType(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.Parameter:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.PropertyAccessExpression:
+            case SyntaxKind.ElementAccessExpression:
+            case SyntaxKind.BinaryExpression:
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.ExportAssignment:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.ShorthandPropertyAssignment:
+            case SyntaxKind.JSDocParameterTag:
+            case SyntaxKind.JSDocPropertyTag:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     // ast.go:1829 — IsTypeOrJSTypeAliasDeclaration.
     public static bool IsTypeOrJSTypeAliasDeclaration(Node node) =>
         node.Kind == SyntaxKind.TypeAliasDeclaration || node.Kind == SyntaxKind.JSTypeAliasDeclaration;
