@@ -6,20 +6,8 @@
 #   TSCS_CONFORMANCE_TYPES=1 TSCS_CONFORMANCE_UPDATE_TYPES=1 \
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
 ModuleWithExportedAndNonExportedEnums
-checkJsxChildrenProperty11
 conditionalTypes1
-contextuallyTypedStringLiteralsInJsxAttributes01
 parserRealSource8
 parserharness
 scannerS7.6_A4.2_T1
 templateLiteralTypes4
-tsxAttributeResolution1
-tsxAttributeResolution4
-tsxElementResolution12
-tsxElementResolution5
-tsxElementResolution9
-tsxFragmentErrors
-tsxIntrinsicAttributeErrors
-tsxParseTests2
-tsxReactEmit4
-typeAliasesDoNotMerge

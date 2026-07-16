@@ -131,7 +131,7 @@ public sealed partial class NodeBuilder
             {
                 return f.NewArrayTypeNode(aliasTypeArgumentNodes.Nodes[0]);
             }
-            return SymbolToTypeReferenceNodeLocal(aliasSym, aliasTypeArgumentNodes);
+            return SymbolToTypeNode(aliasSym, SymbolFlags.Type, aliasTypeArgumentNodes)!;
         }
 
         var objectFlags = t.objectFlags;
@@ -183,7 +183,7 @@ public sealed partial class NodeBuilder
             // Ignore constraint/default when creating a usage (as opposed to declaration) of a type parameter.
             if (t.symbol is not null)
             {
-                return SymbolToTypeReferenceNodeLocal(t.symbol, null /*typeArguments*/);
+                return SymbolToTypeNode(t.symbol, SymbolFlags.Type, null /*typeArguments*/)!;
             }
             string name;
             if ((t == ch.markerSuperTypeForCheck || t == ch.markerSubTypeForCheck)
@@ -271,13 +271,10 @@ public sealed partial class NodeBuilder
             return f.NewTemplateLiteralTypeNode(templateHead, templateSpans);
         }
         // nodebuilderimpl.go:3466 — string mapping (Uppercase/Lowercase/…) type.
-        // PORT-NOTE: Go uses the full symbolToTypeNode; for the intrinsic string-mapping alias symbol the
-        // reduced SymbolToTypeReferenceNodeLocal renders the same `Name<Arg>`, matching the reference-arm
-        // fallback already used in this file. The full symbol-chain / import-type path lands with that wave.
         if ((t.flags & TypeFlags.StringMapping) != 0)
         {
             var typeNode = TypeToTypeNodeCore(t.Target());
-            return SymbolToTypeReferenceNodeLocal(t.symbol!, f.NewNodeList([typeNode]));
+            return SymbolToTypeNode(t.symbol!, SymbolFlags.Type, f.NewNodeList([typeNode]))!;
         }
         // nodebuilderimpl.go:3470 — indexed access (T[K]) type.
         if ((t.flags & TypeFlags.IndexedAccess) != 0)
@@ -298,7 +295,7 @@ public sealed partial class NodeBuilder
             var noInferSymbol = ch.GetGlobalTypeAliasSymbol("NoInfer", 1, false);
             if (noInferSymbol != null)
             {
-                return SymbolToTypeReferenceNodeLocal(noInferSymbol, f.NewNodeList([typeNode]));
+                return SymbolToTypeNode(noInferSymbol, SymbolFlags.Type, f.NewNodeList([typeNode]))!;
             }
             return typeNode;
         }
