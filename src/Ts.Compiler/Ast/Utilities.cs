@@ -1042,6 +1042,73 @@ public static partial class AstUtilities
         return (IsPropertyDeclaration(node) || IsMethodOrAccessor(node)) && IsPrivateIdentifier(node.Name()!);
     }
 
+    // ast/utilities.go:2182-2238 — GetMeaningFromDeclaration.
+    public static SemanticMeaning GetMeaningFromDeclaration(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.VariableDeclaration:
+                return SemanticMeaning.Value;
+            case SyntaxKind.Parameter:
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.ShorthandPropertyAssignment:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.MethodSignature:
+            case SyntaxKind.Constructor:
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.CatchClause:
+            case SyntaxKind.JsxAttribute:
+                return SemanticMeaning.Value;
+
+            case SyntaxKind.TypeParameter:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.TypeLiteral:
+                return SemanticMeaning.Type;
+            case SyntaxKind.EnumMember:
+            case SyntaxKind.ClassDeclaration:
+                return SemanticMeaning.Value | SemanticMeaning.Type;
+
+            case SyntaxKind.ModuleDeclaration:
+                if (IsAmbientModule(node))
+                {
+                    return SemanticMeaning.Namespace | SemanticMeaning.Value;
+                }
+                else if (GetModuleInstanceState(node) == ModuleInstanceState.Instantiated)
+                {
+                    return SemanticMeaning.Namespace | SemanticMeaning.Value;
+                }
+                else
+                {
+                    return SemanticMeaning.Namespace;
+                }
+
+            case SyntaxKind.EnumDeclaration:
+            case SyntaxKind.NamedImports:
+            case SyntaxKind.ImportSpecifier:
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            case SyntaxKind.ExportAssignment:
+            case SyntaxKind.ExportDeclaration:
+                return SemanticMeaning.All;
+
+            // An external module can be a Value
+            case SyntaxKind.SourceFile:
+                return SemanticMeaning.Namespace | SemanticMeaning.Value;
+        }
+
+        return SemanticMeaning.All;
+    }
+
     // ast/utilities.go:3730 — CompareNodePositions.
     public static int CompareNodePositions(Node n1, Node n2) =>
         TextRange.CompareTextRanges(n1.Loc, n2.Loc);
@@ -2328,4 +2395,15 @@ public enum FindAncestorResult
     False, // FindAncestorFalse
     True, // FindAncestorTrue
     Quit, // FindAncestorQuit
+}
+
+// ast/utilities.go:2172-2180
+[Flags]
+public enum SemanticMeaning
+{
+    None = 0,
+    Value = 1 << 0,
+    Type = 1 << 1,
+    Namespace = 1 << 2,
+    All = Value | Type | Namespace,
 }

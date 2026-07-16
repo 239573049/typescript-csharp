@@ -488,7 +488,7 @@ public static partial class TypeSymbolBaseline
                     node.Type() is { } reparsedType &&
                     (reparsedType.Flags & global::Ts.Ast.NodeFlags.Reparsed) != 0) ||
                 (global::Ts.Ast.NodeTests.IsIdentifier(node) &&
-                    !DeclarationHasValueMeaning(parent) &&
+                    (global::Ts.Ast.AstUtilities.GetMeaningFromDeclaration(parent) & global::Ts.Ast.SemanticMeaning.Value) == 0 &&
                     !(IsTypeOrJsTypeAliasDeclaration(parent) && parent.Name() == node)))
             {
                 return null;
@@ -759,19 +759,6 @@ public static partial class TypeSymbolBaseline
             global::Ts.Ast.AstUtilities.IsDeclaration(parent) &&
             parent.Name() == node;
     }
-
-    private static bool DeclarationHasValueMeaning(global::Ts.Ast.Node declaration) =>
-        declaration.Kind switch
-        {
-            global::Ts.Ast.SyntaxKind.TypeParameter or
-            global::Ts.Ast.SyntaxKind.InterfaceDeclaration or
-            global::Ts.Ast.SyntaxKind.TypeAliasDeclaration or
-            global::Ts.Ast.SyntaxKind.JSTypeAliasDeclaration or
-            global::Ts.Ast.SyntaxKind.TypeLiteral => false,
-            global::Ts.Ast.SyntaxKind.ModuleDeclaration =>
-                global::Ts.Ast.AstUtilities.IsAmbientModule(declaration),
-            _ => true,
-        };
 
     private static bool IsTypeOrJsTypeAliasDeclaration(global::Ts.Ast.Node node) =>
         node.Kind == global::Ts.Ast.SyntaxKind.TypeAliasDeclaration ||
