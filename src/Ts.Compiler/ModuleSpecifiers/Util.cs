@@ -4,6 +4,8 @@
 // deferred to the next porting batch; getSpecifierForModuleSymbol's core path does not require them.
 
 using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 using Ts.Core;
 using Ts.TsPath;
@@ -14,6 +16,92 @@ namespace Ts.ModuleSpecifiers;
 
 public static partial class ModuleSpecifierUtil
 {
+    // util.go:23 — regexPatternCache (+ its RWMutex). PORT-NOTE: Go compiles RE2 via regexp; .NET has
+    // no RE2 engine, so user exclude-patterns compile through System.Text.RegularExpressions (backtracking,
+    // CultureInvariant to honor InvariantGlobalization). Only reached for forAutoImports auto-import
+    // filtering, which getSpecifierForModuleSymbol never triggers.
+    private static readonly object s_regexCacheLock = new();
+    private static readonly Dictionary<(string Pattern, bool CaseInsensitive), Regex?> s_regexCache = new();
+
+    // util.go:46 — IsExcludedByRegex.
+    internal static bool IsExcludedByRegex(string moduleSpecifier, string[]? excludes)
+    {
+        foreach (string pattern in excludes ?? [])
+        {
+            Regex? re = StringToRegex(pattern);
+            if (re == null)
+            {
+                continue;
+            }
+            if (re.IsMatch(moduleSpecifier))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // util.go:59 — stringToRegex.
+    private static Regex? StringToRegex(string pattern)
+    {
+        bool caseInsensitive = false;
+
+        if (pattern.Length > 2 && pattern[0] == '/')
+        {
+            int lastSlash = pattern.LastIndexOf('/');
+            if (lastSlash > 0)
+            {
+                bool hasUnescapedMiddleSlash = false;
+                for (int i = 1; i < lastSlash; i++)
+                {
+                    if (pattern[i] == '/' && (i == 0 || pattern[i - 1] != '\\'))
+                    {
+                        hasUnescapedMiddleSlash = true;
+                        break;
+                    }
+                }
+
+                if (!hasUnescapedMiddleSlash)
+                {
+                    string flags = pattern[(lastSlash + 1)..];
+                    pattern = pattern[1..lastSlash];
+                    foreach (char flag in flags)
+                    {
+                        if (flag == 'i')
+                        {
+                            caseInsensitive = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        var key = (pattern, caseInsensitive);
+        lock (s_regexCacheLock)
+        {
+            if (s_regexCache.TryGetValue(key, out Regex? cached))
+            {
+                return cached;
+            }
+            if (s_regexCache.Count > 1000)
+            {
+                s_regexCache.Clear();
+            }
+            Regex? compiled;
+            try
+            {
+                var options = RegexOptions.CultureInvariant | (caseInsensitive ? RegexOptions.IgnoreCase : RegexOptions.None);
+                compiled = new Regex(pattern, options);
+            }
+            catch (ArgumentException)
+            {
+                compiled = null;
+            }
+            s_regexCache[key] = compiled;
+            return compiled;
+        }
+    }
+
     // util.go:29 — comparePathsByRedirect.
     internal static int ComparePathsByRedirect(ModulePath a, ModulePath b, bool useCaseSensitiveFileNames)
     {
