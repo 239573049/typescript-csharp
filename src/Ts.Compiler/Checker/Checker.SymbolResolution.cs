@@ -545,11 +545,45 @@ public partial class Checker
                     }
                     if (moduleKind == ModuleKind.Node16 || moduleKind == ModuleKind.Node18)
                     {
-                        // !!! checker.go:15252-15290 — Node16/Node18 sync-import-of-ESM interop errors
-                        // (require-of-ESM rejection, resolution-mode attribute suggestions). Needs
-                        // ast.IsResolutionModeOverrideHost / ast.HasResolutionModeOverride +
-                        // createModeMismatchDetails (checker.go:15442).
-                        throw new NotImplementedException("resolveExternalModule:node16InteropErrors");
+                        // checker.go:15243 — Node16/Node18 sync-import-of-ESM interop errors.
+                        bool isSyncImport =
+                            (program.GetDefaultResolutionModeForFile(SourceFileAsHasFileName(importingSourceFile!)) == ModuleKind.CommonJS && AstUtilities.FindAncestor(location, AstUtilities.IsImportCall) == null) ||
+                            AstUtilities.FindAncestor(location, NodeTests.IsImportEqualsDeclaration) != null;
+                        Node? overrideHost = AstUtilities.FindAncestor(location, AstUtilities.IsResolutionModeOverrideHost);
+                        if (isSyncImport && program.GetDefaultResolutionModeForFile(SourceFileAsHasFileName(sourceFile)) == ModuleKind.ESNext && !AstUtilities.HasResolutionModeOverride(overrideHost))
+                        {
+                            if (AstUtilities.FindAncestorKind(location, SyntaxKind.ImportEqualsDeclaration) != null)
+                            {
+                                // ImportEquals in an ESM file resolving to another ESM file.
+                                Error(errorNode, global::Ts.Diagnostics.Diagnostics.Module_0_cannot_be_imported_using_this_construct_The_specifier_only_resolves_to_an_ES_module_which_cannot_be_imported_with_require_Use_an_ECMAScript_import_instead, moduleReference);
+                            }
+                            else
+                            {
+                                // CJS file resolving to an ESM file.
+                                Diagnostic? diagnosticDetails = null;
+                                string ext = global::Ts.TsPath.TsPath.TryGetExtensionFromPath(importingSourceFile!.FileName());
+                                if (ext == global::Ts.TsPath.TsPath.ExtensionTs || ext == global::Ts.TsPath.TsPath.ExtensionJs || ext == global::Ts.TsPath.TsPath.ExtensionTsx || ext == global::Ts.TsPath.TsPath.ExtensionJsx)
+                                {
+                                    diagnosticDetails = CreateModeMismatchDetails(importingSourceFile, errorNode);
+                                }
+
+                                global::Ts.Diagnostics.Message message;
+                                if (overrideHost != null && overrideHost.Kind == SyntaxKind.ImportDeclaration && overrideHost.ImportClause() != null && overrideHost.ImportClause()!.IsTypeOnly())
+                                {
+                                    message = global::Ts.Diagnostics.Diagnostics.Type_only_import_of_an_ECMAScript_module_from_a_CommonJS_module_must_have_a_resolution_mode_attribute;
+                                }
+                                else if (overrideHost != null && overrideHost.Kind == SyntaxKind.ImportType)
+                                {
+                                    message = global::Ts.Diagnostics.Diagnostics.Type_import_of_an_ECMAScript_module_from_a_CommonJS_module_must_have_a_resolution_mode_attribute;
+                                }
+                                else
+                                {
+                                    message = global::Ts.Diagnostics.Diagnostics.The_current_file_is_a_CommonJS_module_whose_imports_will_produce_require_calls_however_the_referenced_file_is_an_ECMAScript_module_and_cannot_be_imported_with_require_Consider_writing_a_dynamic_import_0_call_instead;
+                                }
+
+                                AddDiagnostic(NewDiagnosticChainForNode(diagnosticDetails, errorNode, message, moduleReference));
+                            }
+                        }
                     }
                 }
                 return GetMergedSymbol(sourceFile.Symbol);

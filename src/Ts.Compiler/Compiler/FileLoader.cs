@@ -997,41 +997,9 @@ internal sealed class FileLoader
     // Grammar-error reporting (the optional grammarErrorOnNode callback) is elided here, matching Go's
     // nil-callback call sites; the checker's GetResolutionModeOverride(ImportAttributes, reportErrors)
     // owns the reporting path.
-    private static (ResolutionMode, bool) ImportAttributesResolutionModeOverride(Node? node)
-    {
-        if (node is null)
-        {
-            return (global::Ts.Core.Core.ResolutionModeNone, false);
-        }
-        var attributes = node.AsImportAttributes().Attributes;
-        if (attributes is null || attributes.Nodes.Length != 1)
-        {
-            return (global::Ts.Core.Core.ResolutionModeNone, false);
-        }
-        var elem = attributes.Nodes[0];
-        if (!AstUtilities.IsStringLiteralLike(elem.Name()!))
-        {
-            return (global::Ts.Core.Core.ResolutionModeNone, false);
-        }
-        if (elem.Name()!.Text() != "resolution-mode")
-        {
-            return (global::Ts.Core.Core.ResolutionModeNone, false);
-        }
-        var value = elem.AsImportAttribute().Value!;
-        if (!AstUtilities.IsStringLiteralLike(value))
-        {
-            return (global::Ts.Core.Core.ResolutionModeNone, false);
-        }
-        if (value.Text() != "import" && value.Text() != "require")
-        {
-            return (global::Ts.Core.Core.ResolutionModeNone, false);
-        }
-        if (value.Text() == "import")
-        {
-            return (ModuleKind.ESNext, true);
-        }
-        return (ModuleKind.CommonJS, true);
-    }
+    // Delegates to the faithful ast-level home (ast.go:2215) now that AstUtilities owns it.
+    private static (ResolutionMode, bool) ImportAttributesResolutionModeOverride(Node? node) =>
+        AstUtilities.GetResolutionModeOverride(node);
 
     // fileloader.go:758-762
     private static bool ImportSyntaxAffectsModuleResolution(CompilerOptions options)
