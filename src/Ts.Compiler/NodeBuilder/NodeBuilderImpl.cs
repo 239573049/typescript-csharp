@@ -530,9 +530,9 @@ public sealed partial class NodeBuilder
 
         if (StartsWithSingleOrDoubleQuote(symbolName) && CoreUtil.Some(symbol.Declarations, HasNonGlobalAugmentationExternalModuleSymbol))
         {
-            // DEFERRED: getSpecifierForModuleSymbol (module-specifier synthesis). Reached only for module
-            // symbols, which the symbolToString error paths in this wave do not exercise.
-            throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol");
+            var specifier = GetSpecifierForModuleSymbol(symbol, global::Ts.Core.Core.ResolutionModeNone);
+            ctx!.approximateLength += 2 + specifier.Length;
+            return NewStringLiteralEx(specifier, false);
         }
 
         if (index == 0 || CanUsePropertyAccess(symbolName))
@@ -733,11 +733,39 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilderimpl.go:1243 — getSpecifierForModuleSymbol.
-    // DEFERRED: full module-specifier synthesis (modulespecifiers package). Reached only for a parent
-    // symbol that is a non-global-augmentation external module; the common qualified-name path never
-    // calls it. Kept a throwing stub so external-module-parent qualification stays deferred.
-    private string GetSpecifierForModuleSymbol(Symbol symbol, ResolutionMode overrideImportMode) =>
-        throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol");
+    private string GetSpecifierForModuleSymbol(Symbol symbol, ResolutionMode overrideImportMode)
+    {
+        Node? file = AstUtilities.GetDeclarationOfKind(symbol, SyntaxKind.SourceFile);
+        if (file == null)
+        {
+            Symbol? equivalentSymbol = CoreUtil.FirstNonNil(symbol.Declarations, d => ch.GetFileSymbolIfFileSymbolExportEqualsContainer(d, symbol));
+            if (equivalentSymbol != null)
+            {
+                file = AstUtilities.GetDeclarationOfKind(equivalentSymbol, SyntaxKind.SourceFile);
+            }
+        }
+
+        if (file == null)
+        {
+            if (AstUtilities.IsAmbientModuleSymbolName(symbol.Name))
+            {
+                return global::Ts.StringUtil.StringUtil.StripQuotes(symbol.Name);
+            }
+        }
+        if (ctx!.enclosingFile == null)
+        {
+            if (AstUtilities.IsAmbientModuleSymbolName(symbol.Name))
+            {
+                return global::Ts.StringUtil.StringUtil.StripQuotes(symbol.Name);
+            }
+            return AstUtilities.GetSourceFileOfModule(symbol)!.FileName();
+        }
+
+        // DEFERRED: full module-specifier synthesis (modulespecifiers.GetModuleSpecifiers) needs a
+        // ModuleSpecifierGenerationHost (ctx.host) wired from the program. Reached only when an enclosing
+        // file context is present; the early paths above cover the enclosing-file-less error-render path.
+        throw new NotImplementedException("nodeBuilder.getSpecifierForModuleSymbol (enclosing-file pipeline)");
+    }
 
     // nodebuilderimpl.go:430 — serializeTypeName.
     private Node? SerializeTypeName(Node node, bool isTypeOf, TypeList? typeArguments)

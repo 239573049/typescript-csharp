@@ -15,8 +15,6 @@ jsdocTemplateTag
 jsdocTemplateTag5
 mappedTypeProperties
 mixinAccessors3
-moduleExportsAliasLoop1
-moduleExportsAliasLoop2
 parserMissingLambdaOpenBrace1
 parserRealSource6
 propertyAssignmentUseParentType2

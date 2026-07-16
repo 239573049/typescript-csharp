@@ -125,6 +125,25 @@ public partial class Checker
         return GetSymbolOfDeclaration(node);
     }
 
+    // symbolaccessibility.go:261 — getFileSymbolIfFileSymbolExportEqualsContainer.
+    internal Symbol? GetFileSymbolIfFileSymbolExportEqualsContainer(Node d, Symbol container)
+    {
+        Symbol? fileSymbol = GetExternalModuleContainer(d);
+        if (fileSymbol?.Exports == null)
+        {
+            return null;
+        }
+        if (!fileSymbol.Exports.TryGetValue(InternalSymbolName.ExportEquals, out Symbol? exported) || exported == null)
+        {
+            return null;
+        }
+        if (GetSymbolIfSameReference(exported, container) != null)
+        {
+            return fileSymbol;
+        }
+        return null;
+    }
+
     // symbolaccessibility.go isPropertyOrMethodDeclarationSymbol.
     private static bool IsPropertyOrMethodDeclarationSymbol(Symbol symbol)
     {
