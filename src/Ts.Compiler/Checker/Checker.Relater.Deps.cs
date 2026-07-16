@@ -10,6 +10,7 @@ using System;
 using Ts.Ast;
 using Ts.Core;
 using Message = global::Ts.Diagnostics.Message;
+using Diag = global::Ts.Diagnostics.Diagnostics;
 
 namespace Ts.Checker;
 
@@ -19,7 +20,84 @@ public partial class Checker
     // signatureToString / signatureToStringEx: real bodies in Checker.SymbolToString.cs (printer.go:309).
     // typePredicateToString / typePredicateToStringEx: real bodies in Checker.SymbolToString.cs.
     internal string ValueToString(object? value) => throw new NotImplementedException("valueToString");
-    internal void ReportNonExportedMember(Node name, string declarationName, Symbol moduleSymbol, string moduleName) => throw new NotImplementedException("reportNonExportedMember");
+    // checker.go:14835 — reportNonExportedMember.
+    internal void ReportNonExportedMember(Node name, string declarationName, Symbol moduleSymbol, string moduleName)
+    {
+        Symbol? localSymbol = null;
+        SymbolTable? locals = moduleSymbol.ValueDeclaration!.Locals();
+        if (locals != null)
+        {
+            locals.TryGetValue(name.Text(), out localSymbol);
+        }
+        SymbolTable? exports = moduleSymbol.Exports;
+        if (localSymbol != null)
+        {
+            Symbol? exportedEqualsSymbol = null;
+            exports?.TryGetValue(InternalSymbolName.ExportEquals, out exportedEqualsSymbol);
+            if (exportedEqualsSymbol != null)
+            {
+                if (GetSymbolIfSameReference(exportedEqualsSymbol, localSymbol) != null)
+                {
+                    ReportInvalidImportEqualsExportMember(name, declarationName, moduleName);
+                }
+                else
+                {
+                    Error(name, Diag.Module_0_has_no_exported_member_1, moduleName, declarationName);
+                }
+            }
+            else
+            {
+                Symbol? exportedSymbol = null;
+                if (exports != null)
+                {
+                    // map-iter: 序无关 (at most one export aliases the same symbol reference as localSymbol)
+                    foreach (var kv in exports)
+                    {
+                        if (GetSymbolIfSameReference(kv.Value, localSymbol) != null)
+                        {
+                            exportedSymbol = kv.Value;
+                            break;
+                        }
+                    }
+                }
+                Diagnostic diagnostic;
+                if (exportedSymbol != null)
+                {
+                    diagnostic = Error(name, Diag.Module_0_declares_1_locally_but_it_is_exported_as_2, moduleName, declarationName, SymbolToString(exportedSymbol));
+                }
+                else
+                {
+                    diagnostic = Error(name, Diag.Module_0_declares_1_locally_but_it_is_not_exported, moduleName, declarationName);
+                }
+                Node[] declarations = localSymbol.Declarations ?? [];
+                for (int i = 0; i < declarations.Length; i++)
+                {
+                    diagnostic.AddRelatedInfo(CreateDiagnosticForNode(declarations[i], i == 0 ? Diag.X_0_is_declared_here : Diag.X_and_here, declarationName));
+                }
+            }
+        }
+        else
+        {
+            Error(name, Diag.Module_0_has_no_exported_member_1, moduleName, declarationName);
+        }
+    }
+
+    // checker.go:14866 — reportInvalidImportEqualsExportMember.
+    internal void ReportInvalidImportEqualsExportMember(Node name, string declarationName, string moduleName)
+    {
+        if (moduleKind >= ModuleKind.ES2015)
+        {
+            Error(name, Diag.X_0_can_only_be_imported_by_using_a_default_import, declarationName);
+        }
+        else if (AstUtilities.IsInJSFile(name))
+        {
+            Error(name, Diag.X_0_can_only_be_imported_by_using_a_require_call_or_by_using_a_default_import, declarationName);
+        }
+        else
+        {
+            Error(name, Diag.X_0_can_only_be_imported_by_using_import_1_require_2_or_a_default_import, declarationName, declarationName, moduleName);
+        }
+    }
 
     // ---- union / property helpers (checker.go / members) ----
     // checker.go:27669-27681
