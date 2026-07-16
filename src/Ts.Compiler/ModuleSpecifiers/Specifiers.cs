@@ -266,6 +266,131 @@ public static partial class Specifiers
         };
     }
 
+    // specifiers.go:636 — processEnding.
+    internal static string ProcessEnding(string fileName, ModuleSpecifierEnding[] allowedEndings, CompilerOptions options, ModuleSpecifierGenerationHost? host)
+    {
+        if (TsPathApi.FileExtensionIsOneOf(fileName, [TsPathApi.ExtensionJson, TsPathApi.ExtensionMjs, TsPathApi.ExtensionCjs]))
+        {
+            return fileName;
+        }
+
+        string noExtension = TsPathApi.RemoveFileExtension(fileName);
+        if (fileName == noExtension)
+        {
+            return fileName;
+        }
+
+        int jsPriority = Array.IndexOf(allowedEndings, ModuleSpecifierEnding.JsExtension);
+        int tsPriority = Array.IndexOf(allowedEndings, ModuleSpecifierEnding.TsExtension);
+        if (TsPathApi.FileExtensionIsOneOf(fileName, [TsPathApi.ExtensionMts, TsPathApi.ExtensionCts]) && tsPriority != -1 && tsPriority < jsPriority)
+        {
+            return fileName;
+        }
+        if (TsPathApi.FileExtensionIsOneOf(fileName, [TsPathApi.ExtensionDmts, TsPathApi.ExtensionDcts]))
+        {
+            string inputExt = TsPathApi.GetDeclarationFileExtension(fileName);
+            string ext = ModuleSpecifierUtil.GetJSExtensionForDeclarationFileExtension(inputExt);
+            return TsPathApi.RemoveExtension(fileName, inputExt) + ext;
+        }
+        if (TsPathApi.FileExtensionIsOneOf(fileName, [TsPathApi.ExtensionMts, TsPathApi.ExtensionCts]))
+        {
+            return noExtension + ModuleSpecifierUtil.GetJSExtensionForFile(fileName, options);
+        }
+        if (!TsPathApi.FileExtensionIsOneOf(fileName, [TsPathApi.ExtensionDts]) && TsPathApi.FileExtensionIsOneOf(fileName, [TsPathApi.ExtensionTs]) && fileName.Contains(".d.", StringComparison.Ordinal))
+        {
+            // `foo.d.json.ts` and the like - remap back to `foo.json`
+            string result = ModuleSpecifierUtil.TryGetRealFileNameForNonJSDeclarationFileName(fileName);
+            if (result != "")
+            {
+                return result;
+            }
+        }
+
+        switch (allowedEndings[0])
+        {
+            case ModuleSpecifierEnding.Minimal:
+            {
+                string withoutIndex = noExtension.EndsWith("/index", StringComparison.Ordinal) ? noExtension[..^"/index".Length] : noExtension;
+                if (host != null && withoutIndex != noExtension && ModuleSpecifierUtil.TryGetAnyFileFromPath(host, withoutIndex))
+                {
+                    // Can't remove index if there's a file by the same name as the directory.
+                    return noExtension;
+                }
+                return withoutIndex;
+            }
+            case ModuleSpecifierEnding.Index:
+                return noExtension;
+            case ModuleSpecifierEnding.JsExtension:
+                return noExtension + ModuleSpecifierUtil.GetJSExtensionForFile(fileName, options);
+            case ModuleSpecifierEnding.TsExtension:
+                // For now we don't know if this import is type-only, so use no extension or a .js extension.
+                if (TsPathApi.IsDeclarationFileName(fileName))
+                {
+                    int extensionlessPriority = -1;
+                    for (int i = 0; i < allowedEndings.Length; i++)
+                    {
+                        if (allowedEndings[i] == ModuleSpecifierEnding.Minimal || allowedEndings[i] == ModuleSpecifierEnding.Index)
+                        {
+                            extensionlessPriority = i;
+                            break;
+                        }
+                    }
+                    if (extensionlessPriority != -1 && extensionlessPriority < jsPriority)
+                    {
+                        return noExtension;
+                    }
+                    return noExtension + ModuleSpecifierUtil.GetJSExtensionForFile(fileName, options);
+                }
+                return fileName;
+            default:
+                global::Ts.Core.Debug.AssertNever(allowedEndings[0]);
+                return "";
+        }
+    }
+
+    // specifiers.go:707 — tryGetModuleNameFromRootDirs.
+    internal static string TryGetModuleNameFromRootDirs(
+        string[]? rootDirs,
+        string moduleFileName,
+        string sourceDirectory,
+        ModuleSpecifierEnding[] allowedEndings,
+        CompilerOptions compilerOptions,
+        ModuleSpecifierGenerationHost host)
+    {
+        string[]? normalizedTargetPaths = ModuleSpecifierUtil.GetPathsRelativeToRootDirs(moduleFileName, rootDirs, host.UseCaseSensitiveFileNames());
+        if (normalizedTargetPaths == null || normalizedTargetPaths.Length == 0)
+        {
+            return "";
+        }
+
+        string[]? normalizedSourcePaths = ModuleSpecifierUtil.GetPathsRelativeToRootDirs(sourceDirectory, rootDirs, host.UseCaseSensitiveFileNames());
+        string shortest = "";
+        int shortestSepCount = 0;
+        foreach (string sourcePath in normalizedSourcePaths ?? [])
+        {
+            foreach (string targetPath in normalizedTargetPaths)
+            {
+                string candidate = ModuleSpecifierUtil.EnsurePathIsNonModuleName(TsPathApi.GetRelativePathFromDirectory(sourcePath, targetPath, new ComparePathsOptions
+                {
+                    UseCaseSensitiveFileNames = host.UseCaseSensitiveFileNames(),
+                    CurrentDirectory = host.GetCurrentDirectory(),
+                }));
+                int candidateSepCount = candidate.Count(ch => ch == '/');
+                if (shortest.Length == 0 || candidateSepCount < shortestSepCount)
+                {
+                    shortest = candidate;
+                    shortestSepCount = candidateSepCount;
+                }
+            }
+        }
+
+        if (shortest.Length == 0)
+        {
+            return "";
+        }
+        return ProcessEnding(shortest, allowedEndings, compilerOptions, host);
+    }
+
     // specifiers.go:247 — containsIgnoredPath. Local helper duplicating tspath.ContainsIgnoredPath for
     // performance.
     internal static bool ContainsIgnoredPath(string s) =>
