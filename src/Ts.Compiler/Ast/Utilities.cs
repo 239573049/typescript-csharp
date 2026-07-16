@@ -1042,6 +1042,13 @@ public static partial class AstUtilities
         return (IsPropertyDeclaration(node) || IsMethodOrAccessor(node)) && IsPrivateIdentifier(node.Name()!);
     }
 
+    // ast/utilities.go:4528 — IsSuperProperty checks if a node is super.x or super[x].
+    public static bool IsSuperProperty(Node node)
+    {
+        return (IsPropertyAccessExpression(node) || IsElementAccessExpression(node)) &&
+            node.Expression()!.Kind == SyntaxKind.SuperKeyword;
+    }
+
     // utilities.go:566-570
     public static bool IsObjectLiteralOrClassExpressionMethodOrAccessor(Node node)
     {

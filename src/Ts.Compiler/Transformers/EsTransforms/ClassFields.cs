@@ -258,9 +258,17 @@ internal sealed class ClassFieldsTransformer : Transformer
         return null;
     }
 
-    // classfields.go:1001-1009 — shouldTransformAutoAccessorsInCurrentClass. BATCH-1 form: carries the
-    // configuration flag; the EmitFlags.TransformPrivateStaticElements refinement lands in batch 3.
-    private bool ShouldTransformAutoAccessorsInCurrentClass() => shouldTransformAutoAccessors;
+    // classfields.go:1001-1009 — shouldTransformAutoAccessorsInCurrentClass. When targeting ESNext with
+    // useDefineForClassFields: false, auto-accessors are only transformed if the current class will hoist
+    // initializers to the constructor.
+    private bool ShouldTransformAutoAccessorsInCurrentClass()
+    {
+        if (shouldTransformAutoAccessors)
+        {
+            return true;
+        }
+        return lexicalEnvironment is { data: { } data } && (data.facts & ClassFacts.WillHoistInitializersToConstructor) != 0;
+    }
 
     // classfields.go:248-253 — pushNode.
     private Node? PushNode(Node node)
@@ -670,14 +678,545 @@ internal sealed class ClassFieldsTransformer : Transformer
         NodeTests.IsClassStaticBlockDeclaration(node) ||
         (NodeTests.IsPropertyDeclaration(node) && AstUtilities.HasStaticModifier(node));
 
-    // Placeholder sub-visitor bodies (batches 2-5 replace these; the batch-1 dispatch never invokes them).
-    private Node? VisitDiscardedValue(Node node) => node;
-    private Node? VisitHeritageClause(Node node) => node;
-    private Node? VisitAssignmentTarget(Node node) => node;
-    private Node? VisitClassElement(Node node) => node;
-    private Node? VisitAccessorFieldResult(Node node) => node;
+    // ── Batch 2: skeleton visitors (classfields.go:220-833) ────────────────────────────────────────
+
+    // classfields.go:220 — visitSourceFile.
+    private Node VisitSourceFile(SourceFile node)
+    {
+        if (node.IsDeclarationFile)
+        {
+            return node.AsNode();
+        }
+        lexicalEnvironment = null;
+        shouldTransformPrivateStaticElementsInFile = (EmitContext().EmitFlags(node.AsNode()) & global::Ts.Printer.EmitFlags.TransformPrivateStaticElements) != 0;
+        classAliases = new Dictionary<Node, IdentifierNode>();
+        global::Ts.Collections.SetExtensions.Clear(enclosingClassDeclarations);
+        var visited = Visitor().VisitEachChild(node.AsNode())!;
+        EmitContext().AddEmitHelper(visited, EmitContext().ReadEmitHelpers());
+        classAliases = null;
+        global::Ts.Collections.SetExtensions.Clear(enclosingClassDeclarations);
+        return visited;
+    }
+
+    // classfields.go:265 — visitForSubstitution: class-alias substitution in subtrees without class-field
+    // or lexical this/super transforms; skips PropertyAccessExpression names (Strada's onSubstituteNode
+    // only fires for EmitHint.Expression).
+    private Node? VisitForSubstitution(Node node)
+    {
+        if (node.Kind == SyntaxKind.Identifier)
+        {
+            return VisitIdentifier(node);
+        }
+        if (node.Kind == SyntaxKind.PropertyAccessExpression && NodeTests.IsIdentifier(node.AsPropertyAccessExpression().Name()!))
+        {
+            return VisitPropertyAccessExpressionForSubstitution(node);
+        }
+        return substitutionVisitor.VisitEachChild(node);
+    }
+
+    // classfields.go:343 — visitDiscardedValue.
+    private Node? VisitDiscardedValue(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.PrefixUnaryExpression:
+            case SyntaxKind.PostfixUnaryExpression:
+                return VisitPreOrPostfixUnaryExpression(node, true /*discarded*/);
+            case SyntaxKind.BinaryExpression:
+                return VisitBinaryExpression(node, true /*discarded*/);
+            case SyntaxKind.ParenthesizedExpression:
+                return VisitParenthesizedExpression(node, true /*discarded*/);
+            default:
+                return Visit(node);
+        }
+    }
+
+    // classfields.go:357 — visitHeritageClause.
+    private Node? VisitHeritageClause(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.HeritageClause:
+                return heritageClauseVisitor.VisitEachChild(node);
+            case SyntaxKind.ExpressionWithTypeArguments:
+                return VisitExpressionWithTypeArgumentsInHeritageClause(node);
+            default:
+                return Visit(node);
+        }
+    }
+
+    // classfields.go:369 — visitAssignmentTarget.
+    private Node? VisitAssignmentTarget(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ObjectLiteralExpression:
+            case SyntaxKind.ArrayLiteralExpression:
+                return VisitAssignmentPattern(node);
+            default:
+                return Visit(node);
+        }
+    }
+
+    // classfields.go:378 — visitDestructuringAssignmentTarget.
+    private Node? VisitDestructuringAssignmentTarget(Node node)
+    {
+        if (NodeTests.IsObjectLiteralExpression(node) || NodeTests.IsArrayLiteralExpression(node))
+        {
+            return VisitAssignmentPattern(node);
+        }
+        if (NodeTests.IsPropertyAccessExpression(node) && NodeTests.IsPrivateIdentifier(node.AsPropertyAccessExpression().Name()!))
+        {
+            return WrapPrivateIdentifierForDestructuringTarget(node);
+        }
+        if (shouldTransformSuperInStaticInitializers && currentClassElement != null &&
+            AstUtilities.IsSuperProperty(node) &&
+            IsStaticPropertyDeclarationOrClassStaticBlock(currentClassElement) &&
+            lexicalEnvironment is { data: { } data })
+        {
+            if ((data.facts & ClassFacts.ClassWasDecorated) != 0)
+            {
+                return VisitInvalidSuperProperty(node);
+            }
+            if (data.classConstructor != null && data.superClassReference != null)
+            {
+                Node? name = null;
+                if (NodeTests.IsElementAccessExpression(node))
+                {
+                    name = Visitor().VisitNode(node.AsElementAccessExpression().ArgumentExpression);
+                }
+                else if (NodeTests.IsPropertyAccessExpression(node) && NodeTests.IsIdentifier(node.AsPropertyAccessExpression().Name()!))
+                {
+                    name = Factory().NewStringLiteralFromNode(node.AsPropertyAccessExpression().Name()!);
+                }
+                if (name != null)
+                {
+                    var temp = Factory().NewTempVariable();
+                    var setExpr = Factory().NewReflectSetCall(
+                        data.superClassReference,
+                        name,
+                        temp,
+                        data.classConstructor);
+                    return Factory().NewAssignmentTargetWrapper(temp, setExpr);
+                }
+            }
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:416 — visitClassElement.
+    private Node? VisitClassElement(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.Constructor:
+                return SetCurrentClassElementAnd(node, static (tx, n) => tx.VisitConstructorDeclaration(n), node);
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.MethodDeclaration:
+                return SetCurrentClassElementAnd(node, static (tx, n) => tx.VisitMethodOrAccessorDeclaration(n), node);
+            case SyntaxKind.PropertyDeclaration:
+                return SetCurrentClassElementAnd(node, static (tx, n) => tx.VisitPropertyDeclaration(n), node);
+            case SyntaxKind.ClassStaticBlockDeclaration:
+                return SetCurrentClassElementAnd(node, static (tx, n) => tx.VisitClassStaticBlockDeclaration(n), node);
+            case SyntaxKind.ComputedPropertyName:
+                return VisitComputedPropertyName(node);
+            case SyntaxKind.SemicolonClassElement:
+                return node;
+            default:
+                if (AstUtilities.IsModifierLike(node))
+                {
+                    return VisitModifier(node);
+                }
+                return Visit(node);
+        }
+    }
+
+    // classfields.go:439 — visitPropertyName.
+    private Node? VisitPropertyName(Node name)
+    {
+        if (NodeTests.IsComputedPropertyName(name))
+        {
+            return VisitComputedPropertyName(name);
+        }
+        return Visitor().VisitNode(name);
+    }
+
+    // classfields.go:447 — visitAccessorFieldResult: visits the results of an auto-accessor field
+    // transformation in a second pass.
+    private Node? VisitAccessorFieldResult(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.PropertyDeclaration:
+                return TransformFieldInitializer(node);
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+                return VisitClassElement(node);
+            default:
+                Debug.Fail("Expected node to either be a PropertyDeclaration, GetAccessorDeclaration, or SetAccessorDeclaration");
+                return null;
+        }
+    }
+
+    // classfields.go:462 — visitIdentifier. Replaces Strada's onSubstituteNode/trySubstituteClassAlias:
+    // resolve the identifier to its declaration and check for a registered alias.
+    private Node VisitIdentifier(Node node)
+    {
+        var declaration = resolver?.GetReferencedValueDeclaration(EmitContext().MostOriginal(node)!);
+        if (declaration != null && classAliases != null &&
+            classAliases.TryGetValue(declaration, out var alias) && global::Ts.Collections.SetExtensions.Has(enclosingClassDeclarations, declaration))
+        {
+            var clone = alias.Clone(Factory())!;
+            EmitContext().SetSourceMapRange(clone, node.Loc);
+            EmitContext().SetCommentRange(clone, node.Loc);
+            return clone;
+        }
+        return node;
+    }
+
+    // classfields.go:479 — visitPrivateIdentifier: an undeclared private name is replaced with an empty
+    // identifier to indicate a problem with the code. Private identifiers in statement position (e.g.
+    // `#;`) are intercepted earlier by visitExpressionStatement.
+    private Node VisitPrivateIdentifier(Node node)
+    {
+        if (!shouldTransformPrivateElementsOrClassStaticBlocks)
+        {
+            return node;
+        }
+        if (parentNode != null && AstUtilities.IsStatement(parentNode))
+        {
+            return node;
+        }
+        var result = Factory().NewIdentifier("");
+        EmitContext().SetOriginal(result, node);
+        return result;
+    }
+
+    // classfields.go:492 — transformPrivateIdentifierInInExpression: visits `#id in expr`.
+    private Node TransformPrivateIdentifierInInExpression(Node node)
+    {
+        var bin = node.AsBinaryExpression();
+        var info = AccessPrivateIdentifier(bin.Left!);
+        if (info != null)
+        {
+            var receiver = Visitor().VisitNode(bin.Right!);
+            var result = Factory().NewClassPrivateFieldInHelper(info.brandCheckIdentifier!, receiver!);
+            EmitContext().SetOriginal(result, node);
+            return result;
+        }
+        // Private name has not been declared. Subsequent transformers will handle this error.
+        return Visitor().VisitEachChild(node)!;
+    }
+
+    // classfields.go:504 — visitPropertyAssignment (13.2.5.5 RS: PropertyDefinitionEvaluation).
+    private Node? VisitPropertyAssignment(Node node)
+    {
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, false /*ignoreEmptyStringLiteral*/, "" /*assignedName*/);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:518 — visitVariableStatement.
+    private Node? VisitVariableStatement(Node node)
+    {
+        var savedPendingStatements = pendingStatements;
+        pendingStatements = null;
+
+        var visitedNode = Visitor().VisitEachChild(node)!;
+
+        if (pendingStatements is { Count: > 0 })
+        {
+            var result = new List<Node>(1 + pendingStatements.Count) { visitedNode };
+            result.AddRange(pendingStatements);
+            pendingStatements = savedPendingStatements;
+            return Factory().AsNodeFactory().NewSyntaxList(result.ToArray());
+        }
+
+        pendingStatements = savedPendingStatements;
+        return visitedNode;
+    }
+
+    // classfields.go:536 — visitVariableDeclaration (14.3.1.2 / 14.3.2.1 RS).
+    private Node? VisitVariableDeclaration(Node node)
+    {
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, false, "");
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:557 — visitParameterDeclaration (8.6.3 / 14.3.3.3 RS).
+    private Node? VisitParameterDeclaration(Node node)
+    {
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, false, "");
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:580 — visitBindingElement (8.6.3 / 14.3.3.3 RS).
+    private Node? VisitBindingElement(Node node)
+    {
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, false, "");
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:603 — visitExportAssignment (16.2.3.7 RS). NOTE: since emit for `export =`
+    // translates to `module.exports = ...`, the assigned name of the class is "".
+    private Node? VisitExportAssignment(Node node)
+    {
+        if (NamedEvaluationUtilities.IsNamedEvaluationAnd(EmitContext(), node, isAnonymousClassNeedingAssignedName))
+        {
+            var assignedName = node.AsExportAssignment().IsExportEquals ? "" : "default";
+            node = NamedEvaluationUtilities.TransformNamedEvaluation(EmitContext(), node, true /*ignoreEmptyStringLiteral*/, assignedName);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:623 — injectPendingExpressions.
+    private Node InjectPendingExpressions(Node expression)
+    {
+        if (pendingExpressions is { Count: > 0 })
+        {
+            if (NodeTests.IsParenthesizedExpression(expression))
+            {
+                pendingExpressions.Add(expression.Expression()!);
+                expression = Factory().UpdateParenthesizedExpression(
+                    expression.AsParenthesizedExpression(),
+                    Factory().InlineExpressions(pendingExpressions.ToArray())!);
+            }
+            else
+            {
+                pendingExpressions.Add(expression);
+                expression = Factory().InlineExpressions(pendingExpressions.ToArray())!;
+            }
+            pendingExpressions = null;
+        }
+        return expression;
+    }
+
+    // classfields.go:640 — visitComputedPropertyName: computed property names are evaluated in the
+    // enclosing scope, not the current class (replaces Strada's onEmitNode for ComputedPropertyName).
+    private Node VisitComputedPropertyName(Node node)
+    {
+        var savedLexicalEnvironment = lexicalEnvironment;
+        var savedInsideComputedPropertyName = insideComputedPropertyName;
+        insideComputedPropertyName = true;
+        if (lexicalEnvironment is { previous: not null })
+        {
+            lexicalEnvironment = lexicalEnvironment.previous;
+        }
+        var expression = Visitor().VisitNode(node.AsComputedPropertyName().Expression!);
+        lexicalEnvironment = savedLexicalEnvironment;
+        insideComputedPropertyName = savedInsideComputedPropertyName;
+        return Factory().AsNodeFactory().UpdateComputedPropertyName(node.AsComputedPropertyName(), InjectPendingExpressions(expression!));
+    }
+
+    // classfields.go:656 — visitConstructorDeclaration.
+    private Node? VisitConstructorDeclaration(Node node)
+    {
+        if (currentClassContainer != null)
+        {
+            return TransformConstructor(node, currentClassContainer);
+        }
+        return Visitor().VisitEachChild(node);
+    }
+
+    // classfields.go:663 — shouldTransformClassElementToWeakMap.
+    private bool ShouldTransformClassElementToWeakMap(Node node)
+    {
+        if (shouldTransformPrivateElementsOrClassStaticBlocks)
+        {
+            return true;
+        }
+        return ShouldAlwaysTransformPrivateStaticElements(node);
+    }
+
+    // classfields.go:670 — shouldAlwaysTransformPrivateStaticElements.
+    private bool ShouldAlwaysTransformPrivateStaticElements(Node node) =>
+        AstUtilities.HasStaticModifier(node) && (EmitContext().EmitFlags(node) & global::Ts.Printer.EmitFlags.TransformPrivateStaticElements) != 0;
+
+    // classfields.go:677 — nodeHasTransformPrivateStaticElementsFlag: checks the emit flag on a class
+    // node (not a member) — class nodes themselves don't have a static modifier.
+    private bool NodeHasTransformPrivateStaticElementsFlag(Node node) =>
+        (EmitContext().EmitFlags(node) & global::Ts.Printer.EmitFlags.TransformPrivateStaticElements) != 0;
+
+    // classfields.go:681 — visitMethodOrAccessorDeclaration.
+    private Node? VisitMethodOrAccessorDeclaration(Node node)
+    {
+        Debug.Assert(!AstUtilities.HasDecorators(node));
+
+        if (!AstUtilities.IsPrivateIdentifierClassElementDeclaration(node) || !ShouldTransformClassElementToWeakMap(node))
+        {
+            return classElementVisitor.VisitEachChild(node);
+        }
+
+        // leave invalid code untransformed
+        var info = AccessPrivateIdentifier(node.Name()!);
+        Debug.Assert(info != null, "Undeclared private name for property declaration.");
+        if (!info!.isValid)
+        {
+            return node;
+        }
+
+        var functionName = GetHoistedFunctionName(node);
+        if (functionName != null)
+        {
+            var modifiers = ExtractNonStaticNonAccessorModifiers(node);
+            EmitContext().StartVariableEnvironment();
+            var saved = inIterationStatement;
+            inIterationStatement = false;
+            var body = EmitContext().VisitFunctionBody(node.Body(), Visitor());
+            var params_ = Visitor().VisitNodes(node.ParameterList());
+            inIterationStatement = saved;
+
+            var funcExpr = Factory().NewFunctionExpression(modifiers, node.BodyData()!.AsteriskToken, functionName, null, params_, null, null, body);
+            var assignment = Factory().NewAssignmentExpression(functionName, funcExpr);
+            AddPendingExpressions(assignment);
+        }
+
+        // remove method declaration from class
+        return null;
+    }
+
+    // classfields.go:714 — extractNonStaticNonAccessorModifiers.
+    private ModifierList? ExtractNonStaticNonAccessorModifiers(Node node) =>
+        global::Ts.Transformers.Transformers.ExtractModifiers(EmitContext(), node.Modifiers(), ~(ModifierFlags.Static | ModifierFlags.Accessor));
+
+    // classfields.go:718 — setCurrentClassElementAnd.
+    private Node? SetCurrentClassElementAnd(Node? classElement, Func<ClassFieldsTransformer, Node, Node?> visitor, Node node)
+    {
+        if (classElement != currentClassElement)
+        {
+            var saved = currentClassElement;
+            currentClassElement = classElement;
+            var result = visitor(this, node);
+            currentClassElement = saved;
+            return result;
+        }
+        return visitor(this, node);
+    }
+
+    // classfields.go:730 — visitEachChildOfNode.
+    private Node? VisitEachChildOfNode(Node node) => Visitor().VisitEachChild(node);
+
+    // classfields.go:734 — setInIterationStatementAnd.
+    private Node? SetInIterationStatementAnd(bool inIteration, Func<ClassFieldsTransformer, Node, Node?> visitor, Node node)
+    {
+        if (inIterationStatement != inIteration)
+        {
+            var saved = inIterationStatement;
+            inIterationStatement = inIteration;
+            var result = visitor(this, node);
+            inIterationStatement = saved;
+            return result;
+        }
+        return visitor(this, node);
+    }
+
+    // classfields.go:745 — clearClassElementAndVisitEachChild.
+    private Node? ClearClassElementAndVisitEachChild(Node node) =>
+        SetCurrentClassElementAnd(null, static (tx, n) => tx.VisitEachChildOfNode(n), node);
+
+    // classfields.go:761 — visitFunctionExpressionOrDeclaration: lexical-environment scoping for
+    // function expressions/declarations (mirrors Strada's onEmitNode; preserves currentClassElement for
+    // functions originating from static class members so visitThisExpression can substitute `this` ->
+    // `_classThis` inside synthesized descriptor functions).
+    private Node? VisitFunctionExpressionOrDeclaration(Node node)
+    {
+        if (currentClassElement != null)
+        {
+            var original = EmitContext().MostOriginal(node);
+            if (original != node && currentClassContainer != null)
+            {
+                foreach (var member in currentClassContainer.Members() ?? [])
+                {
+                    if (EmitContext().MostOriginal(member) == original && AstUtilities.IsStatic(member))
+                    {
+                        return VisitEachChildOfNode(node);
+                    }
+                }
+            }
+        }
+        return SetCurrentClassElementAnd(null, static (tx, n) => tx.VisitEachChildOfNode(n), node);
+    }
+
+    // classfields.go:781 — setClassElementAndVisitEachChild.
+    private Node? SetClassElementAndVisitEachChild(Node node) =>
+        SetCurrentClassElementAnd(node, static (tx, n) => tx.VisitEachChildOfNode(n), node);
+
+    // classfields.go:785 — getHoistedFunctionName.
+    private Node? GetHoistedFunctionName(Node node)
+    {
+        Debug.Assert(node.Name() != null && NodeTests.IsPrivateIdentifier(node.Name()!));
+        var info = AccessPrivateIdentifier(node.Name()!);
+        Debug.Assert(info != null, "Undeclared private name for property declaration.");
+        if (info!.kind == global::Ts.Printer.PrivateIdentifierKind.Method)
+        {
+            return info.methodName;
+        }
+        if (info.kind == global::Ts.Printer.PrivateIdentifierKind.Accessor)
+        {
+            if (NodeTests.IsGetAccessorDeclaration(node))
+            {
+                return info.getterName;
+            }
+            if (NodeTests.IsSetAccessorDeclaration(node))
+            {
+                return info.setterName;
+            }
+        }
+        return null;
+    }
+
+    // classfields.go:803 — tryGetClassThis.
+    private Node? TryGetClassThis()
+    {
+        var classThis = TryGetClassThisNoContainer();
+        if (classThis != null)
+        {
+            return classThis;
+        }
+        return currentClassContainer?.Name();
+    }
+
+    // classfields.go:813 — tryGetClassThisNoContainer.
+    private Node? TryGetClassThisNoContainer()
+    {
+        var lex = GetClassLexicalEnvironment();
+        if (lex.classThis != null)
+        {
+            return lex.classThis;
+        }
+        if (lex.classConstructor != null)
+        {
+            return lex.classConstructor;
+        }
+        return null;
+    }
+
+    // ── Forward stubs (batches 3/4/5b replace these; unreachable until the batch-6 dispatch switch) ──
+    private Node? VisitPreOrPostfixUnaryExpression(Node node, bool discarded) => throw new NotImplementedException("classfields batch 3");
+    private Node? VisitBinaryExpression(Node node, bool discarded) => throw new NotImplementedException("classfields batch 3");
+    private Node? VisitParenthesizedExpression(Node node, bool discarded) => throw new NotImplementedException("classfields batch 3");
+    private Node? VisitExpressionWithTypeArgumentsInHeritageClause(Node node) => throw new NotImplementedException("classfields batch 4");
+    private Node? VisitAssignmentPattern(Node node) => throw new NotImplementedException("classfields batch 5b");
+    private Node? WrapPrivateIdentifierForDestructuringTarget(Node node) => throw new NotImplementedException("classfields batch 5b");
+    private Node? VisitInvalidSuperProperty(Node node) => throw new NotImplementedException("classfields batch 4");
+    private Node? TransformConstructor(Node node, Node container) => throw new NotImplementedException("classfields batch 4");
+    private Node? VisitPropertyDeclaration(Node node) => throw new NotImplementedException("classfields batch 3");
+    private Node? VisitClassStaticBlockDeclaration(Node node) => throw new NotImplementedException("classfields batch 4");
+    private Node? TransformFieldInitializer(Node node) => throw new NotImplementedException("classfields batch 3");
+    private Node? VisitPropertyAccessExpressionForSubstitution(Node node) => throw new NotImplementedException("classfields batch 3");
     private Node? VisitArrayAssignmentElement(Node node) => node;
     private Node? VisitObjectAssignmentElement(Node node) => node;
-    private Node? VisitForSubstitution(Node node) => node;
     private bool IsAnonymousClassNeedingAssignedNameWorker(Node node) => false;
 }
