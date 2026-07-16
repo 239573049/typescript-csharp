@@ -56,7 +56,18 @@ internal static class EsTransformUtilities
                 emitContext.Factory.NewVoidZeroExpression()));
     }
 
-    // TODO(estransforms): Port superAccessState and createAccessorPropertyBackingField when the
-    // async/class-fields transforms below are enabled. The current deferred transforms do not
-    // consume those helpers, so keeping speculative partial behavior here would be less faithful.
+    // estransforms/utilities.go:280 — createAccessorPropertyBackingField creates a private backing
+    // field for an `accessor` PropertyDeclaration.
+    internal static Node CreateAccessorPropertyBackingField(global::Ts.Printer.NodeFactory f, PropertyDeclaration node, ModifierList? modifiers, Expression? initializer)
+    {
+        return f.AsNodeFactory().UpdatePropertyDeclaration(
+            node,
+            modifiers,
+            f.NewGeneratedPrivateNameForNodeEx(node.Name()!, new global::Ts.Printer.AutoGenerateOptions { Suffix = "_accessor_storage" }),
+            null, /*postfixToken*/
+            null, /*typeNode*/
+            initializer);
+    }
+
+    // TODO(estransforms): Port superAccessState when the async transforms below are enabled.
 }

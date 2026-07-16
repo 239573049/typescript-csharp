@@ -1049,6 +1049,13 @@ public static partial class AstUtilities
             node.Expression()!.Kind == SyntaxKind.SuperKeyword;
     }
 
+    // ast/utilities.go:3740 — IsInitializedProperty.
+    public static bool IsInitializedProperty(Node member)
+    {
+        return member.Kind == SyntaxKind.PropertyDeclaration &&
+            member.Initializer() != null;
+    }
+
     // utilities.go:566-570
     public static bool IsObjectLiteralOrClassExpressionMethodOrAccessor(Node node)
     {
