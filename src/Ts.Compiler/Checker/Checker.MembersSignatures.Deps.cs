@@ -304,9 +304,65 @@ public partial class Checker
     // ---- contextual (#21) ----
     // getContextualReturnType / getContextualSignatureForFunctionLikeDeclaration: real bodies landed in
     // Checker.ContextualType.cs (#21 wave).
-    // checker.go:30574 — deep return-mapper instantiation; deferred. PORT-NOTE: signature made nullable to
-    // match Go (nil in → nil out) so contextual-type callers pass through cleanly.
-    internal Type? InstantiateContextualType(Type? contextualType, Node node, ContextFlags contextFlags) => contextualType;
+    // checker.go:30574 — instantiateContextualType.
+    internal Type? InstantiateContextualType(Type? contextualType, Node node, ContextFlags contextFlags)
+    {
+        if (contextualType != null && MaybeTypeOfKind(contextualType, TypeFlags.Instantiable))
+        {
+            var inferenceContext = GetInferenceContext(node);
+            // If no inferences have been made, and none of the type parameters for which we are inferring
+            // specify default types, nothing is gained from instantiating as type parameters would just be
+            // replaced with their constraints similar to the apparent type.
+            if (inferenceContext != null)
+            {
+                if ((contextFlags & ContextFlags.Signature) != 0 && CoreUtil.Some(inferenceContext.inferences, HasInferenceCandidatesOrDefault))
+                {
+                    // For contextual signatures we incorporate all inferences made so far, e.g. from return
+                    // types as well as arguments to the left in a function call.
+                    var t = InstantiateInstantiableTypes(contextualType, inferenceContext.nonFixingMapper);
+                    if ((t.flags & TypeFlags.AnyOrUnknown) == 0)
+                    {
+                        return t;
+                    }
+                }
+                if (inferenceContext.returnMapper != null)
+                {
+                    // For other purposes (e.g. determining whether to produce literal types) we only
+                    // incorporate inferences made from the return type in a function call. We remove
+                    // the 'boolean' type from the contextual type such that contextually typed boolean
+                    // literals actually end up widening to 'boolean' (see #48363).
+                    var t = InstantiateInstantiableTypes(contextualType, inferenceContext.returnMapper);
+                    if ((t.flags & TypeFlags.AnyOrUnknown) == 0)
+                    {
+                        if ((t.flags & TypeFlags.Union) != 0 && ContainsType(t.Types(), regularFalseType!) && ContainsType(t.Types(), regularTrueType!))
+                        {
+                            return FilterType(t, tt => tt != regularFalseType && tt != regularTrueType);
+                        }
+                        return t;
+                    }
+                }
+            }
+        }
+        return contextualType;
+    }
+
+    // checker.go — instantiateInstantiableTypes.
+    internal Type InstantiateInstantiableTypes(Type t, TypeMapper? mapper)
+    {
+        if ((t.flags & TypeFlags.Instantiable) != 0)
+        {
+            return InstantiateType(t, mapper);
+        }
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            return GetUnionTypeEx(CoreUtil.Map(t.Types(), tt => InstantiateInstantiableTypes(tt, mapper)), UnionReduction.None, null, null);
+        }
+        if ((t.flags & TypeFlags.Intersection) != 0)
+        {
+            return GetIntersectionType(CoreUtil.Map(t.Types(), tt => InstantiateInstantiableTypes(tt, mapper)));
+        }
+        return t;
+    }
 
     // ---- awaited / iteration (#22) ----
     // unwrapAwaitedType / checkAwaitedType / getAwaitedTypeNoAlias / getPromisedTypeOfPromise: real

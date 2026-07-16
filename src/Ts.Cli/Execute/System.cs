@@ -83,27 +83,16 @@ public sealed class OsSystem : ISystem
     // sys.go:58-60
     public string GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name) ?? "";
 
-    // sys.go:62-76 — construct the system from the real OS.
-    // PORT-NOTE (bundled deferred): tsgo wraps osvfs with bundled.WrapFS (the bundled:/// lib overlay)
-    // and computes bundled.LibPath(). The Ts.Bundled overlay FS + LibPath helper are not ported yet
-    // (bundled package is only libs-copy so far). Until they land, the default library path is derived
-    // from the executable directory so a real lib overlay can be dropped in; the FS is the raw OS FS.
+    // sys.go:62-76 — construct the system from the real OS: osvfs wrapped with bundled.WrapFS (the
+    // bundled:/// lib overlay) and bundled.LibPath() as the default library path (embed.go).
     public static OsSystem New()
     {
         string cwd = global::Ts.TsPath.TsPath.NormalizePath(Directory.GetCurrentDirectory());
-        string libPath = ComputeDefaultLibraryPath();
         return new OsSystem(
             Console.Out,
-            global::Ts.Vfs.OsVfs.OsVfsUtil.FS(),
-            libPath,
+            global::Ts.Bundled.Bundled.WrapFS(global::Ts.Vfs.OsVfs.OsVfsUtil.FS()),
+            global::Ts.Bundled.Bundled.LibPath(),
             cwd,
             DateTime.UtcNow);
-    }
-
-    private static string ComputeDefaultLibraryPath()
-    {
-        // The bundled lib.*.d.ts files live next to the assembly (EmbeddedResource glob is deferred).
-        string? dir = AppContext.BaseDirectory;
-        return global::Ts.TsPath.TsPath.NormalizePath(dir ?? ".");
     }
 }
