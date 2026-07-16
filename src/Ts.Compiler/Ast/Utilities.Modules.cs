@@ -58,6 +58,22 @@ public static partial class AstUtilities
         return (ModuleKind.CommonJS, true);
     }
 
+    // ast/utilities.go:3171 — IsEmittableImport.
+    public static bool IsEmittableImport(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.ImportDeclaration:
+                return node.ImportClause() != null && !node.ImportClause()!.IsTypeOnly();
+            case SyntaxKind.ExportDeclaration:
+            case SyntaxKind.ImportEqualsDeclaration:
+                return !node.IsTypeOnly();
+            case SyntaxKind.CallExpression:
+                return IsImportCall(node);
+        }
+        return false;
+    }
+
     // ast/utilities.go — IsResolutionModeOverrideHost.
     public static bool IsResolutionModeOverrideHost(Node? node)
     {

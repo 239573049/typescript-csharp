@@ -884,14 +884,11 @@ public static partial class CoreUtil
         return s.IndexOf(pattern, startIndex, StringComparison.Ordinal);
     }
 
-    // core.go:687-689 — ShouldRewriteModuleSpecifier is QUARANTINED until CompilerOptions
-    // lands (compileroptions.go → CompilerOptions.cs, owned by another agent; not yet in
-    // Ts.Core). It reads compilerOptions.RewriteRelativeImportExtensions (Tristate) plus
-    // three tspath predicates. Restore verbatim once the type exists:
-    //   public static bool ShouldRewriteModuleSpecifier(string specifier, CompilerOptions o) =>
-    //       o.RewriteRelativeImportExtensions.IsTrue() && TsPathLib.PathIsRelative(specifier)
-    //       && !TsPathLib.IsDeclarationFileName(specifier) && TsPathLib.HasTSFileExtension(specifier);
-    // (plan/11 §known-deviations.)
+    // core.go:687-689 — ShouldRewriteModuleSpecifier. (Formerly quarantined pending CompilerOptions;
+    // restored verbatim now that Ts.Core.CompilerOptions exists.)
+    public static bool ShouldRewriteModuleSpecifier(string specifier, CompilerOptions o) =>
+        o.RewriteRelativeImportExtensions.IsTrue() && TsPathLib.PathIsRelative(specifier)
+        && !TsPathLib.IsDeclarationFileName(specifier) && TsPathLib.HasTSFileExtension(specifier);
 
     public static T[]? SingleElementSlice<T>(T? element)
         where T : class

@@ -524,14 +524,103 @@ public partial class Checker
 
             if (errorNode != null)
             {
-                if (resolvedModule!.ResolvedUsingTsExtension || compilerOptions.RewriteRelativeImportExtensions.IsTrue())
+                // checker.go:15142 — resolvedUsingTsExtension / rewriteRelativeImportExtensions error suite.
+                if (resolvedModule!.ResolvedUsingTsExtension && global::Ts.TsPath.TsPath.IsDeclarationFileName(moduleReference))
                 {
-                    // !!! checker.go:15142-15238 — resolvedUsingTsExtension / rewriteRelativeImportExtensions
-                    // error suite (declaration-file import suggestion via getSuggestedImportSource,
-                    // allowImportingTsExtensions gate, unsafe-rewrite + project-redirect outDir checks).
-                    // Needs ast.IsEmittableImport + core.ShouldRewriteModuleSpecifier (quarantined,
-                    // Core/Core.cs:887) + program redirect/commonSourceDirectory surface.
-                    throw new NotImplementedException("resolveExternalModule:resolvedUsingTsExtension");
+                    if (AstUtilities.FindAncestor(location, AstUtilities.IsEmittableImport) != null)
+                    {
+                        string tsExtension = global::Ts.TsPath.TsPath.TryExtractTSExtension(moduleReference);
+                        if (tsExtension == "")
+                        {
+                            throw new InvalidOperationException("should be able to extract TS extension from string that passes IsDeclarationFileName");
+                        }
+                        Error(errorNode, global::Ts.Diagnostics.Diagnostics.A_declaration_file_cannot_be_imported_without_import_type_Did_you_mean_to_import_an_implementation_file_0_instead, GetSuggestedImportSource(moduleReference, tsExtension, mode));
+                    }
+                }
+                else if (resolvedModule.ResolvedUsingTsExtension && !compilerOptions.AllowImportingTsExtensionsFrom(importingSourceFile!.FileName()))
+                {
+                    if (AstUtilities.FindAncestor(location, AstUtilities.IsEmittableImport) != null)
+                    {
+                        string tsExtension = global::Ts.TsPath.TsPath.TryExtractTSExtension(moduleReference);
+                        if (tsExtension == "")
+                        {
+                            // Fallback: best-effort extraction using Contains — handles a wildcard pattern
+                            // matching a TS extension that's not at the end of the specifier, e.g.
+                            // "#/foo.ts.omg" through "#/*.omg": "./src/*".
+                            foreach (string ext in global::Ts.TsPath.TsPath.SupportedTSExtensionsFlat)
+                            {
+                                if (moduleReference.Contains(ext, StringComparison.Ordinal))
+                                {
+                                    tsExtension = ext;
+                                    break;
+                                }
+                            }
+                        }
+                        if (tsExtension == "")
+                        {
+                            throw new InvalidOperationException("should be able to extract TS extension from string when resolvedUsingTsExtension is true");
+                        }
+                        Error(errorNode, global::Ts.Diagnostics.Diagnostics.An_import_path_can_only_end_with_a_0_extension_when_allowImportingTsExtensions_is_enabled, tsExtension);
+                    }
+                }
+                else if (compilerOptions.RewriteRelativeImportExtensions.IsTrue() &&
+                    (location!.Flags & NodeFlags.Ambient) == 0 &&
+                    !global::Ts.TsPath.TsPath.IsDeclarationFileName(moduleReference) &&
+                    !AstUtilities.IsLiteralImportTypeNode(location) &&
+                    !IsPartOfTypeOnlyImportOrExportDeclaration(location))
+                {
+                    bool shouldRewrite = global::Ts.Core.CoreUtil.ShouldRewriteModuleSpecifier(moduleReference, compilerOptions);
+                    if (!resolvedModule.ResolvedUsingTsExtension && shouldRewrite)
+                    {
+                        string relativeToSourceFile = global::Ts.TsPath.TsPath.GetRelativePathFromFile(
+                            global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(importingSourceFile!.FileName(), program.GetCurrentDirectory()),
+                            resolvedModule.ResolvedFileName,
+                            new global::Ts.TsPath.ComparePathsOptions
+                            {
+                                UseCaseSensitiveFileNames = program.UseCaseSensitiveFileNames(),
+                                CurrentDirectory = program.GetCurrentDirectory(),
+                            });
+                        Error(errorNode, global::Ts.Diagnostics.Diagnostics.This_relative_import_path_is_unsafe_to_rewrite_because_it_looks_like_a_file_name_but_actually_resolves_to_0, relativeToSourceFile);
+                    }
+                    else if (resolvedModule.ResolvedUsingTsExtension && !shouldRewrite && program.SourceFileMayBeEmitted(sourceFile, false))
+                    {
+                        Error(errorNode, global::Ts.Diagnostics.Diagnostics.This_import_uses_a_0_extension_to_resolve_to_an_input_TypeScript_file_but_will_not_be_rewritten_during_emit_because_it_is_not_a_relative_path, global::Ts.TsPath.TsPath.GetAnyExtensionFromPath(moduleReference, null, false));
+                    }
+                    else if (resolvedModule.ResolvedUsingTsExtension && shouldRewrite)
+                    {
+                        var redirect = program.GetRedirectForResolution(SourceFileAsHasFileName(sourceFile));
+                        if (redirect != null)
+                        {
+                            string ownRootDir = program.CommonSourceDirectory();
+                            string otherRootDir = redirect.CommonSourceDirectory();
+
+                            var compareOptions = new global::Ts.TsPath.ComparePathsOptions
+                            {
+                                UseCaseSensitiveFileNames = program.UseCaseSensitiveFileNames(),
+                                CurrentDirectory = program.GetCurrentDirectory(),
+                            };
+
+                            string rootDirPath = global::Ts.TsPath.TsPath.GetRelativePathFromDirectory(ownRootDir, otherRootDir, compareOptions);
+
+                            // Get outDir paths, defaulting to root directories if not specified.
+                            string ownOutDir = compilerOptions.OutDir;
+                            if (ownOutDir == "")
+                            {
+                                ownOutDir = ownRootDir;
+                            }
+                            string otherOutDir = redirect.CompilerOptions()!.OutDir;
+                            if (otherOutDir == "")
+                            {
+                                otherOutDir = otherRootDir;
+                            }
+                            string outDirPath = global::Ts.TsPath.TsPath.GetRelativePathFromDirectory(ownOutDir, otherOutDir, compareOptions);
+
+                            if (rootDirPath != outDirPath)
+                            {
+                                Error(errorNode, global::Ts.Diagnostics.Diagnostics.This_import_path_is_unsafe_to_rewrite_because_it_resolves_to_another_project_and_the_relative_path_between_the_projects_output_files_is_not_the_same_as_the_relative_path_between_its_input_files);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -711,6 +800,36 @@ public partial class Checker
                 return ".json";
         }
         return "";
+    }
+
+    // checker.go:15355 — getSuggestedImportSource.
+    private string GetSuggestedImportSource(string moduleReference, string tsExtension, ResolutionMode mode)
+    {
+        string importSourceWithoutExtension = global::Ts.TsPath.TsPath.RemoveExtension(moduleReference, tsExtension);
+
+        // Direct users to import source with .js extension if outputting an ES module.
+        // @see https://github.com/microsoft/TypeScript/issues/42151
+        if (moduleKind.IsNonNodeESM() || mode == ModuleKind.ESNext)
+        {
+            bool preferTs = global::Ts.TsPath.TsPath.IsDeclarationFileName(moduleReference) && compilerOptions.GetAllowImportingTsExtensions();
+            string ext;
+            if (tsExtension == global::Ts.TsPath.TsPath.ExtensionMts || tsExtension == global::Ts.TsPath.TsPath.ExtensionDmts)
+            {
+                ext = preferTs ? ".mts" : ".mjs";
+            }
+            else if (tsExtension == global::Ts.TsPath.TsPath.ExtensionCts || tsExtension == global::Ts.TsPath.TsPath.ExtensionDcts)
+            {
+                ext = preferTs ? ".cts" : ".cjs";
+            }
+            else
+            {
+                ext = preferTs ? ".ts" : ".js";
+            }
+
+            return importSourceWithoutExtension + ext;
+        }
+
+        return importSourceWithoutExtension;
     }
 
     // checker.go:15406
@@ -2193,6 +2312,10 @@ public partial class Checker
     // ast/utilities.go:2906
     internal static bool IsTypeOnlyImportOrExportDeclaration(Node node) =>
         IsTypeOnlyImportDeclaration(node) || IsTypeOnlyExportDeclaration(node);
+
+    // ast/utilities.go:3163 — isPartOfTypeOnlyImportOrExportDeclaration.
+    internal static bool IsPartOfTypeOnlyImportOrExportDeclaration(Node node) =>
+        FindAncestor(node, IsTypeOnlyImportOrExportDeclaration) != null;
 
     // Forwarder: real body is AstUtilities.IsDeclarationNode (Ast/Utilities.Binder.cs, ast/utilities.go).
     private static bool IsDeclarationNode(Node node) => AstUtilities.IsDeclarationNode(node);
