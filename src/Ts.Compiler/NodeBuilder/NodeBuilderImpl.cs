@@ -195,19 +195,67 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilder.go:117 — SerializeReturnTypeForSignature.
-    // DEFERRED: needs enterSignatureScope + serializeInferredReturnTypeForSignature + the pseudo-type
-    // reuse path. Faithful signature; body throws until the signature-serialization slice lands.
     internal Node? SerializeReturnTypeForSignature(Node signatureDeclaration, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new NotImplementedException("NodeBuilder.SerializeReturnTypeForSignature");
+        global::Ts.NodeBuilder.ISymbolTracker tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        var signature = ch.GetSignatureFromDeclaration(signatureDeclaration);
+        var (_, cleanup) = EnterSignatureScope(signature);
+        var result = SerializeReturnTypeForSignature(signature, true);
+        cleanup();
+        return ExitContext(result);
+    }
 
     // nodebuilder.go:126 — SerializeTypeParametersForSignature.
-    // DEFERRED: needs symbolToTypeParameterDeclarations (typeParameterToDeclaration + name scope).
     internal Node[] SerializeTypeParametersForSignature(Node signatureDeclaration, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new NotImplementedException("NodeBuilder.SerializeTypeParametersForSignature");
+        global::Ts.NodeBuilder.ISymbolTracker tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        var symbol = ch.GetSymbolOfDeclaration(signatureDeclaration);
+        var typeParams = SymbolToTypeParameterDeclarations(symbol!, enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContextSlice(typeParams);
+    }
+
+    // nodebuilder.go — SymbolToTypeParameterDeclarations.
+    internal Node[] SymbolToTypeParameterDeclarations(Symbol symbol, Node? enclosingDeclaration,
+        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContextSlice(SymbolToTypeParameterDeclarationsImpl(symbol));
+    }
+
+    // nodebuilderimpl.go:1614 — symbolToTypeParameterDeclarations.
+    private Node[] SymbolToTypeParameterDeclarationsImpl(Symbol symbol) =>
+        TypeParametersToTypeParameterDeclarations(symbol);
+
+    // nodebuilderimpl.go:1618 — typeParametersToTypeParameterDeclarations.
+    private Node[] TypeParametersToTypeParameterDeclarations(Symbol symbol)
+    {
+        Symbol targetSymbol = ch.GetTargetSymbol(symbol)!;
+        if ((targetSymbol.Flags & (SymbolFlags.Class | SymbolFlags.Interface | SymbolFlags.Alias)) != 0)
+        {
+            var results = new List<Node>();
+            var params_ = ch.GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol);
+            foreach (var param in params_ ?? [])
+            {
+                results.Add(TypeParameterToDeclaration(param));
+            }
+            return results.ToArray();
+        }
+        else if ((targetSymbol.Flags & SymbolFlags.Function) != 0)
+        {
+            var results = new List<Node>();
+            foreach (var param in ch.GetTypeParametersFromDeclaration(symbol.ValueDeclaration!) ?? [])
+            {
+                results.Add(TypeParameterToDeclaration(param));
+            }
+            return results.ToArray();
+        }
+        return [];
+    }
 
     // nodebuilder.go:134 — SerializeTypeForDeclaration.
     internal Node? SerializeTypeForDeclaration(Node? declaration, Symbol? symbol, Node? enclosingDeclaration,
@@ -219,11 +267,21 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilder.go:140 — SerializeTypeForExpression.
-    // DEFERRED: needs serializeTypeForExpression (getWidenedType + expression-position reuse).
     internal Node? SerializeTypeForExpression(Node expr, Node? enclosingDeclaration,
         global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
-        global::Ts.NodeBuilder.ISymbolTracker tracker) =>
-        throw new NotImplementedException("NodeBuilder.SerializeTypeForExpression");
+        global::Ts.NodeBuilder.ISymbolTracker tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(SerializeTypeForExpressionImpl(expr));
+    }
+
+    // nodebuilderimpl.go:1733 — serializeTypeForExpression.
+    private Node? SerializeTypeForExpressionImpl(Node expr)
+    {
+        // !!! TODO: shim, add node reuse
+        var t = ch.InstantiateType(ch.GetWidenedType(ch.GetRegularTypeOfExpression(expr)), ctx!.mapper);
+        return TypeToTypeNodeImpl(t);
+    }
 
     // nodebuilder.go:224 — SymbolToEntityName.
     internal Node? SymbolToEntityName(Symbol symbol, SymbolFlags meaning, Node? enclosingDeclaration,

@@ -16,7 +16,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go — getRegularTypeOfExpression.
-    private Type GetRegularTypeOfExpression(Node expr)
+    internal Type GetRegularTypeOfExpression(Node expr)
     {
         if (AstUtilities.IsRightSideOfQualifiedNameOrPropertyAccess(expr))
         {
