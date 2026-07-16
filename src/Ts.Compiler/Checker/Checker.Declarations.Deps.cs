@@ -818,8 +818,15 @@ public partial class Checker
         !NodeTests.IsFunctionDeclaration(node) && !NodeTests.IsMethodDeclaration(node) || node.Body() != null;
     // utilities.go:234
 
-    // checker.go:5384
-    internal static bool HasTypeJsonImportAttribute(Node node) => throw new NotImplementedException("hasTypeJsonImportAttribute");
+    // checker.go:5384 — hasTypeJsonImportAttribute.
+    internal static bool HasTypeJsonImportAttribute(Node node)
+    {
+        ImportAttributesNode? attributes = node.AsImportDeclaration().Attributes;
+        return attributes != null && CoreUtil.Some(attributes.AsImportAttributes().Attributes!.Nodes, static attr =>
+            attr.Name()!.Text() == "type" &&
+            AstUtilities.IsStringLiteralLike(attr.AsImportAttribute().Value!) &&
+            attr.AsImportAttribute().Value!.Text() == "json");
+    }
     // GetVerbatimModuleSyntaxErrorMessage (checker.go:5660) already stubbed in Checker.Grammar.Deps.cs.
     // utilities.go:1070
     // utilities.go:1070 — isSuperCall.

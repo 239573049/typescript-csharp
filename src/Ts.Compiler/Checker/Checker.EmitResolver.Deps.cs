@@ -90,10 +90,20 @@ public partial class Checker
         return importNode;
     }
 
-    // checker/utilities.go:1569 — containsNonMissingUndefinedType(c, t). Deep type-facts helper from
-    // a not-yet-ported wave.
-    internal static bool ContainsNonMissingUndefinedType(Checker c, Type t) =>
-        throw new NotImplementedException("containsNonMissingUndefinedType");
+    // checker/utilities.go:1569 — containsNonMissingUndefinedType(c, t).
+    internal static bool ContainsNonMissingUndefinedType(Checker c, Type t)
+    {
+        Type candidate;
+        if ((t.flags & TypeFlags.Union) != 0)
+        {
+            candidate = t.AsUnionType().types[0];
+        }
+        else
+        {
+            candidate = t;
+        }
+        return (candidate.flags & TypeFlags.Undefined) != 0 && candidate != c.missingType;
+    }
 
     // ── checker methods from not-yet-ported waves ───────────────────────────────────────────────
 
