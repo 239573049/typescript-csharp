@@ -70,6 +70,66 @@ internal static class DeclarationUtilities
         return true;
     }
 
+    // util.go:61-85 — isDeclarationAndNotVisible.
+    internal static bool IsDeclarationAndNotVisible(global::Ts.Printer.EmitContext emitContext, global::Ts.Printer.EmitResolver resolver, Node node)
+    {
+        node = emitContext.ParseNode(node)!;
+        switch (node.Kind)
+        {
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.ModuleDeclaration:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.EnumDeclaration:
+                return !resolver.IsDeclarationVisible(node);
+            // The following should be doing their own visibility checks based on filtering their members
+            case SyntaxKind.VariableDeclaration:
+                return !GetBindingNameVisible(resolver, node);
+            case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            case SyntaxKind.ExportDeclaration:
+            case SyntaxKind.ExportAssignment:
+                return false;
+            case SyntaxKind.ClassStaticBlockDeclaration:
+                return true;
+        }
+        return false;
+    }
+
+    // util.go:87-108 — getBindingNameVisible.
+    internal static bool GetBindingNameVisible(global::Ts.Printer.EmitResolver resolver, Node elem)
+    {
+        if (NodeTests.IsOmittedExpression(elem))
+        {
+            return false;
+        }
+        // TODO: parseArrayBindingElement _never_ parses out an OmittedExpression anymore, instead producing a nameless binding element
+        // Audit if OmittedExpression should be removed
+        if (elem.Name() == null)
+        {
+            return false;
+        }
+        if (AstUtilities.IsBindingPattern(elem.Name()!))
+        {
+            // If any child binding pattern element has been marked visible (usually by collect linked aliases), then this is visible
+            foreach (var child in elem.Name()!.Elements() ?? [])
+            {
+                if (GetBindingNameVisible(resolver, child))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else
+        {
+            return resolver.IsDeclarationVisible(elem);
+        }
+    }
+
     internal static bool IsEnclosingDeclaration(Node node) => node.Kind is
         SyntaxKind.SourceFile or
         SyntaxKind.TypeAliasDeclaration or

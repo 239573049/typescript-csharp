@@ -563,6 +563,459 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
     // ── rebuild forward stub: replaced when visitDeclarationStatements batch lands ──
     private Node? TransformTopLevelDeclaration(Node input) => throw new NotImplementedException("declarations rebuild");
 
+    // transform.go:573-698 — visitDeclarationSubtree (not yet wired; the wiring batch switches the
+    // main dispatch to it).
+    private Node? VisitDeclarationSubtree(Node input)
+    {
+        if (ShouldStripInternal(input))
+        {
+            return null;
+        }
+        if (AstUtilities.IsDeclaration(input))
+        {
+            if (DeclarationUtilities.IsDeclarationAndNotVisible(EmitContext(), resolver!, input))
+            {
+                return null;
+            }
+            if (AstUtilities.HasDynamicName(input))
+            {
+                if (state.IsolatedDeclarations)
+                {
+                    // Classes and object literals usually elide properties with computed names that are not of a literal type
+                    // In isolated declarations TSC needs to error on these as we don't know the type in a DTE.
+                    if (!resolver!.IsDefinitelyReferenceToGlobalSymbolObject(input.Name()!.Expression()!))
+                    {
+                        if (NodeTests.IsClassDeclaration(input.Parent!) || NodeTests.IsObjectLiteralExpression(input.Parent!))
+                        {
+                            state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(input, global::Ts.Diagnostics.Diagnostics.Computed_property_names_on_class_or_object_literals_cannot_be_inferred_with_isolatedDeclarations));
+                            return null;
+                        }
+                        else if ((NodeTests.IsInterfaceDeclaration(input.Parent!) || NodeTests.IsTypeLiteralNode(input.Parent!)) && !AstUtilities.IsEntityNameExpression(input.Name()!.Expression()!))
+                        {
+                            // Type declarations just need to double-check that the input computed name is an entity name expression
+                            state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(input, global::Ts.Diagnostics.Diagnostics.Computed_properties_must_be_number_or_string_literals_variables_or_dotted_expressions_with_isolatedDeclarations));
+                            return null;
+                        }
+                    }
+                }
+                else if (!resolver!.IsLateBound(EmitContext().ParseNode(input)!) || !AstUtilities.IsEntityNameExpression(input.Name()!.Expression()!))
+                {
+                    return null;
+                }
+            }
+        }
+
+        // Elide implementation signatures from overload sets
+        if (AstUtilities.IsFunctionLike(input) && resolver!.IsImplementationOfOverload(input))
+        {
+            return null;
+        }
+
+        if (input.Kind == SyntaxKind.SemicolonClassElement)
+        {
+            return null;
+        }
+
+        if (NodeTests.IsHeritageClause(input) && (input.AsHeritageClause().Types!.Nodes.Length == 0 || (input.AsHeritageClause().Types!.Nodes.Length == 1 && AstUtilities.NodeIsMissing(input.AsHeritageClause().Types!.Nodes[0]))))
+        {
+            return null;
+        }
+
+        var previousEnclosingDeclaration = enclosingDeclaration;
+        if (DeclarationUtilities.IsEnclosingDeclaration(input))
+        {
+            enclosingDeclaration = input;
+        }
+
+        var (canProdiceDiagnostic, cleanupDiagnosticContext) = SetupDiagnosticContext(input);
+        try
+        {
+            Node? result;
+
+            switch (input.Kind)
+            {
+                case SyntaxKind.MappedType:
+                    result = TransformMappedTypeNode(input.AsMappedTypeNode());
+                    break;
+                case SyntaxKind.HeritageClause:
+                    result = TransformHeritageClause(input.AsHeritageClause());
+                    break;
+                case SyntaxKind.MethodSignature:
+                    result = TransformMethodSignatureDeclaration(input.AsMethodSignatureDeclaration());
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    result = TransformMethodDeclaration(input.AsMethodDeclaration());
+                    break;
+                case SyntaxKind.ConstructSignature:
+                    result = TransformConstructSignatureDeclaration(input.AsConstructSignatureDeclaration());
+                    break;
+                case SyntaxKind.Constructor:
+                    result = TransformConstructorDeclaration(input.AsConstructorDeclaration());
+                    break;
+                case SyntaxKind.GetAccessor:
+                    result = TransformGetAccessorDeclaration(input.AsGetAccessorDeclaration());
+                    break;
+                case SyntaxKind.SetAccessor:
+                    result = TransformSetAccessorDeclaration(input.AsSetAccessorDeclaration());
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    result = TransformPropertyDeclaration(input.AsPropertyDeclaration());
+                    break;
+                case SyntaxKind.PropertySignature:
+                    result = TransformPropertySignatureDeclaration(input.AsPropertySignatureDeclaration());
+                    break;
+                case SyntaxKind.CallSignature:
+                    result = TransformCallSignatureDeclaration(input.AsCallSignatureDeclaration());
+                    break;
+                case SyntaxKind.IndexSignature:
+                    result = TransformIndexSignatureDeclaration(input.AsIndexSignatureDeclaration());
+                    break;
+                case SyntaxKind.VariableDeclaration:
+                    result = TransformVariableDeclaration(input.AsVariableDeclaration());
+                    break;
+                case SyntaxKind.TypeParameter:
+                    result = TransformTypeParameterDeclaration(input.AsTypeParameterDeclaration());
+                    break;
+                case SyntaxKind.ExpressionWithTypeArguments:
+                    result = TransformExpressionWithTypeArguments(input.AsExpressionWithTypeArguments());
+                    break;
+                case SyntaxKind.TypeReference:
+                    result = TransformTypeReference(input.AsTypeReferenceNode());
+                    break;
+                case SyntaxKind.ConditionalType:
+                    result = TransformConditionalTypeNode(input.AsConditionalTypeNode());
+                    break;
+                case SyntaxKind.FunctionType:
+                    result = TransformFunctionTypeNode(input.AsFunctionTypeNode());
+                    break;
+                case SyntaxKind.ConstructorType:
+                    result = TransformConstructorTypeNode(input.AsConstructorTypeNode());
+                    break;
+                case SyntaxKind.ImportType:
+                    result = TransformImportTypeNode(input.AsImportTypeNode());
+                    break;
+                case SyntaxKind.TypeQuery:
+                    CheckEntityNameVisibility(input.AsTypeQueryNode().ExprName!, enclosingDeclaration!);
+                    result = Visitor().VisitEachChild(input);
+                    break;
+                case SyntaxKind.TupleType:
+                    result = Visitor().VisitEachChild(input);
+                    if (result != null)
+                    {
+                        if (global::Ts.Transformers.Transformers.IsOriginalNodeSingleLine(EmitContext(), input))
+                        {
+                            EmitContext().AddEmitFlags(result, global::Ts.Printer.EmitFlags.SingleLine);
+                        }
+                    }
+                    break;
+                case SyntaxKind.JSDocTypeExpression:
+                    result = TransformJSDocTypeExpression(input.AsJSDocTypeExpression());
+                    break;
+                case SyntaxKind.JSDocTypeLiteral:
+                    result = TransformJSDocTypeLiteral(input.AsJSDocTypeLiteral());
+                    break;
+                case SyntaxKind.JSDocPropertyTag:
+                    result = TransformJSDocPropertyTag(input.AsJSDocParameterOrPropertyTag());
+                    break;
+                case SyntaxKind.JSDocAllType:
+                    result = TransformJSDocAllType(input.AsJSDocAllType());
+                    break;
+                case SyntaxKind.JSDocNullableType:
+                    result = TransformJSDocNullableType(input.AsJSDocNullableType());
+                    break;
+                case SyntaxKind.JSDocNonNullableType:
+                    result = TransformJSDocNonNullableType(input.AsJSDocNonNullableType());
+                    break;
+                case SyntaxKind.JSDocOptionalType:
+                    result = TransformJSDocOptionalType(input.AsJSDocOptionalType());
+                    break;
+                case SyntaxKind.JSDocVariadicType:
+                    result = TransformJSDocVariadicType(input.AsJSDocVariadicType());
+                    break;
+                default:
+                    result = Visitor().VisitEachChild(input);
+                    break;
+            }
+
+            if (result != null && canProdiceDiagnostic && AstUtilities.HasDynamicName(input))
+            {
+                CheckName(input);
+            }
+
+            enclosingDeclaration = previousEnclosingDeclaration;
+            return result;
+        }
+        finally
+        {
+            cleanupDiagnosticContext();
+        }
+    }
+
+    // transform.go:703-716 — checkName.
+    private void CheckName(Node node)
+    {
+        var oldDiag = state.GetSymbolAccessibilityDiagnostic;
+        if (!suppressNewDiagnosticContexts)
+        {
+            state.GetSymbolAccessibilityDiagnostic = DeclarationDiagnostics.CreateGetSymbolAccessibilityDiagnosticForNodeName(node);
+        }
+        state.ErrorNameNode = node.Name();
+        Debug.Assert(AstUtilities.HasDynamicName(node)); // Should only be called with dynamic names
+        var entityName = node.Name()!.Expression()!;
+        CheckEntityNameVisibility(entityName, enclosingDeclaration!);
+        if (!suppressNewDiagnosticContexts)
+        {
+            state.GetSymbolAccessibilityDiagnostic = oldDiag;
+        }
+        state.ErrorNameNode = null;
+    }
+
+    // transform.go:1668-1671 — checkEntityNameVisibility.
+    private void CheckEntityNameVisibility(Node entityName, Node enclosingDeclarationParam)
+    {
+        var visibilityResult = resolver!.IsEntityNameVisible(entityName, enclosingDeclarationParam);
+        tracker.HandleSymbolAccessibilityError(visibilityResult);
+    }
+
+    // transform.go:718-736 — transformMappedTypeNode: handle missing template type nodes, since the
+    // printer does not.
+    private Node TransformMappedTypeNode(MappedTypeNode input)
+    {
+        Node? typeNode;
+        if (input.Type == null)
+        {
+            typeNode = Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.AnyKeyword);
+        }
+        else
+        {
+            typeNode = Visitor().VisitNode(input.Type);
+        }
+        return Factory().AsNodeFactory().UpdateMappedTypeNode(
+            input,
+            input.ReadonlyToken,
+            Visitor().VisitNode(input.TypeParameter),
+            Visitor().VisitNode(input.NameType),
+            input.QuestionToken,
+            typeNode,
+            null);
+    }
+
+    // transform.go:737-754 — transformHeritageClause.
+    private Node? TransformHeritageClause(HeritageClause clause)
+    {
+        var retainedClauses = CoreUtil.Filter(clause.Types!.Nodes, t =>
+            AstUtilities.IsEntityNameExpression(t.AsExpressionWithTypeArguments().Expression!) ||
+            (clause.Token == SyntaxKind.ExtendsKeyword && t.Expression()!.Kind == SyntaxKind.NullKeyword)) ?? [];
+        if (retainedClauses.Length == 0)
+        {
+            return null; // elide empty clause
+        }
+        if (retainedClauses.Length == clause.Types.Nodes.Length)
+        {
+            return Visitor().VisitEachChild(clause.AsNode());
+        }
+        return Factory().AsNodeFactory().UpdateHeritageClause(
+            clause,
+            clause.Token,
+            Visitor().VisitNodes(Factory().AsNodeFactory().NewNodeList(retainedClauses)));
+    }
+
+    // transform.go:755-771 — transformImportTypeNode.
+    private Node TransformImportTypeNode(ImportTypeNode input)
+    {
+        if (!AstUtilities.IsLiteralImportTypeNode(input.AsNode()))
+        {
+            return input.AsNode();
+        }
+        return Factory().AsNodeFactory().UpdateImportTypeNode(
+            input,
+            input.IsTypeOf,
+            Factory().AsNodeFactory().UpdateLiteralTypeNode(
+                input.Argument!.AsLiteralTypeNode(),
+                RewriteModuleSpecifier(input.AsNode(), input.Argument.AsLiteralTypeNode().Literal)),
+            input.Attributes,
+            input.Qualifier,
+            Visitor().VisitNodes(input.TypeArguments));
+    }
+
+    // transform.go:772-781 — transformConstructorTypeNode.
+    private Node TransformConstructorTypeNode(ConstructorTypeNode input)
+    {
+        return Factory().AsNodeFactory().UpdateConstructorTypeNode(
+            input,
+            EnsureModifiers(input.AsNode()),
+            Visitor().VisitNodes(input.TypeParameters),
+            UpdateParameterList(input.AsNode(), input.Parameters),
+            Visitor().VisitNode(input.Type));
+    }
+
+    // transform.go:782-790 — transformFunctionTypeNode.
+    private Node TransformFunctionTypeNode(FunctionTypeNode input)
+    {
+        return Factory().AsNodeFactory().UpdateFunctionTypeNode(
+            input,
+            Visitor().VisitNodes(input.TypeParameters),
+            UpdateParameterList(input.AsNode(), input.Parameters),
+            Visitor().VisitNode(input.Type));
+    }
+
+    // transform.go:791-808 — transformConditionalTypeNode.
+    private Node TransformConditionalTypeNode(ConditionalTypeNode input)
+    {
+        var checkType = Visitor().VisitNode(input.CheckType);
+        var extendsType = Visitor().VisitNode(input.ExtendsType);
+        var oldEnclosingDecl = enclosingDeclaration;
+        enclosingDeclaration = input.TrueType;
+        var trueType = Visitor().VisitNode(input.TrueType);
+        enclosingDeclaration = oldEnclosingDecl;
+        var falseType = Visitor().VisitNode(input.FalseType);
+
+        return Factory().AsNodeFactory().UpdateConditionalTypeNode(
+            input,
+            checkType,
+            extendsType,
+            trueType,
+            falseType);
+    }
+
+    // transform.go:809-813 — transformTypeReference.
+    private Node? TransformTypeReference(TypeReferenceNode input)
+    {
+        CheckEntityNameVisibility(input.TypeName!, enclosingDeclaration!);
+        return Visitor().VisitEachChild(input.AsNode());
+    }
+
+    // transform.go:814-820 — transformExpressionWithTypeArguments.
+    private Node? TransformExpressionWithTypeArguments(ExpressionWithTypeArguments input)
+    {
+        if (AstUtilities.IsEntityName(input.Expression!) || AstUtilities.IsEntityNameExpression(input.Expression!))
+        {
+            CheckEntityNameVisibility(input.Expression!, enclosingDeclaration!);
+        }
+        return Visitor().VisitEachChild(input.AsNode());
+    }
+
+    // transform.go:821-834 — transformTypeParameterDeclaration.
+    private Node? TransformTypeParameterDeclaration(TypeParameterDeclaration input)
+    {
+        if (DeclarationUtilities.IsPrivateMethodTypeParameter(host, input) && (input.DefaultType != null || input.Constraint != null))
+        {
+            return Factory().AsNodeFactory().UpdateTypeParameterDeclaration(
+                input,
+                input.Modifiers(),
+                input.Name(),
+                null,
+                input.Expression,
+                null);
+        }
+        return Visitor().VisitEachChild(input.AsNode());
+    }
+
+    // transform.go:853-884 — transformCjsRequireVariableDeclaration.
+    private Node? TransformCjsRequireVariableDeclaration(VariableDeclaration input)
+    {
+        var specifier = RewriteModuleSpecifier(input.AsNode(), input.Initializer!.AsCallExpression().Arguments!.Nodes[0]);
+        if (NodeTests.IsIdentifier(input.Name()!))
+        {
+            // `const x = require("something")` -> `import x = require("something")`
+            return Factory().AsNodeFactory().NewImportEqualsDeclaration(null, false, input.Name(), Factory().AsNodeFactory().NewExternalModuleReference(specifier));
+        }
+        else if (NodeTests.IsArrayBindingPattern(input.Name()!))
+        {
+            // TODO: Is this actually reachable? should we error on this?
+            return null;
+        }
+        else
+        { // object binding pattern
+            // `const {x, y: z} = require("something")` -> `import {x, y as z} from "something"`
+            var b = input.Name()!.AsBindingPattern();
+            var importSpecifiers = new List<Node>();
+            foreach (var elem in b.Elements!.Nodes)
+            {
+                if (!NodeTests.IsIdentifier(elem.Name()!))
+                {
+                    continue; // nested destructuring, bail
+                }
+                importSpecifiers.Add(Factory().AsNodeFactory().NewImportSpecifier(false, elem.PropertyName(), elem.Name()));
+            }
+            return Factory().AsNodeFactory().NewImportDeclaration(
+                null,
+                Factory().AsNodeFactory().NewImportClause(
+                    SyntaxKind.Unknown,
+                    null,
+                    Factory().AsNodeFactory().NewNamedImports(Factory().AsNodeFactory().NewNodeList(importSpecifiers.ToArray()))),
+                specifier,
+                null);
+        }
+    }
+
+    // transform.go:885-906 — recreateBindingPattern.
+    private Node? RecreateBindingPattern(BindingPattern input)
+    {
+        var results = new List<Node>();
+        foreach (var elem in input.Elements!.Nodes)
+        {
+            var result = RecreateBindingElement(elem.AsBindingElement());
+            if (result == null)
+            {
+                continue;
+            }
+            if (result.Kind == SyntaxKind.SyntaxList)
+            {
+                results.AddRange(result.AsSyntaxList().Children ?? []);
+            }
+            else
+            {
+                results.Add(result);
+            }
+        }
+        if (results.Count == 0)
+        {
+            return null;
+        }
+        if (results.Count == 1)
+        {
+            return results[0];
+        }
+        return Factory().AsNodeFactory().NewSyntaxList(results.ToArray());
+    }
+
+    // transform.go:907-924 — recreateBindingElement.
+    private Node? RecreateBindingElement(BindingElement e)
+    {
+        if (e.Name() == null)
+        {
+            return null;
+        }
+        if (!DeclarationUtilities.GetBindingNameVisible(resolver!, e.AsNode()))
+        {
+            return null;
+        }
+        if (AstUtilities.IsBindingPattern(e.Name()!))
+        {
+            return RecreateBindingPattern(e.Name()!.AsBindingPattern());
+        }
+        return Factory().AsNodeFactory().NewVariableDeclaration(
+            e.Name(),
+            null,
+            EnsureType(e.AsNode(), false),
+            null); // TODO: possible strada bug - not emitting const initialized binding pattern elements?
+    }
+
+    // ── rebuild forward stubs (later batches replace these) ──
+    private Node RewriteModuleSpecifier(Node parent, Node? input) => throw new NotImplementedException("declarations rebuild");
+    private void PreservePartialJsDoc(Node result, Node input) => throw new NotImplementedException("declarations rebuild");
+    private void PreserveJsDoc(Node result, Node input) => throw new NotImplementedException("declarations rebuild");
+    private ParameterList UpdateAccessorParamList(Node input, bool isPrivate) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocTypeExpression(JSDocTypeExpression input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocTypeLiteral(JSDocTypeLiteral input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocPropertyTag(JSDocParameterOrPropertyTag input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocAllType(JSDocAllType input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocNullableType(JSDocNullableType input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocNonNullableType(JSDocNonNullableType input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocOptionalType(JSDocOptionalType input) => throw new NotImplementedException("declarations rebuild");
+    private Node? TransformJSDocVariadicType(JSDocVariadicType input) => throw new NotImplementedException("declarations rebuild");
+
     // transform.go:276-278 — throwDiagnostic.
     private static SymbolAccessibilityDiagnostic ThrowDiagnostic(global::Ts.Printer.SymbolAccessibilityResult result) =>
         throw new InvalidOperationException("Diagnostic emitted without context");
