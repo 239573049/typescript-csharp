@@ -101,7 +101,7 @@ internal static class References
                 }
                 return null;
             case SyntaxKind.ImportType:
-                throw new NotImplementedException("getExternalModuleName(ImportType)"); // deferred getImportTypeNodeLiteral
+                return AstUtilities.GetImportTypeNodeLiteral(node);
             case SyntaxKind.CallExpression:
                 return CoreUtil.FirstOrNil(node.Arguments());
             case SyntaxKind.ModuleDeclaration:

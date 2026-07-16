@@ -58,6 +58,24 @@ public static partial class AstUtilities
         return (ModuleKind.CommonJS, true);
     }
 
+    // ast/utilities.go:1916 — getImportTypeNodeLiteral.
+    public static Node? GetImportTypeNodeLiteral(Node node)
+    {
+        if (NodeTests.IsImportTypeNode(node))
+        {
+            ImportTypeNode importTypeNode = node.AsImportTypeNode();
+            if (NodeTests.IsLiteralTypeNode(importTypeNode.Argument!))
+            {
+                LiteralTypeNode literalTypeNode = importTypeNode.Argument!.AsLiteralTypeNode();
+                if (NodeTests.IsStringLiteral(literalTypeNode.Literal!))
+                {
+                    return literalTypeNode.Literal;
+                }
+            }
+        }
+        return null;
+    }
+
     // ast/utilities.go:3171 — IsEmittableImport.
     public static bool IsEmittableImport(Node node)
     {
