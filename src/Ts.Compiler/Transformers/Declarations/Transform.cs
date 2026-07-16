@@ -264,22 +264,6 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         return comment.Contains("@internal", StringComparison.Ordinal);
     }
 
-    // REBUILD-ANCHOR — references the state fields the 1:1 rebuild batches will use so the batch-1
-    // slice builds warning-clean (CS0169 under TreatWarningsAsErrors). Removed when the rebuild wires
-    // the new visitSourceFile chain.
-    private bool RebuildFieldAnchor() =>
-        !resultHasScopeMarker && !resultHasExternalModuleIndicator && !suppressNewDiagnosticContexts &&
-        !needsScopeFixMarker && !inClassExpressionDeclaration && cjsExportAssignment == null &&
-        cjsExportAssignmentName == null && cjsExportMembers.Count == 0 &&
-        lateStatementReplacementMap.Count == 0 && expandoHosts.Count == 0 && expandoMembers.Count == 0 &&
-        deferredExpandoAssignments.Count == 0 && thisPropertyAssignmentsCollected.Count == 0 &&
-        rawReferencedFiles.Count == 0 && rawTypeReferenceDirectives.Count == 0 &&
-        rawLibReferenceDirectives.Count == 0 && global::Ts.Collections.SetExtensions.Len(witnessedCjsExports) == 0 &&
-        global::Ts.Collections.SetExtensions.Len(seenProperties) == 0 && bindingNameVisitor != null &&
-        expressionVisitor != null && cjsExportAssignmentVisitor != null && exportStrippingVisitor != null &&
-        thisPropertyVisitor != null && declareStrippingVisitor != null && declarationMapPath != null &&
-        !ShouldStripInternal(null) && ThrowDiagnostic(default!) == null;
-
     // transform.go:311-316 — collectFileReferences.
     private void CollectFileReferences(SourceFile sourceFile)
     {
@@ -2784,65 +2768,34 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
 
     public Diagnostic[] GetDiagnostics() => state.Diagnostics.ToArray();
 
-    private Node? Visit(Node node)
+    // transform.go:226-274 — visit: functions as both `visitDeclarationStatements` and
+    // `transformRoot`, utilizing SyntaxList nodes.
+    private Node? Visit(Node? node)
     {
+        if (node == null)
+        {
+            return null;
+        }
         switch (node.Kind)
         {
             case SyntaxKind.SourceFile:
                 return VisitSourceFile(node.AsSourceFile());
-
+            // statements we keep but do something to
             case SyntaxKind.FunctionDeclaration:
-                return TransformFunctionDeclaration(node.AsFunctionDeclaration());
-            case SyntaxKind.ClassDeclaration:
-                return TransformClassDeclaration(node.AsClassDeclaration());
-            case SyntaxKind.InterfaceDeclaration:
-                return TransformInterfaceDeclaration(node.AsInterfaceDeclaration());
-            case SyntaxKind.TypeAliasDeclaration:
-            case SyntaxKind.JSTypeAliasDeclaration:
-                return TransformTypeAliasDeclaration(node.AsTypeAliasDeclaration());
-            case SyntaxKind.VariableStatement:
-                return TransformVariableStatement(node.AsVariableStatement());
-            case SyntaxKind.EnumDeclaration:
-                return TransformEnumDeclaration(node.AsEnumDeclaration());
             case SyntaxKind.ModuleDeclaration:
-                return TransformModuleDeclaration(node.AsModuleDeclaration());
-
             case SyntaxKind.ImportEqualsDeclaration:
+            case SyntaxKind.InterfaceDeclaration:
+            case SyntaxKind.ClassDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.EnumDeclaration:
+            case SyntaxKind.VariableStatement:
             case SyntaxKind.ImportDeclaration:
             case SyntaxKind.JSImportDeclaration:
             case SyntaxKind.ExportDeclaration:
-                return TransformModuleIndicator(node);
             case SyntaxKind.ExportAssignment:
-                return TransformExportAssignment(node.AsExportAssignment());
-
-            case SyntaxKind.VariableDeclaration:
-                return TransformVariableDeclaration(node.AsVariableDeclaration());
-            case SyntaxKind.Parameter:
-                return EnsureParameter(node.AsParameterDeclaration());
-            case SyntaxKind.PropertyDeclaration:
-                return TransformPropertyDeclaration(node.AsPropertyDeclaration());
-            case SyntaxKind.PropertySignature:
-                return TransformPropertySignatureDeclaration(node.AsPropertySignatureDeclaration());
-            case SyntaxKind.MethodDeclaration:
-                return TransformMethodDeclaration(node.AsMethodDeclaration());
-            case SyntaxKind.MethodSignature:
-                return TransformMethodSignatureDeclaration(node.AsMethodSignatureDeclaration());
-            case SyntaxKind.Constructor:
-                return TransformConstructorDeclaration(node.AsConstructorDeclaration());
-            case SyntaxKind.GetAccessor:
-                return TransformGetAccessorDeclaration(node.AsGetAccessorDeclaration());
-            case SyntaxKind.SetAccessor:
-                return TransformSetAccessorDeclaration(node.AsSetAccessorDeclaration());
-            case SyntaxKind.CallSignature:
-                return TransformCallSignatureDeclaration(node.AsCallSignatureDeclaration());
-            case SyntaxKind.ConstructSignature:
-                return TransformConstructSignatureDeclaration(node.AsConstructSignatureDeclaration());
-            case SyntaxKind.IndexSignature:
-                return TransformIndexSignatureDeclaration(node.AsIndexSignatureDeclaration());
-            case SyntaxKind.ClassStaticBlockDeclaration:
-            case SyntaxKind.SemicolonClassElement:
-                return null;
-
+                return VisitDeclarationStatements(node);
+            // statements we elide
             case SyntaxKind.BreakStatement:
             case SyntaxKind.ContinueStatement:
             case SyntaxKind.DebuggerStatement:
@@ -2864,65 +2817,96 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
             case SyntaxKind.MissingDeclaration:
             case SyntaxKind.ExpressionStatement:
                 return null;
-
+            // parts of things, things we just visit children of
             default:
-                return Visitor().VisitEachChild(node);
+                return VisitDeclarationSubtree(node);
         }
     }
 
+    // transform.go:280-309 — visitSourceFile.
     private Node VisitSourceFile(SourceFile node)
     {
+        cjsExportAssignmentName = null;
         if (node.IsDeclarationFile)
         {
             return node.AsNode();
         }
 
         needsDeclare = true;
+        needsScopeFixMarker = false;
+        resultHasScopeMarker = false;
         enclosingDeclaration = node.AsNode();
+        state.GetSymbolAccessibilityDiagnostic = ThrowDiagnostic;
+        resultHasExternalModuleIndicator = false;
+        suppressNewDiagnosticContexts = false;
+        state.LateMarkedStatements.Clear();
+        lateStatementReplacementMap = new Dictionary<NodeId, Node?>();
+        expandoHosts = new Dictionary<NodeId, Node>();
+        expandoMembers = new Dictionary<NodeId, List<Node>>();
+        deferredExpandoAssignments = new Dictionary<NodeId, List<BinaryExpression>>();
+        rawReferencedFiles = new List<ReferencedFilePair>();
+        rawTypeReferenceDirectives = new List<FileReference>();
+        rawLibReferenceDirectives = new List<FileReference>();
+        global::Ts.Collections.SetExtensions.Clear(witnessedCjsExports);
         state.CurrentSourceFile = node;
-        resolver?.PrecalculateDeclarationEmitVisibility(EmitContext().MostOriginal(node.AsNode())!.AsSourceFile());
-
-        var statements = Visitor().VisitNodes(node.Statements) ?? Factory().NewNodeList([]);
-        var result = Factory().AsNodeFactory().UpdateSourceFile(node, statements, node.EndOfFileToken);
-        result.AsSourceFile().IsDeclarationFile = true;
-
+        CollectFileReferences(node);
+        resolver!.PrecalculateDeclarationEmitVisibility(EmitContext().MostOriginal(node.AsNode())!.AsSourceFile());
+        var updated = TransformSourceFileWorker(node);
         state.CurrentSourceFile = null;
-        enclosingDeclaration = null;
-        return result;
+        return updated;
     }
 
-    private Node? TransformModuleIndicator(Node node)
+    // transform.go:341-381 — transformSourceFile. (Named *Worker: the C# Transformer base already
+    // exposes the public TransformSourceFile entry point.)
+    private Node TransformSourceFileWorker(SourceFile node)
     {
-        if (resolver is not null &&
-            node.Kind is SyntaxKind.ImportEqualsDeclaration or SyntaxKind.ImportDeclaration or SyntaxKind.JSImportDeclaration &&
-            !resolver.IsDeclarationVisible(node))
+        cjsExportAssignment = null;
+        cjsExportAssignmentName = null;
+        cjsExportMembers = new List<Node>();
+        try
         {
-            return null;
+            cjsExportAssignmentVisitor.VisitNode(node.AsNode()); // collect nested module.exports= assignments
+            expressionVisitor.VisitNode(node.AsNode());          // collect expando members (requires any export assignment be located in advance)
+            var statements = Visitor().VisitNodes(node.Statements)!;
+            var combinedStatements = TransformAndReplaceLatePaintedStatements(statements);
+            combinedStatements = AppendCjsExports(combinedStatements);
+            combinedStatements.Loc = statements.Loc; // setTextRange
+            if (AstUtilities.IsExternalOrCommonJSModule(node))
+            {
+                if (AstUtilities.IsInJSFile(node.AsNode()))
+                {
+                    var exportEquals = node.Symbol?.Exports?[InternalSymbolName.ExportEquals];
+                    if (exportEquals != null && (exportEquals.Declarations?.Length ?? 0) > 1)
+                    {
+                        foreach (var decl in exportEquals.Declarations!)
+                        {
+                            state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(decl, global::Ts.Diagnostics.Diagnostics.Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit));
+                        }
+                    }
+                }
+                if (!resultHasExternalModuleIndicator || (needsScopeFixMarker && !resultHasScopeMarker))
+                {
+                    var marker = CreateEmptyExports(Factory().AsNodeFactory());
+                    var newList = new List<Node>(combinedStatements.Nodes) { marker };
+                    var withMarker = Factory().AsNodeFactory().NewNodeList(newList.ToArray());
+                    withMarker.Loc = combinedStatements.Loc;
+                    combinedStatements = withMarker;
+                }
+            }
+            var outputFilePath = global::Ts.TsPath.TsPath.GetDirectoryPath(global::Ts.TsPath.TsPath.NormalizeSlashes(declarationFilePath));
+            var result = Factory().AsNodeFactory().UpdateSourceFile(node, combinedStatements, node.EndOfFileToken);
+            result.AsSourceFile().LibReferenceDirectives = GetLibReferences();
+            result.AsSourceFile().TypeReferenceDirectives = GetTypeReferences();
+            result.AsSourceFile().IsDeclarationFile = true;
+            result.AsSourceFile().ReferencedFiles = GetReferencedFiles(outputFilePath);
+            return result;
         }
-        return Visitor().VisitEachChild(node);
-    }
-
-    private Node? TransformExportAssignment(ExportAssignment input)
-    {
-        var expression = input.Expression;
-        if (expression?.Kind == SyntaxKind.Identifier)
+        finally
         {
-            return Factory().AsNodeFactory().UpdateExportAssignment(
-                input,
-                input.Modifiers(),
-                input.IsExportEquals,
-                null,
-                expression);
+            cjsExportAssignment = null;
+            cjsExportAssignmentName = null;
+            cjsExportMembers = new List<Node>();
         }
-
-        // PORT-NOTE: transform.go promotes non-identifier export assignments to a synthetic typed
-        // declaration. That path requires checker-backed CreateTypeOfExpression and generated-name
-        // visibility. Keep it explicitly deferred instead of emitting an invalid .d.ts expression.
-        if (state.IsolatedDeclarations && expression is not null)
-        {
-            tracker.ReportInferenceFallback(expression);
-        }
-        return null;
     }
 
     // transform.go:1754-1764 — transformTypeAliasDeclaration (needsDeclare is restored by
@@ -3601,57 +3585,6 @@ public sealed class DeclarationTransformer : global::Ts.Transformers.Transformer
         }
         return typeNode;
     }
-
-    private Node PseudoTypeToTypeNode(global::Ts.PseudoChecker.PseudoType type)
-    {
-        switch (type.Kind)
-        {
-            case global::Ts.PseudoChecker.PseudoTypeKind.Direct:
-                return Visitor().VisitNode(type.AsPseudoTypeDirect().TypeNode)!;
-            case global::Ts.PseudoChecker.PseudoTypeKind.MaybeConstLocation:
-                return PseudoTypeToTypeNode(type.AsPseudoTypeMaybeConstLocation().RegularType);
-            case global::Ts.PseudoChecker.PseudoTypeKind.Union:
-            {
-                var types = type.AsPseudoTypeUnion().Types;
-                var nodes = new Node[types.Length];
-                for (var i = 0; i < types.Length; i++)
-                {
-                    nodes[i] = PseudoTypeToTypeNode(types[i]);
-                }
-                return Factory().AsNodeFactory().NewUnionTypeNode(Factory().NewNodeList(nodes));
-            }
-            case global::Ts.PseudoChecker.PseudoTypeKind.String:
-            case global::Ts.PseudoChecker.PseudoTypeKind.StringLiteral:
-                return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.StringKeyword);
-            case global::Ts.PseudoChecker.PseudoTypeKind.Number:
-            case global::Ts.PseudoChecker.PseudoTypeKind.NumericLiteral:
-                return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.NumberKeyword);
-            case global::Ts.PseudoChecker.PseudoTypeKind.BigInt:
-            case global::Ts.PseudoChecker.PseudoTypeKind.BigIntLiteral:
-                return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.BigIntKeyword);
-            case global::Ts.PseudoChecker.PseudoTypeKind.Boolean:
-            case global::Ts.PseudoChecker.PseudoTypeKind.False:
-            case global::Ts.PseudoChecker.PseudoTypeKind.True:
-                return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.BooleanKeyword);
-            case global::Ts.PseudoChecker.PseudoTypeKind.Undefined:
-                return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.UndefinedKeyword);
-            case global::Ts.PseudoChecker.PseudoTypeKind.Null:
-                return Factory().AsNodeFactory().NewLiteralTypeNode(
-                    Factory().NewKeywordExpression(SyntaxKind.NullKeyword));
-            case global::Ts.PseudoChecker.PseudoTypeKind.Any:
-            case global::Ts.PseudoChecker.PseudoTypeKind.Inferred:
-            case global::Ts.PseudoChecker.PseudoTypeKind.NoResult:
-            case global::Ts.PseudoChecker.PseudoTypeKind.SingleCallSignature:
-            case global::Ts.PseudoChecker.PseudoTypeKind.Tuple:
-            case global::Ts.PseudoChecker.PseudoTypeKind.ObjectLiteral:
-            default:
-                return Factory().AsNodeFactory().NewKeywordTypeNode(SyntaxKind.AnyKeyword);
-        }
-    }
-
-    private ModifierFlags GetEffectiveDeclarationFlags(Node node, ModifierFlags flags) =>
-        host?.GetEffectiveDeclarationFlags(EmitContext().ParseNode(node) ?? node, flags) ??
-        (global::Ts.Ast.AstUtilities.GetCombinedModifierFlags(node) & flags);
 
     // transform.go:2284-2303 — ensureModifiers.
     private ModifierList? EnsureModifiers(Node node)
