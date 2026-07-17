@@ -42,8 +42,13 @@ public sealed class TypeEraserTransformer : global::Ts.Transformers.Transformer
 
     private Node? Visit(Node node)
     {
-        // PORT-NOTE: Several parser-produced container nodes do not yet aggregate SubtreeFacts in
-        // the C# port. Traversing them is semantically equivalent and prevents TS syntax leaking.
+        // typeeraser.go:44-46
+        if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsTypeScript) == 0)
+        {
+            return node;
+        }
+
+        // typeeraser.go:48-50
         if (global::Ts.Ast.AstUtilities.IsStatement(node) &&
             global::Ts.Ast.AstUtilities.HasSyntacticModifier(node, ModifierFlags.Ambient))
         {
