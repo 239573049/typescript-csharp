@@ -178,10 +178,7 @@ internal sealed class ProjectReferenceFileMapper
         return null;
     }
 
-    // projectreferencefilemapper.go:112-156 — rangeResolvedProjectReference family drives project-reference
-    // verification/traversal. With ConfigFile==null it returns false immediately (the no-reference path).
-    // PORT-NOTE: the populated recursion (with references) is exercised only once ProjectReferenceParser is
-    // fully ported; deferred with the rest of project references.
+    // projectreferencefilemapper.go:112-122
     internal bool RangeResolvedProjectReference(
         Func<global::Ts.TsPath.Path, global::Ts.TsOptions.ParsedCommandLine?, global::Ts.TsOptions.ParsedCommandLine, int, bool> f)
     {
@@ -189,6 +186,53 @@ internal sealed class ProjectReferenceFileMapper
         {
             return false;
         }
-        throw new NotImplementedException("project-reference traversal is deferred (phase 4/5)");
+        var seenRef = new global::Ts.Collections.Set<global::Ts.TsPath.Path>(ReferencesInConfigFile?.Count ?? 0);
+        seenRef.Add(Opts.Config.ConfigFile.SourceFile.Path());
+        var refs = ReferencesInConfigFile?.GetValueOrDefault(Opts.Config.ConfigFile.SourceFile.Path());
+        return RangeResolvedReferenceWorker(refs, f, Opts.Config, seenRef);
+    }
+
+    // projectreferencefilemapper.go:124-143
+    private bool RangeResolvedReferenceWorker(
+        global::Ts.TsPath.Path[]? references,
+        Func<global::Ts.TsPath.Path, global::Ts.TsOptions.ParsedCommandLine?, global::Ts.TsOptions.ParsedCommandLine, int, bool> f,
+        global::Ts.TsOptions.ParsedCommandLine parent,
+        global::Ts.Collections.Set<global::Ts.TsPath.Path> seenRef)
+    {
+        var index = 0;
+        foreach (var path in references ?? [])
+        {
+            if (!seenRef.AddIfAbsent(path))
+            {
+                index++;
+                continue;
+            }
+            var config = ConfigToProjectReference?.GetValueOrDefault(path);
+            if (!f(path, config, parent, index))
+            {
+                return false;
+            }
+            if (!RangeResolvedReferenceWorker(ReferencesInConfigFile?.GetValueOrDefault(path), f, config!, seenRef))
+            {
+                return false;
+            }
+            index++;
+        }
+        return true;
+    }
+
+    // projectreferencefilemapper.go:145-156
+    internal bool RangeResolvedProjectReferenceInChildConfig(
+        global::Ts.TsOptions.ParsedCommandLine? childConfig,
+        Func<global::Ts.TsPath.Path, global::Ts.TsOptions.ParsedCommandLine?, global::Ts.TsOptions.ParsedCommandLine, int, bool> f)
+    {
+        if (childConfig?.ConfigFile is null)
+        {
+            return false;
+        }
+        var seenRef = new global::Ts.Collections.Set<global::Ts.TsPath.Path>(ReferencesInConfigFile?.Count ?? 0);
+        seenRef.Add(childConfig.ConfigFile.SourceFile.Path());
+        var refs = ReferencesInConfigFile?.GetValueOrDefault(childConfig.ConfigFile.SourceFile.Path());
+        return RangeResolvedReferenceWorker(refs, f, Opts.Config, seenRef);
     }
 }

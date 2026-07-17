@@ -256,6 +256,19 @@ public static class Tsc
             };
         }
 
+        if (configForCompilation.CompilerOptions()!.IsIncremental())
+        {
+            return new CommandLineResult
+            {
+                Status = PerformIncrementalCompilationOutcome(
+                    sys,
+                    configForCompilation,
+                    reportDiagnostic,
+                    reportErrorSummary,
+                    testing).Status,
+            };
+        }
+
         return new CommandLineResult
         {
             Status = PerformCompilationOutcome(
@@ -287,13 +300,52 @@ public static class Tsc
             Host = host,
             Config = config,
         });
-        var outcome = EmitFilesAndReportErrors(program, reportDiagnostic, reportErrorSummary);
+        var outcome = EmitFilesAndReportErrors(program, program, reportDiagnostic, reportErrorSummary);
+        testing?.OnCompilationComplete(config, outcome.Diagnostics.Length);
+        return outcome;
+    }
+
+    // tsc.go:284-330 — incremental compilation: chain the previous .tsbuildinfo snapshot into a new
+    // incremental.Program and drive the shared emit/report shell through it.
+    // PORT-NOTE: CompileTimes/tracing/statistics reporting is deferred with the statistics tail
+    // (consistent with the rest of this shell).
+    internal static CompilationOutcome PerformIncrementalCompilationOutcome(
+        ISystem sys,
+        global::Ts.TsOptions.ParsedCommandLine config,
+        DiagnosticReporter reportDiagnostic,
+        DiagnosticsReporter reportErrorSummary,
+        ICommandLineTesting? testing)
+    {
+        testing?.OnCompilation(config);
+        var host = global::Ts.Compiler.CompilerHosts.NewCachedFSCompilerHost(
+            sys.GetCurrentDirectory(),
+            sys.FS(),
+            sys.DefaultLibraryPath(),
+            extendedConfigCache: null,
+            trace: null);
+        var oldProgram = global::Ts.Execute.Incremental.BuildInfoReaderHelpers.ReadBuildInfoProgram(
+            config,
+            global::Ts.Execute.Incremental.BuildInfoReaderHelpers.NewBuildInfoReader(host),
+            host);
+
+        var program = new global::Ts.Compiler.Program(new global::Ts.Compiler.ProgramOptions
+        {
+            Config = config,
+            Host = host,
+        });
+        var incrementalProgram = global::Ts.Execute.Incremental.Program.NewProgram(
+            program,
+            oldProgram,
+            global::Ts.Execute.Incremental.HostHelpers.CreateHost(host),
+            testing != null);
+        var outcome = EmitFilesAndReportErrors(incrementalProgram, incrementalProgram.GetProgram(), reportDiagnostic, reportErrorSummary);
         testing?.OnCompilationComplete(config, outcome.Diagnostics.Length);
         return outcome;
     }
 
     // emit.go:73-132 — collect diagnostics, emit, report diagnostics/summary, compute status.
-    private static CompilationOutcome EmitFilesAndReportErrors(
+    internal static CompilationOutcome EmitFilesAndReportErrors(
+        global::Ts.Compiler.ProgramLike programLike,
         global::Ts.Compiler.Program program,
         DiagnosticReporter reportDiagnostic,
         DiagnosticsReporter reportErrorSummary)
@@ -302,20 +354,20 @@ public static class Tsc
         var allDiagnostics = new List<global::Ts.Ast.Diagnostic>(
             global::Ts.Compiler.Program.GetDiagnosticsOfAnyProgram(
                 ctx,
-                program,
+                programLike,
                 file: null,
                 skipNoEmitCheckForDtsDiagnostics: false,
-                getBindDiagnostics: (c, f) => program.GetBindDiagnostics(c, f),
-                getSemanticDiagnostics: (c, f) => program.GetSemanticDiagnostics(c, f)));
+                getBindDiagnostics: (c, f) => programLike.GetBindDiagnostics(c, f),
+                getSemanticDiagnostics: (c, f) => programLike.GetSemanticDiagnostics(c, f)));
 
         var emitResult = new global::Ts.Compiler.EmitResult
         {
             EmitSkipped = true,
             Diagnostics = Array.Empty<global::Ts.Ast.Diagnostic>(),
         };
-        if (!IsTrue(program.Options().ListFilesOnly))
+        if (!IsTrue(programLike.Options().ListFilesOnly))
         {
-            emitResult = program.Emit(ctx, new global::Ts.Compiler.EmitOptions());
+            emitResult = programLike.Emit(ctx, new global::Ts.Compiler.EmitOptions()) ?? emitResult;
         }
         if (emitResult.Diagnostics is not null)
         {

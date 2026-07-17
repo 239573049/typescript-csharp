@@ -29,6 +29,9 @@ internal sealed class WatchSession : IExecuteWatcher
     private readonly StringComparer pathComparer;
 
     private global::Ts.TsOptions.ParsedCommandLine config;
+    // watcher.go:68 — the incremental program carried across rebuilds.
+    private global::Ts.Execute.Incremental.Program? program;
+    private bool buildInfoRead;
     private HashSet<string> seenFiles;
     private bool overflow;
     private bool configModified;
@@ -174,17 +177,36 @@ internal sealed class WatchSession : IExecuteWatcher
             config = config.ReloadFileNamesOfParsedCommandLine(sys.FS());
         }
 
-        // PORT-NOTE: Go constructs incremental.Program with the previous program and build-info
-        // snapshot here. The incremental/.tsbuildinfo package has not landed in C# yet, so this
-        // wave deliberately performs a fresh Program build while preserving watch invalidation,
-        // diagnostics, emit, and status behaviour. Program reuse arrives with the later
-        // incremental/.tsbuildinfo wave.
-        var outcome = Tsc.PerformCompilationOutcome(
-            sys,
-            config,
-            reportDiagnostic,
-            reportErrorSummary,
-            testing);
+        // watcher.go:114-118 + 306-309 — chain the previous incremental program (first build seeds
+        // it from the on-disk .tsbuildinfo) into the next one, then drive the shared emit shell
+        // through it. Go passes a nil incremental host in watch mode (mtime reversal is a --build
+        // concern); C# mirrors that with the null-forgiving placeholder.
+        testing?.OnCompilation(config);
+        var host = global::Ts.Compiler.CompilerHosts.NewCachedFSCompilerHost(
+            sys.GetCurrentDirectory(),
+            sys.FS(),
+            sys.DefaultLibraryPath(),
+            extendedConfigCache: null,
+            trace: null);
+        if (!buildInfoRead)
+        {
+            buildInfoRead = true;
+            program = global::Ts.Execute.Incremental.BuildInfoReaderHelpers.ReadBuildInfoProgram(
+                config,
+                global::Ts.Execute.Incremental.BuildInfoReaderHelpers.NewBuildInfoReader(host),
+                host);
+        }
+        program = global::Ts.Execute.Incremental.Program.NewProgram(
+            new global::Ts.Compiler.Program(new global::Ts.Compiler.ProgramOptions
+            {
+                Config = config,
+                Host = host,
+            }),
+            program,
+            null!,
+            testing != null);
+        var outcome = Tsc.EmitFilesAndReportErrors(program, program.GetProgram(), reportDiagnostic, reportErrorSummary);
+        testing?.OnCompilationComplete(config, outcome.Diagnostics.Length);
 
         ReconcileWatches(outcome.Program);
         ReportFoundErrors(outcome.Diagnostics.Length);
