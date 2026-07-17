@@ -32,6 +32,8 @@ internal sealed class WatchSession : IExecuteWatcher
     // watcher.go:68 — the incremental program carried across rebuilds.
     private global::Ts.Execute.Incremental.Program? program;
     private bool buildInfoRead;
+    // watcher.go:116 — session-lifetime extended-config cache.
+    private readonly TscExtendedConfigCache extendedConfigCache = new();
     private HashSet<string> seenFiles;
     private bool overflow;
     private bool configModified;
@@ -152,7 +154,7 @@ internal sealed class WatchSession : IExecuteWatcher
             compilerOptionsFromCommandLine,
             commandLineRaw,
             sys,
-            extendedConfigCache: null);
+            extendedConfigCache);
         if (errors is not null && errors.Length > 0)
         {
             foreach (var error in errors)
@@ -186,7 +188,7 @@ internal sealed class WatchSession : IExecuteWatcher
             sys.GetCurrentDirectory(),
             sys.FS(),
             sys.DefaultLibraryPath(),
-            extendedConfigCache: null,
+            extendedConfigCache,
             trace: null);
         if (!buildInfoRead)
         {

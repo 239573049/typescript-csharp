@@ -200,6 +200,7 @@ public static class Tsc
 
         var compilerOptionsFromCommandLine = compilerOptions;
         var configForCompilation = commandLine;
+        var extendedConfigCache = new TscExtendedConfigCache(); // tsc.go:202
         global::Ts.Collections.OrderedMap<string, object?>? commandLineRaw = null;
         if (configFileName != "")
         {
@@ -214,7 +215,7 @@ public static class Tsc
                 compilerOptionsFromCommandLine,
                 commandLineRaw,
                 sys,
-                extendedConfigCache: null);
+                extendedConfigCache);
             if (errors is not null && errors.Length > 0)
             {
                 foreach (var error in errors)
@@ -265,6 +266,7 @@ public static class Tsc
                     configForCompilation,
                     reportDiagnostic,
                     reportErrorSummary,
+                    extendedConfigCache,
                     testing).Status,
             };
         }
@@ -286,14 +288,15 @@ public static class Tsc
         global::Ts.TsOptions.ParsedCommandLine config,
         DiagnosticReporter reportDiagnostic,
         DiagnosticsReporter reportErrorSummary,
-        ICommandLineTesting? testing)
+        ICommandLineTesting? testing,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache = null)
     {
         testing?.OnCompilation(config);
         var host = global::Ts.Compiler.CompilerHosts.NewCachedFSCompilerHost(
             sys.GetCurrentDirectory(),
             sys.FS(),
             sys.DefaultLibraryPath(),
-            extendedConfigCache: null,
+            extendedConfigCache,
             trace: null);
         var program = new global::Ts.Compiler.Program(new global::Ts.Compiler.ProgramOptions
         {
@@ -314,6 +317,7 @@ public static class Tsc
         global::Ts.TsOptions.ParsedCommandLine config,
         DiagnosticReporter reportDiagnostic,
         DiagnosticsReporter reportErrorSummary,
+        global::Ts.TsOptions.ExtendedConfigCache? extendedConfigCache,
         ICommandLineTesting? testing)
     {
         testing?.OnCompilation(config);
@@ -321,7 +325,7 @@ public static class Tsc
             sys.GetCurrentDirectory(),
             sys.FS(),
             sys.DefaultLibraryPath(),
-            extendedConfigCache: null,
+            extendedConfigCache,
             trace: null);
         var oldProgram = global::Ts.Execute.Incremental.BuildInfoReaderHelpers.ReadBuildInfoProgram(
             config,
