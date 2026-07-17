@@ -140,6 +140,56 @@ public static partial class AstUtilities
         }
     }
 
+    // ast/utilities.go:4277-4310
+    public static bool ClassElementOrClassElementParameterIsDecorated(bool useLegacyDecorators, Node node, Node parent)
+    {
+        NodeList? parameters = null;
+        if (IsAccessor(node))
+        {
+            var decls = GetAllAccessorDeclarations(parent.Members() ?? [], node);
+            Node? firstAccessorWithDecorators = null;
+            if (HasDecorators(decls.FirstAccessor!))
+            {
+                firstAccessorWithDecorators = decls.FirstAccessor;
+            }
+            else if (decls.SecondAccessor != null && HasDecorators(decls.SecondAccessor))
+            {
+                firstAccessorWithDecorators = decls.SecondAccessor;
+            }
+            if (firstAccessorWithDecorators == null || node != firstAccessorWithDecorators)
+            {
+                return false;
+            }
+            if (decls.SetAccessor != null)
+            {
+                parameters = decls.SetAccessor.Parameters;
+            }
+        }
+        else if (NodeTests.IsMethodDeclaration(node))
+        {
+            parameters = node.ParameterList();
+        }
+        if (NodeIsDecorated(useLegacyDecorators, node, parent, null))
+        {
+            return true;
+        }
+        if (parameters != null && parameters.Nodes.Length > 0)
+        {
+            foreach (var parameter in parameters.Nodes)
+            {
+                if (IsThisParameter(parameter))
+                {
+                    continue;
+                }
+                if (NodeIsDecorated(useLegacyDecorators, parameter, node, parent))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // ast/utilities.go:4336-4342
     public sealed class AllAccessorDeclarations
     {
