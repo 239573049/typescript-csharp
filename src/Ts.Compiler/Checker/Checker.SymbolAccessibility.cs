@@ -539,14 +539,89 @@ public partial class Checker
         return null;
     }
 
+    // symbolaccessibility.go:280-340 — getContainersOfSymbol.
     internal List<Symbol> GetContainersOfSymbol(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning)
     {
         var container = GetParentOfSymbol(symbol);
+        // Type parameters end up in the `members` lists but are not externally visible
         if (container != null && (symbol.Flags & SymbolFlags.TypeParameter) == 0)
         {
             return GetWithAlternativeContainers(container, symbol, enclosingDeclaration, meaning);
         }
-        return new List<Symbol>();
+        var candidates = new List<Symbol>();
+        foreach (var d in symbol.Declarations ?? [])
+        {
+            if (!AstUtilities.IsAmbientModule(d) && d.Parent != null)
+            {
+                // direct children of a module
+                if (HasNonGlobalAugmentationExternalModuleSymbol(d.Parent))
+                {
+                    var sym = GetSymbolOfDeclaration(d.Parent);
+                    if (sym != null && !candidates.Contains(sym))
+                    {
+                        candidates.Add(sym);
+                    }
+                    continue;
+                }
+                // export ='d member of an ambient module
+                if (NodeTests.IsModuleBlock(d.Parent) && d.Parent.Parent != null &&
+                    ResolveExternalModuleSymbol(GetSymbolOfDeclaration(d.Parent.Parent), false) == symbol)
+                {
+                    var sym = GetSymbolOfDeclaration(d.Parent.Parent);
+                    if (sym != null && !candidates.Contains(sym))
+                    {
+                        candidates.Add(sym);
+                    }
+                    continue;
+                }
+            }
+            if (NodeTests.IsClassExpression(d) && d.Parent != null && NodeTests.IsBinaryExpression(d.Parent) &&
+                d.Parent.AsBinaryExpression().OperatorToken!.Kind == SyntaxKind.EqualsToken &&
+                AstUtilities.IsAccessExpression(d.Parent.AsBinaryExpression().Left!) &&
+                AstUtilities.IsEntityNameExpression(d.Parent.AsBinaryExpression().Left!.Expression()!))
+            {
+                if (AstUtilities.IsModuleExportsAccessExpression(d.Parent.AsBinaryExpression().Left!) ||
+                    AstUtilities.IsExportsIdentifier(d.Parent.AsBinaryExpression().Left!.Expression()!))
+                {
+                    var sym = GetSymbolOfDeclaration(AstUtilities.GetSourceFileOfNode(d)!.AsNode());
+                    if (sym != null && !candidates.Contains(sym))
+                    {
+                        candidates.Add(sym);
+                    }
+                    continue;
+                }
+                CheckExpressionCached(d.Parent.AsBinaryExpression().Left!.Expression()!);
+                var resolved = symbolNodeLinks.Get(d.Parent.AsBinaryExpression().Left!.Expression()!).resolvedSymbol;
+                if (resolved != null && !candidates.Contains(resolved))
+                {
+                    candidates.Add(resolved);
+                }
+                continue;
+            }
+        }
+        if (candidates.Count == 0)
+        {
+            return new List<Symbol>();
+        }
+
+        var bestContainers = new List<Symbol>();
+        var alternativeContainers = new List<Symbol>();
+        foreach (var candidate in candidates)
+        {
+            if (GetAliasForSymbolInContainer(candidate, symbol) == null)
+            {
+                continue;
+            }
+            var allAlts = GetWithAlternativeContainers(candidate, symbol, enclosingDeclaration, meaning);
+            if (allAlts.Count == 0)
+            {
+                continue;
+            }
+            bestContainers.Add(allAlts[0]);
+            alternativeContainers.AddRange(allAlts.Skip(1));
+        }
+        bestContainers.AddRange(alternativeContainers);
+        return bestContainers;
     }
 
     // symbolaccessibility.go IsAnySymbolAccessible.

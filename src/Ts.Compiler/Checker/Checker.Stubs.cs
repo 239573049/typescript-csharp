@@ -132,7 +132,27 @@ public partial class Checker
 
     // Constructor closures.
     // compareSymbolsWorker (utilities.go:343) implemented in Checker.TypeOps.Support.cs (needed by CompareTypes).
-    internal int CompareSymbolChainsWorker(Symbol[] a, Symbol[] b) => throw new NotImplementedException("compareSymbolChainsWorker");
+    // symbolaccessibility.go:595-610 — compareSymbolChainsWorker ("pick first, shortest").
+    internal int CompareSymbolChainsWorker(Symbol[] a, Symbol[] b)
+    {
+        var chainLen = a.Length - b.Length;
+        if (chainLen != 0)
+        {
+            return chainLen;
+        }
+
+        var idx = 0;
+        while (idx < a.Length)
+        {
+            var comparison = compareSymbols(a[idx], b[idx]);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+            idx++;
+        }
+        return 0;
+    }
 
     // evaluateEntity (23932), getUniqueLiteralTypeForTypeParameter (24853), restrictiveMapperWorker
     // (24433), permissiveMapperWorker (24440) implemented in Checker.TypeNodes.cs (#15).
