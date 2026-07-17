@@ -80,6 +80,9 @@ public sealed class Orchestrator : IExecuteWatcher
     internal DiagnosticsReporter? errorSummaryReporter;
     internal DiagnosticReporter? watchStatusReporter;
 
+    // orchestrator.go:75-76 — fswatch event-based watching
+    internal global::Ts.Execute.WatchManagement.WatchManager wm = null!;
+
     // orchestrator.go:81-83
     internal string RelativeFileName(string fileName) => TsPathApi.ConvertToRelativePath(fileName, comparePathsOptions);
 
@@ -266,8 +269,7 @@ public sealed class Orchestrator : IExecuteWatcher
         var result = BuildOrClean();
         if (opts.Command.CompilerOptions.Watch.IsTrue())
         {
-            // PORT-NOTE: the fswatch run loop (orchestrator.go:240-263 Watch) lands with the
-            // watchmanager wave.
+            Watch(CancellationToken.None);
             result.Watcher = this;
         }
         return result;
@@ -390,6 +392,7 @@ public sealed class Orchestrator : IExecuteWatcher
     // orchestrator.go:682-713
     public static Orchestrator NewOrchestrator(BuildOptionsBag opts)
     {
+        var wm = new global::Ts.Execute.WatchManagement.WatchManager(opts.Sys.Writer(), dir => opts.Sys.FS().DirectoryExists(dir));
         var orchestrator = new Orchestrator
         {
             opts = opts,
@@ -398,6 +401,7 @@ public sealed class Orchestrator : IExecuteWatcher
                 CurrentDirectory = opts.Sys.GetCurrentDirectory(),
                 UseCaseSensitiveFileNames = opts.Sys.FS().UseCaseSensitiveFileNames(),
             },
+            wm = wm,
         };
         orchestrator.host = new BuildHost
         {
@@ -412,6 +416,10 @@ public sealed class Orchestrator : IExecuteWatcher
         if (opts.Command.CompilerOptions!.Watch.IsTrue())
         {
             orchestrator.watchStatusReporter = DiagnosticReporters.CreateWatchStatusReporter(opts.Sys, global::Ts.Locale.Locale.Default, opts.Command.CompilerOptions, opts.Testing);
+            if (opts.Testing is global::Ts.Execute.WatchManagement.ICommandLineTestingWithWatchBackend t)
+            {
+                wm.SetBackend(t.WatchBackend());
+            }
         }
         else
         {
@@ -420,14 +428,468 @@ public sealed class Orchestrator : IExecuteWatcher
         return orchestrator;
     }
 
-    // IExecuteWatcher — watch-mode surface.
-    // PORT-NOTE: orchestrator.go:538-589 DoCycle (fswatch event drain + graph refresh) lands with
-    // the watchmanager wave; until then a cycle is a no-op.
+    // orchestrator.go:240-263
+    public void Watch(CancellationToken ctx)
+    {
+        wm.Lock();
+
+        if (opts.Testing == null)
+        {
+            if (opts.Sys.GetEnvironmentVariable("TS_WATCH_DEBUG").Length > 0)
+            {
+                wm.DebugLog = opts.Sys.Writer();
+            }
+            wm.EnsureDefaultBackend();
+        }
+
+        UpdateWatch();
+        var desiredDirs = ComputeDesiredWatches();
+        try
+        {
+            wm.ReconcileWatches(desiredDirs);
+        }
+        catch (Exception e)
+        {
+            opts.Sys.Writer().Write(e.Message + "\n");
+            wm.ForceOverflow();
+        }
+        ResetCaches();
+
+        wm.Unlock();
+
+        if (opts.Testing == null)
+        {
+            wm.RunLoop(ctx, DoCycle);
+        }
+    }
+
+    // orchestrator.go:265-271
+    internal void UpdateWatch()
+    {
+        var oldCache = host.mTimes;
+        host.mTimes = new SyncMap<PathT, DateTime>();
+        RangeTask((path, task) => task.UpdateWatch(this, oldCache));
+    }
+
+    // orchestrator.go:273-280
+    internal void ResetCaches()
+    {
+        // Clean out all the caches
+        var cachesVfs = (global::Ts.Vfs.CachedVfs.CachedFs)host.host.FS();
+        cachesVfs.ClearCache();
+        host.extendedConfigCache = new TscExtendedConfigCache();
+        host.sourceFiles.Reset();
+        host.configTimes = new SyncMap<PathT, TimeSpan>();
+    }
+
+    // Go: atomic.Bool locals threaded by pointer (orchestrator.go:282).
+    internal sealed class Flag
+    {
+        private int value;
+
+        internal bool Load() => Volatile.Read(ref value) != 0;
+
+        internal void Store(bool v) => Volatile.Write(ref value, v ? 1 : 0);
+    }
+
+    // orchestrator.go:282-404
+    internal void CheckTasksForEventChanges(Dictionary<string, global::Ts.FsWatch.EventKind> changedPaths, Flag needsConfigUpdate, Flag needsUpdate)
+    {
+        var normalizedPaths = new Dictionary<PathT, global::Ts.FsWatch.EventKind>(changedPaths.Count);
+        foreach (var (eventPath, kind) in changedPaths) // map-iter: 序无关 (normalization)
+        {
+            normalizedPaths[ToPath(eventPath)] = kind;
+        }
+
+        for (var i = 0; i < order.Count; i++)
+        {
+            var config = order[i];
+            var path = ToPath(config);
+            var task = GetTask(path);
+
+            var configPath = ToPath(task.config);
+            if (normalizedPaths.ContainsKey(configPath))
+            {
+                task.ResetConfig(this, path);
+                needsConfigUpdate.Store(true);
+                needsUpdate.Store(true);
+                continue;
+            }
+
+            if (task.resolved == null)
+            {
+                continue;
+            }
+
+            var configChanged = false;
+            foreach (var file in task.resolved.ExtendedSourceFiles() ?? [])
+            {
+                var fp = ToPath(file);
+                if (normalizedPaths.ContainsKey(fp))
+                {
+                    task.ResetConfig(this, path);
+                    needsConfigUpdate.Store(true);
+                    needsUpdate.Store(true);
+                    configChanged = true;
+                    break;
+                }
+            }
+            if (configChanged)
+            {
+                continue;
+            }
+
+            var rootChanged = false;
+            var fileNames = task.resolved.FileNames() ?? [];
+            var roots = new Set<PathT>(fileNames.Length);
+            foreach (var file in fileNames)
+            {
+                var fp = ToPath(file);
+                roots.Add(fp);
+                if (!rootChanged)
+                {
+                    if (normalizedPaths.ContainsKey(fp))
+                    {
+                        task.ResetStatus();
+                        needsUpdate.Store(true);
+                        rootChanged = true;
+                    }
+                }
+            }
+
+            if (!rootChanged)
+            {
+                BuildInfoEntry? bi;
+                lock (task.buildInfoEntryMu)
+                {
+                    bi = task.buildInfoEntry;
+                }
+                if (bi is { buildInfo: not null })
+                {
+                    var buildInfoDir = TsPathApi.GetDirectoryPath(bi.path.ToString());
+                    foreach (var fileName in bi.buildInfo.FileNames ?? [])
+                    {
+                        var fp = ToPath(ResolveBuildInfoFileName(fileName, buildInfoDir));
+                        if (roots.Has(fp))
+                        {
+                            continue;
+                        }
+                        if (normalizedPaths.ContainsKey(fp))
+                        {
+                            task.ResetStatus();
+                            needsUpdate.Store(true);
+                            break;
+                        }
+                    }
+                    foreach (var packageJson in bi.buildInfo.GetPackageJsons(buildInfoDir))
+                    {
+                        if (PackageJsonLookupChanged(packageJson, normalizedPaths))
+                        {
+                            task.ResetStatus();
+                            needsUpdate.Store(true);
+                            break;
+                        }
+                    }
+                    foreach (var packageJson in bi.buildInfo.GetMissingPackageJsons(buildInfoDir))
+                    {
+                        if (PackageJsonLookupChanged(packageJson, normalizedPaths))
+                        {
+                            task.ResetStatus();
+                            needsUpdate.Store(true);
+                            break;
+                        }
+                    }
+                }
+                foreach (var packageJson in task.packageJsons)
+                {
+                    if (PackageJsonLookupChanged(packageJson, normalizedPaths))
+                    {
+                        task.ResetStatus();
+                        needsUpdate.Store(true);
+                        break;
+                    }
+                }
+            }
+
+            task.reportDone = new ManualResetEventSlim(false);
+            task.done = new ManualResetEventSlim(false);
+
+            var newConfig = task.resolved.ReloadFileNamesOfParsedCommandLine(host.FS());
+            if (!(task.resolved.FileNames() ?? []).AsSpan().SequenceEqual(newConfig.FileNames() ?? []))
+            {
+                host.resolvedReferences.Store(path, newConfig);
+                task.resolved = newConfig;
+                task.ResetStatus();
+                needsUpdate.Store(true);
+            }
+        }
+
+        if (!needsUpdate.Load())
+        {
+            var cmpOpts = comparePathsOptions;
+            foreach (var eventPath in changedPaths.Keys) // map-iter: 序无关 (first hit resets all)
+            {
+                if (host.FS().DirectoryExists(eventPath))
+                {
+                    if (wm.IsPathUnderWatch(eventPath, cmpOpts))
+                    {
+                        RangeTask((path, task) =>
+                        {
+                            task.ResetStatus();
+                            task.reportDone = new ManualResetEventSlim(false);
+                            task.done = new ManualResetEventSlim(false);
+                        });
+                        needsUpdate.Store(true);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // orchestrator.go:406-417
+    internal bool PackageJsonLookupChanged(string packageJson, Dictionary<PathT, global::Ts.FsWatch.EventKind> changedPaths)
+    {
+        var packageJsonPath = ToPath(packageJson);
+        if (changedPaths.ContainsKey(packageJsonPath))
+        {
+            return true;
+        }
+        foreach (var (changedPath, kind) in changedPaths) // map-iter: 序无关 (existence check)
+        {
+            if (kind == global::Ts.FsWatch.EventKind.EventDelete && TsPathApi.ContainsPath(changedPath.ToString(), packageJsonPath.ToString(), comparePathsOptions))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // orchestrator.go:419-501
+    internal Dictionary<string, bool> ComputeDesiredWatches()
+    {
+        var desiredDirs = new Dictionary<string, bool>(StringComparer.Ordinal);
+
+        for (var i = 0; i < order.Count; i++)
+        {
+            var config = order[i];
+            var path = ToPath(config);
+            var task = GetTask(path);
+
+            // Watch config file directory
+            var configDir = TsPathApi.GetDirectoryPath(task.config);
+            var realConfigDir = host.FS().Realpath(configDir);
+            desiredDirs.TryAdd(realConfigDir, false);
+
+            if (task.resolved == null)
+            {
+                continue;
+            }
+
+            // Extended config file directories
+            foreach (var cfgPath in task.resolved.ExtendedSourceFiles() ?? [])
+            {
+                var realPath = host.FS().Realpath(cfgPath);
+                var dir = TsPathApi.GetDirectoryPath(realPath);
+                desiredDirs.TryAdd(dir, false);
+            }
+
+            // Wildcard directories from tsconfig
+            foreach (var (dir, recursive) in task.resolved.WildcardDirectories() ?? new Dictionary<string, bool>()) // map-iter: 序无关 (|| merge)
+            {
+                var realDir = host.FS().Realpath(dir);
+                if (desiredDirs.TryGetValue(realDir, out var existing))
+                {
+                    desiredDirs[realDir] = existing || recursive;
+                }
+                else
+                {
+                    desiredDirs[realDir] = recursive;
+                }
+            }
+
+            // Input file directories not already covered
+            foreach (var fileName in task.resolved.FileNames() ?? [])
+            {
+                var absPath = TsPathApi.GetNormalizedAbsolutePath(fileName, opts.Sys.GetCurrentDirectory());
+                var dir = TsPathApi.GetDirectoryPath(absPath);
+                if (!global::Ts.Execute.WatchManagement.WatchManagerUtil.IsDirCoveredByWatch(desiredDirs, dir, comparePathsOptions))
+                {
+                    if (global::Ts.Execute.WatchManagement.WatchPathUtil.CanWatchDirectory(dir))
+                    {
+                        desiredDirs[dir] = false;
+                    }
+                }
+            }
+
+            // Non-root dependency directories from buildinfo (e.g. node_modules .d.ts files).
+            BuildInfoEntry? bi;
+            lock (task.buildInfoEntryMu)
+            {
+                bi = task.buildInfoEntry;
+            }
+            if (bi is { buildInfo: not null })
+            {
+                var buildInfoDir = TsPathApi.GetDirectoryPath(bi.path.ToString());
+                var roots = new Set<PathT>();
+                foreach (var fileName in task.resolved.FileNames() ?? [])
+                {
+                    roots.Add(ToPath(fileName));
+                }
+                foreach (var fileName in bi.buildInfo.FileNames ?? [])
+                {
+                    var absPath = host.FS().Realpath(ResolveBuildInfoFileName(fileName, buildInfoDir));
+                    var fp = ToPath(absPath);
+                    if (roots.Has(fp))
+                    {
+                        continue;
+                    }
+                    var dir = TsPathApi.GetDirectoryPath(absPath);
+                    if (!global::Ts.Execute.WatchManagement.WatchManagerUtil.IsDirCoveredByWatch(desiredDirs, dir, comparePathsOptions))
+                    {
+                        if (global::Ts.Execute.WatchManagement.WatchPathUtil.CanWatchDirectory(dir))
+                        {
+                            desiredDirs[dir] = false;
+                        }
+                    }
+                }
+                foreach (var packageJson in bi.buildInfo.GetPackageJsons(buildInfoDir))
+                {
+                    AddPackageJsonWatchDirs(desiredDirs, packageJson);
+                }
+                foreach (var packageJson in bi.buildInfo.GetMissingPackageJsons(buildInfoDir))
+                {
+                    AddPackageJsonWatchDirs(desiredDirs, packageJson);
+                }
+            }
+            foreach (var packageJson in task.packageJsons)
+            {
+                AddPackageJsonWatchDirs(desiredDirs, packageJson);
+            }
+        }
+
+        return wm.ResolveDesiredDirs(desiredDirs);
+    }
+
+    // orchestrator.go:503-507
+    internal void AddWatchDir(Dictionary<string, bool> desiredDirs, string dir)
+    {
+        if (!global::Ts.Execute.WatchManagement.WatchManagerUtil.IsDirCoveredByWatch(desiredDirs, dir, comparePathsOptions) && global::Ts.Execute.WatchManagement.WatchPathUtil.CanWatchDirectory(dir))
+        {
+            desiredDirs[dir] = false;
+        }
+    }
+
+    // orchestrator.go:509-536
+    internal void AddPackageJsonWatchDirs(Dictionary<string, bool> desiredDirs, string packageJson)
+    {
+        var dir = TsPathApi.GetDirectoryPath(packageJson);
+        var dirs = new List<string> { dir };
+        var foundNodeModules = false;
+        for (var current = dir; ;)
+        {
+            var parent = TsPathApi.GetDirectoryPath(current);
+            if (parent.Length == 0 || parent == current)
+            {
+                break;
+            }
+            dirs.Add(parent);
+            if (TsPathApi.GetBaseFileName(parent) == "node_modules")
+            {
+                foundNodeModules = true;
+                var grandparent = TsPathApi.GetDirectoryPath(parent);
+                if (grandparent.Length > 0 && grandparent != parent)
+                {
+                    dirs.Add(grandparent);
+                }
+                break;
+            }
+            current = parent;
+        }
+
+        if (!foundNodeModules)
+        {
+            AddWatchDir(desiredDirs, dir);
+            return;
+        }
+        foreach (var d in dirs)
+        {
+            AddWatchDir(desiredDirs, d);
+        }
+    }
+
+    // orchestrator.go:538-589
     public void DoCycle()
     {
+        wm.Lock();
+        try
+        {
+            var (changedPaths, overflow) = wm.DrainEvents();
+            var hasEvents = (changedPaths?.Count ?? 0) > 0 || overflow;
+
+            if (!hasEvents)
+            {
+                wm.DebugLog?.Write("[watch] DoCycle: no events, skipping\n");
+                return;
+            }
+
+            var needsConfigUpdate = new Flag();
+            var needsUpdate = new Flag();
+
+            if (overflow)
+            {
+                // Overflow: reset all tasks to force a full rebuild.
+                RangeTask((path, task) =>
+                {
+                    task.ResetConfig(this, path);
+                    task.reportDone = new ManualResetEventSlim(false);
+                    task.done = new ManualResetEventSlim(false);
+                });
+                needsConfigUpdate.Store(true);
+                needsUpdate.Store(true);
+            }
+            else
+            {
+                // Event-driven: check only tasks affected by changed paths
+                CheckTasksForEventChanges(changedPaths!, needsConfigUpdate, needsUpdate);
+            }
+
+            if (!needsUpdate.Load())
+            {
+                ResetCaches();
+                return;
+            }
+
+            watchStatusReporter!(global::Ts.Ast.Diagnostic.NewCompilerDiagnostic(Diag.File_change_detected_Starting_incremental_compilation));
+            if (needsConfigUpdate.Load())
+            {
+                // Generate new tasks
+                GenerateGraphReusingOldTasks();
+            }
+
+            BuildOrClean();
+            UpdateWatch();
+            var desiredDirs = ComputeDesiredWatches();
+            try
+            {
+                wm.ReconcileWatches(desiredDirs);
+            }
+            catch (Exception e)
+            {
+                opts.Sys.Writer().Write(e.Message + "\n");
+                // Mark overflow so the next event triggers a full rebuild
+                wm.ForceOverflow();
+            }
+            ResetCaches();
+        }
+        finally
+        {
+            wm.Unlock();
+        }
     }
 
     public void Dispose()
     {
+        wm.CloseAllWatches();
     }
 }
