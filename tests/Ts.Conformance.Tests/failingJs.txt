@@ -5,4 +5,3 @@
 # Regenerate the current deterministic corpus wave (run from repo root):
 #   TSCS_CONFORMANCE_JS=1 TSCS_CONFORMANCE_UPDATE_JS=1 \
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
-privateWriteOnlyAccessorRead
