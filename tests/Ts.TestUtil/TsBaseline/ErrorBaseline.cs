@@ -283,7 +283,7 @@ public static partial class ErrorBaseline
     private static bool PathsEqual(string left, string right) =>
         string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 
-    private static string RemoveTestPathPrefixes(string text, bool retainTrailingDirectorySeparator)
+    internal static string RemoveTestPathPrefixes(string text, bool retainTrailingDirectorySeparator)
     {
         string replacement = retainTrailingDirectorySeparator ? "/" : "";
         return text

@@ -34,6 +34,7 @@ public sealed class CorpusRunnerTests
         {
             VerifyTypeAndSymbolBaselines(name, result);
             VerifyJsBaseline(name, result);
+            VerifyMapBaseline(name, result);
             return;
         }
         if (FailingCases.Names.Contains(name))
@@ -162,6 +163,53 @@ public sealed class CorpusRunnerTests
                 $"conformance corpus (.js byte-match over errors-matching subset): " +
                 $"{jsMatches}/{jsAttempted.Count} matched; {jsReferences}/{jsAttempted.Count} references present.");
         }
+
+        if (CompilerBaselineRunner.MapBaselinesEnabled)
+        {
+            List<ConformanceCaseResult> mapAttempted = summary.Results
+                .Where(result => result.Matched && result.Map?.Attempted == true)
+                .ToList();
+            if (CorpusRunner.UpdateFailingMap && CorpusRunner.Shard is null)
+            {
+                FailingMap.Save(mapAttempted
+                    .Where(result => !result.Map!.Matched)
+                    .Select(result => result.Name));
+            }
+
+            if (!CorpusRunner.UpdateFailingMap)
+            {
+                foreach (ConformanceCaseResult mismatch in mapAttempted.Where(result => !result.Map!.Matched))
+                {
+                    Assert.Contains(mismatch.Name, FailingMap.Names);
+                }
+            }
+
+            int mapMatches = mapAttempted.Count(result => result.Map!.Matched);
+            int mapReferences = mapAttempted.Count(result => result.Map!.ReferencePresent);
+            Console.WriteLine(
+                $"conformance corpus (.js.map/.sourcemap.txt byte-match over errors-matching subset): " +
+                $"{mapMatches}/{mapAttempted.Count} matched; {mapReferences}/{mapAttempted.Count} references present.");
+        }
+    }
+
+    private static void VerifyMapBaseline(string name, ConformanceCaseResult result)
+    {
+        if (!CompilerBaselineRunner.MapBaselinesEnabled || result.Map is not { Attempted: true } map || map.Matched)
+        {
+            return;
+        }
+        string failure = $"sourcemap: {map.Failure ?? "baseline mismatch"}";
+        if (FailingMap.Names.Contains(name))
+        {
+            Assert.Skip($"listed in failingMap.txt: {failure}");
+        }
+        if (CorpusRunner.UpdateFailingMap)
+        {
+            Assert.Skip($"TSCS_CONFORMANCE_UPDATE_MAP run: {failure}");
+        }
+        Assert.Fail(
+            $"conformance regression: '{name}' is not listed in failingMap.txt but its " +
+            $"sourcemap baselines do not byte-match: {failure}");
     }
 
     private static void VerifyJsBaseline(string name, ConformanceCaseResult result)

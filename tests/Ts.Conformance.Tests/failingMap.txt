@@ -1,0 +1,7 @@
+# Conformance .js emit failing-cases allowlist (emit pipeline WIP).
+# One case name per line (= baseline name without .errors.txt). '#' and blank lines are ignored.
+# Only errors.txt-matching cases reach this gate. A listed case skips on mismatch; an unlisted
+# mismatch fails. A listed case whose .js artifact matches passes normally.
+# Regenerate the current deterministic corpus wave (run from repo root):
+#   TSCS_CONFORMANCE_MAP=1 TSCS_CONFORMANCE_UPDATE_MAP=1 \
+#     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false

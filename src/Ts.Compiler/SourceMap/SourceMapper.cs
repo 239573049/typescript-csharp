@@ -350,7 +350,7 @@ public static class SourceMapper
     }
 
     // Go: func tryParseRawSourceMap(contents string) *RawSourceMap
-    private static RawSourceMap? TryParseRawSourceMap(string contents)
+    public static RawSourceMap? TryParseRawSourceMap(string contents)
     {
         RawSourceMap? sourceMap = ParseRawSourceMap(contents);
         if (sourceMap == null)

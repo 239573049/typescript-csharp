@@ -16,6 +16,75 @@ using StringUtil = Ts.StringUtil.StringUtil;
 
 public sealed partial class Scanner
 {
+    // scanner.go:2742-2800 — ComputePositionOfLineAndUTF16Character. UTF-16 world-view
+    // (plan/05 §8.1): text is UTF-16 and positions are code-unit offsets, so the Go
+    // rune-by-rune UTF-16 counting loop collapses to index arithmetic.
+    public static int ComputePositionOfLineAndUTF16Character(int[] lineStarts, int line, int character, string text, bool allowEdits)
+    {
+        if (line < 0 || line >= lineStarts.Length)
+        {
+            if (allowEdits)
+            {
+                // Clamp line to nearest allowable value
+                if (line < 0)
+                {
+                    line = 0;
+                }
+                else if (line >= lineStarts.Length)
+                {
+                    line = lineStarts.Length - 1;
+                }
+            }
+            else
+            {
+                throw new global::System.InvalidOperationException($"Bad line number. Line: {line}, lineStarts.length: {lineStarts.Length}.");
+            }
+        }
+
+        var lineStart = lineStarts[line];
+
+        if (character > 0)
+        {
+            // UTF-16 character offset: scan from line start counting UTF-16 code units.
+            var lineEnd = text.Length;
+            if (line + 1 < lineStarts.Length)
+            {
+                lineEnd = lineStarts[line + 1];
+            }
+            var pos = lineStart + character;
+            if (pos > lineEnd)
+            {
+                pos = lineEnd;
+            }
+            if (!allowEdits)
+            {
+                if (pos == lineEnd && lineEnd - lineStart < character)
+                {
+                    throw new global::System.InvalidOperationException($"Bad UTF-16 character offset. Line: {line}, character: {character}.");
+                }
+                global::Ts.Core.Debug.Assert(pos <= text.Length);
+                return pos;
+            }
+            if (pos > text.Length)
+            {
+                return text.Length;
+            }
+            return pos;
+        }
+
+        // Character is 0: line start position.
+        var res = lineStart;
+
+        if (allowEdits)
+        {
+            if (res > text.Length)
+            {
+                return text.Length;
+            }
+        }
+        return res;
+    }
+
     // Ported from tsgo internal/scanner/utilities.go:13 (tokenIsIdentifierOrKeyword)
     internal static bool TokenIsIdentifierOrKeyword(SyntaxKind token)
     {

@@ -71,6 +71,11 @@ public static class CorpusRunner
         "1",
         StringComparison.Ordinal);
 
+    public static bool UpdateFailingMap => string.Equals(
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_UPDATE_MAP"),
+        "1",
+        StringComparison.Ordinal);
+
     private static readonly Lazy<CorpusSelection> s_selection = new(
         EnumerateCorpus,
         LazyThreadSafetyMode.ExecutionAndPublication);
@@ -268,6 +273,13 @@ public static class CorpusRunner
                 File.AppendAllText(s_journalPath + ".js", js.Matched
                     ? $"ok {result.Name}\n"
                     : $"fail {result.Name}\t{(js.Failure ?? ".js baseline mismatch").ReplaceLineEndings(" ")}\n");
+            }
+            // Parallel map journal ("<journal>.map") for sharded TSCS_CONFORMANCE_MAP runs.
+            if (s_journalPath is not null && result.Map is { Attempted: true } map)
+            {
+                File.AppendAllText(s_journalPath + ".map", map.Matched
+                    ? $"ok {result.Name}\n"
+                    : $"fail {result.Name}\t{(map.Failure ?? "sourcemap baseline mismatch").ReplaceLineEndings(" ")}\n");
             }
         }
         return new ConformanceRunSummary(results);

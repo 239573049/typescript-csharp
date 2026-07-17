@@ -33,7 +33,8 @@ public sealed record ConformanceCaseResult(
     int DiagnosticCount,
     string? Failure,
     ConformanceTypeSymbolResult? TypeSymbols = null,
-    ConformanceArtifactResult? Js = null);
+    ConformanceArtifactResult? Js = null,
+    ConformanceArtifactResult? Map = null);
 
 public sealed record ConformanceArtifactResult(
     bool Attempted,
@@ -74,6 +75,11 @@ public static partial class CompilerBaselineRunner
 
     public static bool JsBaselinesEnabled => string.Equals(
         Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_JS"),
+        "1",
+        StringComparison.Ordinal);
+
+    public static bool MapBaselinesEnabled => string.Equals(
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_MAP"),
         "1",
         StringComparison.Ordinal);
 
@@ -378,8 +384,11 @@ public static partial class CompilerBaselineRunner
         // post-emit diagnostic count differs from pre-emit, synthesize the TS-1 "counts do not match"
         // ad-hoc diagnostic listing the excess (a semantic error the emit resolver adds but which the
         // command line/editor never surface). Skipped only when the pre-emit checker itself failed.
-        List<JsEmitBaseline.EmittedFile>? emittedJs = JsBaselinesEnabled ? new() : null;
-        List<JsEmitBaseline.EmittedFile>? emittedDts = JsBaselinesEnabled ? new() : null;
+        List<JsEmitBaseline.EmittedFile>? emittedJs = JsBaselinesEnabled || MapBaselinesEnabled ? new() : null;
+        List<JsEmitBaseline.EmittedFile>? emittedDts = JsBaselinesEnabled || MapBaselinesEnabled ? new() : null;
+        List<JsEmitBaseline.EmittedFile>? emittedMaps = MapBaselinesEnabled ? new() : null;
+        global::Ts.Compiler.EmitResult? capturedEmitResult = null;
+        Program? capturedPostProgram = null;
         if (checkerFailure is null)
         {
             try
@@ -399,12 +408,18 @@ public static partial class CompilerBaselineRunner
                         {
                             emittedDts!.Add(new JsEmitBaseline.EmittedFile(fileName, text));
                         }
-                        else if (!fileName.EndsWith(".map", StringComparison.Ordinal))
+                        else if (fileName.EndsWith(".map", StringComparison.Ordinal))
+                        {
+                            emittedMaps?.Add(new JsEmitBaseline.EmittedFile(fileName, text));
+                        }
+                        else
                         {
                             emittedJs.Add(new JsEmitBaseline.EmittedFile(fileName, text));
                         }
                     };
-                postProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = writeFile });
+                var postEmitResult = postProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = writeFile });
+                capturedEmitResult = postEmitResult;
+                capturedPostProgram = postProgram;
                 postErrors.AddRange(postProgram.GetSemanticDiagnostics(CancellationToken.None, sourceFile: null));
                 postErrors.AddRange(postProgram.GetGlobalDiagnostics(CancellationToken.None));
                 // harnessutil.go:655-657
@@ -521,6 +536,85 @@ public static partial class CompilerBaselineRunner
             }
         }
 
+        ConformanceArtifactResult? mapResult = null;
+        if (MapBaselinesEnabled && errorsMatched && emittedMaps is not null && capturedPostProgram is not null)
+        {
+            string mapBaseName = GetCaseName(testCase.BaselineName);
+            string mapReference = Path.Combine(Baseline.ReferenceRoot, "submodule", "conformance", mapBaseName + ".js.map");
+            string recordReference = Path.Combine(Baseline.ReferenceRoot, "submodule", "conformance", mapBaseName + ".sourcemap.txt");
+            var mapContext = new BaselineTestContext();
+            try
+            {
+                var postOptions = capturedPostProgram.Options()!;
+                var mapOpts = new Baseline.Options { Subfolder = Path.Combine("submodule", "conformance") };
+                string mapBaselinePath = Path.GetFileName(testCase.RelativePath);
+
+                // result.Inputs() -- every compiled unit, in declaration order.
+                var inputs = new List<JsEmitBaseline.EmittedFile>(unitsByPath.Count);
+                foreach ((TestUnit unit, string path) in unitsByPath)
+                {
+                    inputs.Add(new JsEmitBaseline.EmittedFile(path, unit.Content));
+                }
+                // result.Outputs() -- js then dts, in emit order (harnessutil.go:830-835).
+                var allOutputs = new List<JsEmitBaseline.EmittedFile>(emittedJs!.Count + emittedDts!.Count);
+                allOutputs.AddRange(emittedJs);
+                allOutputs.AddRange(emittedDts);
+
+                int jsFileCountIncludingJson = emittedJs.Count;
+                int jsFileCount = emittedJs.Count(f => !f.UnitName.EndsWith(".json", StringComparison.Ordinal));
+
+                SourcemapBaseline.DoSourcemapBaseline(
+                    mapContext,
+                    mapBaselinePath,
+                    postOptions,
+                    emittedMaps,
+                    jsFileCount,
+                    jsFileCountIncludingJson,
+                    allOutputs,
+                    inputs,
+                    sortedDiagnostics.Length,
+                    mapOpts);
+
+                string record = SourceMapRecorderUtil.GetSourceMapRecord(
+                    capturedEmitResult?.SourceMaps ?? [],
+                    generatedFile =>
+                    {
+                        foreach (var f in allOutputs)
+                        {
+                            if (string.Equals(f.UnitName, generatedFile, StringComparison.Ordinal))
+                            {
+                                return f;
+                            }
+                        }
+                        return null;
+                    },
+                    sourceFileName => capturedPostProgram.GetSourceFile(sourceFileName)?.Text());
+                SourcemapBaseline.DoSourcemapRecordBaseline(
+                    mapContext,
+                    mapBaselinePath,
+                    postOptions,
+                    record,
+                    sortedDiagnostics.Length,
+                    mapOpts);
+
+                mapResult = new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: !mapContext.Failed,
+                    File.Exists(mapReference) || File.Exists(recordReference),
+                    QueryFailures: 0,
+                    mapContext.Failed ? string.Join(" | ", mapContext.Errors) : null);
+            }
+            catch (Exception exception)
+            {
+                mapResult = new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: false,
+                    File.Exists(mapReference) || File.Exists(recordReference),
+                    QueryFailures: 1,
+                    DescribeException(exception));
+            }
+        }
+
         return new ConformanceCaseResult(
             name,
             Matched: errorsMatched,
@@ -528,7 +622,8 @@ public static partial class CompilerBaselineRunner
             sortedDiagnostics.Length,
             JoinFailures(checkerFailure, context.Failed ? string.Join(" | ", context.Errors) : null),
             typeSymbols,
-            jsResult);
+            jsResult,
+            mapResult);
     }
 
     private static ConformanceTypeSymbolResult RunTypeAndSymbolBaselines(
