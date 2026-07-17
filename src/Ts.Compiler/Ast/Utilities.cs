@@ -831,6 +831,46 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.PropertyAccessExpression || node.Kind == SyntaxKind.QualifiedName;
     }
 
+    // utilities.go:2244-2246
+    public static bool IsLabelName(Node node)
+    {
+        return IsLabelOfLabeledStatement(node) || IsJumpStatementTarget(node);
+    }
+
+    // utilities.go:2248-2256
+    public static bool IsLabelOfLabeledStatement(Node node)
+    {
+        if (!NodeTests.IsIdentifier(node))
+        {
+            return false;
+        }
+        if (node.Parent == null || !NodeTests.IsLabeledStatement(node.Parent))
+        {
+            return false;
+        }
+        return node == node.Parent.Label();
+    }
+
+    // utilities.go:2258-2266
+    public static bool IsJumpStatementTarget(Node node)
+    {
+        if (!NodeTests.IsIdentifier(node))
+        {
+            return false;
+        }
+        if (node.Parent == null || !IsBreakOrContinueStatement(node.Parent))
+        {
+            return false;
+        }
+        return node == node.Parent.Label();
+    }
+
+    // utilities.go:2268-2270
+    public static bool IsBreakOrContinueStatement(Node node)
+    {
+        return NodeKindIs(node, SyntaxKind.BreakStatement, SyntaxKind.ContinueStatement);
+    }
+
     // ast.go:1875-1877
     public static bool IsImportDeclarationOrJSImportDeclaration(Node node)
     {
