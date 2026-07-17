@@ -510,6 +510,31 @@ public static partial class CompilerBaselineRunner
                     (TestUnit unit, string path) = unitsByPath.First(entry => string.Equals(entry.Path, root, StringComparison.Ordinal));
                     tsSources.Add(new BaselineTestFile(path, unit.Content));
                 }
+                var postOptionsForJs = capturedPostProgram?.Options();
+                string? dtsFileErrorsSection = null;
+                if (capturedPostProgram is not null && postOptionsForJs is not null &&
+                    postOptionsForJs.Declaration.IsTrue() && sortedDiagnostics.Length == 0 && emittedDts!.Count > 0)
+                {
+                    dtsFileErrorsSection = TryBuildDtsFileErrorsSection(
+                        capturedPostProgram,
+                        postOptionsForJs,
+                        unitsByPath,
+                        rootPaths,
+                        emittedDts,
+                        vfsEntries,
+                        includeLibDir,
+                        currentDirectory,
+                        parsed.GlobalOptions,
+                        singleThreaded);
+                }
+
+                Func<(IReadOnlyList<JsEmitBaseline.EmittedFile> Js, IReadOnlyList<JsEmitBaseline.EmittedFile> Dts)>? repeatWithNoCheck = null;
+                if (capturedPostProgram is not null)
+                {
+                    repeatWithNoCheck = () => RepeatEmitWithNoCheck(
+                        host, configHost, parsed.GlobalOptions, programRoots, singleThreaded);
+                }
+
                 JsEmitBaseline.Run(
                     jsContext,
                     GetCaseName(testCase.BaselineName) + ".js",
@@ -517,7 +542,11 @@ public static partial class CompilerBaselineRunner
                     tsSources,
                     emittedJs,
                     emittedDts!,
-                    new Baseline.Options { Subfolder = Path.Combine("submodule", "conformance") });
+                    new Baseline.Options { Subfolder = Path.Combine("submodule", "conformance") },
+                    sortedDiagnostics.Length,
+                    dtsFileErrorsSection,
+                    postOptionsForJs,
+                    repeatWithNoCheck);
                 jsResult = new ConformanceArtifactResult(
                     Attempted: true,
                     Matched: !jsContext.Failed,
@@ -624,6 +653,217 @@ public static partial class CompilerBaselineRunner
             typeSymbols,
             jsResult,
             mapResult);
+    }
+
+    // harnessutil option fixups applied after every ParseCompilerOptions (mirrors the main flow).
+    private static void ApplyHarnessOptionFixups(CompilerOptions options)
+    {
+        if (options.NewLine == NewLineKind.None)
+        {
+            options.NewLine = NewLineKind.CRLF;
+        }
+        if (options.SkipDefaultLibCheck.IsUnknown())
+        {
+            options.SkipDefaultLibCheck = Tristate.True;
+        }
+        options.NoErrorTruncation = Tristate.True;
+        options.Types ??= [];
+    }
+
+    // js_emit_baseline.go:99-132 — result.Repeat({noCheck: true}): re-run the compilation with
+    // noCheck=true over the same host/roots and collect the emitted js/dts sets.
+    private static (IReadOnlyList<JsEmitBaseline.EmittedFile> Js, IReadOnlyList<JsEmitBaseline.EmittedFile> Dts) RepeatEmitWithNoCheck(
+        CompilerHost host,
+        VfsParseConfigHost configHost,
+        IReadOnlyDictionary<string, string> globalOptions,
+        IReadOnlyList<string> programRoots,
+        bool singleThreaded)
+    {
+        ParsedCommandLine noCheckConfig = ParseCompilerOptions(configHost, globalOptions, programRoots);
+        CompilerOptions noCheckOptions = noCheckConfig.CompilerOptions()!;
+        ApplyHarnessOptionFixups(noCheckOptions);
+        noCheckOptions.NoCheck = Tristate.True;
+
+        var noCheckProgram = new Program(new ProgramOptions
+        {
+            Host = host,
+            Config = noCheckConfig,
+            SingleThreaded = singleThreaded ? Tristate.True : Tristate.Unknown,
+        });
+        var js = new List<JsEmitBaseline.EmittedFile>();
+        var dts = new List<JsEmitBaseline.EmittedFile>();
+        noCheckProgram.Emit(CancellationToken.None, new EmitOptions
+        {
+            WriteFile = (fileName, text, _) =>
+            {
+                if (fileName.EndsWith(".d.ts", StringComparison.Ordinal) ||
+                    fileName.EndsWith(".d.mts", StringComparison.Ordinal) ||
+                    fileName.EndsWith(".d.cts", StringComparison.Ordinal))
+                {
+                    dts.Add(new JsEmitBaseline.EmittedFile(fileName, text));
+                }
+                else if (!fileName.EndsWith(".map", StringComparison.Ordinal))
+                {
+                    js.Add(new JsEmitBaseline.EmittedFile(fileName, text));
+                }
+            },
+        });
+        return (js, dts);
+    }
+
+    // js_emit_baseline.go:167-285 — prepareDeclarationCompilationContext + compileDeclarationFiles:
+    // if the .d.ts is non-empty, confirm it compiles correctly as well; a failing re-compilation
+    // renders the `//// [DtsFileErrors]` error-baseline section.
+    private static string? TryBuildDtsFileErrorsSection(
+        Program postProgram,
+        CompilerOptions options,
+        IReadOnlyList<(TestUnit Unit, string Path)> unitsByPath,
+        IReadOnlyList<string> rootPaths,
+        IReadOnlyList<JsEmitBaseline.EmittedFile> emittedDts,
+        IReadOnlyDictionary<string, object> vfsEntries,
+        bool includeLibDir,
+        string currentDirectory,
+        IReadOnlyDictionary<string, string> globalOptions,
+        bool singleThreaded)
+    {
+        var declInputFiles = new List<BaselineTestFile>();
+        var declOtherFiles = new List<BaselineTestFile>();
+
+        bool FindUnit(string fileName)
+        {
+            return declInputFiles.Any(unit => string.Equals(unit.UnitName, fileName, StringComparison.Ordinal)) ||
+                declOtherFiles.Any(unit => string.Equals(unit.UnitName, fileName, StringComparison.Ordinal));
+        }
+
+        JsEmitBaseline.EmittedFile? FindResultCodeFile(string fileName)
+        {
+            var sourceFile = postProgram.GetSourceFile(fileName);
+            if (sourceFile is null)
+            {
+                throw new InvalidOperationException($"Program has no source file with name '{fileName}'");
+            }
+            // Is this file going to be emitted separately
+            string sourceFileName;
+            if (!string.IsNullOrEmpty(options.OutDir))
+            {
+                string sourceFilePath = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(sourceFile.FileName(), postProgram.Host().GetCurrentDirectory());
+                int idx = sourceFilePath.IndexOf(postProgram.CommonSourceDirectory(), StringComparison.Ordinal);
+                if (idx >= 0)
+                {
+                    sourceFilePath = sourceFilePath.Remove(idx, postProgram.CommonSourceDirectory().Length);
+                }
+                sourceFileName = global::Ts.TsPath.TsPath.CombinePaths(options.OutDir, sourceFilePath);
+            }
+            else
+            {
+                sourceFileName = sourceFile.FileName();
+            }
+
+            string dTsFileName = global::Ts.TsPath.TsPath.RemoveFileExtension(sourceFileName) +
+                global::Ts.TsPath.TsPath.GetDeclarationEmitExtensionForPath(sourceFileName);
+            return emittedDts.FirstOrDefault(f => string.Equals(f.UnitName, dTsFileName, StringComparison.Ordinal));
+        }
+
+        void AddDtsFile(string path, string content, List<BaselineTestFile> dtsFiles)
+        {
+            if (global::Ts.TsPath.TsPath.IsDeclarationFileName(path) || global::Ts.TsPath.TsPath.HasJSONFileExtension(path))
+            {
+                dtsFiles.Add(new BaselineTestFile(path, content));
+            }
+            else if (global::Ts.TsPath.TsPath.HasTSFileExtension(path) ||
+                (global::Ts.TsPath.TsPath.HasJSFileExtension(path) && options.GetAllowJS()))
+            {
+                var declFile = FindResultCodeFile(path);
+                if (declFile is not null && !FindUnit(declFile.UnitName))
+                {
+                    dtsFiles.Add(new BaselineTestFile(declFile.UnitName, declFile.Content.TrimStart('\uFEFF')));
+                }
+            }
+        }
+
+        foreach (string root in rootPaths)
+        {
+            var entry = unitsByPath.First(e => string.Equals(e.Path, root, StringComparison.Ordinal));
+            AddDtsFile(entry.Path, entry.Unit.Content, declInputFiles);
+        }
+        foreach ((TestUnit unit, string path) in unitsByPath)
+        {
+            if (!rootPaths.Contains(path, StringComparer.Ordinal))
+            {
+                AddDtsFile(path, unit.Content, declOtherFiles);
+            }
+        }
+
+        // compileDeclarationFiles (go:262-285): a fresh harness compilation over the decl files.
+        var declVfsEntries = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (var file in declInputFiles)
+        {
+            declVfsEntries[file.UnitName] = file.Content;
+        }
+        foreach (var file in declOtherFiles)
+        {
+            declVfsEntries[file.UnitName] = file.Content;
+        }
+        if (includeLibDir)
+        {
+            // map-iter: 序无关 — VFS map population.
+            foreach ((string libPath, string libContent) in s_testLibFolderContents.Value)
+            {
+                declVfsEntries[libPath] = libContent;
+            }
+        }
+        // Symlinks from the original case fs carry over (go passes result.Symlinks through).
+        foreach ((string key, object value) in vfsEntries)
+        {
+            if (value is not string && !declVfsEntries.ContainsKey(key))
+            {
+                declVfsEntries[key] = value;
+            }
+        }
+
+        IFileSystem declFs = global::Ts.Bundled.Bundled.WrapFS(
+            VfsTestUtil.FromMap(declVfsEntries, useCaseSensitiveFileNames: true));
+        var declConfigHost = new VfsParseConfigHost(declFs, currentDirectory);
+        ParsedCommandLine declConfig = ParseCompilerOptions(
+            declConfigHost,
+            globalOptions,
+            declInputFiles.Select(f => f.UnitName).ToList());
+        ApplyHarnessOptionFixups(declConfig.CompilerOptions()!);
+
+        CompilerHost declHost = CompilerHosts.NewCompilerHost(
+            currentDirectory,
+            declFs,
+            BundledLibraryFolder,
+            extendedConfigCache: null,
+            trace: null);
+        var declProgram = new Program(new ProgramOptions
+        {
+            Host = declHost,
+            Config = declConfig,
+            SingleThreaded = singleThreaded ? Tristate.True : Tristate.Unknown,
+        });
+
+        var declDiagnostics = new List<Diagnostic>();
+        declDiagnostics.AddRange(declProgram.GetConfigFileParsingDiagnostics());
+        declDiagnostics.AddRange(declProgram.GetProgramDiagnostics());
+        declDiagnostics.AddRange(declProgram.GetSyntacticDiagnostics(CancellationToken.None, sourceFile: null));
+        declProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = static (_, _, _) => { } });
+        declDiagnostics.AddRange(declProgram.GetSemanticDiagnostics(CancellationToken.None, sourceFile: null));
+        declDiagnostics.AddRange(declProgram.GetGlobalDiagnostics(CancellationToken.None));
+        if (declProgram.Options()!.GetEmitDeclarations())
+        {
+            declDiagnostics.AddRange(declProgram.GetDeclarationDiagnostics(CancellationToken.None, sourceFile: null));
+        }
+        Diagnostic[] sortedDeclDiagnostics = Program.SortAndDeduplicateDiagnostics(declDiagnostics.ToArray());
+        if (sortedDeclDiagnostics.Length == 0)
+        {
+            return null;
+        }
+
+        var errorInputs = new List<BaselineTestFile>();
+        errorInputs.AddRange(declInputFiles);
+        errorInputs.AddRange(declOtherFiles);
+        return ErrorBaseline.GetErrorBaseline(errorInputs, sortedDeclDiagnostics);
     }
 
     private static ConformanceTypeSymbolResult RunTypeAndSymbolBaselines(
