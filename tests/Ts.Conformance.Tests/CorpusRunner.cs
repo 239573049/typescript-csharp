@@ -66,6 +66,11 @@ public static class CorpusRunner
         "1",
         StringComparison.Ordinal);
 
+    public static bool UpdateFailingJs => string.Equals(
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_UPDATE_JS"),
+        "1",
+        StringComparison.Ordinal);
+
     private static readonly Lazy<CorpusSelection> s_selection = new(
         EnumerateCorpus,
         LazyThreadSafetyMode.ExecutionAndPublication);
@@ -256,6 +261,13 @@ public static class CorpusRunner
                 File.AppendAllText(s_journalPath, result.Matched
                     ? $"ok {result.Name}\n"
                     : $"fail {result.Name}\t{(result.Failure ?? "errors.txt baseline mismatch").ReplaceLineEndings(" ")}\n");
+            }
+            // Parallel js journal ("<journal>.js") so sharded TSCS_CONFORMANCE_JS runs can be combined.
+            if (s_journalPath is not null && result.Js is { Attempted: true } js)
+            {
+                File.AppendAllText(s_journalPath + ".js", js.Matched
+                    ? $"ok {result.Name}\n"
+                    : $"fail {result.Name}\t{(js.Failure ?? ".js baseline mismatch").ReplaceLineEndings(" ")}\n");
             }
         }
         return new ConformanceRunSummary(results);

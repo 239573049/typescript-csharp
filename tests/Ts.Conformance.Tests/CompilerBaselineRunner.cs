@@ -32,7 +32,8 @@ public sealed record ConformanceCaseResult(
     bool ReferencePresent,
     int DiagnosticCount,
     string? Failure,
-    ConformanceTypeSymbolResult? TypeSymbols = null);
+    ConformanceTypeSymbolResult? TypeSymbols = null,
+    ConformanceArtifactResult? Js = null);
 
 public sealed record ConformanceArtifactResult(
     bool Attempted,
@@ -70,6 +71,24 @@ public static partial class CompilerBaselineRunner
         Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_TYPES"),
         "1",
         StringComparison.Ordinal);
+
+    public static bool JsBaselinesEnabled => string.Equals(
+        Environment.GetEnvironmentVariable("TSCS_CONFORMANCE_JS"),
+        "1",
+        StringComparison.Ordinal);
+
+    // compiler_runner.go:389-402 — skippedEmitTests: output-order nondeterminism under tsgo's
+    // parallel emit; their reference baselines are not a stable target, so tsgo skips the js check.
+    private static readonly HashSet<string> s_skippedEmitTests = new(StringComparer.Ordinal)
+    {
+        "jsFileCompilationWithJsEmitPathSameAsInput.ts",
+        "grammarErrors.ts",
+        "jsFileCompilationEmitBlockedCorrectly.ts",
+        "jsDeclarationsReexportAliasesEsModuleInterop.ts",
+        "jsFileCompilationWithoutJsExtensions.ts",
+        "typeOnlyMerge2.ts",
+        "typeOnlyMerge3.ts",
+    };
 
     public static readonly CuratedConformanceCase[] CuratedCases =
     [
@@ -359,6 +378,8 @@ public static partial class CompilerBaselineRunner
         // post-emit diagnostic count differs from pre-emit, synthesize the TS-1 "counts do not match"
         // ad-hoc diagnostic listing the excess (a semantic error the emit resolver adds but which the
         // command line/editor never surface). Skipped only when the pre-emit checker itself failed.
+        List<JsEmitBaseline.EmittedFile>? emittedJs = JsBaselinesEnabled ? new() : null;
+        List<JsEmitBaseline.EmittedFile>? emittedDts = JsBaselinesEnabled ? new() : null;
         if (checkerFailure is null)
         {
             try
@@ -368,7 +389,22 @@ public static partial class CompilerBaselineRunner
                 postErrors.AddRange(postProgram.GetConfigFileParsingDiagnostics());
                 postErrors.AddRange(postProgram.GetProgramDiagnostics());
                 postErrors.AddRange(postProgram.GetSyntacticDiagnostics(CancellationToken.None, sourceFile: null));
-                postProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = static (_, _, _) => { } });
+                WriteFile writeFile = emittedJs is null
+                    ? static (_, _, _) => { }
+                    : (fileName, text, _) =>
+                    {
+                        if (fileName.EndsWith(".d.ts", StringComparison.Ordinal) ||
+                            fileName.EndsWith(".d.mts", StringComparison.Ordinal) ||
+                            fileName.EndsWith(".d.cts", StringComparison.Ordinal))
+                        {
+                            emittedDts!.Add(new JsEmitBaseline.EmittedFile(fileName, text));
+                        }
+                        else if (!fileName.EndsWith(".map", StringComparison.Ordinal))
+                        {
+                            emittedJs.Add(new JsEmitBaseline.EmittedFile(fileName, text));
+                        }
+                    };
+                postProgram.Emit(CancellationToken.None, new EmitOptions { WriteFile = writeFile });
                 postErrors.AddRange(postProgram.GetSemanticDiagnostics(CancellationToken.None, sourceFile: null));
                 postErrors.AddRange(postProgram.GetGlobalDiagnostics(CancellationToken.None));
                 // harnessutil.go:655-657
@@ -433,13 +469,66 @@ public static partial class CompilerBaselineRunner
                 hasErrorBaseline: sortedDiagnostics.Length != 0);
         }
 
+        ConformanceArtifactResult? jsResult = null;
+        // compiler_runner.go:405-412 — verifyJavaScriptOutput gate: skip when every unit is a .d.ts
+        // (hasNonDtsFiles) and skip the named nondeterministic-parallel-emit tests.
+        bool hasNonDtsFiles = unitsByPath.Any(entry => !entry.Path.EndsWith(".d.ts", StringComparison.Ordinal));
+        if (JsBaselinesEnabled && errorsMatched && emittedJs is not null && hasNonDtsFiles &&
+            !s_skippedEmitTests.Contains(Path.GetFileName(testCase.RelativePath)))
+        {
+            string jsReference = Path.Combine(Baseline.ReferenceRoot, "submodule", "conformance", GetCaseName(testCase.BaselineName) + ".js");
+            var jsContext = new BaselineTestContext();
+            try
+            {
+                // js_emit_baseline.go:37 — tsSources = concat(otherFiles, toBeCompiled): non-root units in
+                // source order first, then the root files.
+                var tsSources = new List<BaselineTestFile>(unitsByPath.Count);
+                foreach ((TestUnit unit, string path) in unitsByPath)
+                {
+                    if (!rootPaths.Contains(path, StringComparer.Ordinal))
+                    {
+                        tsSources.Add(new BaselineTestFile(path, unit.Content));
+                    }
+                }
+                foreach (string root in rootPaths)
+                {
+                    (TestUnit unit, string path) = unitsByPath.First(entry => string.Equals(entry.Path, root, StringComparison.Ordinal));
+                    tsSources.Add(new BaselineTestFile(path, unit.Content));
+                }
+                JsEmitBaseline.Run(
+                    jsContext,
+                    GetCaseName(testCase.BaselineName) + ".js",
+                    "tests/cases/conformance/" + testCase.RelativePath.Replace('\\', '/'),
+                    tsSources,
+                    emittedJs,
+                    emittedDts!,
+                    new Baseline.Options { Subfolder = Path.Combine("submodule", "conformance") });
+                jsResult = new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: !jsContext.Failed,
+                    File.Exists(jsReference),
+                    QueryFailures: 0,
+                    jsContext.Failed ? string.Join(" | ", jsContext.Errors) : null);
+            }
+            catch (Exception exception)
+            {
+                jsResult = new ConformanceArtifactResult(
+                    Attempted: true,
+                    Matched: false,
+                    File.Exists(jsReference),
+                    QueryFailures: 1,
+                    DescribeException(exception));
+            }
+        }
+
         return new ConformanceCaseResult(
             name,
             Matched: errorsMatched,
             referencePresent,
             sortedDiagnostics.Length,
             JoinFailures(checkerFailure, context.Failed ? string.Join(" | ", context.Errors) : null),
-            typeSymbols);
+            typeSymbols,
+            jsResult);
     }
 
     private static ConformanceTypeSymbolResult RunTypeAndSymbolBaselines(

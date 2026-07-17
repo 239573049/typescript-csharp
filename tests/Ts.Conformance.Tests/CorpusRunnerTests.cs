@@ -33,6 +33,7 @@ public sealed class CorpusRunnerTests
         if (result.Matched)
         {
             VerifyTypeAndSymbolBaselines(name, result);
+            VerifyJsBaseline(name, result);
             return;
         }
         if (FailingCases.Names.Contains(name))
@@ -134,6 +135,53 @@ public sealed class CorpusRunnerTests
                 $"conformance corpus (.symbols byte-match over errors-matching subset): " +
                 $"{symbolMatches}/{attempted.Count} matched; {symbolReferences}/{attempted.Count} references present.");
         }
+
+        if (CompilerBaselineRunner.JsBaselinesEnabled)
+        {
+            List<ConformanceCaseResult> jsAttempted = summary.Results
+                .Where(result => result.Matched && result.Js?.Attempted == true)
+                .ToList();
+            if (CorpusRunner.UpdateFailingJs && CorpusRunner.Shard is null)
+            {
+                FailingJs.Save(jsAttempted
+                    .Where(result => !result.Js!.Matched)
+                    .Select(result => result.Name));
+            }
+
+            if (!CorpusRunner.UpdateFailingJs)
+            {
+                foreach (ConformanceCaseResult mismatch in jsAttempted.Where(result => !result.Js!.Matched))
+                {
+                    Assert.Contains(mismatch.Name, FailingJs.Names);
+                }
+            }
+
+            int jsMatches = jsAttempted.Count(result => result.Js!.Matched);
+            int jsReferences = jsAttempted.Count(result => result.Js!.ReferencePresent);
+            Console.WriteLine(
+                $"conformance corpus (.js byte-match over errors-matching subset): " +
+                $"{jsMatches}/{jsAttempted.Count} matched; {jsReferences}/{jsAttempted.Count} references present.");
+        }
+    }
+
+    private static void VerifyJsBaseline(string name, ConformanceCaseResult result)
+    {
+        if (!CompilerBaselineRunner.JsBaselinesEnabled || result.Js is not { Attempted: true } js || js.Matched)
+        {
+            return;
+        }
+        string failure = $".js: {js.Failure ?? "baseline mismatch"}";
+        if (FailingJs.Names.Contains(name))
+        {
+            Assert.Skip($"listed in failingJs.txt: {failure}");
+        }
+        if (CorpusRunner.UpdateFailingJs)
+        {
+            Assert.Skip($"TSCS_CONFORMANCE_UPDATE_JS run: {failure}");
+        }
+        Assert.Fail(
+            $"conformance regression: '{name}' is not listed in failingJs.txt but its " +
+            $".js baseline does not byte-match: {failure}");
     }
 
     private static void VerifyTypeAndSymbolBaselines(string name, ConformanceCaseResult result)
