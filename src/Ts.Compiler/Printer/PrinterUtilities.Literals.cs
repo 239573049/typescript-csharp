@@ -329,7 +329,7 @@ internal static partial class PrinterUtilities
                 // had to include a backslash: `not \${a} substitution`.
                 var b = new StringBuilder();
                 var text = node.Text();
-                var rawText = node.RawText();
+                var rawText = node.TemplateLiteralLikeData()!.RawText;
                 bool raw = rawText.Length > 0 || text.Length == 0;
 
                 int textLen = raw ? rawText.Length : text.Length;

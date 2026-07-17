@@ -119,6 +119,24 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
                     return currentNamespace is not null && currentScope?.Kind != SyntaxKind.Block
                         ? null
                         : Visitor().VisitEachChild(node);
+                case SyntaxKind.ImportEqualsDeclaration:
+                    if (currentNamespace is not null && currentScope is not null && currentScope.Kind != SyntaxKind.Block &&
+                        node.AsImportEqualsDeclaration().ModuleReference!.Kind == SyntaxKind.ExternalModuleReference)
+                    {
+                        // do not emit ES6 imports and exports since they are illegal inside a namespace
+                        return null;
+                    }
+                    if (currentNamespace is not null && currentScope is not null && currentScope.Kind == SyntaxKind.Block &&
+                        node.AsImportEqualsDeclaration().ModuleReference!.Kind != SyntaxKind.ExternalModuleReference)
+                    {
+                        // inside a block within a namespace, elide internal import aliases
+                        return null;
+                    }
+                    return VisitImportEqualsDeclaration(node.AsImportEqualsDeclaration());
+                case SyntaxKind.Identifier:
+                    return VisitIdentifier(node);
+                case SyntaxKind.ShorthandPropertyAssignment:
+                    return VisitShorthandPropertyAssignment(node.AsShorthandPropertyAssignment());
                 default:
                     return Visitor().VisitEachChild(node);
             }
@@ -231,7 +249,37 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
             EmitContext(), node.Modifiers(), modifierMask);
         var statement = Factory().NewVariableStatement(modifiers, declarations);
         EmitContext().SetOriginal(variable, node);
+        // !!! synthetic comments
         EmitContext().SetOriginal(statement, node);
+
+        // Adjust the source map emit to match the old emitter.
+        if (NodeTests.IsEnumDeclaration(node))
+        {
+            EmitContext().SetSourceMapRange(declarations, node.Loc);
+        }
+        else
+        {
+            EmitContext().SetSourceMapRange(statement, node.Loc);
+        }
+
+        // Trailing comments for enum declaration should be emitted after the function closure
+        // instead of the variable statement:
+        //
+        //     /** Leading comment*/
+        //     enum E {
+        //         A
+        //     } // trailing comment
+        //
+        // Should emit:
+        //
+        //     /** Leading comment*/
+        //     var E;
+        //     (function (E) {
+        //         E[E["A"] = 0] = "A";
+        //     })(E || (E = {})); // trailing comment
+        //
+        EmitContext().SetCommentRange(statement, node.Loc);
+        EmitContext().AddEmitFlags(statement, global::Ts.Printer.EmitFlags.NoTrailingComments);
         statements.Add(statement);
         return (statements, true);
     }
@@ -243,7 +291,16 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
             return EmitContext().NewNotEmittedStatement(node.AsNode());
         }
 
-        var (statements, _) = AddVarForDeclaration([], node.AsNode());
+        var (statements, varAdded) = AddVarForDeclaration([], node.AsNode());
+
+        // If we emit a leading variable declaration, we should not emit leading comments for the enum
+        // body, but we should still emit the comments if we are emitting to a System module.
+        var emitFlags = global::Ts.Printer.EmitFlags.None;
+        if (varAdded && (compilerOptions.GetEmitModuleKind() != ModuleKind.System || currentScope?.AsNode() != currentSourceFile?.AsNode()))
+        {
+            emitFlags |= global::Ts.Printer.EmitFlags.NoLeadingComments;
+        }
+
         var enumReference = GetExportQualifiedReferenceToDeclaration(node.AsNode());
         var enumArgument = Factory().NewLogicalORExpression(
             enumReference,
@@ -251,7 +308,17 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
                 GetExportQualifiedReferenceToDeclaration(node.AsNode()),
                 Factory().NewObjectLiteralExpression(Factory().NewNodeList([]), false)));
 
+        if (IsExportOfNamespace(node.AsNode()))
+        {
+            // `localName` is the expression used within this node's containing scope for any local references.
+            var localName = Factory().GetLocalNameEx(node.AsNode(), new global::Ts.Printer.AssignedNameOptions { AllowSourceMaps = true });
+
+            //  x = (exports.x || (exports.x = {}))
+            enumArgument = Factory().NewAssignmentExpression(localName, enumArgument);
+        }
+
         var enumParameterName = GetNamespaceContainerName(node.AsNode());
+        EmitContext().SetSourceMapRange(enumParameterName, node.Name()!.Loc);
         var enumParameter = Factory().NewParameterDeclaration(null, null, enumParameterName, null, null, null);
         var enumBody = TransformEnumBody(node);
         var enumFunction = Factory().NewFunctionExpression(
@@ -262,6 +329,7 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
         var enumStatement = Factory().NewExpressionStatement(enumCall);
         EmitContext().SetOriginal(enumStatement, node.AsNode());
         EmitContext().AssignCommentAndSourceMapRanges(enumStatement, node.AsNode());
+        EmitContext().AddEmitFlags(enumStatement, emitFlags);
         statements.Add(enumStatement);
         return Factory().AsNodeFactory().NewSyntaxList(statements.ToArray());
     }
@@ -384,7 +452,16 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
             return EmitContext().NewNotEmittedStatement(node.AsNode());
         }
 
-        var (statements, _) = AddVarForDeclaration([], node.AsNode());
+        var (statements, varAdded) = AddVarForDeclaration([], node.AsNode());
+
+        // If we emit a leading variable declaration, we should not emit leading comments for the module
+        // body, but we should still emit the comments if we are emitting to a System module.
+        var emitFlags = global::Ts.Printer.EmitFlags.None;
+        if (varAdded && (compilerOptions.GetEmitModuleKind() != ModuleKind.System || currentScope?.AsNode() != currentSourceFile?.AsNode()))
+        {
+            emitFlags |= global::Ts.Printer.EmitFlags.NoLeadingComments;
+        }
+
         var moduleReference = GetExportQualifiedReferenceToDeclaration(node.AsNode());
         var moduleArgument = Factory().NewLogicalORExpression(
             moduleReference,
@@ -401,6 +478,7 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
             moduleArgument = Factory().NewAssignmentExpression(localName, moduleArgument);
         }
         var moduleParameterName = GetNamespaceContainerName(node.AsNode());
+        EmitContext().SetSourceMapRange(moduleParameterName, node.Name()!.Loc);
         var moduleParameter = Factory().NewParameterDeclaration(null, null, moduleParameterName, null, null, null);
         var moduleBody = TransformModuleBody(node);
         var moduleFunction = Factory().NewFunctionExpression(
@@ -411,6 +489,7 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
         var moduleStatement = Factory().NewExpressionStatement(moduleCall);
         EmitContext().SetOriginal(moduleStatement, node.AsNode());
         EmitContext().AssignCommentAndSourceMapRanges(moduleStatement, node.AsNode());
+        EmitContext().AddEmitFlags(moduleStatement, emitFlags);
         statements.Add(moduleStatement);
         return Factory().AsNodeFactory().NewSyntaxList(statements.ToArray());
     }
@@ -620,12 +699,147 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
     private Node CreateExportStatementForDeclaration(Node node)
     {
         var exportName = Factory().GetExternalModuleOrNamespaceExportName(
-            GetNamespaceContainerName(currentNamespace!), node, false, true);
+            GetNamespaceContainerName(currentNamespace!), node, false /*allowComments*/, true /*allowSourceMaps*/);
         var localName = Factory().GetLocalName(node);
-        var statement = Factory().NewExpressionStatement(
-            Factory().NewAssignmentExpression(exportName, localName));
+        var expression = Factory().NewAssignmentExpression(exportName, localName);
+        var exportAssignmentSourceMapRange = node.Loc;
+        if (node.Name() is not null)
+        {
+            exportAssignmentSourceMapRange = exportAssignmentSourceMapRange.WithPos(node.Name()!.Loc.Pos);
+        }
+        EmitContext().SetSourceMapRange(expression, exportAssignmentSourceMapRange);
+
+        var statement = Factory().NewExpressionStatement(expression);
         EmitContext().SetOriginal(statement, node);
+        var exportStatementSourceMapRange = node.Loc.WithPos(-1);
+        EmitContext().SetSourceMapRange(statement, exportStatementSourceMapRange);
         return statement;
+    }
+
+    // runtimesyntax.go:222-224 — Gets an expression used to refer to an export of a namespace or a
+    // member of an enum by property name.
+    private Expression GetNamespaceQualifiedProperty(IdentifierNode ns, IdentifierNode name) =>
+        Factory().GetNamespaceMemberName(ns, name, new global::Ts.Printer.NameOptions { AllowSourceMaps = true });
+
+    // runtimesyntax.go:962-968
+    private Expression CreateExportAssignment(IdentifierNode name, Expression expression, TextRange exportAssignmentSourceMapRange, Node original)
+    {
+        var exportName = GetNamespaceQualifiedProperty(GetNamespaceContainerName(currentNamespace!), name);
+        var exportAssignment = Factory().NewAssignmentExpression(exportName, expression);
+        EmitContext().SetOriginal(exportAssignment, original);
+        EmitContext().SetSourceMapRange(exportAssignment, exportAssignmentSourceMapRange);
+        return exportAssignment;
+    }
+
+    // runtimesyntax.go:970-975
+    private Node CreateExportStatement(IdentifierNode name, Expression expression, TextRange exportAssignmentSourceMapRange, TextRange exportStatementSourceMapRange, Node original)
+    {
+        var exportStatement = Factory().NewExpressionStatement(CreateExportAssignment(name, expression, exportAssignmentSourceMapRange, original));
+        EmitContext().SetOriginal(exportStatement, original);
+        EmitContext().SetSourceMapRange(exportStatement, exportStatementSourceMapRange);
+        return exportStatement;
+    }
+
+    // runtimesyntax.go:885-919
+    private Node VisitShorthandPropertyAssignment(ShorthandPropertyAssignment node)
+    {
+        var name = node.Name()!;
+        var exportedOrImportedName = VisitExpressionIdentifier(name);
+        if (exportedOrImportedName != name)
+        {
+            var expression = exportedOrImportedName;
+            if (node.ObjectAssignmentInitializer is not null)
+            {
+                var equalsToken = node.EqualsToken;
+                equalsToken ??= Factory().NewToken(SyntaxKind.EqualsToken);
+                expression = Factory().NewBinaryExpression(
+                    null, /*modifiers*/
+                    expression,
+                    null, /*typeNode*/
+                    equalsToken,
+                    Visitor().VisitNode(node.ObjectAssignmentInitializer));
+            }
+
+            var updated = Factory().NewPropertyAssignment(null /*modifiers*/, node.Name(), null /*postfixToken*/, null /*typeNode*/, expression);
+            updated.Loc = node.Loc;
+            EmitContext().SetOriginal(updated, node.AsNode());
+            EmitContext().AssignCommentAndSourceMapRanges(updated, node.AsNode());
+            return updated;
+        }
+        return Factory().AsNodeFactory().UpdateShorthandPropertyAssignment(
+            node,
+            null, /*modifiers*/
+            exportedOrImportedName,
+            null, /*postfixToken*/
+            null, /*typeNode*/
+            node.EqualsToken,
+            Visitor().VisitNode(node.ObjectAssignmentInitializer));
+    }
+
+    // runtimesyntax.go:921-926
+    private Node VisitIdentifier(Node node)
+    {
+        if (global::Ts.Transformers.Transformers.IsIdentifierReference(node, parentNode!))
+        {
+            return VisitExpressionIdentifier(node);
+        }
+        return node;
+    }
+
+    // runtimesyntax.go:928-945
+    private Node VisitExpressionIdentifier(Node node)
+    {
+        if ((currentEnum is not null || currentNamespace is not null) &&
+            !global::Ts.Transformers.Transformers.IsGeneratedIdentifier(EmitContext(), node) &&
+            !global::Ts.Transformers.Transformers.IsLocalName(EmitContext(), node))
+        {
+            var location = EmitContext().MostOriginal(node.AsNode());
+            var container = emitResolver?.GetReferencedExportContainer(location!, false /*prefixLocals*/);
+            if (container is not null && (NodeTests.IsEnumDeclaration(container) || NodeTests.IsModuleDeclaration(container)))
+            {
+                var containerName = GetNamespaceContainerName(container);
+
+                var memberName = node.Clone(Factory());
+                EmitContext().SetEmitFlags(memberName!, global::Ts.Printer.EmitFlags.NoComments | global::Ts.Printer.EmitFlags.NoSourceMap);
+
+                var expression = Factory().GetNamespaceMemberName(containerName, memberName!, new global::Ts.Printer.NameOptions { AllowSourceMaps = true });
+                EmitContext().AssignCommentAndSourceMapRanges(expression, node.AsNode());
+                return expression;
+            }
+        }
+        return node;
+    }
+
+    // runtimesyntax.go:554-579
+    private Node? VisitImportEqualsDeclaration(ImportEqualsDeclaration node)
+    {
+        if (node.ModuleReference!.Kind == SyntaxKind.ExternalModuleReference)
+        {
+            return Visitor().VisitEachChild(node.AsNode());
+        }
+
+        var moduleReference = Factory().CreateExpressionFromEntityName(node.ModuleReference!);
+        EmitContext().SetEmitFlags(moduleReference, global::Ts.Printer.EmitFlags.NoComments | global::Ts.Printer.EmitFlags.NoNestedComments);
+        if (!IsExportOfNamespace(node.AsNode()))
+        {
+            //  export var ${name} = ${moduleReference};
+            //  var ${name} = ${moduleReference};
+            var varDecl = Factory().NewVariableDeclaration(node.Name(), null /*exclamationToken*/, null /*type*/, moduleReference);
+            EmitContext().SetOriginal(varDecl, node.AsNode());
+            var varList = Factory().NewVariableDeclarationList(Factory().NewNodeList([varDecl]), NodeFlags.None);
+            var varModifiers = global::Ts.Transformers.Transformers.ExtractModifiers(EmitContext(), node.Modifiers(), ModifierFlags.Export);
+            var varStatement = Factory().NewVariableStatement(varModifiers, varList);
+            EmitContext().SetOriginal(varStatement, node.AsNode());
+            EmitContext().AssignCommentAndSourceMapRanges(varStatement, node.AsNode());
+            return varStatement;
+        }
+        else
+        {
+            // exports.${name} = ${moduleReference};
+            var statement = CreateExportStatement(node.Name()!, moduleReference, node.Loc, node.Loc, node.AsNode());
+            statement.Loc = node.Loc;
+            return statement;
+        }
     }
 
     private BlockNode VisitConstructorBody(Block body, ConstructorDeclaration constructor)
