@@ -494,40 +494,60 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
         return Factory().AsNodeFactory().NewSyntaxList(statements.ToArray());
     }
 
+    // runtimesyntax.go:487-552
     private BlockNode TransformModuleBody(ModuleDeclaration node)
     {
-        var savedNamespace = currentNamespace;
-        var savedScope = currentScope;
-        var savedDeclarations = currentScopeFirstDeclarationsOfName;
+        var savedCurrentNamespace = currentNamespace;
+        var savedCurrentScope = currentScope;
+        var savedCurrentScopeFirstDeclarationsOfName = currentScopeFirstDeclarationsOfName;
+
         currentNamespace = node;
         currentScopeFirstDeclarationsOfName = null;
-        try
+
+        Node[] statements = [];
+        EmitContext().StartVariableEnvironment();
+
+        var statementsLocation = default(TextRange);
+        var blockLocation = default(TextRange);
+        if (node.Body != null)
         {
-            Node[] statements = [];
-            var statementLocation = node.Loc;
-            if (node.Body is { Kind: SyntaxKind.ModuleBlock } bodyNode)
+            if (node.Body.Kind == SyntaxKind.ModuleBlock)
             {
-                currentScope = bodyNode;
-                var body = bodyNode.AsModuleBlock();
-                var (visited, _) = Visitor().VisitSlice(body.Statements?.Nodes ?? []);
-                statements = visited ?? [];
-                statementLocation = body.Statements?.Loc ?? body.Loc;
+                // visit the children of `node` in advance to capture any references to namespace members
+                node = Visitor().VisitEachChild(node.AsNode())!.AsModuleDeclaration();
+                var body = node.Body!.AsModuleBlock();
+                statements = body.Statements!.Nodes;
+                statementsLocation = body.Statements.Loc;
+                blockLocation = body.Loc;
             }
-            else if (node.Body is { Kind: SyntaxKind.ModuleDeclaration } nested)
-            {
-                var (visited, _) = Visitor().VisitSlice([nested]);
+            else
+            { // node.Body.Kind == SyntaxKind.ModuleDeclaration
+                // !!! Strada didn't do this; why?
+                // tx.currentScope = node.AsNode()
+                var (visited, _) = Visitor().VisitSlice([node.Body]);
                 statements = visited ?? [];
+                var moduleBlock = TsTransformUtilities.GetInnermostModuleDeclarationFromDottedModule(node).Body!.AsModuleBlock();
+                statementsLocation = moduleBlock.Statements!.Loc.WithPos(-1);
             }
-            var statementList = Factory().NewNodeList(statements);
-            statementList.Loc = statementLocation;
-            return Factory().NewBlock(statementList, true);
         }
-        finally
+
+        currentNamespace = savedCurrentNamespace;
+        currentScope = savedCurrentScope;
+        currentScopeFirstDeclarationsOfName = savedCurrentScopeFirstDeclarationsOfName;
+
+        statements = EmitContext().EndAndMergeVariableEnvironment(statements) ?? [];
+        var statementList = Factory().NewNodeList(statements);
+        statementList.Loc = statementsLocation;
+        var block = Factory().NewBlock(statementList, true /*multiline*/);
+        block.Loc = blockLocation;
+
+        // We only want to emit comment on the namespace which contains block body itself, not the
+        // containing namespaces (see the dotted-namespace example at runtimesyntax.go:527-546).
+        if (node.Body == null || node.Body.Kind != SyntaxKind.ModuleBlock)
         {
-            currentNamespace = savedNamespace;
-            currentScope = savedScope;
-            currentScopeFirstDeclarationsOfName = savedDeclarations;
+            EmitContext().AddEmitFlags(block, global::Ts.Printer.EmitFlags.NoComments);
         }
+        return block;
     }
 
     private Node VisitClassDeclaration(ClassDeclaration node)
@@ -644,34 +664,51 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
             return Visitor().VisitEachChild(node.AsNode());
         }
 
+        // runtimesyntax.go:581-623
         var expressions = new List<Expression>();
         foreach (var declarationNode in node.DeclarationList?.AsVariableDeclarationList().Declarations?.Nodes ?? [])
         {
-            var declaration = declarationNode.AsVariableDeclaration();
-            if (declaration.Initializer is null || declaration.Name() is not { Kind: SyntaxKind.Identifier } name)
+            var v = declarationNode.AsVariableDeclaration();
+            if (v.Initializer is null)
             {
-                // PORT-NOTE: Namespace-export destructuring uses FlattenDestructuringAssignment in
-                // tsgo and remains in the deferred branch documented at the file head.
                 continue;
             }
-            var target = Factory().GetNamespaceMemberName(
-                GetNamespaceContainerName(currentNamespace!),
-                name,
-                new global::Ts.Printer.NameOptions { AllowSourceMaps = true });
-            expressions.Add(Factory().NewAssignmentExpression(
-                target,
-                Visitor().VisitNode(declaration.Initializer)!));
+            if (AstUtilities.IsBindingPattern(v.Name()!))
+            {
+                var flattened = global::Ts.Transformers.Transformers.FlattenDestructuringAssignment(
+                    this,
+                    Visitor().VisitNode(declarationNode)!,
+                    false, /*needsValue*/
+                    global::Ts.Transformers.FlattenLevel.All,
+                    CreateNamespaceExportExpression);
+                if (flattened is not null)
+                {
+                    expressions.Add(flattened);
+                }
+            }
+            else
+            {
+                var converted = global::Ts.Transformers.Transformers.ConvertVariableDeclarationToAssignmentExpression(EmitContext(), v);
+                if (converted is not null)
+                {
+                    expressions.Add(converted);
+                }
+            }
         }
         if (expressions.Count == 0)
         {
             return null;
         }
-        var expression = expressions.Count == 1
-            ? expressions[0]
-            : Factory().InlineExpressions(expressions.ToArray());
+        var expression = Factory().InlineExpressions(expressions.ToArray())!;
         var statement = Factory().NewExpressionStatement(expression);
         EmitContext().SetOriginal(statement, node.AsNode());
         EmitContext().AssignCommentAndSourceMapRanges(statement, node.AsNode());
+
+        // re-visit as the new node
+        var savedCurrent = currentNode;
+        currentNode = statement;
+        statement = Visitor().VisitEachChild(statement)!;
+        currentNode = savedCurrent;
         return statement;
     }
 
@@ -738,6 +775,16 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
         EmitContext().SetOriginal(exportStatement, original);
         EmitContext().SetSourceMapRange(exportStatement, exportStatementSourceMapRange);
         return exportStatement;
+    }
+
+    // runtimesyntax.go:624-633 — createNamespaceExportExpression creates an assignment to a namespace
+    // member for use as a callback during destructuring flattening.
+    private Expression CreateNamespaceExportExpression(IdentifierNode exportName, Expression exportValue, TextRange location)
+    {
+        var memberName = GetNamespaceQualifiedProperty(GetNamespaceContainerName(currentNamespace!), exportName);
+        var expression = Factory().NewAssignmentExpression(memberName, exportValue);
+        expression.Loc = location;
+        return expression;
     }
 
     // runtimesyntax.go:885-919
