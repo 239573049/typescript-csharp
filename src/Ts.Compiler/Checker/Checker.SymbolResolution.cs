@@ -857,7 +857,7 @@ public partial class Checker
 
     // utilities.go:1762 — CreateModuleNotFoundChain. Computes the message+args for a module-not-found
     // suggestion chain; shared with the incremental builder (repopulation of cached diagnostics).
-    internal static DiagnosticDetails CreateModuleNotFoundChain(Program program, SourceFile? file, string moduleReference, ResolutionMode mode, string packageName)
+    public static DiagnosticDetails CreateModuleNotFoundChain(Program program, SourceFile? file, string moduleReference, ResolutionMode mode, string packageName)
     {
         global::Ts.Module.ResolvedModule? resolvedModule = program.GetResolvedModule(file!, moduleReference, mode);
 
@@ -892,7 +892,7 @@ public partial class Checker
 
     // utilities.go:1798 — CreateModeMismatchDetails. Message+args for a mode-mismatch chain entry;
     // shared between initial diagnostic creation and incremental repopulation.
-    internal static DiagnosticDetails CreateModeMismatchDetails(Program program, SourceFile file)
+    public static DiagnosticDetails CreateModeMismatchDetails(Program program, SourceFile file)
     {
         string ext = global::Ts.TsPath.TsPath.TryGetExtensionFromPath(file.FileName());
         string targetExt = ext == global::Ts.TsPath.TsPath.ExtensionTs
