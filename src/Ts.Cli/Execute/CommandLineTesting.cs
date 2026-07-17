@@ -23,4 +23,26 @@ public interface ICommandLineTesting
 
     // Receives the localized message body before timestamp/status formatting.
     void OnBuildStatus(string message);
+
+    // tsc.CommandLineTesting emit/list/statistics hooks (Go interface members; default no-ops so
+    // existing execute-test fakes keep compiling until the tsbuild baseline runner needs them).
+    void OnEmittedFiles(global::Ts.Compiler.EmitResult result, global::Ts.Collections.SyncMap<global::Ts.TsPath.Path, System.DateTime>? mTimesCache)
+    {
+    }
+
+    void OnListFilesStart(System.IO.TextWriter w)
+    {
+    }
+
+    void OnListFilesEnd(System.IO.TextWriter w)
+    {
+    }
+
+    void OnStatisticsStart(System.IO.TextWriter w)
+    {
+    }
+
+    void OnStatisticsEnd(System.IO.TextWriter w)
+    {
+    }
 }

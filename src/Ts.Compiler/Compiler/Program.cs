@@ -92,6 +92,57 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:1906-1908
     public Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedTypeReferenceDirective>> GetResolvedTypeReferenceDirectives() => processed.TypeResolutionsInFile;
 
+    // program.go:1475-1481
+    public int LineCount()
+    {
+        var count = 0;
+        foreach (var file in processed.Files)
+        {
+            count += file.ECMALineMap().Length;
+        }
+        return count;
+    }
+
+    // program.go:1483-1489
+    public int IdentifierCount()
+    {
+        var count = 0;
+        foreach (var file in processed.Files)
+        {
+            count += file.IdentifierCount;
+        }
+        return count;
+    }
+
+    // program.go:1491-1502
+    public int SymbolCount()
+    {
+        var count = 0;
+        foreach (var file in processed.Files)
+        {
+            count += file.SymbolCount;
+        }
+        var val = (uint)count;
+        ForEachCheckerParallel((_, c) => global::System.Threading.Interlocked.Add(ref val, c.SymbolCount));
+        return (int)val;
+    }
+
+    // program.go:1504-1510
+    public int TypeCount()
+    {
+        var val = 0u;
+        ForEachCheckerParallel((_, c) => global::System.Threading.Interlocked.Add(ref val, c.TypeCount));
+        return (int)val;
+    }
+
+    // program.go:1512-1518
+    public int InstantiationCount()
+    {
+        var val = 0u;
+        ForEachCheckerParallel((_, c) => global::System.Threading.Interlocked.Add(ref val, c.TotalInstantiationCount));
+        return (int)val;
+    }
+
     internal Dictionary<global::Ts.TsPath.Path, RedirectsFile>? RedirectFilesByPathMap => processed.RedirectFilesByPath;
 
     internal global::Ts.TsPath.ComparePathsOptions ComparePathsOptions => comparePathsOptions;
