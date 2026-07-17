@@ -8,7 +8,6 @@
 awaitUsingDeclarationsWithImportHelpers
 callSignaturesWithParameterInitializers2
 declarationsAndAssignments
-dependentDestructuredVariables
 destructuringParameterDeclaration6
 nameCollision
 objectRest
@@ -20,6 +19,5 @@ parserErrantEqualsGreaterThanAfterFunction1
 parserRealSource13
 parserSkippedTokens16
 plainJSGrammarErrors
-privateNamesIncompatibleModifiers
 privateWriteOnlyAccessorRead
 usingDeclarationsWithImportHelpers
