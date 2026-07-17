@@ -5,7 +5,6 @@
 # Regenerate the current deterministic corpus wave (run from repo root):
 #   TSCS_CONFORMANCE_TYPES=1 TSCS_CONFORMANCE_UPDATE_TYPES=1 \
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
-conditionalTypes1
-parserRealSource8
-parserharness
-templateLiteralTypes4
+importStatementsInterfaces
+importTypeAmbient
+privateNameEnum

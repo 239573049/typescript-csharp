@@ -692,7 +692,7 @@ public sealed partial class NodeBuilder
         {
             return f.NewKeywordTypeNode(SyntaxKind.AnyKeyword);
         }
-        if (typeNode != null && ch.GetTypeFromTypeNode(typeNode) == t)
+        if (typeNode != null && GetTypeFromTypeNodeLocal(typeNode, false) == t)
         {
             var reused = TryReuseExistingNodeHelper(typeNode);
             if (reused != null)

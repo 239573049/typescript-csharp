@@ -1015,6 +1015,40 @@ public sealed partial class NodeBuilder
         var t = conditional.AsConditionalType();
         var checkTypeNode = TypeToTypeNodeCore(t.checkType!);
         ctx!.approximateLength += 15;
+        // nodebuilderimpl.go:2893-2921 — distributive conditional whose check type is not a type
+        // parameter serializes as the `checkType extends infer T ? T extends checkType ? ...` form.
+        if ((ctx.flags & global::Ts.NodeBuilder.Flags.GenerateNamesForShadowedTypeParams) != 0 &&
+            t.root.isDistributive && (t.checkType!.flags & TypeFlags.TypeParameter) == 0)
+        {
+            var newParam = ch.NewTypeParameter(ch.NewSymbol(SymbolFlags.TypeParameter, "T"));
+            var name = TypeParameterToName(newParam);
+            var newTypeVariable = f.NewTypeReferenceNode(name, null);
+            ctx.approximateLength += 37;
+            // 15 each for two added conditionals, 7 for an added infer type
+            var newMapper = TypeMapper.PrependTypeMapping(t.root.checkType!, newParam, t.mapper);
+            var saveInferTypeParametersOuter = ctx.inferTypeParameters;
+            ctx.inferTypeParameters = t.root.inferTypeParameters;
+            var extendsTypeNodeDistributive = TypeToTypeNodeCore(ch.InstantiateType(t.root.extendsType, newMapper));
+            ctx.inferTypeParameters = saveInferTypeParametersOuter;
+            var trueTypeNodeDistributive = TypeToTypeNodeOrCircularityElision(ch.InstantiateType(GetTypeFromTypeNodeNb(t.root.node!.AsConditionalTypeNode().TrueType!, false)!, newMapper));
+            var falseTypeNodeDistributive = TypeToTypeNodeOrCircularityElision(ch.InstantiateType(GetTypeFromTypeNodeNb(t.root.node!.AsConditionalTypeNode().FalseType!, false)!, newMapper));
+
+            // outermost conditional makes `T` a type parameter, allowing the inner conditionals to be distributive
+            // second conditional makes `T` have `T & checkType` substitution, so it is correctly usable as the checkType
+            // inner conditional runs the check the user provided on the check type (distributively) and returns the result
+            // checkType extends infer T ? T extends checkType ? T extends extendsType<T> ? trueType<T> : falseType<T> : never : never;
+            // this is potentially simplifiable to
+            // checkType extends infer T ? T extends checkType & extendsType<T> ? trueType<T> : falseType<T> : never;
+            // but that may confuse users who read the output more.
+            // On the other hand,
+            // checkType extends infer T extends checkType ? T extends extendsType<T> ? trueType<T> : falseType<T> : never;
+            // may also work with `infer ... extends ...` in, but would produce declarations only compatible with the latest TS.
+            var newId = newTypeVariable.AsTypeReferenceNode().TypeName!.AsIdentifier().AsNode().Clone(f);
+            var syntheticExtendsNode = f.NewInferTypeNode(f.NewTypeParameterDeclaration(null, newId, null, null, null));
+            var innerCheckConditionalNode = f.NewConditionalTypeNode(newTypeVariable, extendsTypeNodeDistributive, trueTypeNodeDistributive, falseTypeNodeDistributive);
+            var syntheticTrueNode = f.NewConditionalTypeNode(f.NewTypeReferenceNode(name.Clone(f), null), f.DeepCloneNode(checkTypeNode), innerCheckConditionalNode, f.NewKeywordTypeNode(SyntaxKind.NeverKeyword));
+            return f.NewConditionalTypeNode(checkTypeNode, syntheticExtendsNode, syntheticTrueNode, f.NewKeywordTypeNode(SyntaxKind.NeverKeyword));
+        }
         var saveInferTypeParameters = ctx.inferTypeParameters;
         ctx.inferTypeParameters = t.root.inferTypeParameters;
         var extendsTypeNode = TypeToTypeNodeCore(t.extendsType!);

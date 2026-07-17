@@ -207,7 +207,7 @@ public sealed partial class NodeBuilder
     private Node? TryReuseExistingNonParameterTypeNode(Node existing, Type t, Node? host, Type? annotationType)
     {
         host ??= ctx!.enclosingDeclaration;
-        annotationType ??= ch.GetTypeFromTypeNode(existing);
+        annotationType ??= GetTypeFromTypeNodeNb(existing, true);
         if (annotationType != null && TypeNodeIsEquivalentToType(host, t, annotationType) && CanReuseExistingJSTypeNode(existing, t))
         {
             var result = TryReuseExistingNodeHelper(existing);
@@ -328,8 +328,8 @@ public sealed partial class NodeBuilder
             if (AstUtilities.IsTypeNode(node) && !NodeTests.IsTypePredicateNode(node))
             {
                 bound.EndRecoveryScope(recover_);
-                var t = ch.GetTypeFromTypeNode(node);
-                return TypeToTypeNodeImpl(t);
+                var t = GetTypeFromTypeNodeNb(node, false);
+                return TypeToTypeNodeImpl(t!);
             }
             return SetTextRangeLocal(node.Clone(f), node);
         }
@@ -397,7 +397,7 @@ public sealed partial class NodeBuilder
                 return null; // refers to a type parameter remapped by context
             }
         }
-        if (!CanReuseExistingJSTypeNode(node, ch.GetTypeFromTypeNode(node)))
+        if (!CanReuseExistingJSTypeNode(node, GetTypeFromTypeNodeNb(node, false)!))
         {
             return null;
         }
@@ -580,7 +580,7 @@ public sealed partial class NodeBuilder
                 bound.MarkError(null);
                 return node;
             }
-            var t = ch.GetTypeFromTypeNode(node);
+            var t = GetTypeFromTypeNodeNb(node, true);
             if (t == null)
             {
                 bound.MarkError(null);
