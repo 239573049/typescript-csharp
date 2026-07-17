@@ -88,8 +88,8 @@ public static class Tsc
 
         if (IsTrue(compilerOptions.Help))
         {
-            PrintVersion(sys);
-            PrintBuildHelp(sys);
+            Help.PrintVersion(sys, global::Ts.Locale.Locale.Default);
+            Help.PrintBuildHelp(sys, global::Ts.Locale.Locale.Default, global::Ts.TsOptions.DeclsBuild.BuildOpts);
             return new CommandLineResult { Status = ExitStatus.Success };
         }
 
@@ -126,16 +126,21 @@ public static class Tsc
             return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
         }
 
+        if (IsTrue(compilerOptions.Init))
+        {
+            Init.WriteConfigFile(sys, locale, reportDiagnostic, (commandLine.Raw as global::Ts.Collections.OrderedMap<string, object?>)!);
+            return new CommandLineResult { Status = ExitStatus.Success };
+        }
+
         if (IsTrue(compilerOptions.Version))
         {
-            PrintVersion(sys);
+            Help.PrintVersion(sys, locale);
             return new CommandLineResult { Status = ExitStatus.Success };
         }
 
         if (IsTrue(compilerOptions.Help) || IsTrue(compilerOptions.All))
         {
-            PrintVersion(sys);
-            PrintHelp(sys);
+            Help.PrintHelp(sys, locale, commandLine);
             return new CommandLineResult { Status = ExitStatus.Success };
         }
 
@@ -198,8 +203,8 @@ public static class Tsc
             }
             else if (configFileName == "")
             {
-                PrintVersion(sys);
-                PrintHelp(sys);
+                Help.PrintVersion(sys, locale);
+                Help.PrintHelp(sys, locale, commandLine);
                 return new CommandLineResult { Status = ExitStatus.DiagnosticsPresent_OutputsSkipped };
             }
         }
@@ -433,28 +438,10 @@ public static class Tsc
         }
     }
 
-    private static void PrintVersion(ISystem sys)
-    {
-        string version = global::Ts.Core.TsVersion.Value;
-        sys.Writer().Write($"Version {version}\n");
-    }
-
     private static bool EqualsOrdinalIgnoreCase(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
     private static bool IsTrue(global::Ts.Core.Tristate value) =>
         value == global::Ts.Core.Tristate.True;
 
-    // PORT-NOTE: the full localized help tables in execute/tsc/help.go are outside this tail port.
-    private static void PrintHelp(ISystem sys)
-    {
-        sys.Writer().Write("tscs — type-check a TypeScript program and report diagnostics.\n");
-        sys.Writer().Write("Usage: tscs [options] file.ts...\n");
-    }
-
-    // PORT-NOTE: the full localized build-help table is deferred with the main help table.
-    private static void PrintBuildHelp(ISystem sys)
-    {
-        sys.Writer().Write("Usage: tscs --build [options] [projects...]\n");
-    }
 }
