@@ -139,4 +139,141 @@ public static partial class AstUtilities
                 return false;
         }
     }
+
+    // ast/utilities.go:4336-4342
+    public sealed class AllAccessorDeclarations
+    {
+        public Node? FirstAccessor;
+        public Node? SecondAccessor;
+        public SetAccessorDeclaration? SetAccessor;
+        public GetAccessorDeclaration? GetAccessor;
+    }
+
+    // ast/utilities.go:4344-4392
+    public static AllAccessorDeclarations GetAllAccessorDeclarationsForDeclaration(Node accessor, Node[] declarationsOfSymbol)
+    {
+        SyntaxKind otherKind;
+        if (accessor.Kind == SyntaxKind.SetAccessor)
+        {
+            otherKind = SyntaxKind.GetAccessor;
+        }
+        else if (accessor.Kind == SyntaxKind.GetAccessor)
+        {
+            otherKind = SyntaxKind.SetAccessor;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unexpected node kind {accessor.Kind}");
+        }
+        // otherAccessor := GetDeclarationOfKind(c.getSymbolOfDeclaration(accessor), otherKind)
+        Node? otherAccessor = null;
+        foreach (var d in declarationsOfSymbol)
+        {
+            if (d.Kind == otherKind)
+            {
+                otherAccessor = d;
+                break;
+            }
+        }
+
+        Node? firstAccessor;
+        Node? secondAccessor;
+        if (otherAccessor != null && otherAccessor.Loc.Pos < accessor.Loc.Pos)
+        {
+            firstAccessor = otherAccessor;
+            secondAccessor = accessor;
+        }
+        else
+        {
+            firstAccessor = accessor;
+            secondAccessor = otherAccessor;
+        }
+
+        SetAccessorDeclaration? setAccessor = null;
+        GetAccessorDeclaration? getAccessor = null;
+        if (accessor.Kind == SyntaxKind.SetAccessor)
+        {
+            setAccessor = accessor.AsSetAccessorDeclaration();
+            if (otherAccessor != null)
+            {
+                getAccessor = otherAccessor.AsGetAccessorDeclaration();
+            }
+        }
+        else
+        {
+            getAccessor = accessor.AsGetAccessorDeclaration();
+            if (otherAccessor != null)
+            {
+                setAccessor = otherAccessor.AsSetAccessorDeclaration();
+            }
+        }
+
+        return new AllAccessorDeclarations
+        {
+            FirstAccessor = firstAccessor,
+            SecondAccessor = secondAccessor,
+            SetAccessor = setAccessor,
+            GetAccessor = getAccessor,
+        };
+    }
+
+    // ast/utilities.go:4394-4414
+    public static AllAccessorDeclarations GetAllAccessorDeclarations(Node[] parentDeclarations, Node accessor)
+    {
+        if (HasDynamicName(accessor))
+        {
+            // dynamic names can only be match up via checker symbol lookup, just return an object with just this accessor
+            return GetAllAccessorDeclarationsForDeclaration(accessor, [accessor]);
+        }
+
+        var accessorName = GetPropertyNameForPropertyNameNode(accessor.Name()!);
+        var accessorStatic = IsStatic(accessor);
+        var matches = new List<Node>();
+        foreach (var member in parentDeclarations)
+        {
+            if (!IsAccessor(member) || IsStatic(member) != accessorStatic)
+            {
+                continue;
+            }
+            var memberName = GetPropertyNameForPropertyNameNode(member.Name()!);
+            if (memberName == accessorName)
+            {
+                matches.Add(member);
+            }
+        }
+        return GetAllAccessorDeclarationsForDeclaration(accessor, matches.ToArray());
+    }
+
+    // ast/utilities.go:3141-3161
+    public static string GetPropertyNameForPropertyNameNode(Node name)
+    {
+        switch (name.Kind)
+        {
+            case SyntaxKind.Identifier:
+            case SyntaxKind.PrivateIdentifier:
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+            case SyntaxKind.NumericLiteral:
+            case SyntaxKind.BigIntLiteral:
+            case SyntaxKind.JsxNamespacedName:
+                return name.Text();
+            case SyntaxKind.ComputedPropertyName:
+                var nameExpression = name.Expression()!;
+                if (IsStringOrNumericLiteralLike(nameExpression))
+                {
+                    return nameExpression.Text();
+                }
+                if (IsSignedNumericLiteral(nameExpression))
+                {
+                    var text = nameExpression.AsPrefixUnaryExpression().Operand!.Text();
+                    if (nameExpression.AsPrefixUnaryExpression().Operator == SyntaxKind.MinusToken)
+                    {
+                        text = "-" + text;
+                    }
+                    return text;
+                }
+                return InternalSymbolName.Missing;
+        }
+        throw new InvalidOperationException("Unhandled case in getPropertyNameForPropertyNameNode");
+    }
 }
