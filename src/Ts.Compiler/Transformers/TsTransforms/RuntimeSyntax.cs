@@ -391,6 +391,15 @@ public sealed class RuntimeSyntaxTransformer : global::Ts.Transformers.Transform
             Factory().NewAssignmentExpression(
                 GetExportQualifiedReferenceToDeclaration(node.AsNode()),
                 Factory().NewObjectLiteralExpression(Factory().NewNodeList([]), false)));
+
+        if (IsExportOfNamespace(node.AsNode()))
+        {
+            // `localName` is the expression used within this node's containing scope for any local references.
+            var localName = Factory().GetLocalNameEx(node.AsNode(), new global::Ts.Printer.AssignedNameOptions { AllowSourceMaps = true });
+
+            //  x = (exports.x || (exports.x = {}))
+            moduleArgument = Factory().NewAssignmentExpression(localName, moduleArgument);
+        }
         var moduleParameterName = GetNamespaceContainerName(node.AsNode());
         var moduleParameter = Factory().NewParameterDeclaration(null, null, moduleParameterName, null, null, null);
         var moduleBody = TransformModuleBody(node);

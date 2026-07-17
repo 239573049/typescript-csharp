@@ -536,10 +536,41 @@ public sealed partial class Printer
         EmitList(static (p, node) => p.EmitParameterDeclarationNode(node), parentNode, parameters, ListFormat.Parameters);
     }
 
+    private static bool CanEmitSimpleArrowHead(Node parentNode, NodeList parameters)
+    {
+        // only arrow functions with a single parameter may have simple arrow head
+        if (!NodeTests.IsArrowFunction(parentNode) || parameters.Nodes.Length != 1)
+        {
+            return false;
+        }
+
+        var parent = parentNode.AsArrowFunction();
+        var parameter = parameters.Nodes[0].AsParameterDeclaration();
+
+        return parameter.Pos == parent.Pos && // may not have parsed tokens between start of parent and parameter
+            parent.TypeParameters == null && // parent may not have type parameters
+            parent.Type == null && // parent may not have return type annotation
+            (parent.Modifiers() == null || parent.Modifiers()!.Nodes.Length == 0) && // parent may not have modifiers
+            !parameters.HasTrailingComma() && // parameters may not have a trailing comma
+            parameter.Modifiers() == null && // parameter may not have decorators or modifiers
+            parameter.DotDotDotToken == null && // parameter may not be rest
+            parameter.QuestionToken == null && // parameter may not be optional
+            parameter.Type == null && // parameter may not have a type annotation
+            parameter.Initializer == null && // parameter may not have an initializer
+            NodeTests.IsIdentifier(parameter.Name()!); // parameter name must be identifier
+    }
+
     private void EmitParametersForArrow(Node parentNode, NodeList parameters)
     {
-        // NOTE: canEmitSimpleArrowHead not yet exercised; the general parameter emit path is faithful.
-        EmitParameters(parentNode, parameters);
+        if (CanEmitSimpleArrowHead(parentNode, parameters))
+        {
+            GenerateAllNames(parameters);
+            EmitList(static (p, node) => p.EmitParameterDeclarationNode(node), parentNode, parameters, ListFormat.SingleArrowParameter);
+        }
+        else
+        {
+            EmitParameters(parentNode, parameters);
+        }
     }
 
     private void EmitParametersForIndexSignature(Node parentNode, NodeList parameters)
