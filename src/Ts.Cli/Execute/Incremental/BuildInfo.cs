@@ -1054,6 +1054,48 @@ public sealed class BuildInfo
                     w.WriteNumberValue(d);
                 }
                 break;
+            case global::Ts.Core.Tristate t:
+                // core.Tristate.MarshalJSON (tristate.go:55-64): true/false, unknown → null.
+                if (t == global::Ts.Core.Tristate.True)
+                {
+                    w.WriteBooleanValue(true);
+                }
+                else if (t == global::Ts.Core.Tristate.False)
+                {
+                    w.WriteBooleanValue(false);
+                }
+                else
+                {
+                    w.WriteNullValue();
+                }
+                break;
+            case string[] strings:
+                w.WriteStartArray();
+                foreach (var s in strings)
+                {
+                    w.WriteStringValue(s);
+                }
+                w.WriteEndArray();
+                break;
+            case global::Ts.Collections.OrderedMap<string, string[]> map:
+                // core.CompilerOptions.Paths — ordered object of string arrays.
+                w.WriteStartObject();
+                foreach (var (key, arr) in global::Ts.Collections.OrderedMapExtensions.Entries(map))
+                {
+                    w.WritePropertyName(key);
+                    w.WriteStartArray();
+                    foreach (var s in arr)
+                    {
+                        w.WriteStringValue(s);
+                    }
+                    w.WriteEndArray();
+                }
+                w.WriteEndObject();
+                break;
+            case Enum en:
+                // Go int-typed option enums (ScriptTarget/ModuleKind/…) marshal as numbers.
+                w.WriteNumberValue(((IConvertible)en).ToInt64(System.Globalization.CultureInfo.InvariantCulture));
+                break;
             case IEnumerable<object?> list:
                 w.WriteStartArray();
                 foreach (var item in list)

@@ -270,6 +270,9 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:1548-1551
     public bool IsSourceFileDefaultLibrary(global::Ts.TsPath.Path path) => processed.LibFiles.ContainsKey(path);
 
+    // program.go:1560-1565
+    public LibFile? GetDefaultLibFile(global::Ts.TsPath.Path path) => processed.LibFiles.GetValueOrDefault(path);
+
     // program.go:1917-1919
     public bool IsSourceFileFromExternalLibrary(SourceFile file) => processed.SourceFilesFoundSearchingNodeModules.Has(file.Path());
 
