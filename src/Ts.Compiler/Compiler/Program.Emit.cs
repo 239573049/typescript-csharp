@@ -218,9 +218,9 @@ public partial class Program
         }
     }
 
-    // program.go:1733-1753 — HandleNoEmitOnError. Static because the CLI path calls it via ProgramLike;
-    // here it is bound to Program directly (the only ProgramLike implementation in this wave).
-    public static EmitResult? HandleNoEmitOnError(CancellationToken ctx, Program program, SourceFile? file)
+    // program.go:1733-1753 — HandleNoEmitOnError (ProgramLike-typed, as in Go; incremental.Program is
+    // the second implementation).
+    public static EmitResult? HandleNoEmitOnError(CancellationToken ctx, ProgramLike program, SourceFile? file)
     {
         if (!program.Options().NoEmitOnError.IsTrue())
         {
@@ -244,4 +244,21 @@ public partial class Program
             EmitSkipped = true,
         };
     }
+}
+
+// program.go:1715-1731 — ProgramLike (method names follow the C# Program surface: GetSourceFiles → SourceFiles).
+public interface ProgramLike
+{
+    CompilerOptions Options();
+    SourceFile? GetSourceFile(string path);
+    SourceFile[] SourceFiles();
+    Diagnostic[] GetConfigFileParsingDiagnostics();
+    Diagnostic[] GetSyntacticDiagnostics(CancellationToken ctx, SourceFile? file);
+    Diagnostic[] GetBindDiagnostics(CancellationToken ctx, SourceFile? file);
+    Diagnostic[] GetProgramDiagnostics();
+    Diagnostic[] GetGlobalDiagnostics(CancellationToken ctx);
+    Diagnostic[] GetSemanticDiagnostics(CancellationToken ctx, SourceFile? file);
+    Diagnostic[] GetDeclarationDiagnostics(CancellationToken ctx, SourceFile? file);
+    Diagnostic[] GetSuggestionDiagnostics(CancellationToken ctx, SourceFile? file);
+    EmitResult? Emit(CancellationToken ctx, EmitOptions options);
 }

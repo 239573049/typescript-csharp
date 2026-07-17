@@ -269,6 +269,9 @@ public partial class Checker
     // checker.go:13875 GetDiagnostics — check the file, then return its collected diagnostics.
     internal Diagnostic[] GetDiagnostics(SourceFile? sourceFile) => GetDiagnosticsWorker(sourceFile!, diagnostics);
 
+    // checker.go:13879 GetSuggestionDiagnostics
+    public Diagnostic[] GetSuggestionDiagnostics(SourceFile sourceFile) => GetDiagnosticsWorker(sourceFile, suggestionDiagnostics);
+
     // checker.go:13883 getDiagnostics
     private Diagnostic[] GetDiagnosticsWorker(SourceFile sourceFile, DiagnosticsCollection collection)
     {

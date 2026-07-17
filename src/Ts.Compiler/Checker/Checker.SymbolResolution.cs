@@ -963,6 +963,25 @@ public partial class Checker
         return ancestor != null && ancestor.ImportClause() == null;
     }
 
+    // checker.go:15463
+    public Symbol[] GetAmbientModules()
+    {
+        ambientModulesOnce.Do(() =>
+        {
+            List<Symbol>? modules = null;
+            foreach (var (sym, global) in globals) // map-iter: 序无关 (results only feed set-inserts)
+            {
+                if (sym.StartsWith('"') && sym.EndsWith('"'))
+                {
+                    modules ??= new List<Symbol>();
+                    modules.Add(global);
+                }
+            }
+            ambientModules = modules?.ToArray();
+        });
+        return ambientModules ?? [];
+    }
+
     // checker.go:15451
     internal Symbol? TryFindAmbientModule(string moduleName, bool withAugmentations)
     {

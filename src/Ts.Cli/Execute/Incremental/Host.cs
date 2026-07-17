@@ -79,4 +79,21 @@ public static class BuildInfoReaderHelpers
 {
     // incremental.go:38-42
     public static IBuildInfoReader NewBuildInfoReader(global::Ts.Compiler.CompilerHost host) => new BuildInfoReader(host);
+
+    // incremental.go:44-56
+    public static Program? ReadBuildInfoProgram(global::Ts.TsOptions.ParsedCommandLine config, IBuildInfoReader reader, global::Ts.Compiler.CompilerHost host)
+    {
+        // Read buildInfo file
+        var buildInfo = reader.ReadBuildInfo(config);
+        if (buildInfo == null || !buildInfo.IsValidVersion() || !buildInfo.IsIncremental())
+        {
+            return null;
+        }
+
+        // Convert to information that can be used to create incremental program
+        return new Program
+        {
+            snapshot = BuildInfoToSnapshotConverter.BuildInfoToSnapshot(buildInfo, config, host),
+        };
+    }
 }

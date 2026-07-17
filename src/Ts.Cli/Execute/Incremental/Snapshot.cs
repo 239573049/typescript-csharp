@@ -81,7 +81,7 @@ internal sealed class BuildInfoDiagnosticWithFileName
 
     // snapshot.go:191-204 — repopulateDiagnosticChain recomputes a diagnostic chain entry that
     // depends on program state which may have changed between incremental builds.
-    private static global::Ts.Ast.Diagnostic RepopulateDiagnosticChain(
+    internal static global::Ts.Ast.Diagnostic RepopulateDiagnosticChain(
         BuildInfoDiagnosticWithFileName b, global::Ts.Compiler.Program p, global::Ts.Ast.SourceFile? file)
     {
         var info = b.repopulateInfo!;
@@ -232,7 +232,7 @@ internal sealed class Snapshot
     // Cache of dts emit diagnostics for files with their Path being the key
     internal readonly SyncMap<PathT, DiagnosticsOrBuildInfoDiagnosticsWithFileName> emitDiagnosticsPerFile = new();
     // The map has key by source file's path that has been changed
-    internal readonly SyncSet<PathT> changedFilesSet = new();
+    internal SyncSet<PathT> changedFilesSet = new(); // reassigned by affectedFilesHandler.updateSnapshot (go:351)
     // Files pending to be emitted
     internal readonly SyncMap<PathT, FileEmitKind> affectedFilesPendingEmit = new();
     // Name of the file whose dts was the latest to change

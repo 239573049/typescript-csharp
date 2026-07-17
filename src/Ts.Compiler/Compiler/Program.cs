@@ -43,7 +43,7 @@ public sealed class ProgramOptions
 }
 
 // program.go:79-119
-public sealed partial class Program : global::Ts.Checker.Program, global::Ts.OutputPaths.OutputPathsHost
+public sealed partial class Program : global::Ts.Checker.Program, global::Ts.OutputPaths.OutputPathsHost, ProgramLike
 {
     private readonly ProgramOptions opts;
     private global::Ts.Checker.ICheckerPool checkerPool = null!; // always set; fallback for project-system pools
@@ -88,6 +88,9 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     internal Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedModule>> ResolvedModulesMap => processed.ResolvedModules;
 
     internal Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedTypeReferenceDirective>> TypeResolutionsInFileMap => processed.TypeResolutionsInFile;
+
+    // program.go:1906-1908
+    public Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedTypeReferenceDirective>> GetResolvedTypeReferenceDirectives() => processed.TypeResolutionsInFile;
 
     internal Dictionary<global::Ts.TsPath.Path, RedirectsFile>? RedirectFilesByPathMap => processed.RedirectFilesByPath;
 
@@ -272,6 +275,12 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
 
     // program.go:1560-1565
     public LibFile? GetDefaultLibFile(global::Ts.TsPath.Path path) => processed.LibFiles.GetValueOrDefault(path);
+
+    // program.go:156-158
+    public void PackageJsonCacheEntries(Func<global::Ts.TsPath.Path, global::Ts.PackageJson.InfoCacheEntry, bool> f) => Resolver.PackageJsonCacheEntries(f);
+
+    // program.go:407
+    public global::Ts.Tracing.Tracing? Tracing() => opts.Tracing;
 
     // program.go:1917-1919
     public bool IsSourceFileFromExternalLibrary(SourceFile file) => processed.SourceFilesFoundSearchingNodeModules.Has(file.Path());

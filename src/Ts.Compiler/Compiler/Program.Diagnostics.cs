@@ -150,6 +150,33 @@ public sealed partial class Program
     public Diagnostic[] GetSemanticDiagnostics(CancellationToken ctx, SourceFile? sourceFile) =>
         CollectCheckerDiagnostics(ctx, sourceFile, GetSemanticDiagnosticsWithChecker);
 
+    // program.go:663-670
+    public Dictionary<SourceFile, Diagnostic[]> GetSemanticDiagnosticsWithoutNoEmitFiltering(CancellationToken ctx, SourceFile[] sourceFiles)
+    {
+        var allDiags = CollectCheckerDiagnosticsFromFiles(ctx, sourceFiles, GetBindAndCheckDiagnosticsWithChecker);
+        var result = new Dictionary<SourceFile, Diagnostic[]>(sourceFiles.Length);
+        for (var i = 0; i < allDiags.Length; i++)
+        {
+            result[sourceFiles[i]] = SortAndDeduplicateDiagnostics(allDiags[i]);
+        }
+        return result;
+    }
+
+    // program.go:672-674
+    public Diagnostic[] GetSuggestionDiagnostics(CancellationToken ctx, SourceFile? sourceFile) =>
+        CollectCheckerDiagnostics(ctx, sourceFile, GetSuggestionDiagnosticsWithChecker);
+
+    // program.go:1415-1425
+    private Diagnostic[] GetSuggestionDiagnosticsWithChecker(CancellationToken ctx, global::Ts.Checker.Checker fileChecker, SourceFile sourceFile)
+    {
+        if (SkipTypeChecking(sourceFile, false))
+        {
+            return [];
+        }
+        // Checker creation forces binding, so bind suggestion diagnostics will be populated.
+        return CoreUtil.Concatenate(sourceFile.BindSuggestionDiagnostics, fileChecker.GetSuggestionDiagnostics(sourceFile)) ?? [];
+    }
+
     // program.go:676-681 — program (options) + include-processor global diagnostics.
     public Diagnostic[] GetProgramDiagnostics()
     {
@@ -159,7 +186,7 @@ public sealed partial class Program
     }
 
     // program.go:683-689 — include-processor per-file diagnostics.
-    private Diagnostic[] GetIncludeProcessorDiagnostics(SourceFile sourceFile)
+    public Diagnostic[] GetIncludeProcessorDiagnostics(SourceFile sourceFile)
     {
         if (SkipTypeChecking(sourceFile, false))
         {
@@ -263,7 +290,7 @@ public sealed partial class Program
     }
 
     // program.go:1311-1318
-    private static Diagnostic[] FilterNoEmitSemanticDiagnostics(Diagnostic[] diagnostics, CompilerOptions options)
+    public static Diagnostic[] FilterNoEmitSemanticDiagnostics(Diagnostic[] diagnostics, CompilerOptions options)
     {
         if (!options.NoEmit.IsTrue())
         {
@@ -447,7 +474,7 @@ public sealed partial class Program
     // for a Program, short-circuiting the way tsgo does when earlier phases already produced errors.
     public static Diagnostic[] GetDiagnosticsOfAnyProgram(
         CancellationToken ctx,
-        Program program,
+        ProgramLike program,
         SourceFile? file,
         bool skipNoEmitCheckForDtsDiagnostics,
         Func<CancellationToken, SourceFile?, Diagnostic[]> getBindDiagnostics,

@@ -10,4 +10,14 @@ public partial class Checker : global::Ts.ModuleSpecifiers.CheckerShape
 {
     // checker.go:31924 — GetAliasedSymbol.
     public Symbol? GetAliasedSymbol(Symbol symbol) => ResolveAlias(symbol).Item1;
+
+    // checker/utilities.go:1622 — package-level SkipAlias.
+    public static Symbol? SkipAlias(Symbol symbol, Checker checker)
+    {
+        if ((symbol.Flags & SymbolFlags.Alias) != 0)
+        {
+            return checker.GetAliasedSymbol(symbol);
+        }
+        return symbol;
+    }
 }
