@@ -307,17 +307,17 @@ public sealed class WatchBuildTests
         var result = Tsc.CommandLine(sys, ["--build", "--verbose", "B"], testing);
 
         Assert.Equal(ExitStatus.Success, result.Status);
+        // The 1:1 build orchestrator reports per-project progress through the build-status hook
+        // (Go CommandLineTesting.OnBuildStatus); OnCompilation is a tsc-compilation-path hook.
+        // Full --build --verbose status sequence: project list, per-project up-to-date probe
+        // result, then the build itself (matches tsgo's builder status stream).
         Assert.Equal(
             new[]
             {
-                "/src/A/tsconfig.json",
-                "/src/B/tsconfig.json",
-            },
-            testing.Compilations);
-        Assert.Equal(
-            new[]
-            {
+                "Projects in this build: \r\n    * A/tsconfig.json\r\n    * B/tsconfig.json",
+                "Project 'A/tsconfig.json' is out of date because output file 'A/tsconfig.tsbuildinfo' does not exist",
                 "Building project 'A/tsconfig.json'...",
+                "Project 'B/tsconfig.json' is out of date because output file 'B/tsconfig.tsbuildinfo' does not exist",
                 "Building project 'B/tsconfig.json'...",
             },
             testing.BuildStatuses);

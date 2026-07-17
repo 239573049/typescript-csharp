@@ -21,18 +21,15 @@ namespace Ts.Compiler;
 
 internal static class ModuleFormat
 {
-    // Bridges Go's `module.GetCompilerOptionsWithRedirect(options, *ParsedCommandLine)`.
-    // PORT-NOTE: the C# ParsedCommandLine does not yet implement Ts.Module.ResolvedProjectReference
-    // (that bridge lands with the project-reference wave). With no project references configured the
-    // redirect is always null, in which case GetCompilerOptionsWithRedirect returns options unchanged
-    // (resolver.go:145-153). The non-null case is deferred with the rest of project references.
+    // Bridges Go's `module.GetCompilerOptionsWithRedirect(options, *ParsedCommandLine)`
+    // (resolver.go:145-153): with a redirect, the referenced project's own options win.
     public static CompilerOptions CompilerOptionsForRedirect(CompilerOptions options, global::Ts.TsOptions.ParsedCommandLine? redirect)
     {
         if (redirect is null)
         {
             return options;
         }
-        throw new NotImplementedException("project-reference redirected compiler options are deferred (phase 4/5)");
+        return redirect.CompilerOptions() ?? options;
     }
 
     // parseoptions.go:44

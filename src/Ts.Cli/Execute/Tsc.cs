@@ -93,7 +93,13 @@ public static class Tsc
             return new CommandLineResult { Status = ExitStatus.Success };
         }
 
-        return new BuildOrchestrator(sys, buildCommand, testing).Start();
+        // tsc.go:118 — hand off to the 1:1 build orchestrator (build.NewOrchestrator + Start).
+        return Build.Orchestrator.NewOrchestrator(new Build.BuildOptionsBag
+        {
+            Sys = sys,
+            Command = buildCommand,
+            Testing = testing,
+        }).Start();
     }
 
     // tsc.go:121-264 — ordinary tsc compilation driver, including config discovery/loading and

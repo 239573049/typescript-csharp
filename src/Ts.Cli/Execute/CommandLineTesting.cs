@@ -45,4 +45,9 @@ public interface ICommandLineTesting
     void OnStatisticsEnd(System.IO.TextWriter w)
     {
     }
+
+    // Called with the (incremental) program after a project build (tsc.CommandLineTesting.OnProgram).
+    void OnProgram(global::Ts.Execute.Incremental.Program? program)
+    {
+    }
 }
