@@ -105,7 +105,15 @@ public sealed partial class NodeBuilder
                     return parentName;
                 }
                 var memberName = AstUtilities.SymbolName(t.symbol);
-                if (global::Ts.Scanner.Scanner.IsIdentifierText(memberName, LanguageVariant.Standard))
+                // PORT-NOTE (UTF-16 shim): Go's internal-name sentinel is the raw byte 0xFE, which is
+                // invalid UTF-8 — rune decoding yields U+FFFD, so internal names fail IsIdentifierText
+                // and print with the replacement character. C#'s sentinel is the CHARACTER U+00FE (a
+                // valid identifier char), so reproduce the byte-level behavior explicitly.
+                if (memberName.Length > 0 && memberName[0] == 'þ')
+                {
+                    memberName = "�" + memberName[1..];
+                }
+                if (global::Ts.Scanner.Scanner.IsIdentifierText(memberName, LanguageVariant.Standard) && !memberName.StartsWith("�", StringComparison.Ordinal))
                 {
                     return AppendReferenceToType(parentName /* as TypeReference | ImportTypeNode */, f.NewTypeReferenceNode(f.NewIdentifier(memberName), null /*typeArguments*/));
                 }

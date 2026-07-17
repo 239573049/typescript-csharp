@@ -7,4 +7,3 @@
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
 importStatementsInterfaces
 importTypeAmbient
-privateNameEnum
