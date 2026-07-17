@@ -92,6 +92,9 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:1906-1908
     public Dictionary<global::Ts.TsPath.Path, ModeAwareCache<ResolvedTypeReferenceDirective>> GetResolvedTypeReferenceDirectives() => processed.TypeResolutionsInFile;
 
+    // program.go:1813-1815
+    public Dictionary<global::Ts.TsPath.Path, SourceFile> FilesByPath() => processed.FilesByPath;
+
     // program.go:1475-1481
     public int LineCount()
     {

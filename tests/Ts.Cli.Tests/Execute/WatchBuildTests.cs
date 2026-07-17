@@ -37,15 +37,23 @@ public sealed class WatchBuildTests
         public TimeSpan SinceStart() => TimeSpan.Zero;
     }
 
-    private sealed class TestingHooks : ICommandLineTesting
+    private sealed class TestingHooks : ICommandLineTesting, global::Ts.Execute.WatchManagement.ICommandLineTestingWithWatchBackend
     {
         internal readonly ManualWatcher ManualWatcher = new();
         internal readonly List<string> Compilations = new();
         internal readonly List<int> CompilationDiagnosticCounts = new();
         internal readonly List<string> WatchStatuses = new();
         internal readonly List<string> BuildStatuses = new();
+        internal int Programs;
 
         public global::Ts.FsWatch.IWatcher Watcher() => ManualWatcher;
+
+        // Go CommandLineTestingWithWatchBackend — the 1:1 watcher/orchestrator obtain their
+        // fswatch backend through this seam in test mode.
+        public global::Ts.Execute.WatchManagement.WatchBackend WatchBackend() =>
+            new global::Ts.Execute.WatchManagement.FSWatchBackend { Inner = ManualWatcher };
+
+        public void OnProgram(global::Ts.Execute.Incremental.Program? program) => Programs++;
 
         public void OnCompilation(global::Ts.TsOptions.ParsedCommandLine config)
         {
@@ -245,33 +253,34 @@ public sealed class WatchBuildTests
     [Fact]
     public void Watch_RecompilesAfterManualFileEvent_AndReportsExactGoStatuses()
     {
+        // Project lives at tsgo's canonical test depth — CanWatchDirectory rejects paths at
+        // /<one>/<two> depth (watchbackend.go perceived-OS-root heuristics), exactly like Go.
         var fs = VfsTestUtil.FromMap(
             new Dictionary<string, string>
             {
-                ["/src/tsconfig.json"] = "{\"compilerOptions\":{\"noLib\":true,\"noEmit\":true},\"include\":[\"*.ts\"]}",
-                ["/src/only.ts"] = MinimalGlobals + "const value = 1;\n",
+                ["/user/username/projects/src/tsconfig.json"] = "{\"compilerOptions\":{\"noLib\":true,\"noEmit\":true},\"include\":[\"*.ts\"]}",
+                ["/user/username/projects/src/only.ts"] = MinimalGlobals + "const value = 1;\n",
             },
             useCaseSensitiveFileNames: true);
-        var sys = new FakeSystem(fs, "/src");
+        var sys = new FakeSystem(fs, "/user/username/projects/src");
         var testing = new TestingHooks();
 
         var result = Tsc.CommandLine(
             sys,
-            ["--watch", "--project", "/src/tsconfig.json"],
+            ["--watch", "--project", "/user/username/projects/src/tsconfig.json"],
             testing);
 
         Assert.Equal(ExitStatus.Success, result.Status);
         Assert.NotNull(result.Watcher);
-        Assert.Single(testing.Compilations);
-        Assert.True(testing.ManualWatcher.HasFileWatch("/src/tsconfig.json"));
-        Assert.True(testing.ManualWatcher.HasFileWatch("/src/only.ts"));
-        Assert.True(testing.ManualWatcher.HasDirectoryWatch("/src"));
-        fs.WriteFile("/src/only.ts", MinimalGlobals + "const value = 2;\n");
-        testing.ManualWatcher.Trigger("/src/only.ts");
+        // The 1:1 watcher reports each build via the Go OnProgram hook and registers directory
+        // watches only (Go watcher.go computeDesiredWatches — per-file watches do not exist).
+        Assert.Equal(1, testing.Programs);
+        Assert.True(testing.ManualWatcher.HasDirectoryWatch("/user/username/projects/src"));
+        fs.WriteFile("/user/username/projects/src/only.ts", MinimalGlobals + "const value = 2;\n");
+        testing.ManualWatcher.Trigger("/user/username/projects/src/only.ts");
         result.Watcher!.DoCycle();
 
-        Assert.Equal(2, testing.Compilations.Count);
-        Assert.Equal(new[] { 0, 0 }, testing.CompilationDiagnosticCounts);
+        Assert.Equal(2, testing.Programs);
         Assert.Equal(
             new[]
             {

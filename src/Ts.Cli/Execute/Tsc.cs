@@ -247,7 +247,8 @@ public static class Tsc
             configForCompilation.CompilerOptions()!);
         if (IsTrue(configForCompilation.CompilerOptions()!.Watch))
         {
-            var watchSession = new WatchSession(
+            // tsc.go:233-243 — createWatcher + start.
+            var watcher = Watcher.CreateWatcher(
                 sys,
                 configForCompilation,
                 compilerOptionsFromCommandLine,
@@ -255,11 +256,11 @@ public static class Tsc
                 reportDiagnostic,
                 reportErrorSummary,
                 testing);
-            watchSession.Start();
+            watcher.Start(CancellationToken.None);
             return new CommandLineResult
             {
                 Status = ExitStatus.Success,
-                Watcher = watchSession,
+                Watcher = watcher,
             };
         }
 

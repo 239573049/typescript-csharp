@@ -228,3 +228,114 @@ internal static class CompilerOptionsFields
         return a.Equals(b);
     }
 }
+
+// reflect.DeepEqual(w.config.ParsedConfig, configParseResult.ParsedConfig) — watcher.go:414.
+// Hand-written per-field deep equality over core.ParsedOptions, reusing the CompilerOptionsFields
+// table for the options struct (the same table that stands in for reflection elsewhere).
+public static class ParsedOptionsDeepEqual
+{
+    public static bool DeepEqual(ParsedOptions? a, ParsedOptions? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+        if (a == null || b == null)
+        {
+            return false;
+        }
+        return CompilerOptionsDeepEqual(a.CompilerOptions, b.CompilerOptions) &&
+            WatchOptionsDeepEqual(a.WatchOptions, b.WatchOptions) &&
+            TypeAcquisitionDeepEqual(a.TypeAcquisition, b.TypeAcquisition) &&
+            StringsEqual(a.FileNames, b.FileNames) &&
+            ProjectReferencesEqual(a.ProjectReferences, b.ProjectReferences);
+    }
+
+    private static bool CompilerOptionsDeepEqual(CompilerOptions? a, CompilerOptions? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+        if (a == null || b == null)
+        {
+            return false;
+        }
+        foreach (var field in CompilerOptionsFields.Fields)
+        {
+            if (!CompilerOptionsFields.DeepEqual(field.Get(a), field.Get(b)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool WatchOptionsDeepEqual(WatchOptions? a, WatchOptions? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+        if (a == null || b == null)
+        {
+            return false;
+        }
+        return a.Interval == b.Interval &&
+            a.FileKind == b.FileKind &&
+            a.DirectoryKind == b.DirectoryKind &&
+            a.FallbackPolling == b.FallbackPolling &&
+            a.SyncWatchDir == b.SyncWatchDir &&
+            StringsEqual(a.ExcludeDir, b.ExcludeDir) &&
+            StringsEqual(a.ExcludeFiles, b.ExcludeFiles);
+    }
+
+    private static bool TypeAcquisitionDeepEqual(TypeAcquisition? a, TypeAcquisition? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+        if (a == null || b == null)
+        {
+            return false;
+        }
+        return a.Enable == b.Enable &&
+            StringsEqual(a.Include, b.Include) &&
+            StringsEqual(a.Exclude, b.Exclude) &&
+            a.DisableFilenameBasedTypeAcquisition == b.DisableFilenameBasedTypeAcquisition;
+    }
+
+    private static bool StringsEqual(string[]? a, string[]? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+        if (a == null || b == null)
+        {
+            return false;
+        }
+        return a.AsSpan().SequenceEqual(b);
+    }
+
+    private static bool ProjectReferencesEqual(ProjectReference[]? a, ProjectReference[]? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+        if (a == null || b == null || a.Length != b.Length)
+        {
+            return false;
+        }
+        for (var i = 0; i < a.Length; i++)
+        {
+            if (a[i].Path != b[i].Path || a[i].OriginalPath != b[i].OriginalPath || a[i].Circular != b[i].Circular)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+}
