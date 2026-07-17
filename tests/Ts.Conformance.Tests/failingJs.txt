@@ -6,16 +6,11 @@
 #   TSCS_CONFORMANCE_JS=1 TSCS_CONFORMANCE_UPDATE_JS=1 \
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
 callSignaturesWithParameterInitializers2
-declarationsAndAssignments
 destructuringParameterDeclaration6
-nameCollision
-objectRest
-objectRestNegative
 objectTypesWithOptionalProperties2
 parserConstructorDeclaration2
 parserEqualsGreaterThanAfterFunction1
 parserErrantEqualsGreaterThanAfterFunction1
-parserRealSource13
 parserSkippedTokens16
 plainJSGrammarErrors
 privateWriteOnlyAccessorRead
