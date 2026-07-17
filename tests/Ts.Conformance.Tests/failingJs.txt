@@ -8,7 +8,6 @@
 awaitUsingDeclarationsWithImportHelpers
 callSignaturesWithParameterInitializers2
 declarationsAndAssignments
-decoratorOnClassMethod17
 dependentDestructuredVariables
 destructuringParameterDeclaration6
 nameCollision
