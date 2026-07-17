@@ -7,16 +7,10 @@
 #     dotnet test tests/Ts.Conformance.Tests/Ts.Conformance.Tests.csproj /nodeReuse:false
 awaitUsingDeclarationsWithImportHelpers
 callSignaturesWithParameterInitializers2
-constAssertions
-constructableDecoratorOnClass01
 declarationsAndAssignments
-decoratorCallGeneric
 decoratorOnClassMethod17
-decoratorOnClassMethod6
-decoratorOnClassMethodParameter3
 dependentDestructuredVariables
 destructuringParameterDeclaration6
-generatorTypeCheck39
 nameCollision
 objectRest
 objectRestNegative
@@ -27,7 +21,6 @@ parserErrantEqualsGreaterThanAfterFunction1
 parserRealSource13
 parserSkippedTokens16
 plainJSGrammarErrors
-privateNamesAndDecorators
 privateNamesIncompatibleModifiers
 privateWriteOnlyAccessorRead
 usingDeclarationsWithImportHelpers
