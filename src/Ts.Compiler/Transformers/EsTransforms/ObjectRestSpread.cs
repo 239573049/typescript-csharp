@@ -131,7 +131,7 @@ internal sealed class ObjectRestSpreadTransformer : Transformer
     private Node VisitBinaryExpression(BinaryExpression node, bool resultIsUnused)
     {
         if (AstUtilities.IsDestructuringAssignment(node.AsNode()) &&
-            (node.Left!.SubtreeFacts() & SubtreeFacts.SubtreeContainsObjectRestOrSpread) != 0)
+            AstUtilities.ContainsObjectRestOrSpread(node.Left!))
         {
             return global::Ts.Transformers.Transformers.FlattenDestructuringAssignment(
                 this,
