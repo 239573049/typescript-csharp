@@ -30,6 +30,12 @@ public sealed class SyncSet<T> where T : notnull
         return !loaded;
     }
 
+    // Go resets by struct reassignment (`*s = SyncSet[T]{}`); shared-reference C# clears in place.
+    public void Clear()
+    {
+        m.Clear();
+    }
+
     public void Delete(T key)
     {
         m.Delete(key);
