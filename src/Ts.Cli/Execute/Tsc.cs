@@ -355,6 +355,7 @@ public static class Tsc
             global::Ts.Execute.Incremental.HostHelpers.CreateHost(host),
             testing != null);
         var outcome = EmitFilesAndReportErrors(incrementalProgram, incrementalProgram.GetProgram(), reportDiagnostic, reportErrorSummary);
+        testing?.OnProgram(incrementalProgram); // tsc.go:325-327
         testing?.OnCompilationComplete(config, outcome.Diagnostics.Length);
         return outcome;
     }
