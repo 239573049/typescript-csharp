@@ -191,9 +191,11 @@ public static class EmitAndReport
                     input.Writer.Write("TSFILE: " + global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(file, input.Program.GetCurrentDirectory()) + "\n");
                 }
             }
-            // PORT-NOTE: ExplainFiles (--explainFiles) is a deferred subsystem (include-reason
-            // rendering); the ListFiles/ListFilesOnly arms are real.
-            if (options.ListFiles.IsTrue() || options.ListFilesOnly.IsTrue())
+            if (options.ExplainFiles.IsTrue())
+            {
+                input.Program.ExplainFiles(input.Writer, global::Ts.Locale.Locale.Default); // PORT-NOTE: config.Locale() lands with the locale wave (phase 9); Default == Go locale.Default here
+            }
+            else if (options.ListFiles.IsTrue() || options.ListFilesOnly.IsTrue())
             {
                 foreach (var file in input.Program.SourceFiles())
                 {

@@ -333,6 +333,60 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:1835-1837
     public Dictionary<global::Ts.TsPath.Path, List<FileIncludeReason>> GetIncludeReasons() => processed.IncludeProcessor.FileIncludeReasons;
 
+    // program.go:1846-1884
+    public void ExplainFiles(System.IO.TextWriter w, global::Ts.Locale.Locale locale)
+    {
+        string ToRelativeFileName(string fileName) =>
+            global::Ts.TsPath.TsPath.GetRelativePathFromDirectory(GetCurrentDirectory(), fileName, comparePathsOptions);
+
+        var filesExplained = 0;
+        void ExplainFile(HasFileName file)
+        {
+            w.Write(ToRelativeFileName(file.FileName()));
+            w.Write('\n');
+            if (processed.IncludeProcessor.FileIncludeReasons.TryGetValue(file.Path(), out var reasons))
+            {
+                foreach (var reason in reasons)
+                {
+                    w.Write("   ");
+                    w.Write(reason.ToDiagnostic(this, true).Localize(locale));
+                    w.Write('\n');
+                }
+            }
+            foreach (var diag in processed.IncludeProcessor.ExplainRedirectAndImpliedFormat(this, file.Path(), ToRelativeFileName) ?? [])
+            {
+                w.Write("   ");
+                w.Write(diag.Localize(locale));
+                w.Write('\n');
+            }
+            filesExplained++;
+        }
+
+        var redirectFiles = new List<RedirectsFile>((processed.RedirectFilesByPath ?? new Dictionary<global::Ts.TsPath.Path, RedirectsFile>()).Values); // map-iter: 已排序 (sorted by Index below)
+        redirectFiles.Sort((a, b) => a.Index.CompareTo(b.Index));
+
+        var files = SourceFiles();
+        var sourceFileIndex = 0;
+        void ExplainSourceFiles(int endIndex)
+        {
+            while (filesExplained < endIndex)
+            {
+                ExplainFile(files[sourceFileIndex]);
+                sourceFileIndex++;
+            }
+        }
+
+        foreach (var redirectFile in redirectFiles)
+        {
+            // Explain all sourceFiles till we reach this redirectFile index
+            ExplainSourceFiles(redirectFile.Index);
+            ExplainFile(redirectFile);
+        }
+
+        // Explain any remaining sourceFiles
+        ExplainSourceFiles(files.Length + redirectFiles.Count);
+    }
+
     // program.go:1840-1844
     public bool IsMissingPath(global::Ts.TsPath.Path path)
     {
