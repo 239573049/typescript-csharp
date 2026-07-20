@@ -330,6 +330,22 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:1560-1565
     public LibFile? GetDefaultLibFile(global::Ts.TsPath.Path path) => processed.LibFiles.GetValueOrDefault(path);
 
+    // program.go:1835-1837
+    public Dictionary<global::Ts.TsPath.Path, List<FileIncludeReason>> GetIncludeReasons() => processed.IncludeProcessor.FileIncludeReasons;
+
+    // program.go:1840-1844
+    public bool IsMissingPath(global::Ts.TsPath.Path path)
+    {
+        foreach (var missingPath in processed.MissingFiles)
+        {
+            if (ToPath(missingPath) == path)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // program.go:156-158
     public void PackageJsonCacheEntries(Func<global::Ts.TsPath.Path, global::Ts.PackageJson.InfoCacheEntry, bool> f) => Resolver.PackageJsonCacheEntries(f);
 

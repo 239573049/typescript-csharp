@@ -10,13 +10,21 @@ public interface ICommandLineTesting
 {
     // Supplies the fswatch backend used by a watch session. Tests return a manually-triggered
     // watcher so no assertion depends on FileSystemWatcher scheduling or wall-clock sleeps.
-    global::Ts.FsWatch.IWatcher Watcher();
+    // (Legacy seam pre-dating WatchBackend; default null keeps Go-shape implementations clean.)
+    global::Ts.FsWatch.IWatcher? Watcher()
+    {
+        return null;
+    }
 
-    // Called immediately before a project/configuration is compiled.
-    void OnCompilation(global::Ts.TsOptions.ParsedCommandLine config);
+    // Called immediately before a project/configuration is compiled. (Legacy seam; default no-op.)
+    void OnCompilation(global::Ts.TsOptions.ParsedCommandLine config)
+    {
+    }
 
-    // Called after diagnostics/emit complete for the configuration.
-    void OnCompilationComplete(global::Ts.TsOptions.ParsedCommandLine config, int diagnosticCount);
+    // Called after diagnostics/emit complete for the configuration. (Legacy seam; default no-op.)
+    void OnCompilationComplete(global::Ts.TsOptions.ParsedCommandLine config, int diagnosticCount)
+    {
+    }
 
     // tsc.CommandLineTesting emit/list/statistics hooks (Go interface members; default no-ops so
     // existing execute-test fakes keep compiling until the tsbuild baseline runner needs them).
