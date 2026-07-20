@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Ts.Cli.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Ts.Compiler/Ts.Compiler.csproj" />
     <ProjectReference Include="../Ts.LanguageService/Ts.LanguageService.csproj" />
   </ItemGroup>

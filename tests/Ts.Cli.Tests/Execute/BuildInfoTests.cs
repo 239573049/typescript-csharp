@@ -44,6 +44,30 @@ public sealed class BuildInfoTests
         Assert.Null(BuildInfo.Unmarshal("[1,2,3]"));
     }
 
+    // readablebuildinfo.go writer vs the real tsgo *.tsbuildinfo.readable.baseline.txt content
+    // (extracted from the same tsbuild/demo baseline as the compact fixture).
+    [Fact]
+    public void Readable_DemoAnimals_MatchesTsgoBaseline()
+    {
+        var compact = ReadFixture("demo-animals.tsbuildinfo.json");
+        var expected = ReadFixture("demo-animals.tsbuildinfo.readable.baseline.txt");
+        var buildInfo = BuildInfo.Unmarshal(compact);
+        Assert.NotNull(buildInfo);
+        var readable = ReadableBuildInfo.ToReadableBuildInfo(buildInfo!, compact);
+        Assert.Equal(expected, readable);
+    }
+
+    [Fact]
+    public void Readable_NoEmitChangesComposite_MatchesTsgoBaseline()
+    {
+        var compact = ReadFixture("noemit-changes-composite.tsbuildinfo.json");
+        var expected = ReadFixture("noemit-changes-composite.tsbuildinfo.readable.baseline.txt");
+        var buildInfo = BuildInfo.Unmarshal(compact);
+        Assert.NotNull(buildInfo);
+        var readable = ReadableBuildInfo.ToReadableBuildInfo(buildInfo!, compact);
+        Assert.Equal(expected, readable);
+    }
+
     // plan/01 §xxh3 保真分级 pinned vector: xxh3_128("export const a = 10;") lowercase hex.
     [Fact]
     public void ComputeHash_PinnedVector()
