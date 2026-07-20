@@ -421,6 +421,11 @@ internal sealed class ToBuildInfo
     internal void SetReferencedMap()
     {
         var keys = snapshot.referencedMap.GetPathsWithReferences();
+        if (keys.Length == 0)
+        {
+            // Go: slices.Collect over an empty map yields nil → core.Map(nil) → nil (omitted).
+            return;
+        }
         Array.Sort(keys);
         buildInfo.ReferencedMap = keys.Select(filePath =>
         {

@@ -941,7 +941,7 @@ public sealed class BuildInfo
             WriteStringArray(w, "missingPackageJsons", MissingPackageJsons);
             WriteStringArray(w, "fileNames", FileNames);
             WriteArray(w, "fileInfos", FileInfos, static (w, v) => v.WriteTo(w));
-            if (FileIdsList is { Length: > 0 })
+            if (FileIdsList != null)
             {
                 w.WritePropertyName("fileIdsList");
                 w.WriteStartArray();
@@ -970,7 +970,7 @@ public sealed class BuildInfo
             WriteArray(w, "referencedMap", ReferencedMap, static (w, v) => v.WriteTo(w));
             WriteArray(w, "semanticDiagnosticsPerFile", SemanticDiagnosticsPerFile, static (w, v) => v.WriteTo(w));
             WriteArray(w, "emitDiagnosticsPerFile", EmitDiagnosticsPerFile, static (w, v) => v.WriteTo(w));
-            if (ChangeFileSet is { Length: > 0 })
+            if (ChangeFileSet != null)
             {
                 w.WritePropertyName("changeFileSet");
                 w.WriteStartArray();
@@ -996,9 +996,10 @@ public sealed class BuildInfo
         return Encoding.UTF8.GetString(buffer.ToArray());
     }
 
+    // Go omitzero: nil slice omitted; empty non-nil slice writes [].
     private static void WriteArray<T>(Utf8JsonWriter w, string name, T[]? values, Action<Utf8JsonWriter, T> writeItem)
     {
-        if (values is not { Length: > 0 })
+        if (values == null)
         {
             return;
         }
@@ -1013,7 +1014,7 @@ public sealed class BuildInfo
 
     private static void WriteStringArray(Utf8JsonWriter w, string name, string[]? values)
     {
-        if (values is not { Length: > 0 })
+        if (values == null)
         {
             return;
         }

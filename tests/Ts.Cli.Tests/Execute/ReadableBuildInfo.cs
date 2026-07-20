@@ -72,8 +72,8 @@ internal static class ReadableBuildInfo
             WriteReferencedMap(w);
             WriteSemanticDiagnostics(w);
             WriteEmitDiagnostics(w);
-            WriteStringArray(w, "changeFileSet", System.Linq.Enumerable.ToArray(
-                System.Linq.Enumerable.Select(buildInfo.ChangeFileSet ?? [], ToFilePath)));
+            WriteStringArray(w, "changeFileSet", buildInfo.ChangeFileSet == null ? null : System.Linq.Enumerable.ToArray(
+                System.Linq.Enumerable.Select(buildInfo.ChangeFileSet, ToFilePath)));
             WriteAffectedFilesPendingEmit(w);
             if (buildInfo.LatestChangedDtsFile.Length > 0)
             {
@@ -94,7 +94,7 @@ internal static class ReadableBuildInfo
 
         private static void WriteStringArray(Utf8JsonWriter w, string name, string[]? values)
         {
-            if (values is not { Length: > 0 })
+            if (values == null)
             {
                 return;
             }
@@ -110,7 +110,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:297-315 — setRoot (readableBuildInfoRoot {files, original}).
         private void WriteRoot(Utf8JsonWriter w)
         {
-            if (buildInfo.Root is not { Length: > 0 })
+            if (buildInfo.Root == null)
             {
                 return;
             }
@@ -147,7 +147,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:279-295 — setFileInfos.
         private void WriteFileInfos(Utf8JsonWriter w)
         {
-            if (buildInfo.FileInfos is not { Length: > 0 })
+            if (buildInfo.FileInfos == null)
             {
                 return;
             }
@@ -190,7 +190,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:317-321 — setFileIdsList.
         private void WriteFileIdsList(Utf8JsonWriter w)
         {
-            if (fileIdsList.Length == 0)
+            if (buildInfo.FileIdsList == null)
             {
                 return;
             }
@@ -335,7 +335,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:336-347 — setSemanticDiagnostics.
         private void WriteSemanticDiagnostics(Utf8JsonWriter w)
         {
-            if (buildInfo.SemanticDiagnosticsPerFile is not { Length: > 0 })
+            if (buildInfo.SemanticDiagnosticsPerFile == null)
             {
                 return;
             }
@@ -358,7 +358,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:349-351 — setEmitDiagnostics.
         private void WriteEmitDiagnostics(Utf8JsonWriter w)
         {
-            if (buildInfo.EmitDiagnosticsPerFile is not { Length: > 0 })
+            if (buildInfo.EmitDiagnosticsPerFile == null)
             {
                 return;
             }
@@ -396,7 +396,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:408-418 — setEmitSignatures.
         private void WriteEmitSignatures(Utf8JsonWriter w)
         {
-            if (buildInfo.EmitSignatures is not { Length: > 0 })
+            if (buildInfo.EmitSignatures == null)
             {
                 return;
             }
@@ -428,7 +428,7 @@ internal static class ReadableBuildInfo
         // readablebuildinfo.go:420-427 + 193-195 — setResolvedRoot ([resolved, root] string pairs).
         private void WriteResolvedRoot(Utf8JsonWriter w)
         {
-            if (buildInfo.ResolvedRoot is not { Length: > 0 })
+            if (buildInfo.ResolvedRoot == null)
             {
                 return;
             }
