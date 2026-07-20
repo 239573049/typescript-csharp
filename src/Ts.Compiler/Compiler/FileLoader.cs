@@ -1055,14 +1055,8 @@ internal sealed class FileLoader
         return impliedNodeFormatForEmit < ModuleKind.ES2015;
     }
 
-    // Bridge a ParsedCommandLine redirect to module.ResolvedProjectReference. Always null in the
-    // no-project-references path (see ModuleFormat.CompilerOptionsForRedirect for the deviation note).
-    private static ResolvedProjectReference? AsResolvedProjectReference(global::Ts.TsOptions.ParsedCommandLine? redirect)
-    {
-        if (redirect is null)
-        {
-            return null;
-        }
-        throw new NotImplementedException("project-reference redirected resolution is deferred (phase 4/5)");
-    }
+    // Bridge a ParsedCommandLine redirect to module.ResolvedProjectReference — in Go the
+    // *tsoptions.ParsedCommandLine satisfies the interface directly (fileloader.go:583 passes
+    // redirect verbatim); ParsedCommandLine implements it on the C# side too.
+    private static ResolvedProjectReference? AsResolvedProjectReference(global::Ts.TsOptions.ParsedCommandLine? redirect) => redirect;
 }

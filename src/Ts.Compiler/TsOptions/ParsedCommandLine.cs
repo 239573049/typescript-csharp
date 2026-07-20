@@ -32,7 +32,7 @@ public sealed class SourceOutputAndProjectReference
     public ParsedCommandLine? Resolved;
 }
 
-public sealed class ParsedCommandLine : OutputPathsHost
+public sealed class ParsedCommandLine : OutputPathsHost, global::Ts.Module.ResolvedProjectReference
 {
     public ParsedOptions ParsedConfig;
 
