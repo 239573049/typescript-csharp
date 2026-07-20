@@ -68,7 +68,9 @@ public sealed class ExecuteTests
         var result = Tsc.CommandLine(sys, ["--help"]);
 
         Assert.Equal(ExitStatus.Success, result.Status);
-        Assert.Contains("Usage", sys.Output);
+        // The 1:1 help tables (help.go) — easy help leads with COMMON COMMANDS.
+        Assert.Contains("tsc: The TypeScript Compiler", sys.Output);
+        Assert.Contains("COMMON COMMANDS", sys.Output);
     }
 
     [Fact]
@@ -80,7 +82,7 @@ public sealed class ExecuteTests
         // tsc's no-inputs behaviour: version + help, non-success status.
         Assert.Equal(ExitStatus.DiagnosticsPresent_OutputsSkipped, result.Status);
         Assert.Contains("Version", sys.Output);
-        Assert.Contains("Usage", sys.Output);
+        Assert.Contains("COMMON COMMANDS", sys.Output);
     }
 
     [Fact(Skip = "checker path WIP: CheckSourceFile throws NotImplementedException (checkDecorators) for legal programs; un-skip when the semantic report path is real")]
