@@ -67,8 +67,30 @@ public sealed class WatchBuildTests
             CompilationDiagnosticCounts.Add(diagnosticCount);
         }
 
-        public void OnWatchStatus(string message) => WatchStatuses.Add(message);
-        public void OnBuildStatus(string message) => BuildStatuses.Add(message);
+        // Go-shape status hooks: capture the writer text between Start/End and strip the
+        // "hh:mm:ss tt - " prefix (the fake clock stamp) plus trailing blank lines.
+        internal Func<string>? ReadSysOutput;
+        private int buildStatusStart;
+        private int watchStatusStart;
+
+        public void OnBuildStatusReportStart(TextWriter w) => buildStatusStart = ((StringWriter)w).GetStringBuilder().Length;
+
+        public void OnBuildStatusReportEnd(TextWriter w)
+        {
+            var sb = ((StringWriter)w).GetStringBuilder();
+            BuildStatuses.Add(StripStatus(sb.ToString(buildStatusStart, sb.Length - buildStatusStart)));
+        }
+
+        public void OnWatchStatusReportStart() => watchStatusStart = ReadSysOutput!().Length;
+
+        public void OnWatchStatusReportEnd() => WatchStatuses.Add(StripStatus(ReadSysOutput!()[watchStatusStart..]));
+
+        private static string StripStatus(string text)
+        {
+            text = text.TrimEnd('\r', '\n');
+            var idx = text.IndexOf(" - ", StringComparison.Ordinal);
+            return idx >= 0 ? text[(idx + 3)..] : text;
+        }
     }
 
     private sealed class ManualWatcher : global::Ts.FsWatch.IWatcher
@@ -264,6 +286,7 @@ public sealed class WatchBuildTests
             useCaseSensitiveFileNames: true);
         var sys = new FakeSystem(fs, "/user/username/projects/src");
         var testing = new TestingHooks();
+        testing.ReadSysOutput = () => sys.Output;
 
         var result = Tsc.CommandLine(
             sys,

@@ -60,8 +60,10 @@ public static class EmitAndReport
     public static Action<global::Ts.Diagnostics.Message, object?[]> GetTraceWithWriterFromSys(
         TextWriter w, global::Ts.Locale.Locale locale, ICommandLineTesting? testing)
     {
-        // PORT-NOTE: testing.GetTrace (deterministic trace writer) lands with the tsbuild baseline
-        // runner; the production arm is the Go non-testing arm.
+        if (testing?.GetTrace(w, locale) is { } trace)
+        {
+            return trace;
+        }
         return (msg, args) => w.Write(global::Ts.Diagnostics.Diagnostics.Localize(msg, locale, args) + "\n");
     }
 

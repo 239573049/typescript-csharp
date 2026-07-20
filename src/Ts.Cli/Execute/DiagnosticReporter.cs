@@ -122,7 +122,21 @@ public static class DiagnosticReporters
         var formatOpts = GetFormatOptsOfSys(sys, locale);
         return diagnostic =>
         {
-            testing?.OnBuildStatus(diagnostic.Localize(locale));
+            testing?.OnBuildStatusReportStart(w);
+            try
+            {
+                WriteBuilderStatus(sys, w, options, formatOpts, diagnostic);
+            }
+            finally
+            {
+                testing?.OnBuildStatusReportEnd(w);
+            }
+        };
+    }
+
+    private static void WriteBuilderStatus(ISystem sys, System.IO.TextWriter w, CompilerOptions options, global::Ts.DiagnosticWriter.FormattingOptions formatOpts, global::Ts.Ast.Diagnostic diagnostic)
+    {
+        {
             string time = sys.Now().ToString("hh:mm:ss tt", CultureInfo.InvariantCulture);
             if (ShouldBePretty(sys, options))
             {
@@ -134,7 +148,7 @@ public static class DiagnosticReporters
             }
             w.Write(formatOpts.NewLine);
             w.Write(formatOpts.NewLine);
-        };
+        }
     }
 
     // diagnostics.go:162-178
@@ -147,8 +161,22 @@ public static class DiagnosticReporters
         var formatOpts = GetFormatOptsOfSys(sys, locale);
         return diagnostic =>
         {
-            testing?.OnWatchStatus(diagnostic.Localize(locale));
             var writer = sys.Writer();
+            testing?.OnWatchStatusReportStart();
+            try
+            {
+                WriteWatchStatus(sys, writer, options, formatOpts, diagnostic);
+            }
+            finally
+            {
+                testing?.OnWatchStatusReportEnd();
+            }
+        };
+    }
+
+    private static void WriteWatchStatus(ISystem sys, System.IO.TextWriter writer, CompilerOptions options, global::Ts.DiagnosticWriter.FormattingOptions formatOpts, global::Ts.Ast.Diagnostic diagnostic)
+    {
+        {
             global::Ts.DiagnosticWriter.DiagnosticWriter.TryClearScreen(writer, diagnostic, options);
             string time = sys.Now().ToString("hh:mm:ss tt", CultureInfo.InvariantCulture);
             if (ShouldBePretty(sys, options))

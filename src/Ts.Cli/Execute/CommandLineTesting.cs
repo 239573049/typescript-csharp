@@ -18,12 +18,6 @@ public interface ICommandLineTesting
     // Called after diagnostics/emit complete for the configuration.
     void OnCompilationComplete(global::Ts.TsOptions.ParsedCommandLine config, int diagnosticCount);
 
-    // Receives the localized message body before timestamp/status formatting.
-    void OnWatchStatus(string message);
-
-    // Receives the localized message body before timestamp/status formatting.
-    void OnBuildStatus(string message);
-
     // tsc.CommandLineTesting emit/list/statistics hooks (Go interface members; default no-ops so
     // existing execute-test fakes keep compiling until the tsbuild baseline runner needs them).
     void OnEmittedFiles(global::Ts.Compiler.EmitResult result, global::Ts.Collections.SyncMap<global::Ts.TsPath.Path, System.DateTime>? mTimesCache)
@@ -44,6 +38,28 @@ public interface ICommandLineTesting
 
     void OnStatisticsEnd(System.IO.TextWriter w)
     {
+    }
+
+    void OnBuildStatusReportStart(System.IO.TextWriter w)
+    {
+    }
+
+    void OnBuildStatusReportEnd(System.IO.TextWriter w)
+    {
+    }
+
+    void OnWatchStatusReportStart()
+    {
+    }
+
+    void OnWatchStatusReportEnd()
+    {
+    }
+
+    // compile.go:61 — deterministic trace writer for baselining; null → production arm.
+    System.Action<global::Ts.Diagnostics.Message, object?[]>? GetTrace(System.IO.TextWriter w, global::Ts.Locale.Locale locale)
+    {
+        return null;
     }
 
     // Called with the (incremental) program after a project build (tsc.CommandLineTesting.OnProgram).
