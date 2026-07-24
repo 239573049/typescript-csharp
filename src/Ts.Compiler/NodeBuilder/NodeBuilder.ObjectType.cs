@@ -71,9 +71,24 @@ public sealed partial class NodeBuilder
     // literal / enum-like) delegate to the landed core in Checker.TypeToString.cs via TypeToTypeNodeLeaf.
     private Node TypeToTypeNodeCore(Type t)
     {
-        // PORT-NOTE: the maxExpansionDepth typeStack push/pop (nodebuilderimpl.go:3178-3183) is a no-op here
-        // because maxExpansionDepth is fixed at -1 (no VerbosityContext); kept absent to avoid dead state.
+        // nodebuilderimpl.go:3178-3183 — push type onto typeStack for expansion depth tracking.
+        if (ctx!.maxExpansionDepth >= 0)
+        {
+            ctx.typeStack.Add(t);
+            try
+            {
+                return TypeToTypeNodeCoreWorker(t);
+            }
+            finally
+            {
+                ctx.typeStack.RemoveAt(ctx.typeStack.Count - 1);
+            }
+        }
+        return TypeToTypeNodeCoreWorker(t);
+    }
 
+    private Node TypeToTypeNodeCoreWorker(Type t)
+    {
         var inTypeAlias = ctx!.flags & global::Ts.NodeBuilder.Flags.InTypeAlias;
         ctx.flags &= ~global::Ts.NodeBuilder.Flags.InTypeAlias;
 
@@ -91,9 +106,10 @@ public sealed partial class NodeBuilder
             return TypeAliasToTypeReferenceNode(t.alias);
         }
 
+        var expandingEnum = false;
         // nodebuilderimpl.go:3231-3256 — enum-like arm: build here (not via the context-free leaf core)
         // so the parent enum renders through the full symbolToTypeNode qualification chain
-        // (`A.Color`, import-type members). shouldExpandType short-circuits false (no VerbosityContext).
+        // (`A.Color`, import-type members).
         if ((t.flags & TypeFlags.EnumLike) != 0)
         {
             if ((t.symbol!.Flags & SymbolFlags.EnumMember) != 0)
@@ -132,8 +148,12 @@ public sealed partial class NodeBuilder
                     throw new InvalidOperationException("Unhandled type node kind returned from `symbolToTypeNode`.");
                 }
             }
-            // TypeFlagsUnion expansion is shouldExpandType-gated; with no VerbosityContext it is always false.
-            return SymbolToTypeNode(t.symbol, SymbolFlags.Type, null)!;
+            // nodebuilderimpl.go:3253 — union-of-members hover expansion gate.
+            if ((t.flags & TypeFlags.Union) == 0 || !ShouldExpandType(t, false /*isAlias*/))
+            {
+                return SymbolToTypeNode(t.symbol, SymbolFlags.Type, null)!;
+            }
+            expandingEnum = true;
         }
 
         // nodebuilderimpl.go:3258-3263 — string-literal type: build here (not via the context-free leaf
@@ -146,8 +166,9 @@ public sealed partial class NodeBuilder
             return f.NewLiteralTypeNode(lit);
         }
 
-        // nodebuilderimpl.go:3202-3319 — intrinsic / literal / enum-like leaf arms.
-        if ((t.flags & LeafTypeKinds) != 0 || ((t.flags & TypeFlags.Boolean) != 0 && t.alias == null))
+        // nodebuilderimpl.go:3202-3319 — intrinsic / literal / enum-like leaf arms. (An expanding enum
+        // union carries EnumLike and must fall through to the union arm.)
+        if (!expandingEnum && ((t.flags & LeafTypeKinds) != 0 || ((t.flags & TypeFlags.Boolean) != 0 && t.alias == null)))
         {
             return TypeToTypeNodeLeaf(t);
         }
@@ -176,6 +197,20 @@ public sealed partial class NodeBuilder
             ((ctx.flags & global::Ts.NodeBuilder.Flags.UseAliasDefinedOutsideCurrentScope) != 0 ||
              ch.IsTypeSymbolAccessible(t.alias.Symbol()!, ctx.enclosingDeclaration)))
         {
+            // nodebuilderimpl.go:3334 — if we should expand this type alias, skip the alias and fall
+            // through to expand the underlying type (depth bumped for the remainder, Go defer-style).
+            if (ShouldExpandType(t, true /*isAlias*/))
+            {
+                ctx.depth++;
+                try
+                {
+                    return TypeToTypeNodeCoreRest(t, expandingEnum);
+                }
+                finally
+                {
+                    ctx.depth--;
+                }
+            }
             var aliasSym = t.alias.Symbol()!;
             var aliasTypeArgumentNodes = t.alias.TypeArguments() is { } aliasTa ? MapToTypeNodesLocal(aliasTa, false /*isBareList*/) : null;
             if (Checker.IsReservedMemberName(aliasSym.Name) && (aliasSym.Flags & SymbolFlags.Class) == 0)
@@ -189,13 +224,28 @@ public sealed partial class NodeBuilder
             return SymbolToTypeNode(aliasSym, SymbolFlags.Type, aliasTypeArgumentNodes)!;
         }
 
+        return TypeToTypeNodeCoreRest(t, expandingEnum);
+    }
+
+    // nodebuilderimpl.go:3350-3496 — the structural remainder of typeToTypeNode after the alias arm.
+    // Split out so the alias hover-expansion branch can run it under a bumped ctx.depth (Go defer).
+    private Node TypeToTypeNodeCoreRest(Type t, bool expandingEnum)
+    {
+        _ = ctx!.flags; // establish not-null flow state (the worker asserted ctx on entry)
         var objectFlags = t.objectFlags;
 
         // nodebuilderimpl.go:3352 — generic type reference (Array / ReadonlyArray / tuple / interface).
         if ((objectFlags & ObjectFlags.Reference) != 0)
         {
             global::Ts.Core.Debug.Assert((t.flags & TypeFlags.Object) != 0);
-            // PORT-NOTE: the shouldExpandType hover arm short-circuits (maxExpansionDepth < 0).
+            // nodebuilderimpl.go:3355 — when expanding, expand type references to their structural form.
+            if (ShouldExpandType(t, false /*isAlias*/))
+            {
+                ctx.depth++;
+                var expanded = CreateAnonymousTypeNodeEx(t, true /*forceClassExpansion*/, true /*forceExpansion*/);
+                ctx.depth--;
+                return expanded;
+            }
             if (t.AsTypeReference()!.node is not null)
             {
                 return VisitAndTransformType(t, static (b, ty) => b.TypeReferenceToTypeNode(ty));
@@ -206,7 +256,14 @@ public sealed partial class NodeBuilder
         // nodebuilderimpl.go:3366 — type parameter / class / interface.
         if ((t.flags & TypeFlags.TypeParameter) != 0 || (objectFlags & ObjectFlags.ClassOrInterface) != 0)
         {
-            // PORT-NOTE: the shouldExpandType structural-expansion arm short-circuits (maxExpansionDepth < 0).
+            // nodebuilderimpl.go:3369 — when expanding class or interface types, show their structural form.
+            if ((objectFlags & ObjectFlags.ClassOrInterface) != 0 && ShouldExpandType(t, false /*isAlias*/))
+            {
+                ctx.depth++;
+                var expanded = CreateAnonymousTypeNodeEx(t, true /*forceClassExpansion*/, true /*forceExpansion*/);
+                ctx.depth--;
+                return expanded;
+            }
             if ((t.flags & TypeFlags.TypeParameter) != 0 && ctx.inferTypeParameters is not null
                 && System.Array.IndexOf(ctx.inferTypeParameters, t) >= 0)
             {
@@ -263,8 +320,7 @@ public sealed partial class NodeBuilder
             Type[] types;
             if ((t.flags & TypeFlags.Union) != 0)
             {
-                // expandingEnum is only ever set by the hover-expansion enum arm (maxExpansionDepth < 0 here).
-                types = ch.FormatUnionTypes(t.AsUnionType().types, false /*expandingEnum*/);
+                types = ch.FormatUnionTypes(t.AsUnionType().types, expandingEnum);
             }
             else
             {
@@ -435,6 +491,55 @@ public sealed partial class NodeBuilder
         return false;
     }
 
+    // nodebuilderimpl.go:229-257 — checkTypeExpandability: probes whether a type (or its type arguments)
+    // could be expanded, for use after type-node reuse where shouldExpandType was never called.
+    private void CheckTypeExpandability(Type? t)
+    {
+        if (ctx!.maxExpansionDepth < 0 || t == null || ctx.canIncreaseExpansionDepth)
+        {
+            return;
+        }
+        // Push t onto the type stack so shouldExpandType's cycle detection works correctly.
+        ctx.typeStack.Add(t);
+        if (t.alias != null)
+        {
+            ShouldExpandType(t, true /*isAlias*/);
+        }
+        if (!ctx.canIncreaseExpansionDepth)
+        {
+            ShouldExpandType(t, false /*isAlias*/);
+        }
+        ctx.typeStack.RemoveAt(ctx.typeStack.Count - 1);
+        if (ctx.canIncreaseExpansionDepth)
+        {
+            return;
+        }
+        // Recurse into type arguments (e.g., check Apple in Promise<Apple>).
+        if ((t.objectFlags & ObjectFlags.Reference) != 0)
+        {
+            foreach (var arg in ch.GetTypeArguments(t))
+            {
+                CheckTypeExpandability(arg);
+                if (ctx.canIncreaseExpansionDepth)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    // nodebuilderimpl.go:156-164 — checkTruncationLengthIfExpanding: when expanding, mark the output as
+    // truncated so we know not to offer further expansion.
+    private bool CheckTruncationLengthIfExpanding()
+    {
+        if (ctx!.maxExpansionDepth >= 0 && CheckTruncationLength())
+        {
+            ctx.expansionTruncated = true;
+            return true;
+        }
+        return false;
+    }
+
     // nodebuilderimpl.go:191 — isTypeOnStack.
     private bool IsTypeOnStack(Type t)
     {
@@ -448,9 +553,9 @@ public sealed partial class NodeBuilder
         return false;
     }
 
-    // nodebuilderimpl.go:206 — shouldExpandType. maxExpansionDepth is fixed at -1 in the error-message /
-    // .d.ts callers, so this always returns false; the hover-expansion arms below are unreachable until a
-    // VerbosityContext port lands.
+    // nodebuilderimpl.go:206 — shouldExpandType. Returns true when depth < maxExpansionDepth (expand now);
+    // at the boundary sets canIncreaseExpansionDepth. Always false for error-message / .d.ts callers
+    // (maxExpansionDepth = -1, no VerbosityContext).
     private bool ShouldExpandType(Type t, bool isAlias)
     {
         if (ctx!.maxExpansionDepth < 0)
@@ -469,7 +574,7 @@ public sealed partial class NodeBuilder
         {
             return true;
         }
-        // DEFERRED: canIncreaseExpansionDepth bookkeeping (hover-only).
+        ctx.canIncreaseExpansionDepth = true;
         return false;
     }
 
