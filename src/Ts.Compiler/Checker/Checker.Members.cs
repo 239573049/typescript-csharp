@@ -1279,7 +1279,7 @@ public partial class Checker
     }
 
     // checker.go:18576-18581
-    internal Type GetNonNullableType(Type t)
+    public Type GetNonNullableType(Type t)
     {
         if (strictNullChecks)
         {

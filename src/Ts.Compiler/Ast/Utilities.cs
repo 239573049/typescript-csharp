@@ -2311,6 +2311,24 @@ public static partial class AstUtilities
         return node.Parent != null && IsJSDocTag(node.Parent) && node.Parent.TagName() == node;
     }
 
+    // utilities.go — IsJsxOpeningLikeElement.
+    public static bool IsJsxOpeningLikeElement(Node node)
+    {
+        return node.Kind == SyntaxKind.JsxOpeningElement || node.Kind == SyntaxKind.JsxSelfClosingElement;
+    }
+
+    // utilities.go:3055-3057
+    public static bool IsObjectTypeDeclaration(Node node)
+    {
+        return IsClassLike(node) || NodeTests.IsInterfaceDeclaration(node) || NodeTests.IsTypeLiteralNode(node);
+    }
+
+    // utilities.go:3059-3061
+    public static bool IsClassOrTypeElement(Node node)
+    {
+        return IsClassElement(node) || IsTypeElement(node);
+    }
+
     // utilities.go:3214-3216
     public static bool IsStringTextContainingNode(Node node)
     {

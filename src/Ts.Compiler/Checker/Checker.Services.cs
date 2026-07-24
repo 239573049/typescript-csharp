@@ -133,4 +133,7 @@ public partial class Checker
         GetDeclaredTypeOfSymbol(symbol);
         return typeAliasLinks.Get(symbol).typeParameters ?? [];
     }
+
+    // services.go:234-236 — GetNonOptionalType.
+    public Type GetNonOptionalType(Type t) => RemoveOptionalTypeMarker(t);
 }
