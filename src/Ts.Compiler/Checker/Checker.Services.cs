@@ -282,4 +282,145 @@ public partial class Checker
         var prop = GetPropertyOfType(t, propertyName);
         return prop != null && IsPropertyAccessible(node, isSuper, false /*isWrite*/, t, prop);
     }
+
+    // services.go:689-694 — GetTypeArgumentConstraint.
+    public Type? GetTypeArgumentConstraint(Node node)
+    {
+        if (!AstUtilities.IsTypeNode(node))
+        {
+            return null;
+        }
+        return GetTypeArgumentConstraintWorker(node);
+    }
+
+    // services.go:696-714 — getUninstantiatedSignatures: gets generic signatures from the
+    // function's/constructor's type.
+    private Signature[] GetUninstantiatedSignatures(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.Decorator:
+                return GetSignaturesOfType(GetTypeOfExpression(node.Expression()!), SignatureKind.Call);
+            case SyntaxKind.NewExpression:
+                return GetSignaturesOfType(GetTypeOfExpression(node.Expression()!), SignatureKind.Construct);
+            case SyntaxKind.JsxSelfClosingElement:
+            case SyntaxKind.JsxOpeningElement:
+                if (IsJsxIntrinsicTagName(node.TagName()!))
+                {
+                    return [];
+                }
+                return GetSignaturesOfType(GetTypeOfExpression(node.TagName()!), SignatureKind.Call);
+            case SyntaxKind.TaggedTemplateExpression:
+                return GetSignaturesOfType(GetTypeOfExpression(node.AsTaggedTemplateExpression().Tag!), SignatureKind.Call);
+            case SyntaxKind.BinaryExpression:
+            case SyntaxKind.JsxOpeningFragment:
+                return [];
+        }
+        return [];
+    }
+
+    // services.go:716-729 — getTypeParameterConstraintForPositionAcrossSignatures.
+    private Type GetTypeParameterConstraintForPositionAcrossSignatures(Signature[] signatures, int position)
+    {
+        List<Type>? relevantConstraints = null;
+        foreach (var signature in signatures)
+        {
+            if (signature.typeParameters == null || position >= signature.typeParameters.Length)
+            {
+                continue;
+            }
+            var relevantTypeParameter = signature.typeParameters[position];
+            var relevantConstraint = GetConstraintOfTypeParameter(relevantTypeParameter);
+            if (relevantConstraint != null)
+            {
+                (relevantConstraints ??= new List<Type>()).Add(relevantConstraint);
+            }
+        }
+        return GetUnionType(relevantConstraints?.ToArray());
+    }
+
+    // services.go:731-803 — getTypeArgumentConstraint.
+    private Type? GetTypeArgumentConstraintWorker(Node node)
+    {
+        var typeArgumentPosition = -1;
+        if (AstUtilities.HasTypeArguments(node.Parent!))
+        {
+            var typeArgs = node.Parent!.TypeArguments() ?? [];
+            for (var i = 0; i < typeArgs.Length; i++)
+            {
+                if (typeArgs[i] == node)
+                {
+                    typeArgumentPosition = i;
+                    break;
+                }
+            }
+        }
+
+        if (typeArgumentPosition >= 0)
+        {
+            // The node could be a type argument of a call, a `new` expression, a decorator, an
+            // instantiation expression, or a generic type instantiation.
+
+            if (AstUtilities.IsCallLikeExpression(node.Parent!))
+            {
+                return GetTypeParameterConstraintForPositionAcrossSignatures(
+                    GetUninstantiatedSignatures(node.Parent!),
+                    typeArgumentPosition);
+            }
+
+            if (NodeTests.IsDecorator(node.Parent!.Parent!))
+            {
+                return GetTypeParameterConstraintForPositionAcrossSignatures(
+                    GetUninstantiatedSignatures(node.Parent.Parent!),
+                    typeArgumentPosition);
+            }
+
+            if (NodeTests.IsExpressionWithTypeArguments(node.Parent) && NodeTests.IsExpressionStatement(node.Parent.Parent!))
+            {
+                var uninstantiatedType = CheckExpression(node.Parent.Expression()!);
+
+                var callConstraint = GetTypeParameterConstraintForPositionAcrossSignatures(
+                    GetSignaturesOfType(uninstantiatedType, SignatureKind.Call),
+                    typeArgumentPosition);
+                var constructConstraint = GetTypeParameterConstraintForPositionAcrossSignatures(
+                    GetSignaturesOfType(uninstantiatedType, SignatureKind.Construct),
+                    typeArgumentPosition);
+
+                // An instantiation expression instantiates both call and construct signatures, so
+                // if both exist type arguments must be assignable to both constraints.
+                if ((constructConstraint.flags & TypeFlags.Never) != 0)
+                {
+                    return callConstraint;
+                }
+                if ((callConstraint.flags & TypeFlags.Never) != 0)
+                {
+                    return constructConstraint;
+                }
+                return GetIntersectionType([callConstraint, constructConstraint]);
+            }
+
+            if (AstUtilities.IsTypeReferenceType(node.Parent))
+            {
+                var typeParameters = GetTypeParametersForTypeReferenceOrImport(node.Parent);
+                if (typeParameters is not { Length: > 0 })
+                {
+                    return null;
+                }
+                if (typeArgumentPosition >= typeParameters.Length)
+                {
+                    return null;
+                }
+                var relevantTypeParameter = typeParameters[typeArgumentPosition];
+                var constraint = GetConstraintOfTypeParameter(relevantTypeParameter);
+                if (constraint != null)
+                {
+                    return InstantiateType(
+                        constraint,
+                        TypeMapper.NewTypeMapper(typeParameters, GetEffectiveTypeArguments(node.Parent, typeParameters)!));
+                }
+            }
+        }
+        return null;
+    }
 }

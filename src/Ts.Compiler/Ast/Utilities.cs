@@ -2317,6 +2317,31 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.JsxOpeningElement || node.Kind == SyntaxKind.JsxSelfClosingElement;
     }
 
+    // utilities.go:2995-3003
+    public static bool HasTypeArguments(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.CallExpression:
+            case SyntaxKind.NewExpression:
+            case SyntaxKind.TaggedTemplateExpression:
+            case SyntaxKind.TypeReference:
+            case SyntaxKind.ExpressionWithTypeArguments:
+            case SyntaxKind.ImportType:
+            case SyntaxKind.TypeQuery:
+            case SyntaxKind.JsxOpeningElement:
+            case SyntaxKind.JsxSelfClosingElement:
+                return true;
+        }
+        return false;
+    }
+
+    // utilities.go:3005-3007
+    public static bool IsTypeReferenceType(Node node)
+    {
+        return node.Kind == SyntaxKind.TypeReference || node.Kind == SyntaxKind.ExpressionWithTypeArguments;
+    }
+
     // utilities.go:3018-3027
     public static bool HasInitializer(Node node)
     {

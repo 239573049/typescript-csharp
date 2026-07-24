@@ -40,6 +40,69 @@ public sealed partial class LanguageService
         return null;
     }
 
+    // completions.go:3701-3747 — getConstraintOfTypeArgumentProperty.
+    internal static global::Ts.Checker.Type? GetConstraintOfTypeArgumentProperty(Node? node, global::Ts.Checker.Checker typeChecker)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (AstUtilities.IsTypeNode(node))
+        {
+            var constraint = typeChecker.GetTypeArgumentConstraint(node);
+            if (constraint != null)
+            {
+                return constraint;
+            }
+        }
+
+        var t = GetConstraintOfTypeArgumentProperty(node.Parent, typeChecker);
+        if (t == null)
+        {
+            return null;
+        }
+
+        switch (node.Kind)
+        {
+            case SyntaxKind.PropertySignature:
+            {
+                // Try to get the reparsed node first - we may be in JSDoc.
+                var reparsed = AstUtilities.GetReparsedNodeForNode(node);
+                if (reparsed.Symbol() is { } symbol)
+                {
+                    return typeChecker.GetTypeOfPropertyOfContextualType(t, symbol.Name);
+                }
+
+                // In some cases, we won't have a corresponding symbol
+                // (e.g. JSDoc types that never get re-attached) so we'll use
+                // the name as declared by the property as a best-effort.
+                if (reparsed.Name() is { } name && global::Ts.Checker.Checker.TryGetTextOfPropertyName(name, out var text))
+                {
+                    return typeChecker.GetTypeOfPropertyOfContextualType(t, text);
+                }
+
+                return null;
+            }
+            case SyntaxKind.ColonToken:
+                if (node.Parent!.Kind == SyntaxKind.PropertySignature)
+                {
+                    // The cursor is at a property value location like `Foo<{ x: | }`.
+                    // `t` already refers to the appropriate property type.
+                    return t;
+                }
+                break;
+            case SyntaxKind.IntersectionType:
+            case SyntaxKind.TypeLiteral:
+            case SyntaxKind.UnionType:
+                return t;
+            case SyntaxKind.OpenBracketToken:
+                return typeChecker.GetElementTypeOfArrayType(t);
+        }
+
+        return null;
+    }
+
     // completions.go:3749-3805 — tryGetObjectLikeCompletionContainer.
     internal static Node? TryGetObjectLikeCompletionContainer(Node? contextToken, int position, SourceFile file)
     {

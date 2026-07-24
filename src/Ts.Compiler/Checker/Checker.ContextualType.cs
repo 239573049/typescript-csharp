@@ -547,7 +547,7 @@ public partial class Checker
     }
 
     // checker.go:30308
-    internal Type? GetTypeOfPropertyOfContextualType(Type t, string name)
+    public Type? GetTypeOfPropertyOfContextualType(Type t, string name)
     {
         return GetTypeOfPropertyOfContextualTypeEx(t, name, null);
     }

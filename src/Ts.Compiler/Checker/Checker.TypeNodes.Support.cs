@@ -54,7 +54,7 @@ public partial class Checker
         return text;
     }
 
-    internal static bool TryGetTextOfPropertyName(Node name, out string text)
+    public static bool TryGetTextOfPropertyName(Node name, out string text)
     {
         switch (name.Kind)
         {

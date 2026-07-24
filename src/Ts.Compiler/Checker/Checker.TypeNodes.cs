@@ -743,7 +743,7 @@ public partial class Checker
         IsArrayType(t) && !IsReadonlyArrayType(t) || IsTupleType(t) && !t.TargetTupleType().readonlyElements;
 
     // checker.go:23421-23426
-    internal Type? GetElementTypeOfArrayType(Type t)
+    public Type? GetElementTypeOfArrayType(Type t)
     {
         if (IsArrayType(t))
         {
