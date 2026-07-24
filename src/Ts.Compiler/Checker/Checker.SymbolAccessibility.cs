@@ -455,7 +455,7 @@ public partial class Checker
     }
 
     // symbolaccessibility.go getAccessibleSymbolChain.
-    internal List<Symbol> GetAccessibleSymbolChain(Symbol? symbol, Node? enclosingDeclaration, SymbolFlags meaning, bool useOnlyExternalAliasing)
+    public List<Symbol> GetAccessibleSymbolChain(Symbol? symbol, Node? enclosingDeclaration, SymbolFlags meaning, bool useOnlyExternalAliasing)
     {
         return GetAccessibleSymbolChainEx(new AccessibleSymbolChainContext(symbol, enclosingDeclaration, meaning,
             useOnlyExternalAliasing, new Dictionary<SymbolId, HashSet<SymbolTable>>()));
