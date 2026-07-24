@@ -17,6 +17,17 @@ public interface Host
     (global::Ts.Checker.Checker Checker, Action Release) GetTypeCheckerForFile(
         CancellationToken cancellationToken,
         global::Ts.Ast.SourceFile file);
+
+    // host.go:18-24 — used for module specifier completions.
+    // ! Do not use for anything else, as this violates the principle that
+    // the host is a snapshot-in-time.
+    string[] ReadDirectory(string currentDir, string path, string[]? extensions, string[]? excludes, string[]? includes, int depth);
+
+    string[] GetDirectories(string path);
+
+    bool DirectoryExists(string path);
+
+    bool FileExists(string path);
 }
 
 public sealed class ProgramHost : Host
@@ -36,4 +47,20 @@ public sealed class ProgramHost : Host
     {
         return program.GetTypeCheckerForFile(cancellationToken, file);
     }
+
+    private global::Ts.Vfs.IFileSystem FS() => program.Host().FS();
+
+    public string[] ReadDirectory(string currentDir, string path, string[]? extensions, string[]? excludes, string[]? includes, int depth)
+    {
+        return global::Ts.Vfs.VfsMatch.VfsMatch.ReadDirectory(FS(), currentDir, path, extensions, excludes, includes, depth).ToArray();
+    }
+
+    public string[] GetDirectories(string path)
+    {
+        return FS().GetAccessibleEntries(path).Directories ?? [];
+    }
+
+    public bool DirectoryExists(string path) => FS().DirectoryExists(path);
+
+    public bool FileExists(string path) => FS().FileExists(path);
 }

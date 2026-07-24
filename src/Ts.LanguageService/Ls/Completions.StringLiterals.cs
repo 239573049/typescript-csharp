@@ -849,18 +849,13 @@ public sealed partial class LanguageService
         return [];
     }
 
-    // string_completions.go:580-596 — getStringLiteralCompletionsFromModuleNames.
-    // PORT-NOTE: the module-specifier/path half of string_completions.go (:580-1890) is the next
-    // batch (module resolution walk + node_modules/typings enumeration + paths patterns); until
-    // it lands, module-specifier strings produce no path list (Go's nil path).
+    // string_completions.go:580-596 — getStringLiteralCompletionsFromModuleNames (path half lives
+    // in Completions.StringPaths.cs).
     internal StringLiteralCompletionsResult? GetStringLiteralCompletionsFromModuleNames(
         SourceFile file,
         Node node,
         TsChecker typeChecker)
     {
-        _ = file;
-        _ = node;
-        _ = typeChecker;
-        return null;
+        return GetStringLiteralCompletionsFromModuleNamesWorkerTop(file, node, typeChecker);
     }
 }

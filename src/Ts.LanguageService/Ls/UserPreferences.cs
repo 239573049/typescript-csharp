@@ -33,6 +33,9 @@ public sealed class UserPreferences
     public Tristate IncludeCompletionsWithObjectLiteralMethodSnippets;
     // If enabled, completions will include snippet-style entries (e.g. class member snippets).
     public Tristate IncludeCompletionsWithSnippetText;
+    // userpreferences.go:89 — ImportModuleSpecifierEnding: determines whether we import
+    // `foo/index.ts` as "foo", "foo/index", or "foo/index.js".
+    public global::Ts.ModuleSpecifiers.ImportModuleSpecifierEndingPreference ImportModuleSpecifierEnding;
     // userpreferences.go:80 — EnableJSDocCompletions.
     public Tristate EnableJSDocCompletions;
     // userpreferences.go:81 — GenerateReturnInDocTemplate.

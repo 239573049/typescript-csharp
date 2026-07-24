@@ -33,6 +33,24 @@ public sealed partial class LanguageService
 
     public global::Ts.Ls.UserPreferences UserPreferences() => activeConfig;
 
+    // languageservice.go:120-123 — used for module specifier completions.
+    public bool DirectoryExists(string path)
+    {
+        return host.DirectoryExists(path);
+    }
+
+    // languageservice.go:125-128.
+    public string[] ReadDirectory(string path, string[]? extensions, string[]? includes)
+    {
+        return host.ReadDirectory(program.GetCurrentDirectory(), path, extensions, null /*excludes*/, includes, global::Ts.Vfs.VfsMatch.VfsMatch.UnlimitedDepth);
+    }
+
+    // languageservice.go:130-132.
+    public string[] GetDirectories(string path)
+    {
+        return host.GetDirectories(path);
+    }
+
     private global::Ts.Ast.SourceFile GetProgramAndFile(string fileName)
     {
         var file = program.GetSourceFile(fileName);

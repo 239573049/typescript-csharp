@@ -143,6 +143,26 @@ public sealed class CompletionDataTests
     }
 
     [Fact]
+    public void ModuleSpecifierCompletionsListRelativeFilesAndDirectories()
+    {
+        var source = "import {} from \"./\";\n";
+        var program = BuildProgram(new Dictionary<string, string>
+        {
+            [FileName] = source,
+            ["/helper.ts"] = "export const h = 1;\n",
+            ["/sub/inner.ts"] = "export const i = 2;\n",
+        });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var position = source.IndexOf("./\"", StringComparison.Ordinal) + 2;
+        var list = service.GetCompletionsAtPosition(
+            FileName, position, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(list);
+        var labels = list!.Items!.Select(e => e.Item!.Label).ToArray();
+        Assert.Contains("helper", labels);
+        Assert.Contains("sub", labels);
+    }
+
+    [Fact]
     public void PlainCommentReturnsNull()
     {
         var source = "// hello world\nconst x = 1;\n";

@@ -435,7 +435,7 @@ public static partial class TsConfigParsing
         return lastDotIndex > wildcardIndex;
     }
 
-    internal static string[][] GetSupportedExtensions(CompilerOptions compilerOptions, FileExtensionInfo[]? extraFileExtensions)
+    public static string[][] GetSupportedExtensions(CompilerOptions compilerOptions, FileExtensionInfo[]? extraFileExtensions)
     {
         var needJSExtensions = compilerOptions.GetAllowJS();
         if (extraFileExtensions is null || extraFileExtensions.Length == 0)
@@ -470,7 +470,7 @@ public static partial class TsConfigParsing
         return builtins.Concat(result).ToArray();
     }
 
-    internal static string[][] GetSupportedExtensionsWithJsonIfResolveJsonModule(CompilerOptions? compilerOptions, string[][] supportedExtensions)
+    public static string[][] GetSupportedExtensionsWithJsonIfResolveJsonModule(CompilerOptions? compilerOptions, string[][] supportedExtensions)
     {
         if (compilerOptions is null || !compilerOptions.GetResolveJsonModule())
         {
