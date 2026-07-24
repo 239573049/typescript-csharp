@@ -30,7 +30,7 @@ public sealed partial class Checker
         SymbolToStringEx(symbol!, null, SymbolFlags.All, SymbolFormatFlags.AllowAnyNodeKind);
 
     // printer.go:262 — symbolToStringEx.
-    internal string SymbolToStringEx(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning, SymbolFormatFlags flags)
+    public string SymbolToStringEx(Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning, SymbolFormatFlags flags)
     {
         var (writer, putWriter) = PrinterNs.SingleLineStringWriter.GetSingleLineStringWriter();
         try
@@ -89,7 +89,7 @@ public sealed partial class Checker
         SignatureToStringEx(signature, null, TypeFormatFlags.None, null);
 
     // printer.go:317 — signatureToStringEx.
-    internal string SignatureToStringEx(Signature signature, Node? enclosingDeclaration, TypeFormatFlags flags, object? vc)
+    public string SignatureToStringEx(Signature signature, Node? enclosingDeclaration, TypeFormatFlags flags, VerbosityContext? vc)
     {
         bool isConstructor = (signature.flags & SignatureFlags.Construct) != 0 && (flags & TypeFormatFlags.WriteCallStyleSignature) == 0;
         SyntaxKind sigOutput;
@@ -102,10 +102,10 @@ public sealed partial class Checker
             sigOutput = isConstructor ? SyntaxKind.ConstructSignature : SyntaxKind.CallSignature;
         }
 
-        // PORT-NOTE: pooled getNodeBuilder + verbosity threading deferred; a fresh builder per call is
-        // behaviorally identical (vc == null in this wave).
+        // PORT-NOTE: pooled getNodeBuilder deferred; a fresh builder per call is behaviorally identical.
         var emitContext = PrinterNs.EmitContext.NewEmitContext();
         var nodeBuilder = NewNodeBuilder(emitContext);
+        nodeBuilder.verbosity = vc;
         var combinedFlags = (NodeBuilderNs.Flags)(flags & TypeFormatFlags.NodeBuilderFlagsMask)
             | NodeBuilderNs.Flags.IgnoreErrors | NodeBuilderNs.Flags.WriteTypeParametersInQualifiedName;
         var sig = nodeBuilder.SignatureToSignatureDeclaration(signature, sigOutput, enclosingDeclaration, combinedFlags, NodeBuilderNs.InternalFlags.None, null);

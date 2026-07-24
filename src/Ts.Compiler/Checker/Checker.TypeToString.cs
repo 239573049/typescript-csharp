@@ -47,7 +47,7 @@ public sealed partial class Checker
     // PORT-NOTE: the 4th parameter is `object? vc` (a placeholder for the not-yet-ported
     // VerbosityContext). Callers pass null; this wave treats verbosity as absent (no hover expansion,
     // no MaxTruncationLength override).
-    internal string TypeToStringEx(Type t, Node? enclosingDeclaration, TypeFormatFlags flags, object? vc)
+    public string TypeToStringEx(Type t, Node? enclosingDeclaration, TypeFormatFlags flags, VerbosityContext? vc)
     {
         if (serializationLevel >= MaxSerializationLevel)
         {
@@ -59,8 +59,8 @@ public sealed partial class Checker
             newLine = "\n";
         }
         var writer = PrinterNs.TextWriter.NewTextWriter(newLine, 0);
-        // vc == null in this wave, so noTruncation reduces to the NoErrorTruncation / NoTruncation checks.
-        var noTruncation = (compilerOptions.NoErrorTruncation == Tristate.True) || (flags & TypeFormatFlags.NoTruncation) != 0;
+        // printer.go:201
+        var noTruncation = ((vc == null || vc.MaxTruncationLength == 0) && compilerOptions.NoErrorTruncation == Tristate.True) || (flags & TypeFormatFlags.NoTruncation) != 0;
 
         // printer.go:202 — combinedFlags = toNodeBuilderFlags(flags) | FlagsIgnoreErrors (+ NoTruncation).
         var combinedFlags = (global::Ts.NodeBuilder.Flags)(flags & TypeFormatFlags.NodeBuilderFlagsMask)
@@ -77,9 +77,19 @@ public sealed partial class Checker
         var emitContext = CreateTypeToStringEmitContext();
         var nodeBuilder = NewNodeBuilder(emitContext);
 
+        var oldVerbosity = nodeBuilder.verbosity;
+        nodeBuilder.verbosity = vc;
         serializationLevel++;
-        Node? typeNode = nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, combinedFlags, global::Ts.NodeBuilder.InternalFlags.None, null /*tracker*/);
-        serializationLevel--;
+        Node? typeNode;
+        try
+        {
+            typeNode = nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, combinedFlags, global::Ts.NodeBuilder.InternalFlags.None, null /*tracker*/);
+        }
+        finally
+        {
+            serializationLevel--;
+            nodeBuilder.verbosity = oldVerbosity;
+        }
         if (typeNode == null)
         {
             throw new InvalidOperationException("should always get typenode");
@@ -98,12 +108,20 @@ public sealed partial class Checker
         var result = writer.String();
 
         var maxLength = DefaultMaximumTruncationLength * 2;
+        if (vc != null && vc.MaxTruncationLength > 0)
+        {
+            maxLength = vc.MaxTruncationLength * 10; // hard cutoff matching Strada's absoluteMaximumLength
+        }
         if (noTruncation)
         {
             maxLength = NoTruncationMaximumTruncationLength * 2;
         }
         if (maxLength > 0 && result != "" && result.Length >= maxLength)
         {
+            if (vc != null)
+            {
+                vc.Truncated = true;
+            }
             return result[0..(maxLength - "...".Length)] + "...";
         }
         return result;

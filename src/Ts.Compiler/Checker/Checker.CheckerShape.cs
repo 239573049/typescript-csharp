@@ -11,6 +11,12 @@ public partial class Checker : global::Ts.ModuleSpecifiers.CheckerShape
     // checker.go:31924 — GetAliasedSymbol.
     public Symbol? GetAliasedSymbol(Symbol symbol) => ResolveAlias(symbol).Item1;
 
+    // exports.go:244-246
+    public Signature? GetResolvedSignature(Node node) => GetResolvedSignature(node, null, CheckMode.Normal);
+
+    // exports.go:61-63
+    public Symbol GetUnknownSymbol() => unknownSymbol;
+
     // checker/utilities.go:1622 — package-level SkipAlias.
     public static Symbol? SkipAlias(Symbol symbol, Checker checker)
     {

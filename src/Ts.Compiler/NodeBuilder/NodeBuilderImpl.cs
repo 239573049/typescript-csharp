@@ -42,6 +42,16 @@ namespace Ts.Checker;
 // nodebuilderimpl.go:57 — per-request node builder context. Breadth-first subset: only the fields the
 // landed serialize surface reads. (Verbosity/expansion/truncation/type-parameter-name scope state and
 // the reverse-mapped/symbol-depth caches are part of the deferred full NodeBuilderImpl port.)
+// nodebuilder.go:21-26 — VerbosityContext: hover verbosity control (Level 0 = default; the builder
+// still probes expandability at Level 0 so CanIncreaseVerbosity can be reported).
+public sealed class VerbosityContext
+{
+    public int Level;                 // 0 = default (no expansion), 1+ = expansion depth
+    public int MaxTruncationLength;   // 0 = use default
+    public bool CanIncreaseVerbosity; // output: whether increasing Level would reveal more
+    public bool Truncated;            // output: whether output was truncated
+}
+
 internal sealed class NodeBuilderContext
 {
     // nodebuilder.go:41-56 (subset)
@@ -92,6 +102,9 @@ internal sealed class NodeBuilderContext
     // nodebuilderimpl.go:67 — maxExpansionDepth: -1 = no hover expansion. The error-message / .d.ts callers
     // never set a VerbosityContext, so this is fixed at -1 and shouldExpandType always short-circuits false.
     internal int maxExpansionDepth = -1;
+    // nodebuilderimpl.go:69/71 — expansion output signals (propagated to VerbosityContext on exit).
+    internal bool canIncreaseExpansionDepth;
+    internal bool expansionTruncated;
     // nodebuilderimpl.go:68 — typeStack: expansion-cycle stack (only used when maxExpansionDepth >= 0).
     internal readonly List<Type> typeStack = new();
     // nodebuilderimpl.go:73 — inferTypeParameters: infer-type-parameter scope (conditional-type path).
@@ -129,6 +142,9 @@ public sealed partial class NodeBuilder
     // state (nodebuilderimpl.go:103)
     private NodeBuilderContext? ctx;
 
+    // nodebuilder.go — verbosity: hover VerbosityContext threaded by typeToStringEx/signatureToStringEx.
+    internal VerbosityContext? verbosity;
+
     // nodebuilderimpl.go:96 — pc: the syntactic pseudochecker backing the JS declaration-emit reuse paths.
     private readonly global::Ts.PseudoChecker.PseudoChecker pc;
 
@@ -147,16 +163,42 @@ public sealed partial class NodeBuilder
     // SingleLine / NoAsciiEscaping — resolve against it).
     internal global::Ts.Printer.EmitContext EmitContext() => e;
 
-    // nodebuilder.go:33 — enterContext. Breadth-first: no verbosity plumbing, no SymbolTrackerImpl wrap
-    // (the tracker is stored as-is; the wrapping layer is part of the deferred full port).
+    // nodebuilder.go:62-72 — propagateVerbosityOut. Only set to true, never clear — multiple calls share
+    // the same VerbosityContext.
+    private void PropagateVerbosityOut()
+    {
+        if (verbosity != null && ctx != null)
+        {
+            if (ctx.canIncreaseExpansionDepth)
+            {
+                verbosity.CanIncreaseVerbosity = true;
+            }
+            if (ctx.expansionTruncated)
+            {
+                verbosity.Truncated = true;
+            }
+        }
+    }
+
+    // nodebuilder.go:33 — enterContext. (Tracker stored as-is; the SymbolTrackerImpl wrapping layer is
+    // part of the deferred full port.)
     private void EnterContext(Node? enclosingDeclaration, global::Ts.NodeBuilder.Flags flags,
         global::Ts.NodeBuilder.InternalFlags internalFlags, global::Ts.NodeBuilder.ISymbolTracker? tracker)
     {
+        var verbosityLevel = -1;
+        var maxTruncationLen = 0;
+        if (verbosity != null)
+        {
+            verbosityLevel = verbosity.Level;
+            maxTruncationLen = verbosity.MaxTruncationLength;
+        }
         ctx = new NodeBuilderContext
         {
             tracker = tracker,
             flags = flags,
             internalFlags = internalFlags,
+            maxExpansionDepth = verbosityLevel,
+            maxTruncationLength = maxTruncationLen,
             enclosingDeclaration = enclosingDeclaration,
             enclosingFile = enclosingDeclaration is not null
                 ? AstUtilities.GetSourceFileOfNode(enclosingDeclaration)
@@ -167,6 +209,7 @@ public sealed partial class NodeBuilder
     // nodebuilder.go:84 — exitContext.
     private Node? ExitContext(Node? result)
     {
+        PropagateVerbosityOut();
         var encounteredError = ctx!.encounteredError;
         ctx = null;
         if (encounteredError)
@@ -179,6 +222,7 @@ public sealed partial class NodeBuilder
     // nodebuilder.go:94 — exitContextSlice.
     private Node[] ExitContextSlice(Node[] result)
     {
+        PropagateVerbosityOut();
         var encounteredError = ctx!.encounteredError;
         ctx = null;
         if (encounteredError)

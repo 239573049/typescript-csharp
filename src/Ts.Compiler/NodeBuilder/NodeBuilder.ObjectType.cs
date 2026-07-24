@@ -410,18 +410,29 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilderimpl.go:169 — isExpandableType.
-    // PORT-NOTE: only reached via shouldExpandType, which short-circuits when maxExpansionDepth < 0; kept
-    // faithful so a future VerbosityContext port needs no re-derivation. The IsLib*ForHoverVerbosity checks
-    // are deferred (hover-only); with maxExpansionDepth < 0 this method is never invoked.
     private bool IsExpandableType(Type t, bool isAlias)
     {
         if (isAlias)
         {
-            // DEFERRED: IsLibSymbolForHoverVerbosity (hover-only).
-            throw new NotImplementedException("nodeBuilder.isExpandableType(alias)");
+            return !ch.IsLibSymbolForHoverVerbosity(t.alias?.Symbol());
         }
-        // DEFERRED: IsLibTypeForHoverVerbosity (hover-only).
-        throw new NotImplementedException("nodeBuilder.isExpandableType");
+        if (ch.IsLibTypeForHoverVerbosity(t))
+        {
+            return false;
+        }
+        var objectFlags = t.objectFlags;
+        if ((t.flags & TypeFlags.EnumLike) != 0 ||
+            (objectFlags & ObjectFlags.Reference) != 0 ||
+            (objectFlags & ObjectFlags.ClassOrInterface) != 0)
+        {
+            return true;
+        }
+        if ((objectFlags & ObjectFlags.Anonymous) != 0 && t.symbol != null &&
+            (t.symbol.Flags & (SymbolFlags.Class | SymbolFlags.Enum | SymbolFlags.ValueModule | SymbolFlags.Function | SymbolFlags.Method)) != 0)
+        {
+            return true;
+        }
+        return false;
     }
 
     // nodebuilderimpl.go:191 — isTypeOnStack.
