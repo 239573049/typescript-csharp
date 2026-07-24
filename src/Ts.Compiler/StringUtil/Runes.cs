@@ -83,7 +83,7 @@ public static partial class StringUtil
 
     // Mirror of Go strings.EqualFold (simple Unicode case folding, no normalization).
     // Positions are UTF-16 code units (05 §8.1 world shift).
-    internal static bool EqualFold(string s, string t)
+    public static bool EqualFold(string s, string t)
     {
         // ASCII fast path.
         int i = 0;
@@ -223,7 +223,7 @@ public static partial class StringUtil
     // tables); this exception layer pins today's behavior to the Go blueprint and is
     // registered as a version-skew risk (05 §8.4). Surrogate code points map to
     // themselves, as in Go (they are absent from the Go tables).
-    internal static int ToLowerRune(int r)
+    public static int ToLowerRune(int r)
     {
         if (r == 0x0130)
         {
@@ -236,7 +236,7 @@ public static partial class StringUtil
         return Rune.ToLowerInvariant(new Rune(r)).Value;
     }
 
-    internal static int ToUpperRune(int r)
+    public static int ToUpperRune(int r)
     {
         if (r == 0x0131)
         {

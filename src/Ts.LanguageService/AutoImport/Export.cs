@@ -68,7 +68,7 @@ public static class ExportSyntaxExtensions
 }
 
 // export.go:49-70 — Export.
-public sealed class Export
+public sealed class Export : Named
 {
     // Go embeds ExportID; flattened per plan/02 mixin discipline.
     public ModuleID ModuleID;
