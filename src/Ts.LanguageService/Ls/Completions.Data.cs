@@ -155,4 +155,37 @@ public sealed partial class LanguageService
             (symbol.ValueDeclaration.ModifierFlags() & ModifierFlags.Static) != 0 &&
             AstUtilities.IsClassLike(symbol.ValueDeclaration.Parent!);
     }
+
+    // completions.go:2798-2807 — symbolCanBeReferencedAtTypeLocation: true if symbol is a type or a
+    // module containing at least one type.
+    internal static bool SymbolCanBeReferencedAtTypeLocation(Symbol symbol, global::Ts.Checker.Checker typeChecker, HashSet<SymbolId> seenModules)
+    {
+        // Since an alias can be merged with a local declaration, we need to test both the alias and its target.
+        // This code used to just test the result of `skipAlias`, but that would ignore any locally introduced meanings.
+        return NonAliasCanBeReferencedAtTypeLocation(symbol, typeChecker, seenModules) ||
+            NonAliasCanBeReferencedAtTypeLocation(
+                global::Ts.Checker.Checker.SkipAlias(symbol.ExportSymbol ?? symbol, typeChecker)!,
+                typeChecker,
+                seenModules);
+    }
+
+    // completions.go:2809-2817 — nonAliasCanBeReferencedAtTypeLocation.
+    internal static bool NonAliasCanBeReferencedAtTypeLocation(Symbol symbol, global::Ts.Checker.Checker typeChecker, HashSet<SymbolId> seenModules)
+    {
+        if ((symbol.Flags & SymbolFlags.Type) != 0 || typeChecker.IsUnknownSymbol(symbol))
+        {
+            return true;
+        }
+        if ((symbol.Flags & SymbolFlags.Module) != 0 && seenModules.Add(AstUtilities.GetSymbolId(symbol)))
+        {
+            foreach (var (_, e) in typeChecker.GetExportsOfModule(symbol)) // map-iter: 序无关 (existence check)
+            {
+                if (SymbolCanBeReferencedAtTypeLocation(e, typeChecker, seenModules))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

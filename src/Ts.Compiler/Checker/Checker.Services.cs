@@ -251,4 +251,35 @@ public partial class Checker
             IsArrayType(resolvedExternalModuleType) ||
             IsTupleType(resolvedExternalModuleType);
     }
+
+    // services.go:154-156 — IsValidPropertyAccess.
+    public bool IsValidPropertyAccess(Node node, string propertyName) => IsValidPropertyAccessWorker(node, propertyName);
+
+    // services.go:158-168 — isValidPropertyAccess.
+    private bool IsValidPropertyAccessWorker(Node node, string propertyName)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.PropertyAccessExpression:
+                return IsValidPropertyAccessWithType(node, node.Expression()!.Kind == SyntaxKind.SuperKeyword, propertyName, GetWidenedType(CheckExpression(node.Expression()!)));
+            case SyntaxKind.QualifiedName:
+                return IsValidPropertyAccessWithType(node, false /*isSuper*/, propertyName, GetWidenedType(CheckExpression(node.AsQualifiedName().Left!)));
+            case SyntaxKind.ImportType:
+                return IsValidPropertyAccessWithType(node, false /*isSuper*/, propertyName, GetTypeFromTypeNode(node));
+        }
+        throw new System.InvalidOperationException("Unexpected node kind in isValidPropertyAccess: " + node.Kind);
+    }
+
+    // services.go:170-178 — isValidPropertyAccessWithType.
+    private bool IsValidPropertyAccessWithType(Node node, bool isSuper, string propertyName, Type t)
+    {
+        // Short-circuiting for improved performance.
+        if ((t.flags & TypeFlags.Any) != 0)
+        {
+            return true;
+        }
+
+        var prop = GetPropertyOfType(t, propertyName);
+        return prop != null && IsPropertyAccessible(node, isSuper, false /*isWrite*/, t, prop);
+    }
 }

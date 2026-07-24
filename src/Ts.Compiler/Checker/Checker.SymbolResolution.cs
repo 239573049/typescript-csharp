@@ -1469,7 +1469,7 @@ public partial class Checker
     }
 
     // checker.go:16044
-    internal SymbolTable GetExportsOfModule(Symbol moduleSymbol)
+    public SymbolTable GetExportsOfModule(Symbol moduleSymbol)
     {
         var links = moduleSymbolLinks.Get(moduleSymbol);
         if (links.resolvedExports == null)
