@@ -785,4 +785,13 @@ public sealed partial class NodeBuilder
         var modifiers = declWithModifiers.ModifierFlags() & ~(ModifierFlags.Export | ModifierFlags.Ambient);
         return AstUtilities.ReplaceModifiers(f, newDecl, f.NewModifierList(AstUtilities.CreateModifiersFromModifierFlags(modifiers, f.NewModifier)));
     }
+
+    // nodebuilder.go:255-259 — TypeParameterToDeclaration (public wrapper).
+    internal Node? TypeParameterToDeclarationPublic(Type parameter, Node? enclosingDeclaration,
+        global::Ts.NodeBuilder.Flags flags, global::Ts.NodeBuilder.InternalFlags internalFlags,
+        global::Ts.NodeBuilder.ISymbolTracker? tracker)
+    {
+        EnterContext(enclosingDeclaration, flags, internalFlags, tracker);
+        return ExitContext(TypeParameterToDeclaration(parameter));
+    }
 }

@@ -342,4 +342,54 @@ public sealed partial class Checker
     {
         return f.NewKeywordTypeNode(SyntaxKind.AnyKeyword);
     }
+
+    // printer.go:430-455 — ExpandSymbolForHover: node-builder symbol expansion rendered to text.
+    public string ExpandSymbolForHover(Symbol symbol, SymbolFlags meaning, VerbosityContext? vc)
+    {
+        var emitContext = CreateTypeToStringEmitContext();
+        var nodeBuilder = NewNodeBuilder(emitContext);
+        nodeBuilder.verbosity = vc;
+        var nodes = nodeBuilder.ExpandSymbolForHover(symbol, meaning);
+        if (nodes.Length == 0)
+        {
+            return "";
+        }
+        var p = PrinterNs.Printer.NewPrinter(new PrinterNs.PrinterOptions { RemoveComments = true }, new PrinterNs.PrintHandlers(), nodeBuilder.EmitContext());
+        SourceFile? sourceFile = null;
+        if (symbol.ValueDeclaration != null)
+        {
+            sourceFile = AstUtilities.GetSourceFileOfNode(symbol.ValueDeclaration);
+        }
+        var b = new System.Text.StringBuilder();
+        for (var i = 0; i < nodes.Length; i++)
+        {
+            if (i > 0)
+            {
+                b.Append('\n');
+            }
+            b.Append(p.Emit(nodes[i], sourceFile));
+        }
+        return b.ToString();
+    }
+
+    // printer.go:457-476 — TypeParameterToStringEx renders a type parameter declaration
+    // (e.g. "T extends Foo") with optional verbosity support.
+    public string TypeParameterToStringEx(Type t, Node? enclosingDeclaration, VerbosityContext? vc)
+    {
+        var emitContext = CreateTypeToStringEmitContext();
+        var nodeBuilder = NewNodeBuilder(emitContext);
+        nodeBuilder.verbosity = vc;
+        var typeParamNode = nodeBuilder.TypeParameterToDeclarationPublic(t, enclosingDeclaration, global::Ts.NodeBuilder.Flags.IgnoreErrors, global::Ts.NodeBuilder.InternalFlags.None, null);
+        if (typeParamNode == null)
+        {
+            return TypeToString(t);
+        }
+        var p = PrinterNs.Printer.NewPrinter(new PrinterNs.PrinterOptions { RemoveComments = true }, new PrinterNs.PrintHandlers(), nodeBuilder.EmitContext());
+        SourceFile? sourceFile = null;
+        if (enclosingDeclaration != null)
+        {
+            sourceFile = AstUtilities.GetSourceFileOfNode(enclosingDeclaration);
+        }
+        return p.Emit(typeParamNode, sourceFile);
+    }
 }
