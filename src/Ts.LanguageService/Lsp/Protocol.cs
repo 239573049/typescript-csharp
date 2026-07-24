@@ -635,6 +635,82 @@ public sealed class CompletionItemData
     public object? AutoImport { get; set; }
 }
 
+// lsp_generated.go: CompletionItemDefaults — in many cases the items of an actual completion
+// result share the same value for properties like `commitCharacters`.
+public sealed class CompletionItemDefaults
+{
+    // A default commit character set.
+    [JsonPropertyName("commitCharacters")]
+    public string[]? CommitCharacters { get; set; }
+
+    // A default edit range.
+    [JsonPropertyName("editRange")]
+    public RangeOrEditRangeWithInsertReplace? EditRange { get; set; }
+
+    // A default insert text format.
+    [JsonPropertyName("insertTextFormat")]
+    public InsertTextFormat? InsertTextFormat { get; set; }
+
+    // A default insert text mode.
+    [JsonPropertyName("insertTextMode")]
+    public uint? InsertTextMode { get; set; }
+
+    // A default data value.
+    [JsonPropertyName("data")]
+    public JsonElement? Data { get; set; }
+}
+
+// lsp_generated.go: EditRangeWithInsertReplace — edit range variant that includes ranges for
+// insert and replace operations.
+public sealed class EditRangeWithInsertReplace
+{
+    [JsonPropertyName("insert")]
+    [JsonRequired]
+    public Range Insert { get; set; } = null!;
+
+    [JsonPropertyName("replace")]
+    [JsonRequired]
+    public Range Replace { get; set; } = null!;
+}
+
+// lsp_generated.go: Range | EditRangeWithInsertReplace union (CompletionItemDefaults.editRange).
+[JsonConverter(typeof(RangeOrEditRangeWithInsertReplaceConverter))]
+public sealed class RangeOrEditRangeWithInsertReplace
+{
+    public Range? Range { get; set; }
+    public EditRangeWithInsertReplace? EditRangeWithInsertReplace { get; set; }
+}
+
+public sealed class RangeOrEditRangeWithInsertReplaceConverter : JsonConverter<RangeOrEditRangeWithInsertReplace>
+{
+    public override RangeOrEditRangeWithInsertReplace? Read(ref Utf8JsonReader reader, System.Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var doc = JsonDocument.ParseValue(ref reader);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("insert", out _))
+        {
+            return new RangeOrEditRangeWithInsertReplace
+            {
+                EditRangeWithInsertReplace = root.Deserialize(LspJsonContext.Default.EditRangeWithInsertReplace),
+            };
+        }
+        return new RangeOrEditRangeWithInsertReplace
+        {
+            Range = root.Deserialize(LspJsonContext.Default.Range),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, RangeOrEditRangeWithInsertReplace value, JsonSerializerOptions options)
+    {
+        if (value.EditRangeWithInsertReplace != null)
+        {
+            JsonSerializer.Serialize(writer, value.EditRangeWithInsertReplace, LspJsonContext.Default.EditRangeWithInsertReplace);
+            return;
+        }
+        JsonSerializer.Serialize(writer, value.Range!, LspJsonContext.Default.Range);
+    }
+}
+
 public sealed class CompletionList
 {
     [JsonPropertyName("isIncomplete")]

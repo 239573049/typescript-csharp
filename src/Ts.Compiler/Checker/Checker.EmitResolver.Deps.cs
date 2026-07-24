@@ -136,7 +136,7 @@ public partial class Checker
     }
 
     // services.go:859 — GetConstantValue (const-enum inlining source of truth).
-    internal object? GetConstantValue(Node node)
+    public object? GetConstantValue(Node node)
     {
         if (node.Kind == SyntaxKind.EnumMember)
         {

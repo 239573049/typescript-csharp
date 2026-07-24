@@ -86,6 +86,33 @@ public sealed class CompletionDataTests
     }
 
     [Fact]
+    public void CompletionInfoFromDataProducesList()
+    {
+        var source = "interface Shape { area: number; }\ndeclare const s: Shape;\ns.;\n";
+        var program = BuildProgram(new Dictionary<string, string> { [FileName] = source });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var file = program.GetSourceFile(FileName)!;
+        var position = source.IndexOf("s.;", StringComparison.Ordinal) + 2;
+        var (checker, done) = program.GetTypeCheckerForFile(TestContext.Current.CancellationToken, file);
+        try
+        {
+            var data = (global::Ts.Ls.CompletionDataData)service.GetCompletionData(
+                checker, file, position,
+                global::Ts.Ls.UserPreferences.NewDefaultUserPreferences(), false)!;
+            var list = service.CompletionInfoFromData(
+                checker, file, program.Options(), data, position,
+                null /*optionalReplacementSpan*/, false /*includeSymbols*/);
+            Assert.NotNull(list);
+            Assert.False(list!.IsIncomplete);
+            Assert.Contains(list.Items!, e => e.Item!.Label == "area");
+        }
+        finally
+        {
+            done();
+        }
+    }
+
+    [Fact]
     public void PlainCommentReturnsNull()
     {
         var source = "// hello world\nconst x = 1;\n";

@@ -21,8 +21,8 @@ public sealed class CompletionItem
 public sealed class CompletionList
 {
     public bool IsIncomplete;
-    public object? ItemDefaults; // lsproto.CompletionItemDefaults — typed when Protocol.g.cs lands it
-    public object? ApplyKind;    // lsproto.CompletionItemApplyKinds
+    public global::Ts.LsProto.CompletionItemDefaults? ItemDefaults;
+    public object? ApplyKind; // lsproto.CompletionItemApplyKinds — typed when the applyKind capability wave lands
     public CompletionItem[]? Items;
 }
 
