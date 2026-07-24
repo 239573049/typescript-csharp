@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Ts.Ast;
+using Ts.Diagnostics;
 using Ts.Core;
 using TsChecker = Ts.Checker.Checker;
 
@@ -182,10 +183,7 @@ public sealed partial class LanguageService
     }
 
     // jsdoc_snippet.go:29-72 — getJSDocSnippetCompletion.
-    // PORT-NOTE: the doc-comment template generator (getDocCommentTemplateAtPosition and the rest
-    // of jsdoc_snippet.go, ~500L) is its own unit and needs FormatOptions; until it lands, the
-    // (already ported) position probe has no template to emit and this arm produces no item
-    // (Go's nil-template path).
+    // jsdoc_snippet.go:29-72 — getJSDocSnippetCompletion.
     internal CompletionList? GetJSDocSnippetCompletion(SourceFile file, int position)
     {
         if (UserPreferences().EnableJSDocCompletions.IsFalse())
@@ -196,7 +194,94 @@ public sealed partial class LanguageService
         {
             return null;
         }
-        return null;
+        var newLine = FormatOptions().NewLineCharacter;
+        if (newLine.Length == 0)
+        {
+            newLine = "\n";
+        }
+        var template = JsDocSnippet.GetDocCommentTemplateAtPosition(file, position, UserPreferences().GenerateReturnInDocTemplate.IsTrue(), newLine);
+        if (template == null)
+        {
+            return null;
+        }
+
+        var insertText = template.newText;
+        global::Ts.LsProto.InsertTextFormat? insertTextFormat = null;
+        if (ClientSupportsItemSnippet())
+        {
+            insertText = JsDocSnippet.TemplateToSnippet(insertText, newLine);
+            insertTextFormat = global::Ts.LsProto.InsertTextFormat.Snippet;
+        }
+
+        var editRange = GetJSDocSnippetCompletionRange(file, position, insertText);
+        string[]? commitCharacters = null;
+        if (ClientSupportsItemCommitCharacters())
+        {
+            commitCharacters = [];
+        }
+        var item = new CompletionItem
+        {
+            Item = new global::Ts.LsProto.CompletionItem
+            {
+                Label = "/** */",
+                Kind = global::Ts.LsProto.CompletionItemKind.Text,
+                Detail = global::Ts.Diagnostics.Diagnostics.JSDoc_comment.Localize(global::Ts.Locale.Locale.Default),
+                SortText = "\x00",
+                InsertTextFormat = insertTextFormat,
+                TextEdit = editRange,
+                CommitCharacters = commitCharacters,
+            },
+        };
+        return new CompletionList
+        {
+            IsIncomplete = false,
+            Items = [item],
+        };
+    }
+
+    // jsdoc_snippet.go:87-119 — getJSDocSnippetCompletionRange.
+    internal global::Ts.LsProto.TextEditOrInsertReplaceEdit GetJSDocSnippetCompletionRange(SourceFile file, int position, string newText)
+    {
+        var text = file.Text();
+        var lineStart = global::Ts.Format.Util.GetLineStartPositionForPosition(position, file);
+        var prefix = text[lineStart..position];
+        var start = position;
+        var (prefixStart, okPrefix) = JsDocSnippet.GetJSDocSnippetPrefixStart(prefix);
+        if (okPrefix)
+        {
+            start = lineStart + prefixStart;
+        }
+
+        var lineEnd = LsDeps.GetLineEndOfPosition(file, position);
+        var suffix = text[position..lineEnd];
+        var end = position;
+        var (suffixEnd, okSuffix) = JsDocSnippet.GetJSDocSnippetSuffixEnd(suffix);
+        if (okSuffix)
+        {
+            end += suffixEnd;
+        }
+
+        var replacementRange = CreateLspRangeFromBounds(start, end, file);
+        if (ClientSupportsItemInsertReplace())
+        {
+            return new global::Ts.LsProto.TextEditOrInsertReplaceEdit
+            {
+                InsertReplaceEdit = new global::Ts.LsProto.InsertReplaceEdit
+                {
+                    NewText = newText,
+                    Insert = replacementRange,
+                    Replace = replacementRange,
+                },
+            };
+        }
+        return new global::Ts.LsProto.TextEditOrInsertReplaceEdit
+        {
+            TextEdit = new global::Ts.LsProto.TextEdit
+            {
+                NewText = newText,
+                Range = replacementRange,
+            },
+        };
     }
 
     // string_completions.go:53-89 — getStringLiteralCompletions (type-side half live in
