@@ -149,6 +149,31 @@ internal static class LsDeps
         return "";
     }
 
+    // ls/utilities.go:27-46 — IsInString.
+    internal static bool IsInString(global::Ts.Ast.SourceFile sourceFile, int position, global::Ts.Ast.Node? previousToken)
+    {
+        if (previousToken != null && global::Ts.Ast.AstUtilities.IsStringTextContainingNode(previousToken))
+        {
+            var start = global::Ts.AstNav.Tokens.GetStartOfNode(previousToken, sourceFile, false /*includeJSDoc*/);
+            var end = previousToken.End;
+
+            // To be "in" one of these literals, the position has to be:
+            //   1. entirely within the token text.
+            //   2. at the end position of an unterminated token.
+            //   3. at the end of a regular expression (due to trailing flags like '/foo/g').
+            if (start < position && position < end)
+            {
+                return true;
+            }
+
+            if (position == end)
+            {
+                return global::Ts.Ast.AstUtilities.IsUnterminatedLiteral(previousToken);
+            }
+        }
+        return false;
+    }
+
     // ls/utilities.go:94 — isInComment.
     internal static global::Ts.Ast.CommentRange? IsInComment(global::Ts.Ast.SourceFile file, int position, global::Ts.Ast.Node tokenAtPosition)
     {

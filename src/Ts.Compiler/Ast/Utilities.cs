@@ -2311,6 +2311,56 @@ public static partial class AstUtilities
         return node.Parent != null && IsJSDocTag(node.Parent) && node.Parent.TagName() == node;
     }
 
+    // utilities.go:3214-3216
+    public static bool IsStringTextContainingNode(Node node)
+    {
+        return node.Kind == SyntaxKind.StringLiteral || IsTemplateLiteralKind(node.Kind);
+    }
+
+    // utilities.go:3218-3220
+    public static bool IsTemplateLiteralKind(SyntaxKind kind)
+    {
+        return SyntaxKind.FirstTemplateToken <= kind && kind <= SyntaxKind.LastTemplateToken;
+    }
+
+    // utilities.go:3734-3737
+    public static bool IsUnterminatedLiteral(Node node)
+    {
+        return (NodeTests.IsLiteralKind(node.Kind) && (node.LiteralLikeData()!.TokenFlags & TokenFlags.Unterminated) != 0) ||
+            (IsTemplateLiteralKind(node.Kind) && (node.TemplateLiteralLikeData()!.TemplateFlags & TokenFlags.Unterminated) != 0);
+    }
+
+    // utilities.go:4142-4162
+    public static Node? TryGetImportFromModuleSpecifier(Node node)
+    {
+        switch (node.Parent!.Kind)
+        {
+            case SyntaxKind.ImportDeclaration:
+            case SyntaxKind.JSImportDeclaration:
+            case SyntaxKind.ExportDeclaration:
+                return node.Parent;
+            case SyntaxKind.ExternalModuleReference:
+                return node.Parent.Parent;
+            case SyntaxKind.CallExpression:
+                if (IsImportCall(node.Parent) || IsRequireCall(node.Parent, false /*requireStringLiteralLikeArgument*/))
+                {
+                    return node.Parent;
+                }
+                return null;
+            case SyntaxKind.LiteralType:
+                if (!NodeTests.IsStringLiteral(node))
+                {
+                    return null;
+                }
+                if (NodeTests.IsImportTypeNode(node.Parent.Parent!))
+                {
+                    return node.Parent.Parent;
+                }
+                return null;
+        }
+        return null;
+    }
+
     // utilities.go:1271-1273
     public static bool IsSourceFileJS(SourceFile file)
     {

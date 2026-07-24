@@ -221,4 +221,47 @@ public sealed partial class LanguageService
     // completions.go:2756-2758 — isCheckedFile.
     internal static bool IsCheckedFile(SourceFile file, global::Ts.Core.CompilerOptions compilerOptions) =>
         !AstUtilities.IsSourceFileJS(file) || AstUtilities.IsCheckJSEnabledForFile(file, compilerOptions);
+
+    // completions.go:2707-2741 — isValidTrigger.
+    internal static bool IsValidTrigger(SourceFile file, string triggerCharacter, Node? contextToken, int position)
+    {
+        switch (triggerCharacter)
+        {
+            case ".":
+            case "@":
+                return true;
+            case "\"":
+            case "'":
+            case "`":
+                // Only automatically bring up completions if this is an opening quote.
+                return contextToken != null &&
+                    IsStringLiteralOrTemplate(contextToken) &&
+                    position == global::Ts.AstNav.Tokens.GetStartOfNode(contextToken, file, false /*includeJSDoc*/) + 1;
+            case "#":
+                return contextToken != null &&
+                    NodeTests.IsPrivateIdentifier(contextToken) &&
+                    AstUtilities.GetContainingClass(contextToken) != null;
+            case "<":
+                // Opening JSX tag
+                return contextToken != null &&
+                    contextToken.Kind == SyntaxKind.LessThanToken &&
+                    (!NodeTests.IsBinaryExpression(contextToken.Parent!) || BinaryExpressionMayBeOpenTag(contextToken.Parent!.AsBinaryExpression()));
+            case "/":
+                if (contextToken == null)
+                {
+                    return false;
+                }
+                if (AstUtilities.IsStringLiteralLike(contextToken))
+                {
+                    return AstUtilities.TryGetImportFromModuleSpecifier(contextToken) != null;
+                }
+                return contextToken.Kind == SyntaxKind.LessThanSlashToken && NodeTests.IsJsxClosingElement(contextToken.Parent!);
+            case " ":
+                return contextToken != null && contextToken.Kind == SyntaxKind.ImportKeyword && contextToken.Parent!.Kind == SyntaxKind.SourceFile;
+            case "*":
+                return JsDocSnippet.IsPotentiallyValidJSDocSnippetCompletionPosition(file, position);
+            default:
+                throw new System.InvalidOperationException("Unknown trigger character: " + triggerCharacter);
+        }
+    }
 }
