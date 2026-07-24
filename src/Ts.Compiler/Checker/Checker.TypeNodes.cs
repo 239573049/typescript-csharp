@@ -934,7 +934,7 @@ public partial class Checker
     }
 
     // checker.go:23578-23584
-    internal Type GetDeclaredTypeOfSymbol(Symbol symbol) => TryGetDeclaredTypeOfSymbol(symbol) ?? errorType!;
+    public Type GetDeclaredTypeOfSymbol(Symbol symbol) => TryGetDeclaredTypeOfSymbol(symbol) ?? errorType!;
 
     // checker.go:23586-23602
     internal Type? TryGetDeclaredTypeOfSymbol(Symbol symbol)

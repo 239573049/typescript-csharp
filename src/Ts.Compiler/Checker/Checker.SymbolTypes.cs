@@ -90,7 +90,7 @@ public partial class Checker
     }
 
     // checker.go:16406
-    internal Type GetTypeOfSymbol(Symbol symbol)
+    public Type GetTypeOfSymbol(Symbol symbol)
     {
         if ((symbol.CheckFlags & CheckFlags.DeferredType) != 0)
         {
@@ -353,7 +353,7 @@ public partial class Checker
     }
 
     // checker.go:16870 — base constructor of a class.
-    internal Type GetBaseConstructorTypeOfClass(Type t)
+    public Type GetBaseConstructorTypeOfClass(Type t)
     {
         var data = t.AsInterfaceType()!;
         if (data.resolvedBaseConstructorType != null)
@@ -478,7 +478,7 @@ public partial class Checker
     }
 
     // checker.go:16972
-    internal Type? GetConstraintOfTypeParameter(Type typeParameter)
+    public Type? GetConstraintOfTypeParameter(Type typeParameter)
     {
         if (HasNonCircularBaseConstraint(typeParameter))
         {
@@ -1365,7 +1365,7 @@ public partial class Checker
 
     // getTypeOfSymbolAtLocation (checker.go:16367) — leaf public-ish query, large surface — remaining.
     // checker.go:16367 — GetTypeOfSymbolAtLocation.
-    internal Type GetTypeOfSymbolAtLocation(Symbol symbol, Node? location)
+    public Type GetTypeOfSymbolAtLocation(Symbol symbol, Node? location)
     {
         symbol = GetExportSymbolOfValueSymbolIfExported(symbol)!;
         if (location != null)

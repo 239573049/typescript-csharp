@@ -25,7 +25,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:29100
-    internal Type? GetContextualType(Node node, ContextFlags contextFlags)
+    public Type? GetContextualType(Node node, ContextFlags contextFlags)
     {
         if ((node.Flags & NodeFlags.InWithStatement) != 0)
         {

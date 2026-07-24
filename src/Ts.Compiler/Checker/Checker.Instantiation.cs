@@ -694,7 +694,7 @@ public partial class Checker
 
     // checker.go:21634-21667 — For a type parameter, return the base constraint; for the string,
     // number, boolean, and symbol primitive types, return the corresponding object types.
-    internal Type GetApparentType(Type t)
+    public Type GetApparentType(Type t)
     {
         var originalType = t;
         if ((t.flags & TypeFlags.Instantiable) != 0)
@@ -1035,7 +1035,7 @@ public partial class Checker
     internal Type GetDefaultTypeArgumentType(bool isInJavaScriptFile) => isInJavaScriptFile ? anyType! : unknownType!;
 
     // checker.go:21901-21910 — default type for a type parameter (instantiated target's default).
-    internal Type? GetDefaultFromTypeParameter(Type t)
+    public Type? GetDefaultFromTypeParameter(Type t)
     {
         if ((t.flags & TypeFlags.TypeParameter) == 0)
         {

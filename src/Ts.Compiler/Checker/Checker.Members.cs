@@ -1539,7 +1539,7 @@ public partial class Checker
     }
 
     // checker.go:18792-18794
-    internal Symbol? GetPropertyOfType(Type t, string name) =>
+    public Symbol? GetPropertyOfType(Type t, string name) =>
         GetPropertyOfTypeEx(t, name, false /*skipObjectFunctionPropertyAugment*/, false /*includeTypeOnlyMembers*/);
 
     // Return the symbol for the property with the given name in the given type.
@@ -1624,7 +1624,7 @@ public partial class Checker
     }
 
     // checker.go:18864-18866
-    internal Signature[] GetSignaturesOfType(Type t, SignatureKind kind) =>
+    public Signature[] GetSignaturesOfType(Type t, SignatureKind kind) =>
         GetSignaturesOfStructuredType(GetReducedApparentType(t), kind);
 
     // checker.go:18868-18877
@@ -1892,7 +1892,7 @@ public partial class Checker
     }
 
     // checker.go:19072-19109
-    internal Type[] GetBaseTypes(Type t)
+    public Type[] GetBaseTypes(Type t)
     {
         if ((t.objectFlags & (ObjectFlags.ClassOrInterface | ObjectFlags.Tuple)) == 0)
         {

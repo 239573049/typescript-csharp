@@ -80,7 +80,7 @@ public partial class Checker
     }
 
     // checker.go:28856-28861
-    internal Type RemoveMissingOrUndefinedType(Type t)
+    public Type RemoveMissingOrUndefinedType(Type t)
     {
         if (exactOptionalPropertyTypes)
         {

@@ -19,7 +19,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:19741-19815
-    internal Signature GetSignatureFromDeclaration(Node declaration)
+    public Signature GetSignatureFromDeclaration(Node declaration)
     {
         var links = signatureLinks.Get(declaration);
         if (links.resolvedSignature is not null)

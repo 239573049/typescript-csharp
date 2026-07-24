@@ -20,7 +20,7 @@ public partial class Checker
     // signatureToString / signatureToStringEx: real bodies in Checker.SymbolToString.cs (printer.go:309).
     // typePredicateToString / typePredicateToStringEx: real bodies in Checker.SymbolToString.cs.
     // printer.go — valueToString / utilities.go:1672 ValueToString.
-    internal string ValueToString(object? value)
+    public string ValueToString(object? value)
     {
         switch (value)
         {

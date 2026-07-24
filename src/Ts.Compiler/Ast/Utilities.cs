@@ -2274,6 +2274,43 @@ public static partial class AstUtilities
         return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing;
     }
 
+    // utilities.go:1195-1197 — gets whether a bound `VariableDeclaration` or `VariableDeclarationList`
+    // is part of a `using` declaration.
+    public static bool IsVarUsing(Node node)
+    {
+        return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Using;
+    }
+
+    // utilities.go:1238-1240 — gets whether a bound `VariableDeclaration` or `VariableDeclarationList`
+    // is part of a `const` declaration.
+    public static bool IsVarConst(Node node)
+    {
+        return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Const;
+    }
+
+    // utilities.go:1252-1254 — gets whether a bound `VariableDeclaration` or `VariableDeclarationList`
+    // is part of a `let` declaration.
+    public static bool IsVarLet(Node node)
+    {
+        return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Let;
+    }
+
+    // utilities.go:1257-1262
+    public static bool IsImportMeta(Node node)
+    {
+        if (node.Kind == SyntaxKind.MetaProperty)
+        {
+            return node.AsMetaProperty().KeywordToken == SyntaxKind.ImportKeyword && node.AsMetaProperty().Name()!.Text() == "meta";
+        }
+        return false;
+    }
+
+    // utilities.go:4464-4466
+    public static bool IsTagName(Node node)
+    {
+        return node.Parent != null && IsJSDocTag(node.Parent) && node.Parent.TagName() == node;
+    }
+
     // utilities.go:1271-1273
     public static bool IsSourceFileJS(SourceFile file)
     {
