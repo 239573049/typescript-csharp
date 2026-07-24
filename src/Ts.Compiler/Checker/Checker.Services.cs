@@ -423,4 +423,235 @@ public partial class Checker
         }
         return null;
     }
+
+    // services.go:17-19 — GetSymbolsInScope.
+    public Symbol[] GetSymbolsInScope(Node location, SymbolFlags meaning) => GetSymbolsInScopeWorker(location, meaning);
+
+    // services.go:21-119 — getSymbolsInScope.
+    private Symbol[] GetSymbolsInScopeWorker(Node locationIn, SymbolFlags meaning)
+    {
+        var location = (Node?)locationIn;
+        if ((location!.Flags & NodeFlags.InWithStatement) != 0)
+        {
+            // We cannot answer semantic questions within a with block, do not proceed any further
+            return [];
+        }
+
+        var symbols = new SymbolTable();
+        var isStaticSymbol = false;
+
+        // Copy the given symbol into symbol tables if the symbol has the given meaning
+        // and it doesn't already exists in the symbol table.
+        void CopySymbol(Symbol symbol, SymbolFlags meaning)
+        {
+            if ((symbol.CombinedLocalAndExportSymbolFlags() & meaning) != 0)
+            {
+                var id = symbol.Name;
+                // We will copy all symbol regardless of its reserved name because
+                // symbolsToArray will check whether the key is a reserved name and
+                // it will not copy symbol with reserved name to the array
+                if (!symbols.ContainsKey(id))
+                {
+                    symbols[id] = symbol;
+                }
+            }
+        }
+
+        void CopySymbols(SymbolTable? source, SymbolFlags meaning)
+        {
+            if (meaning != 0 && source != null)
+            {
+                foreach (var symbol in source.Values) // map-iter: 序无关 (unique keys per table; result is a name-keyed set and LS consumers sort)
+                {
+                    CopySymbol(symbol, meaning);
+                }
+            }
+        }
+
+        void CopyLocallyVisibleExportSymbols(SymbolTable? source, SymbolFlags meaning)
+        {
+            if (meaning != 0 && source != null)
+            {
+                foreach (var symbol in source.Values) // map-iter: 序无关 (same reasoning as CopySymbols)
+                {
+                    // Similar condition as in `resolveNameHelper`
+                    if (AstUtilities.GetDeclarationOfKind(symbol, SyntaxKind.ExportSpecifier) == null &&
+                        AstUtilities.GetDeclarationOfKind(symbol, SyntaxKind.NamespaceExport) == null &&
+                        symbol.Name != InternalSymbolName.Default)
+                    {
+                        CopySymbol(symbol, meaning);
+                    }
+                }
+            }
+        }
+
+        void PopulateSymbols()
+        {
+            while (location != null)
+            {
+                if (CanHaveLocals(location) && location.Locals() != null && !AstUtilities.IsGlobalSourceFile(location))
+                {
+                    CopySymbols(location.Locals(), meaning);
+                }
+
+                switch (location.Kind)
+                {
+                    case SyntaxKind.SourceFile:
+                        if (!AstUtilities.IsExternalModule(location.AsSourceFile()))
+                        {
+                            break;
+                        }
+                        goto case SyntaxKind.ModuleDeclaration;
+                    case SyntaxKind.ModuleDeclaration:
+                        CopyLocallyVisibleExportSymbols(GetSymbolOfDeclaration(location)!.Exports, meaning & SymbolFlags.ModuleMember);
+                        break;
+                    case SyntaxKind.EnumDeclaration:
+                        CopySymbols(GetSymbolOfDeclaration(location)!.Exports, meaning & SymbolFlags.EnumMember);
+                        break;
+                    case SyntaxKind.ClassExpression:
+                        var className = location.AsClassExpression().Name();
+                        if (className != null)
+                        {
+                            CopySymbol(location.Symbol()!, meaning);
+                        }
+                        // this fall-through is necessary because we would like to handle
+                        // type parameter inside class expression similar to how we handle it in classDeclaration and interface Declaration.
+                        goto case SyntaxKind.ClassDeclaration;
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.InterfaceDeclaration:
+                        // If we didn't come from static member of class or interface,
+                        // add the type parameters into the symbol table
+                        // (type parameters of classDeclaration/classExpression and interface are in member property of the symbol.
+                        // Note: that the memberFlags come from previous iteration.
+                        if (!isStaticSymbol)
+                        {
+                            CopySymbols(GetMembersOfSymbol(GetSymbolOfDeclaration(location)!), meaning & SymbolFlags.Type);
+                        }
+                        break;
+                    case SyntaxKind.FunctionExpression:
+                        var funcName = location.Name();
+                        if (funcName != null)
+                        {
+                            CopySymbol(location.Symbol()!, meaning);
+                        }
+                        break;
+                }
+
+                if (IntroducesArgumentsExoticObject(location))
+                {
+                    CopySymbol(argumentsSymbol, meaning);
+                }
+
+                isStaticSymbol = AstUtilities.IsStatic(location);
+                location = location.Parent;
+            }
+
+            CopySymbols(globals, meaning);
+        }
+
+        PopulateSymbols();
+
+        symbols.Remove(InternalSymbolName.This); // Not a symbol, a keyword
+        return SymbolsToArray(symbols);
+    }
+
+    // checker/utilities.go:1603-1610 — introducesArgumentsExoticObject.
+    private static bool IntroducesArgumentsExoticObject(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.MethodSignature:
+            case SyntaxKind.Constructor:
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+                return true;
+        }
+        return false;
+    }
+
+    // checker/utilities.go:1612-1620 — symbolsToArray.
+    internal static Symbol[] SymbolsToArray(SymbolTable symbols)
+    {
+        var result = new List<Symbol>();
+        foreach (var (id, symbol) in symbols) // map-iter: 序无关 (result is treated as a set; LS consumers sort by display name)
+        {
+            if (!IsReservedMemberName(id))
+            {
+                result.Add(symbol);
+            }
+        }
+        return result.ToArray();
+    }
+
+    // services.go:830-841 — GetExportsAndPropertiesOfModule.
+    public Symbol[] GetExportsAndPropertiesOfModule(Symbol moduleSymbol)
+    {
+        var exports = GetExportsOfModuleAsArray(moduleSymbol);
+        var exportEquals = ResolveExternalModuleSymbol(moduleSymbol, false /*dontResolveAlias*/);
+        if (exportEquals != moduleSymbol)
+        {
+            var t = GetTypeOfSymbol(exportEquals!);
+            if (ShouldTreatPropertiesOfExternalModuleAsExports(t))
+            {
+                exports = [.. exports, .. GetPropertiesOfType(t)];
+            }
+        }
+        return exports;
+    }
+
+    // services.go:843-845 — getExportsOfModuleAsArray.
+    private Symbol[] GetExportsOfModuleAsArray(Symbol moduleSymbol) => SymbolsToArray(GetExportsOfModule(moduleSymbol));
+
+    // services.go:846-854 — GetJsxIntrinsicTagNamesAt: returns all the properties of the Jsx.IntrinsicElements interface.
+    public Symbol[] GetJsxIntrinsicTagNamesAt(Node location)
+    {
+        var intrinsics = GetJsxType(JsxNames.IntrinsicElements, location);
+        if (intrinsics == null)
+        {
+            return [];
+        }
+        return GetPropertiesOfType(intrinsics);
+    }
+
+    // services.go:856-858 — GetContextualTypeForJsxAttribute.
+    public Type? GetContextualTypeForJsxAttribute(Node attribute) => GetContextualTypeForJsxAttribute(attribute, ContextFlags.None);
+
+    // services.go:936-968 — GetContextualTypeForArrayLiteralAtPosition: returns the contextual type for an
+    // element at the given position in an array with the given contextual type.
+    public Type? GetContextualTypeForArrayLiteralAtPosition(Type? contextualArrayType, Node arrayLiteral, int position)
+    {
+        if (contextualArrayType == null)
+        {
+            return null;
+        }
+        int firstSpreadIndex = -1, lastSpreadIndex = -1;
+        var elementIndex = 0;
+        var elements = arrayLiteral.Elements() ?? [];
+        for (var i = 0; i < elements.Length; i++)
+        {
+            var elem = elements[i];
+            if (elem.Pos < position)
+            {
+                elementIndex++;
+            }
+            if (NodeTests.IsSpreadElement(elem))
+            {
+                if (firstSpreadIndex == -1)
+                {
+                    firstSpreadIndex = i;
+                }
+                lastSpreadIndex = i;
+            }
+        }
+        // The array may be incomplete, so we don't know its final length.
+        return GetContextualTypeForElementExpression(
+            contextualArrayType,
+            elementIndex,
+            -1, /*length*/
+            firstSpreadIndex,
+            lastSpreadIndex);
+    }
 }

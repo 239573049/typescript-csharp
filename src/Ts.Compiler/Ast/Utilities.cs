@@ -2500,6 +2500,18 @@ public static partial class AstUtilities
         return GetHeritageElements(node, SyntaxKind.ImplementsKeyword);
     }
 
+    // utilities.go:3071-3073
+    public static Node[] GetImplementsTypeNodes(Node node)
+    {
+        return GetHeritageElements(node, SyntaxKind.ImplementsKeyword);
+    }
+
+    // utilities.go:3222-3224
+    public static bool IsTemplateLiteralToken(Node node)
+    {
+        return IsTemplateLiteralKind(node.Kind);
+    }
+
     // utilities.go:1709-1715
     public static Node[] GetHeritageElements(Node node, SyntaxKind kind)
     {

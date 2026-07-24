@@ -1774,7 +1774,7 @@ public partial class Checker
     // tryGetThisTypeAtEx below. The LS wave ports it (with GetReparsedNodeForNode) under its own name.
 
     // checker.go:12115
-    internal Type? TryGetThisTypeAtEx(Node node, bool includeGlobalThis, Node? container)
+    public Type? TryGetThisTypeAtEx(Node node, bool includeGlobalThis, Node? container)
     {
         if (container == null)
         {

@@ -369,7 +369,7 @@ public partial class Checker
     }
 
     // checker.go:29529
-    internal Type? GetContextualTypeForArgumentAtIndex(Node callTarget, int argIndex)
+    public Type? GetContextualTypeForArgumentAtIndex(Node callTarget, int argIndex)
     {
         if (IsImportCall(callTarget))
         {

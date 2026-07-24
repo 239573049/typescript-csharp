@@ -1289,7 +1289,7 @@ public partial class Checker
     }
 
     // checker.go:18583-18585
-    internal bool IsNullableType(Type t) => HasTypeFacts(t, TypeFacts.IsUndefinedOrNull);
+    public bool IsNullableType(Type t) => HasTypeFacts(t, TypeFacts.IsUndefinedOrNull);
 
     // checker.go:18587-18592
     internal Type GetNonNullableTypeIfNeeded(Type t)

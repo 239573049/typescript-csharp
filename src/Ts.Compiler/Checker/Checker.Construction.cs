@@ -312,7 +312,7 @@ public partial class Checker
         CoreUtil.Memoize(() => CoreUtil.Map(names, name => GetGlobalType(name, arity, reportErrors))!);
 
     // checker.go:1241-1244
-    internal Symbol? GetGlobalSymbol(string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? diagnostic) =>
+    public Symbol? GetGlobalSymbol(string name, SymbolFlags meaning, global::Ts.Diagnostics.Message? diagnostic) =>
         // Don't track references for global symbols; the isUse value is arbitrary.
         resolveName(null, name, meaning, diagnostic, false, false);
 

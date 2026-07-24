@@ -1782,4 +1782,12 @@ internal static class LsDeps
         // [x, [a, b, c] ] = someExpression
         return IsArrayLiteralOrObjectLiteralDestructuringPattern(parent);
     }
+
+    // utilities.go:1139-1141 — isInsideTemplateLiteral.
+    internal static bool IsInsideTemplateLiteral(global::Ts.Ast.Node node, int position, global::Ts.Ast.SourceFile sourceFile)
+    {
+        return global::Ts.Ast.AstUtilities.IsTemplateLiteralKind(node.Kind) &&
+            (global::Ts.Scanner.Scanner.GetTokenPosOfNode(node, sourceFile, false) < position && position < node.End ||
+                (global::Ts.Ast.AstUtilities.IsUnterminatedLiteral(node) && position == node.End));
+    }
 }

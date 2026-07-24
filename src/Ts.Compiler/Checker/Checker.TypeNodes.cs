@@ -20,7 +20,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:22713-22715
-    internal Type GetTypeFromTypeNode(Node node) => GetConditionalFlowTypeOfType(GetTypeFromTypeNodeWorker(node), node);
+    public Type GetTypeFromTypeNode(Node node) => GetConditionalFlowTypeOfType(GetTypeFromTypeNodeWorker(node), node);
 
     // checker.go:22717-22804
     internal Type GetTypeFromTypeNodeWorker(Node node)

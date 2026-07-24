@@ -26,7 +26,7 @@ public sealed partial class Checker
 {
     // printer.go:254 — symbolToString. (The exported printer.go:250 SymbolToString is the same one-arg
     // entry; C# needs no separate public wrapper — callers use SymbolToString directly.)
-    internal string SymbolToString(Symbol? symbol) =>
+    public string SymbolToString(Symbol? symbol) =>
         SymbolToStringEx(symbol!, null, SymbolFlags.All, SymbolFormatFlags.AllowAnyNodeKind);
 
     // printer.go:262 — symbolToStringEx.

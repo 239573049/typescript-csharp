@@ -2297,7 +2297,7 @@ public partial class Checker
 
     // internal so the EmitResolver class (separate type) can reach it; body still deferred to the ast wave.
     // ast/utilities.go:2881
-    internal static bool IsTypeOnlyImportDeclaration(Node node)
+    public static bool IsTypeOnlyImportDeclaration(Node node)
     {
         switch (node.Kind)
         {

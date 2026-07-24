@@ -97,11 +97,23 @@ public sealed partial class LanguageService
 
     // ── invocation / argument-list model ─────────────────────────────────────────────
 
-    // signaturehelp.go: invocation is a 3-arm union (callInvocation | typeArgsInvocation |
-    // contextualInvocation). Only the callInvocation arm is constructible in this
-    // foundation subset; the other arms belong to the deferred type-argument and
-    // contextual paths.
-    private sealed record Invocation(global::Ts.Ast.Node CallInvocationNode);
+    // signaturehelp.go:20-22 — callInvocation.
+    private sealed record CallInvocation(global::Ts.Ast.Node Node);
+
+    // signaturehelp.go:24-26 — typeArgsInvocation.
+    private sealed record TypeArgsInvocation(global::Ts.Ast.Node Called);
+
+    // signaturehelp.go:28-32 — contextualInvocation.
+    private sealed record ContextualInvocation(
+        global::Ts.Checker.Signature Signature,
+        global::Ts.Ast.Node Node, // Just for enclosingDeclaration for printing types
+        global::Ts.Ast.Symbol Symbol);
+
+    // signaturehelp.go:34-38 — invocation (3-arm union).
+    private sealed record Invocation(
+        CallInvocation? CallInvocation = null,
+        TypeArgsInvocation? TypeArgsInvocation = null,
+        ContextualInvocation? ContextualInvocation = null);
 
     // signaturehelp.go:895 argumentListInfo
     // ArgumentCount is the *apparent* number of arguments.
@@ -250,7 +262,7 @@ public sealed partial class LanguageService
             }
             return new ArgumentListInfo(
                 isTypeParameterList,
-                new Invocation(parent),
+                new Invocation(CallInvocation: new CallInvocation(parent)),
                 info.ArgumentsSpan,
                 info.ArgumentIndex,
                 info.ArgumentCount);
@@ -258,32 +270,164 @@ public sealed partial class LanguageService
         if (node.Kind == global::Ts.Ast.SyntaxKind.NoSubstitutionTemplateLiteral &&
             parent.Kind == global::Ts.Ast.SyntaxKind.TaggedTemplateExpression)
         {
-            // Go: getArgumentListInfoForTemplate when inside the template. Tagged-template
-            // signature help is deferred with the template-literal argument work.
+            // Check if we're actually inside the template;
+            // otherwise we'll fall out and return undefined.
+            if (LsDeps.IsInsideTemplateLiteral(node, position, sourceFile))
+            {
+                return GetArgumentListInfoForTemplate(parent, 0, sourceFile);
+            }
             return null;
         }
         if (node.Kind == global::Ts.Ast.SyntaxKind.TemplateHead &&
             parent.Parent?.Kind == global::Ts.Ast.SyntaxKind.TaggedTemplateExpression)
         {
-            // Deferred (tagged templates), as above.
-            return null;
+            var templateExpression = parent;
+            var tagExpression = templateExpression.Parent!;
+
+            var templateArgumentIndex = 1;
+            if (LsDeps.IsInsideTemplateLiteral(node, position, sourceFile))
+            {
+                templateArgumentIndex = 0;
+            }
+            return GetArgumentListInfoForTemplate(tagExpression, templateArgumentIndex, sourceFile);
         }
         if (parent.Kind == global::Ts.Ast.SyntaxKind.TemplateSpan &&
             parent.Parent?.Parent?.Kind == global::Ts.Ast.SyntaxKind.TaggedTemplateExpression)
         {
-            // Deferred (tagged templates), as above.
-            return null;
+            var templateSpan = parent;
+            var tagExpression = parent.Parent.Parent;
+
+            // If we're just after a template tail, don't show signature help.
+            if (node.Kind == global::Ts.Ast.SyntaxKind.TemplateTail &&
+                !LsDeps.IsInsideTemplateLiteral(node, position, sourceFile))
+            {
+                return null;
+            }
+
+            var spanIndex = System.Array.IndexOf(
+                templateSpan.Parent!.AsTemplateExpression().TemplateSpans!.Nodes, templateSpan);
+            var argumentIndex = GetArgumentIndexForTemplatePiece(spanIndex, node, position, sourceFile);
+
+            return GetArgumentListInfoForTemplate(tagExpression, argumentIndex, sourceFile);
         }
-        if (parent.Kind == global::Ts.Ast.SyntaxKind.JsxOpeningElement ||
-            parent.Kind == global::Ts.Ast.SyntaxKind.JsxSelfClosingElement)
+        if (global::Ts.Ast.AstUtilities.IsJsxOpeningLikeElement(parent))
         {
-            // Go builds an attributes-span argumentListInfo for JSX opening-like elements.
-            // Deferred with the JSX language-service work.
-            return null;
+            // Provide a signature help for JSX opening element or JSX self-closing element.
+            // This is not guarantee that JSX tag-name is resolved into stateless function component. (that is done in "getSignatureHelpItems")
+            // i.e
+            //      export function MainButton(props: ButtonProps, context: any): JSX.Element { ... }
+            //      <MainButton /*signatureHelp*/
+            var attributeSpanStart = parent.Attributes()!.Loc.Pos;
+            var attributeSpanEnd = global::Ts.Scanner.Scanner.SkipTrivia(sourceFile.Text(), parent.Attributes()!.End);
+            return new ArgumentListInfo(
+                false /*isTypeParameterList*/,
+                new Invocation(CallInvocation: new CallInvocation(parent)),
+                new global::Ts.Core.TextRange(attributeSpanStart, attributeSpanEnd - attributeSpanStart),
+                0 /*argumentIndex*/,
+                1 /*argumentCount*/);
         }
-        // Go: getPossibleTypeArgumentsInfo — signature help while typing an unclosed type
-        // argument list (`f<T|`). Deferred with the generic display work.
+        var typeArgInfo = LsTypeArgs.GetPossibleTypeArgumentsInfo(node, sourceFile);
+        if (typeArgInfo != null)
+        {
+            var called = typeArgInfo.called;
+            var nTypeArguments = typeArgInfo.nTypeArguments;
+            var invoc = new TypeArgsInvocation(called);
+            var argumentRange = new global::Ts.Core.TextRange(called.Loc.Pos, node.End);
+            return new ArgumentListInfo(
+                true /*isTypeParameterList*/,
+                new Invocation(TypeArgsInvocation: invoc),
+                argumentRange,
+                nTypeArguments,
+                nTypeArguments + 1);
+        }
         return null;
+    }
+
+    // signaturehelp.go:1009-1031 getArgumentIndexForTemplatePiece.
+    // spanIndex is either the index for a given template span.
+    // This does not give appropriate results for a NoSubstitutionTemplateLiteral
+    private static int GetArgumentIndexForTemplatePiece(
+        int spanIndex,
+        global::Ts.Ast.Node node,
+        int position,
+        global::Ts.Ast.SourceFile sourceFile)
+    {
+        // Because the TemplateStringsArray is the first argument, we have to offset each substitution expression by 1.
+        // There are three cases we can encounter:
+        //      1. We are precisely in the template literal (argIndex = 0).
+        //      2. We are in or to the right of the substitution expression (argIndex = spanIndex + 1).
+        //      3. We are directly to the right of the template literal, but because we look for the token on the left,
+        //          not enough to put us in the substitution expression; we should consider ourselves part of
+        //          the *next* span's expression by offsetting the index (argIndex = (spanIndex + 1) + 1).
+        //
+        // Example: f  `# abcd $#{#  1 + 1#  }# efghi ${ #"#hello"#  }  #  `
+        //              ^       ^ ^       ^   ^          ^ ^      ^     ^
+        // Case:        1       1 3       2   1          3 2      2     1
+        global::Ts.Core.Debug.Assert(position >= node.Loc.Pos, "Assumed 'position' could not occur before node.");
+        if (global::Ts.Ast.AstUtilities.IsTemplateLiteralToken(node))
+        {
+            if (LsDeps.IsInsideTemplateLiteral(node, position, sourceFile))
+            {
+                return 0;
+            }
+            return spanIndex + 2;
+        }
+        return spanIndex + 1;
+    }
+
+    // signaturehelp.go:1381-1398 getArgumentListInfoForTemplate.
+    private static ArgumentListInfo GetArgumentListInfoForTemplate(
+        global::Ts.Ast.Node tagExpression,
+        int argumentIndex,
+        global::Ts.Ast.SourceFile sourceFile)
+    {
+        // argumentCount is either 1 or (numSpans + 1) to account for the template strings array argument.
+        var argumentCount = 1;
+        var template = tagExpression.AsTaggedTemplateExpression().Template!;
+        if (template.Kind != global::Ts.Ast.SyntaxKind.NoSubstitutionTemplateLiteral)
+        {
+            argumentCount = template.AsTemplateExpression().TemplateSpans!.Nodes.Length + 1;
+        }
+        if (argumentIndex != 0)
+        {
+            global::Ts.Core.Debug.Assert(argumentIndex < argumentCount);
+        }
+        return new ArgumentListInfo(
+            false /*isTypeParameterList*/,
+            new Invocation(CallInvocation: new CallInvocation(tagExpression)),
+            GetApplicableRangeForTaggedTemplate(tagExpression, sourceFile),
+            argumentIndex,
+            argumentCount);
+    }
+
+    // signaturehelp.go:1399-1421 getApplicableRangeForTaggedTemplate.
+    private static global::Ts.Core.TextRange GetApplicableRangeForTaggedTemplate(
+        global::Ts.Ast.Node taggedTemplate,
+        global::Ts.Ast.SourceFile sourceFile)
+    {
+        var template = taggedTemplate.AsTaggedTemplateExpression().Template!;
+        var applicableSpanStart = global::Ts.Scanner.Scanner.GetTokenPosOfNode(template, sourceFile, false);
+        var applicableSpanEnd = template.End;
+
+        // We need to adjust the end position for the case where the template does not have a tail.
+        // Otherwise, we will not show signature help past the expression.
+        // For example,
+        //
+        //      ` ${ 1 + 1 foo(10)
+        //       |       |
+        // This is because a Missing node has no width. However, what we actually want is to include trivia
+        // leading up to the next token in case the user is about to type in a TemplateMiddle or TemplateTail.
+        if (template.Kind == global::Ts.Ast.SyntaxKind.TemplateExpression)
+        {
+            var templateSpans = template.AsTemplateExpression().TemplateSpans!;
+            var lastSpan = templateSpans.Nodes[^1];
+            if (lastSpan.AsTemplateSpan().Literal!.End - lastSpan.AsTemplateSpan().Literal!.Pos == 0)
+            {
+                applicableSpanEnd = global::Ts.Scanner.Scanner.SkipTrivia(sourceFile.Text(), applicableSpanEnd);
+            }
+        }
+
+        return new global::Ts.Core.TextRange(applicableSpanStart, applicableSpanEnd - applicableSpanStart);
     }
 
     // signaturehelp.go:1137 getArgumentOrParameterListInfo
@@ -434,14 +578,32 @@ public sealed partial class LanguageService
         return argumentCount;
     }
 
-    // signaturehelp.go:1056 getSpreadElementCount. The faithful body needs
-    // checker.GetTypeAtLocation plus tuple-type introspection (IsTupleType /
-    // ElementFlags / FixedLength) — internal to Ts.Compiler. Go returns 0 for every
-    // non-tuple spread; this stub returns Go's non-tuple result unconditionally.
+    // signaturehelp.go:1056-1078 getSpreadElementCount.
     private static int GetSpreadElementCount(global::Ts.Ast.Node node, global::Ts.Checker.Checker checker)
     {
-        _ = node;
-        _ = checker;
+        var spreadType = checker.GetTypeAtLocation(node.Expression()!);
+        if (spreadType.IsTupleType())
+        {
+            var tupleType = spreadType.Target() as global::Ts.Checker.TupleType;
+            if (tupleType == null)
+            {
+                return 0;
+            }
+            var elementFlags = tupleType.ElementFlags();
+            var fixedLength = tupleType.FixedLength();
+            if (fixedLength == 0)
+            {
+                return 0;
+            }
+
+            var firstOptionalIndex = global::Ts.Core.CoreUtil.FindIndex(elementFlags, f =>
+                (f & global::Ts.Checker.ElementFlags.Required) == 0);
+            if (firstOptionalIndex < 0)
+            {
+                return fixedLength;
+            }
+            return firstOptionalIndex;
+        }
         return 0;
     }
 
@@ -582,7 +744,12 @@ public sealed partial class LanguageService
         }
 
         // signaturehelp.go:732 getExpressionFromInvocation → ast.GetInvokedExpression.
-        var expression = global::Ts.Ast.AstUtilities.GetInvokedExpression(argumentInfo.Invocation.CallInvocationNode);
+        if (argumentInfo.Invocation.CallInvocation is null)
+        {
+            // typeArgs/contextual invocations have no invoked expression on this path.
+            return ("", candidates);
+        }
+        var expression = global::Ts.Ast.AstUtilities.GetInvokedExpression(argumentInfo.Invocation.CallInvocation.Node);
         if (expression is null || expression.Kind != global::Ts.Ast.SyntaxKind.Identifier)
         {
             // Property-access and element-access call targets need the member symbol

@@ -753,7 +753,7 @@ public partial class Checker
     }
 
     // checker.go:13959
-    internal bool IsDeprecatedDeclaration(Node declaration) =>
+    public bool IsDeprecatedDeclaration(Node declaration) =>
         AstUtilities.IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlagsCached(declaration));
     // checker.go:3021 — deprecated suggestion target; deferred. Reached only on the deprecated path above.
     // checker.go:3021

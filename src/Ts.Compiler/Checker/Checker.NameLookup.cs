@@ -747,7 +747,7 @@ public partial class Checker
     }
 
     // utilities.go:146-159
-    internal static bool IsInTypeQuery(Node node)
+    public static bool IsInTypeQuery(Node node)
     {
         // TypeScript 1.0 spec (April 2014): 3.6.3
         // A type query consists of the keyword typeof followed by an expression.
