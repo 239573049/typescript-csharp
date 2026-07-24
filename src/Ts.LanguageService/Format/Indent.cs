@@ -557,4 +557,264 @@ internal static class Indent
         }
         return false;
     }
+    // indent.go:24-108 — GetIndentation.
+    internal static int GetIndentation(int position, SourceFile sourceFile, FormatCodeSettings options, bool assumeNewLineBeforeCloseBrace)
+    {
+        if (position > sourceFile.Text().Length)
+        {
+            return options.BaseIndentSize; // past EOF
+        }
+
+        // no indentation when the indent style is set to none,
+        // so we can return fast
+        if (options.IndentStyle == IndentStyle.None)
+        {
+            return 0;
+        }
+
+        var precedingToken = global::Ts.AstNav.Tokens.FindPrecedingTokenEx(sourceFile, position, null /*startNode*/, true /*excludeJSDoc*/);
+
+        var enclosingCommentRange = global::Ts.Ls.LsDeps.GetRangeOfEnclosingComment(sourceFile, position, precedingToken, global::Ts.AstNav.Tokens.GetTokenAtPosition(sourceFile, position));
+        if (enclosingCommentRange != null && enclosingCommentRange.Value.Kind == SyntaxKind.MultiLineCommentTrivia)
+        {
+            return GetCommentIndent(sourceFile, position, options, enclosingCommentRange.Value);
+        }
+
+        if (precedingToken == null)
+        {
+            return options.BaseIndentSize;
+        }
+
+        // no indentation in string/regex/template literals
+        if (IsStringOrRegularExpressionOrTemplateLiteralKind(precedingToken.Kind))
+        {
+            var tokenStart = global::Ts.Scanner.Scanner.GetTokenPosOfNode(precedingToken, sourceFile, false);
+            if (tokenStart <= position && position < precedingToken.End)
+            {
+                return 0;
+            }
+        }
+
+        var lineAtPosition = global::Ts.Scanner.Scanner.GetECMALineOfPosition(sourceFile, position);
+
+        // indentation is first non-whitespace character in a previous line
+        // for block indentation, we should look for a line which contains something that's not
+        // whitespace.
+        var currentToken = global::Ts.AstNav.Tokens.GetTokenAtPosition(sourceFile, position);
+        // For object literals, we want indentation to work just like with blocks.
+        // If the `{` starts in any position (even in the middle of a line), then
+        // the following indentation should treat `{` as the start of that line (including leading whitespace).
+        // (indent.go:56-79 examples elided — carried in the Go source.)
+        var isObjectLiteral = currentToken.Kind == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.Kind == SyntaxKind.ObjectLiteralExpression;
+        if (options.IndentStyle == IndentStyle.Block || isObjectLiteral)
+        {
+            return GetBlockIndent(sourceFile, position, options);
+        }
+
+        if (precedingToken.Kind == SyntaxKind.CommaToken && precedingToken.Parent != null && precedingToken.Parent.Kind != SyntaxKind.BinaryExpression)
+        {
+            // previous token is comma that separates items in list - find the previous item and try to derive indentation from it
+            var listItemIndentation = GetActualIndentationForListItemBeforeComma(precedingToken, sourceFile, options);
+            if (listItemIndentation != -1)
+            {
+                return listItemIndentation;
+            }
+        }
+
+        var containerList = GetListByPosition(position, precedingToken.Parent, sourceFile);
+        // use list position if the preceding token is before any list items
+        if (containerList != null && !precedingToken.Loc.ContainedBy(containerList.Loc))
+        {
+            var useTheSameBaseIndentation = currentToken.Parent != null && (currentToken.Parent.Kind == SyntaxKind.FunctionExpression || currentToken.Parent.Kind == SyntaxKind.ArrowFunction);
+            var indentSize = 0;
+            if (!useTheSameBaseIndentation)
+            {
+                indentSize = options.IndentSize;
+            }
+            var res = GetActualIndentationForListStartLine(containerList, sourceFile, options);
+            if (res == -1)
+            {
+                return indentSize;
+            }
+            return res + indentSize;
+        }
+
+        return GetSmartIndent(sourceFile, position, precedingToken, lineAtPosition, assumeNewLineBeforeCloseBrace, options);
+    }
+
+    // span.go:860-862 — isStringOrRegularExpressionOrTemplateLiteral (mirrored here for the
+    // indent entry; Span.cs keeps its private copy).
+    private static bool IsStringOrRegularExpressionOrTemplateLiteralKind(SyntaxKind kind)
+    {
+        return kind == SyntaxKind.StringLiteral || kind == SyntaxKind.RegularExpressionLiteral || AstUtilities.IsTemplateLiteralKind(kind);
+    }
+
+    // indent.go:110-135 — getCommentIndent.
+    private static int GetCommentIndent(SourceFile sourceFile, int position, FormatCodeSettings options, CommentRange enclosingCommentRange)
+    {
+        var previousLine = global::Ts.Scanner.Scanner.GetECMALineOfPosition(sourceFile, position) - 1;
+        var commentStartLine = global::Ts.Scanner.Scanner.GetECMALineOfPosition(sourceFile, enclosingCommentRange.Pos);
+
+        global::Ts.Core.Debug.Assert(commentStartLine >= 0, "commentStartLine >= 0");
+
+        if (previousLine <= commentStartLine)
+        {
+            var starts = global::Ts.Scanner.Scanner.GetECMALineStarts(sourceFile);
+            return FindFirstNonWhitespaceColumn(starts[commentStartLine], position, sourceFile, options);
+        }
+
+        var lineStarts = global::Ts.Scanner.Scanner.GetECMALineStarts(sourceFile);
+        var startPositionOfLine = lineStarts[previousLine];
+        var (character, column) = FindFirstNonWhitespaceCharacterAndColumn(startPositionOfLine, position, sourceFile, options);
+
+        if (column == 0)
+        {
+            return column;
+        }
+
+        var firstNonWhitespaceCharacterCode = sourceFile.Text()[startPositionOfLine + character];
+        if (firstNonWhitespaceCharacterCode == '*')
+        {
+            return column - 1;
+        }
+        return column;
+    }
+
+    // indent.go:177-191 — getBlockIndent.
+    private static int GetBlockIndent(SourceFile sourceFile, int position, FormatCodeSettings options)
+    {
+        // move backwards until we find a line with a non-whitespace character,
+        // then find the first non-whitespace character for that line.
+        var current = position;
+        while (current > 0)
+        {
+            var ch = sourceFile.Text()[current];
+            if (!global::Ts.StringUtil.StringUtil.IsWhiteSpaceLike(ch))
+            {
+                break;
+            }
+            current -= 1;
+        }
+
+        var lineStart = global::Ts.Format.Util.GetLineStartPositionForPosition(current, sourceFile);
+        return FindFirstNonWhitespaceColumn(lineStart, current, sourceFile, options);
+    }
+
+    // indent.go:193-208 — getActualIndentationForListItemBeforeComma.
+    private static int GetActualIndentationForListItemBeforeComma(Node commaToken, SourceFile sourceFile, FormatCodeSettings options)
+    {
+        // previous token is comma that separates items in list - find the previous item and try to derive indentation from it
+        if (commaToken.Parent == null)
+        {
+            return -1;
+        }
+        var containingList = GetContainingList(commaToken, sourceFile);
+        if (containingList == null)
+        {
+            return -1;
+        }
+        var commaIndex = global::Ts.Core.CoreUtil.FindIndex(containingList.Nodes, n => n == commaToken);
+        if (commaIndex > 0)
+        {
+            return DeriveActualIndentationFromList(containingList, commaIndex - 1, sourceFile, options);
+        }
+        return -1;
+    }
+
+    // indent.go:210-216 — nextTokenKind.
+    private enum NextTokenKind
+    {
+        Unknown = 0,
+        OpenBrace = 1,
+        CloseBrace = 2,
+    }
+
+    // indent.go:218-236 — nextTokenIsCurlyBraceOnSameLineAsCursor.
+    private static NextTokenKind NextTokenIsCurlyBraceOnSameLineAsCursor(Node precedingToken, Node current, int lineAtPosition, SourceFile sourceFile)
+    {
+        var nextToken = global::Ts.AstNav.Tokens.FindNextToken(precedingToken, current, sourceFile);
+        if (nextToken == null)
+        {
+            return NextTokenKind.Unknown;
+        }
+
+        if (nextToken.Kind == SyntaxKind.OpenBraceToken)
+        {
+            // open braces are always indented at the parent level
+            return NextTokenKind.OpenBrace;
+        }
+        else if (nextToken.Kind == SyntaxKind.CloseBraceToken)
+        {
+            // close braces are indented at the parent level if they are located on the same line with cursor
+            var nextTokenStartLine = GetStartLineForNode(nextToken, sourceFile);
+            if (lineAtPosition == nextTokenStartLine)
+            {
+                return NextTokenKind.CloseBrace;
+            }
+            return NextTokenKind.Unknown;
+        }
+
+        return NextTokenKind.Unknown;
+    }
+
+    // indent.go:238-277 — getSmartIndent.
+    private static int GetSmartIndent(SourceFile sourceFile, int position, Node precedingToken, int lineAtPosition, bool assumeNewLineBeforeCloseBrace, FormatCodeSettings options)
+    {
+        // try to find node that can contribute to indentation and includes 'position' starting from 'precedingToken'
+        // if such node is found - compute initial indentation for 'position' inside this node
+        Node? previous = null;
+        var current = (Node?)precedingToken;
+
+        while (current != null)
+        {
+            if (global::Ts.Ls.CompletedNode.PositionBelongsToNode(current, position, sourceFile) && ShouldIndentChildNode(options, current, previous, sourceFile, true))
+            {
+                var (currentStartLine, currentStartChar) = GetStartLineAndCharacterForNode(current, sourceFile);
+                var ntk = NextTokenIsCurlyBraceOnSameLineAsCursor(precedingToken, current, lineAtPosition, sourceFile);
+                var indentationDelta = 0;
+                if (ntk != NextTokenKind.Unknown)
+                {
+                    // handle cases when codefix is about to be inserted before the close brace
+                    if (assumeNewLineBeforeCloseBrace && ntk == NextTokenKind.CloseBrace)
+                    {
+                        indentationDelta = options.IndentSize;
+                    }
+                    // else 0
+                }
+                else
+                {
+                    if (lineAtPosition != currentStartLine)
+                    {
+                        indentationDelta = options.IndentSize;
+                    }
+                }
+                return GetIndentationForNodeWorker(current, currentStartLine, currentStartChar, null, indentationDelta, sourceFile, true, options);
+            }
+
+            // check if current node is a list item - if yes, take indentation from it
+            // do not consider parent-child line sharing yet:
+            // function foo(a
+            //    | preceding node 'a' does share line with its parent but indentation is expected
+            var actualIndentation = GetActualIndentationForListItem(current, sourceFile, options, true /*listIndentsChild*/);
+            if (actualIndentation != -1)
+            {
+                return actualIndentation;
+            }
+
+            previous = current;
+            current = current.Parent;
+        }
+        // no parent was found - return the base indentation of the SourceFile
+        return options.BaseIndentSize;
+    }
+
+    // indent.go:525-530 — getListByPosition.
+    private static NodeList? GetListByPosition(int pos, Node? node, SourceFile sourceFile)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+        return GetListByRange(pos, pos, node, sourceFile);
+    }
 }

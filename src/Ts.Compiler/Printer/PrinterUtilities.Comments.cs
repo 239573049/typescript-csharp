@@ -20,7 +20,7 @@ public static partial class PrinterUtilities
     }
 
     // utilities.go:804 — IsRecognizedTripleSlashComment.
-    internal static bool IsRecognizedTripleSlashComment(string text, CommentRange commentRange)
+    public static bool IsRecognizedTripleSlashComment(string text, CommentRange commentRange)
     {
         if (commentRange.Kind == SyntaxKind.SingleLineCommentTrivia &&
             commentRange.Len > 2 &&
@@ -186,7 +186,7 @@ public static partial class PrinterUtilities
         text[comment.Pos + 3] != '/';
 
     // utilities.go:868 — IsPinnedComment.
-    internal static bool IsPinnedComment(string text, CommentRange comment) =>
+    public static bool IsPinnedComment(string text, CommentRange comment) =>
         comment.Kind == SyntaxKind.MultiLineCommentTrivia &&
         comment.Len > 5 &&
         text[comment.Pos + 2] == '!';

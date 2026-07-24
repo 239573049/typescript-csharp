@@ -426,7 +426,7 @@ public static partial class PrinterUtilities
     }
 
     // Go: RangeStartPositionsAreOnSameLine (utilities.go:349)
-    internal static bool RangeStartPositionsAreOnSameLine(TextRange range1, TextRange range2, SourceFile sourceFile)
+    public static bool RangeStartPositionsAreOnSameLine(TextRange range1, TextRange range2, SourceFile sourceFile)
     {
         return PositionsAreOnSameLine(
             GetStartPositionOfRange(range1, sourceFile, false /*includeComments*/),

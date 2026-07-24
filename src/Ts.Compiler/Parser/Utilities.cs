@@ -8,7 +8,7 @@ using Ts.Core;
 
 namespace Ts.Parser;
 
-internal static class Utilities
+public static class Utilities
 {
     public static LanguageVariant GetLanguageVariant(ScriptKind scriptKind)
     {
