@@ -199,4 +199,26 @@ public sealed partial class LanguageService
         return "";
     }
 
+
+    // completions.go:2743-2750 — isStringLiteralOrTemplate.
+    internal static bool IsStringLiteralOrTemplate(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.StringLiteral:
+            case SyntaxKind.NoSubstitutionTemplateLiteral:
+            case SyntaxKind.TemplateExpression:
+            case SyntaxKind.TaggedTemplateExpression:
+                return true;
+        }
+        return false;
+    }
+
+    // completions.go:2752-2754 — binaryExpressionMayBeOpenTag.
+    internal static bool BinaryExpressionMayBeOpenTag(BinaryExpression binaryExpression) =>
+        AstUtilities.NodeIsMissing(binaryExpression.Left);
+
+    // completions.go:2756-2758 — isCheckedFile.
+    internal static bool IsCheckedFile(SourceFile file, global::Ts.Core.CompilerOptions compilerOptions) =>
+        !AstUtilities.IsSourceFileJS(file) || AstUtilities.IsCheckJSEnabledForFile(file, compilerOptions);
 }
