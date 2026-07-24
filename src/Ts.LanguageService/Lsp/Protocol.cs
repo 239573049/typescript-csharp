@@ -469,13 +469,13 @@ public sealed class CompletionItem
     public string Label { get; set; } = "";
 
     [JsonPropertyName("labelDetails")]
-    public JsonElement? LabelDetails { get; set; }
+    public CompletionItemLabelDetails? LabelDetails { get; set; }
 
     [JsonPropertyName("kind")]
     public CompletionItemKind? Kind { get; set; }
 
     [JsonPropertyName("tags")]
-    public JsonElement? Tags { get; set; }
+    public CompletionItemTag[]? Tags { get; set; }
 
     [JsonPropertyName("detail")]
     public string? Detail { get; set; }
@@ -499,13 +499,13 @@ public sealed class CompletionItem
     public string? InsertText { get; set; }
 
     [JsonPropertyName("insertTextFormat")]
-    public uint? InsertTextFormat { get; set; }
+    public InsertTextFormat? InsertTextFormat { get; set; }
 
     [JsonPropertyName("insertTextMode")]
     public uint? InsertTextMode { get; set; }
 
     [JsonPropertyName("textEdit")]
-    public JsonElement? TextEdit { get; set; }
+    public TextEditOrInsertReplaceEdit? TextEdit { get; set; }
 
     [JsonPropertyName("textEditText")]
     public string? TextEditText { get; set; }
@@ -520,7 +520,119 @@ public sealed class CompletionItem
     public JsonElement? Command { get; set; }
 
     [JsonPropertyName("data")]
-    public JsonElement? Data { get; set; }
+    public CompletionItemData? Data { get; set; }
+}
+
+// lsp_generated.go: CompletionItemLabelDetails — additional details for a completion item label.
+public sealed class CompletionItemLabelDetails
+{
+    // An optional string which is rendered less prominently directly after label, without any spacing.
+    [JsonPropertyName("detail")]
+    public string? Detail { get; set; }
+
+    // An optional string which is rendered less prominently after CompletionItemLabelDetails.detail.
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+}
+
+// lsp_generated.go: CompletionItemTag — extra annotations that tweak the rendering of a completion item.
+public enum CompletionItemTag : uint
+{
+    // Render a completion as obsolete, usually using a strike-out.
+    Deprecated = 1,
+}
+
+// lsp_generated.go: InsertTextFormat — defines whether the insert text in a completion item should be
+// interpreted as plain text or a snippet.
+public enum InsertTextFormat : uint
+{
+    // The primary text to be inserted is treated as a plain string.
+    PlainText = 1,
+    // The primary text to be inserted is treated as a snippet.
+    Snippet = 2,
+}
+
+// lsp_generated.go: InsertReplaceEdit — a special text edit to provide an insert and a replace operation.
+public sealed class InsertReplaceEdit
+{
+    // The string to be inserted.
+    [JsonPropertyName("newText")]
+    [JsonRequired]
+    public string NewText { get; set; } = "";
+
+    // The range if the insert is requested.
+    [JsonPropertyName("insert")]
+    [JsonRequired]
+    public Range Insert { get; set; } = null!;
+
+    // The range if the replace is requested.
+    [JsonPropertyName("replace")]
+    [JsonRequired]
+    public Range Replace { get; set; } = null!;
+}
+
+// lsp_generated.go: TextEdit | InsertReplaceEdit union (CompletionItem.textEdit). Serialized as
+// whichever arm is set (plan/04: OR types get handwritten converters).
+[JsonConverter(typeof(TextEditOrInsertReplaceEditConverter))]
+public sealed class TextEditOrInsertReplaceEdit
+{
+    public TextEdit? TextEdit { get; set; }
+    public InsertReplaceEdit? InsertReplaceEdit { get; set; }
+}
+
+public sealed class TextEditOrInsertReplaceEditConverter : JsonConverter<TextEditOrInsertReplaceEdit>
+{
+    public override TextEditOrInsertReplaceEdit? Read(ref Utf8JsonReader reader, System.Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var doc = JsonDocument.ParseValue(ref reader);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("insert", out _))
+        {
+            return new TextEditOrInsertReplaceEdit
+            {
+                InsertReplaceEdit = root.Deserialize(LspJsonContext.Default.InsertReplaceEdit),
+            };
+        }
+        return new TextEditOrInsertReplaceEdit
+        {
+            TextEdit = root.Deserialize(LspJsonContext.Default.TextEdit),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, TextEditOrInsertReplaceEdit value, JsonSerializerOptions options)
+    {
+        if (value.InsertReplaceEdit != null)
+        {
+            JsonSerializer.Serialize(writer, value.InsertReplaceEdit, LspJsonContext.Default.InsertReplaceEdit);
+            return;
+        }
+        JsonSerializer.Serialize(writer, value.TextEdit!, LspJsonContext.Default.TextEdit);
+    }
+}
+
+// lsp_generated.go:8828-8845 — CompletionItemData: data field carried on completion items for resolve.
+public sealed class CompletionItemData
+{
+    // The file name where the completion was requested.
+    [JsonPropertyName("fileName")]
+    public string FileName { get; set; } = "";
+
+    // The position where the completion was requested.
+    [JsonPropertyName("position")]
+    public int Position { get; set; }
+
+    // Special source value for disambiguation.
+    [JsonPropertyName("source")]
+    public string? Source { get; set; }
+
+    // The name of the completion item.
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    // lsp_generated.go:8799 AutoImportFix — typed with the autoimport wave (its enums
+    // AutoImportFixKind/ImportKind/AddAsTypeOnly belong to that unit); always null until then.
+    [JsonIgnore]
+    public object? AutoImport { get; set; }
 }
 
 public sealed class CompletionList

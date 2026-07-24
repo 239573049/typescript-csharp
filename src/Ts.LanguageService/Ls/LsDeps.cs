@@ -1287,11 +1287,17 @@ internal static class LsDeps
         return QuotePreference.Double;
     }
 
-    // lsutil/utilities.go:99 — GetQuotePreference. PORT-NOTE: the UserPreferences
-    // carrier is deferred; its zero value ("") always falls through to the
-    // module-specifier scan, so the preferences parameter drops out.
-    internal static QuotePreference GetQuotePreference(global::Ts.Ast.SourceFile sourceFile)
+    // lsutil/utilities.go:99-113 — GetQuotePreference.
+    internal static QuotePreference GetQuotePreference(global::Ts.Ast.SourceFile sourceFile, UserPreferences preferences)
     {
+        if (preferences.QuotePreference.Length != 0 && preferences.QuotePreference != "auto")
+        {
+            if (preferences.QuotePreference == "single")
+            {
+                return QuotePreference.Single;
+            }
+            return QuotePreference.Double;
+        }
         // ignore synthetic import added when importHelpers: true
         foreach (var n in sourceFile.Imports() ?? [])
         {
@@ -1301,6 +1307,13 @@ internal static class LsDeps
             }
         }
         return QuotePreference.Double;
+    }
+
+    // Zero-preferences overload retained for pre-UserPreferences call sites (rename.go path);
+    // Go's zero value falls through to the module-specifier scan identically.
+    internal static QuotePreference GetQuotePreference(global::Ts.Ast.SourceFile sourceFile)
+    {
+        return GetQuotePreference(sourceFile, new UserPreferences());
     }
 
     // ls/utilities.go:452 — getAdjustedLocation.

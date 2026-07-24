@@ -677,6 +677,12 @@ public partial class Checker
         return target;
     }
 
+    // services.go:461-463 — GetExportSymbolOfSymbol.
+    public Symbol GetExportSymbolOfSymbol(Symbol symbol)
+    {
+        return GetMergedSymbol(symbol.ExportSymbol ?? symbol)!;
+    }
+
     // services.go:830-841 — GetExportsAndPropertiesOfModule.
     public Symbol[] GetExportsAndPropertiesOfModule(Symbol moduleSymbol)
     {

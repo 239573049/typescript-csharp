@@ -18,6 +18,8 @@ namespace Ts.LsProto;
 [JsonSerializable(typeof(CompletionParams))]
 [JsonSerializable(typeof(CompletionList))]
 [JsonSerializable(typeof(CompletionItem))]
+[JsonSerializable(typeof(InsertReplaceEdit))]
+[JsonSerializable(typeof(CompletionItemData))]
 [JsonSerializable(typeof(PublishDiagnosticsParams))]
 [JsonSerializable(typeof(Diagnostic))]
 [JsonSerializable(typeof(Diagnostic[]))]

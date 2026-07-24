@@ -11,6 +11,10 @@ namespace Ts.Ls;
 // userpreferences.go:45 — UserPreferences represents TypeScript language service preferences.
 public sealed class UserPreferences
 {
+    // userpreferences.go:48 — QuotePreference (string enum: "" | "auto" | "double" | "single").
+    public string QuotePreference = "";
+    // userpreferences.go:78 — JsxAttributeCompletionStyle ("auto" | "braces" | "none").
+    public string JsxAttributeCompletionStyle = "";
     // If enabled, TypeScript will search through all external modules' exports and add them to the completions list.
     // This affects lone identifier completions but not completions on the right hand side of `obj.`.
     public Tristate IncludeCompletionsForModuleExports;
@@ -29,9 +33,6 @@ public sealed class UserPreferences
     public Tristate IncludeCompletionsWithObjectLiteralMethodSnippets;
     // If enabled, completions will include snippet-style entries (e.g. class member snippets).
     public Tristate IncludeCompletionsWithSnippetText;
-    // If enabled, JSX attribute completion entries insert `={}` / `=""` initializer text.
-    public Tristate JsxAttributeCompletionStyleNone; // placeholder until JsxAttributeCompletionStyle enum wave
-
     // userpreferences.go:15-35 — NewDefaultUserPreferences (completion-relevant subset).
     public static UserPreferences NewDefaultUserPreferences() => new()
     {

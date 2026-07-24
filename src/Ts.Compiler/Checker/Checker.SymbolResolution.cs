@@ -1742,7 +1742,7 @@ public partial class Checker
     }
 
     // checker.go:16276 — Combined flags of a symbol and all alias targets it resolves to.
-    internal SymbolFlags GetSymbolFlags(Symbol symbol)
+    public SymbolFlags GetSymbolFlags(Symbol symbol)
     {
         return GetSymbolFlagsEx(symbol, false /*excludeTypeOnlyMeanings*/, false /*excludeLocalMeanings*/);
     }

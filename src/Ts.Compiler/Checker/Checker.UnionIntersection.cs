@@ -1020,7 +1020,7 @@ public partial class Checker
     }
 
     // checker.go:26365-26368
-    internal bool IsEmptyAnonymousObjectType(Type t) =>
+    public bool IsEmptyAnonymousObjectType(Type t) =>
         (t.objectFlags & ObjectFlags.Anonymous) != 0 && (((t.objectFlags & ObjectFlags.MembersResolved) != 0 && IsEmptyResolvedType(t.AsStructuredType()!)) ||
             (t.symbol is not null && (t.symbol.Flags & SymbolFlags.TypeLiteral) != 0 && GetMembersOfSymbol(t.symbol).Count == 0));
 
