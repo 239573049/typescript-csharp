@@ -163,6 +163,24 @@ public sealed class CompletionDataTests
     }
 
     [Fact]
+    public void TripleSlashReferencePathCompletions()
+    {
+        var source = "/// <reference path=\"\n";
+        var program = BuildProgram(new Dictionary<string, string>
+        {
+            [FileName] = source,
+            ["/other.ts"] = "export {};\n",
+        });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var position = source.IndexOf("path=\"", StringComparison.Ordinal) + "path=\"".Length;
+        var list = service.GetCompletionsAtPosition(
+            FileName, position, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(list);
+        var labels = list!.Items!.Select(e => e.Item!.Label).ToArray();
+        Assert.Contains("other.ts", labels);
+    }
+
+    [Fact]
     public void PlainCommentReturnsNull()
     {
         var source = "// hello world\nconst x = 1;\n";

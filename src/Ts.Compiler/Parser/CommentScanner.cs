@@ -9,7 +9,7 @@ using Ts.Ast;
 
 namespace Ts.Parser;
 
-internal static class CommentScanner
+public static class CommentScanner
 {
     public static IEnumerable<CommentRange> GetLeadingCommentRanges(NodeFactory f, string text, int pos) =>
         IterateCommentRanges(f, text, pos, false);

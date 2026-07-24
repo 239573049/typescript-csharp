@@ -830,23 +830,173 @@ public sealed partial class LanguageService
     }
 
     // string_completions.go:2076-2083 — isInReferenceComment.
-    // PORT-NOTE: real body (triple-slash directive parsing at :2085-2211) ships with the
-    // path/module-specifier batch; until then reference-comment positions take Go's false path.
     internal static bool IsInReferenceComment(SourceFile file, int position)
     {
-        _ = file;
-        _ = position;
-        return false;
+        var commentRange = LsDeps.IsInComment(file, position, global::Ts.AstNav.Tokens.GetTokenAtPosition(file, position));
+        if (commentRange == null)
+        {
+            return false;
+        }
+        var commentText = file.Text()[commentRange.Value.Pos..commentRange.Value.End];
+        return HasTripleSlashPrefix(commentText);
+    }
+
+    // string_completions.go:2085-2087 — hasTripleSlashPrefix.
+    internal static bool HasTripleSlashPrefix(string commentText)
+    {
+        return commentText.StartsWith("///", StringComparison.Ordinal) && commentText[3..].TrimStart().StartsWith('<');
+    }
+
+    // string_completions.go:2089-2157 — parseTripleSlashDirectiveFragment: matches a triple slash
+    // reference directive with an incomplete string literal for its path. Used to determine if the
+    // caret is currently within the string literal and capture the literal fragment for
+    // completions. For example, this matches
+    //
+    // /// <reference path="fragment
+    //
+    // but not
+    //
+    // /// <reference path="fragment"
+    //
+    // Returns (prefix, kind, toComplete, ok) where:
+    //   - prefix is everything up to and including the opening quote
+    //   - kind is either "path" or "types"
+    //   - toComplete is the fragment after the opening quote
+    //   - ok indicates whether the match was successful
+    internal static (string Prefix, string Kind, string ToComplete, bool Ok) ParseTripleSlashDirectiveFragment(string text)
+    {
+        var rest = text;
+        if (!rest.StartsWith("///", StringComparison.Ordinal))
+        {
+            return ("", "", "", false);
+        }
+
+        rest = rest["///".Length..];
+        rest = TrimLeftWhiteSpaceLike(rest);
+
+        // <reference
+        if (!rest.StartsWith("<reference", StringComparison.Ordinal))
+        {
+            return ("", "", "", false);
+        }
+        rest = rest["<reference".Length..];
+
+        if (rest.Length == 0 || !global::Ts.StringUtil.StringUtil.IsWhiteSpaceLike(rest[0]))
+        {
+            return ("", "", "", false);
+        }
+        rest = TrimLeftWhiteSpaceLike(rest);
+
+        // path or types
+        string kind;
+        if (rest.StartsWith("path", StringComparison.Ordinal))
+        {
+            kind = "path";
+            rest = rest["path".Length..];
+        }
+        else if (rest.StartsWith("types", StringComparison.Ordinal))
+        {
+            kind = "types";
+            rest = rest["types".Length..];
+        }
+        else
+        {
+            return ("", "", "", false);
+        }
+
+        // Skip optional whitespace, then must have "="
+        rest = TrimLeftWhiteSpaceLike(rest);
+        if (!rest.StartsWith('='))
+        {
+            return ("", "", "", false);
+        }
+        rest = rest[1..];
+
+        // Skip optional whitespace, then must have opening quote (' or ")
+        rest = TrimLeftWhiteSpaceLike(rest);
+        if (rest.Length == 0 || (rest[0] != '\'' && rest[0] != '"'))
+        {
+            return ("", "", "", false);
+        }
+        rest = rest[1..];
+
+        // The toComplete part is everything after the opening quote
+        if (rest.IndexOfAny(['\'', '"']) >= 0)
+        {
+            return ("", "", "", false);
+        }
+        var toComplete = rest;
+        var prefix = text[..(text.Length - toComplete.Length)];
+        return (prefix, kind, toComplete, true);
+    }
+
+    // Go strings.TrimLeftFunc(s, stringutil.IsWhiteSpaceLike) — rune-wise left trim.
+    private static string TrimLeftWhiteSpaceLike(string s)
+    {
+        var i = 0;
+        while (i < s.Length && global::Ts.StringUtil.StringUtil.IsWhiteSpaceLike(s[i]))
+        {
+            i++;
+        }
+        return s[i..];
     }
 
     // string_completions.go:2159-2211 — getTripleSlashReferenceCompletions.
-    // PORT-NOTE: ships with the path/module-specifier batch (needs VFS directory enumeration).
     internal List<PathCompletion> GetTripleSlashReferenceCompletions(SourceFile file, int position, TsChecker checker)
     {
-        _ = file;
-        _ = position;
-        _ = checker;
-        return [];
+        var program = GetProgram();
+        var compilerOptions = program.Options();
+        var token = global::Ts.AstNav.Tokens.GetTokenAtPosition(file, position);
+        CommentRange? foundRange = null;
+        foreach (var commentRange in global::Ts.Parser.CommentScanner.GetLeadingCommentRanges(new NodeFactory(), file.Text(), token.Pos))
+        {
+            if (position >= commentRange.Pos && position <= commentRange.End)
+            {
+                foundRange = commentRange;
+                break;
+            }
+        }
+        if (foundRange == null)
+        {
+            return [];
+        }
+
+        var text = file.Text()[foundRange.Value.Pos..position];
+        var (prefix, kind, toComplete, ok) = ParseTripleSlashDirectiveFragment(text);
+        if (!ok)
+        {
+            return [];
+        }
+
+        var scriptPath = global::Ts.TsPath.TsPath.GetDirectoryPath(file.Path().Value);
+
+        var names = new List<ModuleCompletionNameAndKind>();
+        switch (kind)
+        {
+            case "path":
+            {
+                var extensionOptions = GetExtensionOptions(compilerOptions, ReferenceKind.FileName, file, global::Ts.Core.ModuleKind.None, null /*checker*/);
+                var result = GetCompletionEntriesForDirectoryFragment(
+                    toComplete,
+                    scriptPath,
+                    extensionOptions,
+                    true, /*moduleSpecifierIsRelative*/
+                    file.Path().Value,
+                    new ModuleCompletionNameAndKindSet());
+                names.AddRange(result.names.Values); // map-iter: 序无关 (client sorts entries)
+                break;
+            }
+            case "types":
+            {
+                var extensionOptions = GetExtensionOptions(compilerOptions, ReferenceKind.ModuleSpecifier, file, global::Ts.Core.ModuleKind.None, null /*checker*/);
+                var result = new ModuleCompletionNameAndKindSet();
+                GetCompletionEntriesFromTypings(scriptPath, GetFragmentDirectory(toComplete), extensionOptions, result);
+                names.AddRange(result.names.Values); // map-iter: 序无关 (client sorts entries)
+                break;
+            }
+        }
+
+        return AddReplacementSpans(toComplete, foundRange.Value.Pos + prefix.Length, names);
     }
 
     // string_completions.go:580-596 — getStringLiteralCompletionsFromModuleNames (path half lives
