@@ -325,4 +325,161 @@ public sealed partial class LanguageService
     {
         return node.Parent != null && AstUtilities.IsClassOrTypeElement(node.Parent) && node.Parent.Parent != null && AstUtilities.IsObjectTypeDeclaration(node.Parent.Parent);
     }
+
+    // completions.go:3505-3631 — computeCommitCharactersAndIsNewIdentifier.
+    internal static (bool IsNewIdentifierLocation, string[] DefaultCommitCharacters) ComputeCommitCharactersAndIsNewIdentifier(
+        Node? contextToken,
+        SourceFile file,
+        int position)
+    {
+        if (contextToken == null)
+        {
+            return (false, AllCommitCharacters);
+        }
+        var containingNodeKind = contextToken.Parent!.Kind;
+        var tokenKind = KeywordForNode(contextToken);
+        // Previous token may have been a keyword that was converted to an identifier.
+        switch (tokenKind)
+        {
+            case SyntaxKind.CommaToken:
+                switch (containingNodeKind)
+                {
+                    // func( a, |
+                    // new C(a, |
+                    case SyntaxKind.CallExpression:
+                    case SyntaxKind.NewExpression:
+                    {
+                        var expression = contextToken.Parent.Expression()!;
+                        // func\n(a, |
+                        if (LsDeps.GetLineOfPosition(file, expression.End) != LsDeps.GetLineOfPosition(file, position))
+                        {
+                            return (true, NoCommaCommitCharacters);
+                        }
+                        return (true, AllCommitCharacters);
+                    }
+                    // const x = (a, |
+                    case SyntaxKind.BinaryExpression:
+                        return (true, NoCommaCommitCharacters);
+                    // constructor( a, | /* public, protected, private keywords are allowed here, so show completion */
+                    // var x: (s: string, list|
+                    // const obj = { x, |
+                    case SyntaxKind.Constructor:
+                    case SyntaxKind.FunctionType:
+                    case SyntaxKind.ObjectLiteralExpression:
+                        return (true, EmptyCommitCharacters);
+                    // [a, |
+                    case SyntaxKind.ArrayLiteralExpression:
+                        return (true, AllCommitCharacters);
+                    default:
+                        return (false, AllCommitCharacters);
+                }
+            case SyntaxKind.OpenParenToken:
+                switch (containingNodeKind)
+                {
+                    // func( |
+                    // new C(a|
+                    case SyntaxKind.CallExpression:
+                    case SyntaxKind.NewExpression:
+                    {
+                        var expression = contextToken.Parent.Expression()!;
+                        // func\n( |
+                        if (LsDeps.GetLineOfPosition(file, expression.End) != LsDeps.GetLineOfPosition(file, position))
+                        {
+                            return (true, NoCommaCommitCharacters);
+                        }
+                        return (true, AllCommitCharacters);
+                    }
+                    // const x = (a|
+                    case SyntaxKind.ParenthesizedExpression:
+                        return (true, NoCommaCommitCharacters);
+                    // constructor( |
+                    // function F(pred: (a| /* this can become an arrow function, where 'a' is the argument */
+                    case SyntaxKind.Constructor:
+                    case SyntaxKind.ParenthesizedType:
+                        return (true, EmptyCommitCharacters);
+                    default:
+                        return (false, AllCommitCharacters);
+                }
+            case SyntaxKind.OpenBracketToken:
+                switch (containingNodeKind)
+                {
+                    // [ |
+                    // [ | : string ]
+                    // [ |    /* this can become an index signature */
+                    case SyntaxKind.ArrayLiteralExpression:
+                    case SyntaxKind.IndexSignature:
+                    case SyntaxKind.TupleType:
+                    case SyntaxKind.ComputedPropertyName:
+                        return (true, AllCommitCharacters);
+                    default:
+                        return (false, AllCommitCharacters);
+                }
+            // module |
+            // namespace |
+            // import |
+            case SyntaxKind.ModuleKeyword:
+            case SyntaxKind.NamespaceKeyword:
+            case SyntaxKind.ImportKeyword:
+                return (true, EmptyCommitCharacters);
+            case SyntaxKind.DotToken:
+                switch (containingNodeKind)
+                {
+                    // module A.|
+                    case SyntaxKind.ModuleDeclaration:
+                        return (true, EmptyCommitCharacters);
+                    default:
+                        return (false, AllCommitCharacters);
+                }
+            case SyntaxKind.OpenBraceToken:
+                switch (containingNodeKind)
+                {
+                    // class A { |
+                    // const obj = { |
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.ObjectLiteralExpression:
+                        return (true, EmptyCommitCharacters);
+                    default:
+                        return (false, AllCommitCharacters);
+                }
+            case SyntaxKind.EqualsToken:
+                switch (containingNodeKind)
+                {
+                    // const x = a|
+                    // x = a|
+                    case SyntaxKind.VariableDeclaration:
+                    case SyntaxKind.BinaryExpression:
+                        return (true, AllCommitCharacters);
+                    default:
+                        return (false, AllCommitCharacters);
+                }
+            case SyntaxKind.TemplateHead:
+                // `aa ${|
+                return (containingNodeKind == SyntaxKind.TemplateExpression, AllCommitCharacters);
+            case SyntaxKind.TemplateMiddle:
+                // `aa ${10} dd ${|
+                return (containingNodeKind == SyntaxKind.TemplateSpan, AllCommitCharacters);
+            case SyntaxKind.AsyncKeyword:
+                // const obj = { async c|()
+                // const obj = { async c|
+                if (containingNodeKind == SyntaxKind.MethodDeclaration || containingNodeKind == SyntaxKind.ShorthandPropertyAssignment)
+                {
+                    return (true, EmptyCommitCharacters);
+                }
+                return (false, AllCommitCharacters);
+            case SyntaxKind.AsteriskToken:
+                // const obj = { * c|
+                if (containingNodeKind == SyntaxKind.MethodDeclaration)
+                {
+                    return (true, EmptyCommitCharacters);
+                }
+                return (false, AllCommitCharacters);
+        }
+
+        if (IsClassMemberCompletionKeyword(tokenKind))
+        {
+            return (true, EmptyCommitCharacters);
+        }
+
+        return (false, AllCommitCharacters);
+    }
 }
