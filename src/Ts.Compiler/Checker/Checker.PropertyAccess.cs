@@ -498,7 +498,7 @@ public partial class Checker
      * @param property the accessed property's symbol.
      */
     // checker.go:11609
-    internal bool IsValidPropertyAccessForCompletions(Node node, Type t, Symbol property)
+    public bool IsValidPropertyAccessForCompletions(Node node, Type t, Symbol property)
     {
         return IsPropertyAccessible(node, NodeTests.IsPropertyAccessExpression(node) && node.Expression()!.Kind == SyntaxKind.SuperKeyword, false /*isWrite*/, t, property);
         // Previously we validated the 'this' type of methods but this adversely affected performance. See #31377 for more context.

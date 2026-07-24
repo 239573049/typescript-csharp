@@ -136,4 +136,119 @@ public partial class Checker
 
     // services.go:234-236 — GetNonOptionalType.
     public Type GetNonOptionalType(Type t) => RemoveOptionalTypeMarker(t);
+
+    // services.go:199-219 — GetAllPossiblePropertiesOfTypes.
+    public Symbol[] GetAllPossiblePropertiesOfTypes(Type[] types)
+    {
+        var unionType = GetUnionType(types);
+        if ((unionType.flags & TypeFlags.Union) == 0)
+        {
+            return GetAugmentedPropertiesOfType(unionType);
+        }
+
+        var props = new Dictionary<string, Symbol>();
+        foreach (var memberType in types)
+        {
+            foreach (var p in GetAugmentedPropertiesOfType(memberType))
+            {
+                if (!props.ContainsKey(p.Name))
+                {
+                    var prop = CreateUnionOrIntersectionProperty(unionType, p.Name, false /*skipObjectFunctionPropertyAugment*/);
+                    // May be undefined if the property is private
+                    if (prop != null)
+                    {
+                        props[p.Name] = prop;
+                    }
+                }
+            }
+        }
+        return props.Values.ToArray(); // map-iter: 序无关 (совokupность唯一名; consumers sort/dedupe)
+    }
+
+    // services.go:221-231
+    public bool IsUnknownSymbol(Symbol symbol) => symbol == unknownSymbol;
+
+    public bool IsUndefinedSymbol(Symbol symbol) => symbol == undefinedSymbol;
+
+    // services.go:238-244
+    public Type? GetStringIndexType(Type t) => GetIndexTypeOfType(t, stringType!);
+
+    public Type? GetNumberIndexType(Type t) => GetIndexTypeOfType(t, numberType!);
+
+    // services.go:250-256
+    public Signature[] GetCallSignatures(Type t) => GetSignaturesOfType(t, SignatureKind.Call);
+
+    public Signature[] GetConstructSignatures(Type t) => GetSignaturesOfType(t, SignatureKind.Construct);
+
+    // services.go:258-260
+    public Symbol[] GetApparentProperties(Type t) => GetAugmentedPropertiesOfType(t);
+
+    // services.go:262-283 — getAugmentedPropertiesOfType.
+    private Symbol[] GetAugmentedPropertiesOfType(Type t)
+    {
+        t = GetApparentType(t);
+        var propsByName = new Dictionary<string, Symbol>();
+        foreach (var p in GetPropertiesOfType(t) ?? [])
+        {
+            propsByName.TryAdd(p.Name, p);
+        }
+        Type? functionType = null;
+        if (GetSignaturesOfType(t, SignatureKind.Call).Length > 0)
+        {
+            functionType = globalCallableFunctionType;
+        }
+        else if (GetSignaturesOfType(t, SignatureKind.Construct).Length > 0)
+        {
+            functionType = globalNewableFunctionType;
+        }
+
+        if (functionType != null)
+        {
+            foreach (var p in GetPropertiesOfType(functionType) ?? [])
+            {
+                propsByName.TryAdd(p.Name, p);
+            }
+        }
+        return GetNamedMembers(propsByName, null);
+    }
+
+    // services.go:285-301 — TryGetMemberInModuleExportsAndProperties.
+    public Symbol? TryGetMemberInModuleExportsAndProperties(string memberName, Symbol moduleSymbol)
+    {
+        var symbol = TryGetMemberInModuleExports(memberName, moduleSymbol);
+        if (symbol != null)
+        {
+            return symbol;
+        }
+
+        var exportEquals = ResolveExternalModuleSymbol(moduleSymbol, false /*dontResolveAlias*/);
+        if (exportEquals == moduleSymbol)
+        {
+            return null;
+        }
+
+        var t = GetTypeOfSymbol(exportEquals!);
+        if (ShouldTreatPropertiesOfExternalModuleAsExports(t))
+        {
+            return GetPropertyOfType(t, memberName);
+        }
+        return null;
+    }
+
+    // services.go:303-306 — TryGetMemberInModuleExports.
+    public Symbol? TryGetMemberInModuleExports(string memberName, Symbol moduleSymbol)
+    {
+        var symbolTable = GetExportsOfModule(moduleSymbol);
+        return symbolTable != null && symbolTable.TryGetValue(memberName, out var member) ? member : null;
+    }
+
+    // services.go:308-314 — shouldTreatPropertiesOfExternalModuleAsExports.
+    private bool ShouldTreatPropertiesOfExternalModuleAsExports(Type resolvedExternalModuleType)
+    {
+        return (resolvedExternalModuleType.flags & TypeFlags.Primitive) == 0 ||
+            (resolvedExternalModuleType.objectFlags & ObjectFlags.Class) != 0 ||
+            // `isArrayOrTupleLikeType` is too expensive to use in this auto-imports hot path.
+            IsArrayType(resolvedExternalModuleType) ||
+            IsTupleType(resolvedExternalModuleType);
+    }
 }

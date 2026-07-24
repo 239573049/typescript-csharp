@@ -614,7 +614,7 @@ public partial class Checker
         return containsArguments;
     }
     // services.go:229
-    internal bool IsArgumentsSymbol(Symbol symbol) => symbol == argumentsSymbol;
+    public bool IsArgumentsSymbol(Symbol symbol) => symbol == argumentsSymbol;
     // checker/utilities.go:1686
     internal static bool NodeStartsNewLexicalEnvironment(Node node)
     {
