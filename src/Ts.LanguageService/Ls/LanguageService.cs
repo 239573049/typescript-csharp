@@ -1,6 +1,8 @@
 // Ported from tsgo internal/ls/languageservice.go (foundation subset).
 
 using System;
+using Ts.Core;
+using Ts.Ls.AutoImport;
 
 namespace Ts.Ls;
 
@@ -32,6 +34,72 @@ public sealed partial class LanguageService
     private global::Ts.Ls.UserPreferences activeConfig = global::Ts.Ls.UserPreferences.NewDefaultUserPreferences();
 
     public global::Ts.Ls.UserPreferences UserPreferences() => activeConfig;
+
+    // languageservice.go:16 — projectPath. PORT-NOTE: assigned by the project/lsp wave's
+    // NewLanguageService(projectPath, ...); empty for the direct program host.
+    internal global::Ts.TsPath.Path projectPath;
+
+    // Go: l.FormatOptions() (UserPreferences.FormatCodeSettings). PORT-NOTE: the config-sync
+    // channel is not wired yet; defaults stand in until the lsp/config wave.
+    public global::Ts.Format.FormatCodeSettings FormatOptions() =>
+        global::Ts.Format.FormatCodeSettings.GetDefaultFormatCodeSettings();
+
+    // Go: l.converters (owned by the lsp session). PORT-NOTE: until the lsp-server wave wires a
+    // session-owned instance, build a UTF-16 Converters over the program's own files.
+    private global::Ts.Ls.LsConv.Converters? converters;
+
+    internal global::Ts.Ls.LsConv.Converters Converters()
+    {
+        return converters ??= new global::Ts.Ls.LsConv.Converters("utf-16", fileName =>
+            global::Ts.Ls.LsConv.LineMap.ComputeLSPLineStarts(program.GetSourceFile(fileName)!.Text()));
+    }
+
+    // languageservice.go:92-107 — getPreparedAutoImportView returns an auto-import view for the
+    // given file if the registry is prepared to provide up-to-date auto-imports for it. If not,
+    // it returns ErrNeedsAutoImports. If auto-imports are disabled via user preferences, it
+    // returns (nil, nil). PORT-NOTE: a null registry (direct program host, no project layer)
+    // also yields (null, null) here — Go's host always supplies a registry and the
+    // ErrNeedsAutoImports retry protocol belongs to the lsp-server/project wave.
+    internal (global::Ts.Ls.AutoImport.View? View, Exception? Error) GetPreparedAutoImportView(global::Ts.Ast.SourceFile fromFile)
+    {
+        if (UserPreferences().IncludeCompletionsForModuleExports.IsFalse())
+        {
+            return (null, null);
+        }
+        var registry = host.AutoImportRegistry();
+        if (registry == null)
+        {
+            return (null, null);
+        }
+        if (!registry.IsPreparedForImportingFile(fromFile.FileName(), projectPath, UserPreferences()))
+        {
+            return (null, ErrNeedsAutoImports);
+        }
+
+        var view = global::Ts.Ls.AutoImport.View.NewView(registry, fromFile, projectPath, program, UserPreferences().ModuleSpecifierPreferences());
+        return (view, null);
+    }
+
+    // languageservice.go:109-118 — getCurrentAutoImportView returns an auto-import view for the
+    // given file, based on the current state of the auto-import registry, which may or may not
+    // be up-to-date.
+    internal global::Ts.Ls.AutoImport.View? GetCurrentAutoImportView(global::Ts.Ast.SourceFile fromFile)
+    {
+        var registry = host.AutoImportRegistry();
+        if (registry == null)
+        {
+            return null; // PORT-NOTE: see GetPreparedAutoImportView.
+        }
+        return global::Ts.Ls.AutoImport.View.NewView(
+            registry,
+            fromFile,
+            projectPath,
+            program,
+            UserPreferences().ModuleSpecifierPreferences());
+    }
+
+    // languageservice.go — ErrNeedsAutoImports.
+    internal static readonly Exception ErrNeedsAutoImports = new InvalidOperationException("needs auto-imports");
 
     // languageservice.go:120-123 — used for module specifier completions.
     public bool DirectoryExists(string path)

@@ -102,9 +102,11 @@ public sealed partial class LanguageService
 
         if (data.AutoImport != null)
         {
-            // PORT-NOTE: completions.go:4936-4941 — the auto-import edits arm needs the autoimport
-            // package (Fix.Edits + FormatOptions + converters); data.AutoImport is always null
-            // until that unit lands.
+            // completions.go:4935-4940.
+            var (edits, description) = new global::Ts.Ls.AutoImport.Fix { AutoImportFix = data.AutoImport }
+                .Edits(file, program.Options(), FormatOptions(), Converters(), UserPreferences());
+            item.AdditionalTextEdits = edits;
+            item.Detail = description;
             return item;
         }
 

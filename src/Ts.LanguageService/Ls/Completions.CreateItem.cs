@@ -400,10 +400,70 @@ public sealed partial class LanguageService
             sortedEntries.Add(new CompletionItem { Item = entry, Symbol = sym });
         }
 
-        // PORT-NOTE: completions.go:1940-1998 — the auto-import entry loop (data.autoImports)
-        // lands with the autoimport unit; data.autoImports is always null until then, so the
-        // loop body (keyword shadowing, type-only filtering, createLSPCompletionItem with
-        // module-specifier label details) is deferred with it.
+        // completions.go:1945-1998 — auto-import entries.
+        foreach (var autoImport in data.autoImports ?? [])
+        {
+            // !!! check for type-only in JS
+            // !!! deprecation
+
+            if (data.importStatementCompletion != null)
+            {
+                // !!!
+                continue;
+            }
+
+            // Non-contextual keywords (e.g., `function`, `class`, `const`) cannot be used as identifiers,
+            // so auto-imports with these names should not shadow keyword completions.
+            var token = global::Ts.Scanner.Scanner.StringToToken(autoImport.Fix.Name);
+            if (token != SyntaxKind.Unknown && AstUtilities.IsNonContextualKeyword(token))
+            {
+                continue;
+            }
+
+            if (!autoImport.Export.IsUnresolvedAlias())
+            {
+                if (data.isTypeOnlyLocation)
+                {
+                    if ((autoImport.Export.Flags & SymbolFlags.Type) == 0 && (autoImport.Export.Flags & SymbolFlags.Module) == 0)
+                    {
+                        continue;
+                    }
+                }
+                else if ((autoImport.Export.Flags & SymbolFlags.Value) == 0)
+                {
+                    continue;
+                }
+            }
+
+            var autoImportEntry = CreateLSPCompletionItem(
+                autoImport.Fix.Name,
+                "",
+                "",
+                SortTextAutoImportSuggestionsValue,
+                autoImport.Export.ScriptElementKind,
+                autoImport.Export.ScriptElementKindModifiers,
+                null,
+                null,
+                new global::Ts.LsProto.CompletionItemLabelDetails
+                {
+                    Description = autoImport.Fix.ModuleSpecifier,
+                },
+                file,
+                position,
+                false, /*isMemberCompletion*/
+                false, /*isSnippet*/
+                true,  /*hasAction*/
+                false, /*preselect*/
+                autoImport.Fix.ModuleSpecifier,
+                autoImport.Fix.AutoImportFix,
+                null /*detail*/);
+
+            if (!uniques.TryGetValue(autoImport.Fix.Name, out var isShadowed) || !isShadowed)
+            {
+                uniques[autoImport.Fix.Name] = false;
+                sortedEntries.Add(new CompletionItem { Item = autoImportEntry });
+            }
+        }
 
         var uniqueSet = new HashSet<string>(uniques.Count, global::System.StringComparer.Ordinal);
         foreach (var (uniqueName, _) in uniques) // map-iter: 序无关 (set materialization)

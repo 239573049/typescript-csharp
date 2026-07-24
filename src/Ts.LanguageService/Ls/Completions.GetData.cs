@@ -1,7 +1,7 @@
 // Ported from tsgo internal/ls/completions.go — getCompletionData (completions.go:454-1713),
 // the single closure-structured aggregation function behind getCompletionsAtPosition.
 // PORT-NOTE: the collectAutoImports arm (completions.go:1131-1160) needs the autoimport package
-// (its own unit); until it lands the arm is a structural no-op and `autoImports` stays empty.
+// (its own unit); the collectAutoImports arm consumes View.GetCompletions.
 
 using System.Collections.Generic;
 using Ts.Ast;
@@ -333,7 +333,7 @@ public sealed partial class LanguageService
         var hasUnresolvedAutoImports = false;
         // This also gets mutated in nested-functions after the return
         var symbols = new List<Symbol>();
-        List<object>? autoImports = null;
+        List<global::Ts.Ls.AutoImport.FixAndExport>? autoImports = null;
         // Keys are indexes of `symbols`.
         var symbolToOriginInfoMap = new Dictionary<int, SymbolOriginInfo>();
         var symbolToSortTextMap = new Dictionary<SymbolId, string>();
@@ -845,9 +845,29 @@ public sealed partial class LanguageService
                 return;
             }
 
-            // PORT-NOTE: completions.go:1149-1159 — l.getPreparedAutoImportView(file).GetCompletions(...)
-            // requires the autoimport package (its own porting unit). Until it lands, no auto-import
-            // entries are produced and `autoImports` stays null.
+            // import { type | -> token text should be blank
+            var lowerCaseTokenText = "";
+            var usagePosition = CreateLspPosition(position, file);
+            if (previousToken != null && NodeTests.IsIdentifier(previousToken))
+            {
+                usagePosition = CreateLspPosition(global::Ts.Scanner.Scanner.GetTokenPosOfNode(previousToken, file, false /*includeJSDoc*/), file);
+                if (!(previousToken == contextToken && importStatementCompletion != null))
+                {
+                    lowerCaseTokenText = global::Ts.StringUtil.StringUtil.ToLowerJS(previousToken.Text());
+                }
+            }
+
+            var (view, err) = GetPreparedAutoImportView(file);
+            if (err != null)
+            {
+                throw err; // globalsSearchFail propagation (Go returns the error up the search chain)
+            }
+            if (view == null)
+            {
+                return;
+            }
+
+            autoImports = view.GetCompletions(lowerCaseTokenText, usagePosition, isRightOfOpenTag, isTypeOnlyLocation);
         }
 
         GlobalsSearch TryGetImportCompletionSymbols()

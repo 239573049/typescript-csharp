@@ -28,6 +28,9 @@ public interface Host
     bool DirectoryExists(string path);
 
     bool FileExists(string path);
+
+    // host.go:16 — AutoImportRegistry.
+    global::Ts.Ls.AutoImport.Registry? AutoImportRegistry();
 }
 
 public sealed class ProgramHost : Host
@@ -63,4 +66,9 @@ public sealed class ProgramHost : Host
     public bool DirectoryExists(string path) => FS().DirectoryExists(path);
 
     public bool FileExists(string path) => FS().FileExists(path);
+
+    // PORT-NOTE: the real registry is owned by the project-snapshot layer (project wave);
+    // the direct program host has none, so auto-imports are unavailable (Go host always
+    // supplies one via the project system).
+    public global::Ts.Ls.AutoImport.Registry? AutoImportRegistry() => null;
 }

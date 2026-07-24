@@ -18,9 +18,7 @@ internal interface ICompletionData
 internal sealed class CompletionDataData : ICompletionData
 {
     internal Symbol[]? symbols;
-    // PORT-NOTE: Go []*autoimport.FixAndExport — the autoimport package lands as its own unit;
-    // until then the auto-import arms are deferred and this list stays empty.
-    internal List<object>? autoImports;
+    internal List<global::Ts.Ls.AutoImport.FixAndExport>? autoImports;
     internal CompletionKind completionKind;
     internal bool isInSnippetScope;
     // Note that the presence of this alone doesn't mean that we need a conversion. Only do that if the completion is not an ordinary identifier.

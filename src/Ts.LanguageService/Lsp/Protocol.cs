@@ -511,7 +511,7 @@ public sealed class CompletionItem
     public string? TextEditText { get; set; }
 
     [JsonPropertyName("additionalTextEdits")]
-    public JsonElement? AdditionalTextEdits { get; set; }
+    public TextEdit[]? AdditionalTextEdits { get; set; }
 
     [JsonPropertyName("commitCharacters")]
     public string[]? CommitCharacters { get; set; }
