@@ -26,6 +26,13 @@ public sealed partial class LanguageService
 
     public global::Ts.Compiler.Program GetProgram() => program;
 
+    // languageservice.go:48-50 — UserPreferences returns the active configuration. The
+    // config-sync channel (l.activeConfig, fed by the lsp workspace/didChangeConfiguration
+    // wave) is not wired yet; defaults stand in until then.
+    private global::Ts.Ls.UserPreferences activeConfig = global::Ts.Ls.UserPreferences.NewDefaultUserPreferences();
+
+    public global::Ts.Ls.UserPreferences UserPreferences() => activeConfig;
+
     private global::Ts.Ast.SourceFile GetProgramAndFile(string fileName)
     {
         var file = program.GetSourceFile(fileName);

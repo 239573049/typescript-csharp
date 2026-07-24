@@ -2295,6 +2295,16 @@ public static partial class AstUtilities
         return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Let;
     }
 
+    // utilities.go:2953-2958
+    public static bool NodeHasKind(Node? node, SyntaxKind kind)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+        return node.Kind == kind;
+    }
+
     // utilities.go:2975-2977
     public static bool IsLet(Node node)
     {

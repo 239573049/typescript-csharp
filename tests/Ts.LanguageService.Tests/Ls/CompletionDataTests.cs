@@ -58,6 +58,34 @@ public sealed class CompletionDataTests
     }
 
     [Fact]
+    public void EntriesFromSymbolsBuildsSortedItems()
+    {
+        var source = "interface Shape { area: number; readonly kind: string; }\ndeclare const s: Shape;\ns.;\n";
+        var program = BuildProgram(new Dictionary<string, string> { [FileName] = source });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var file = program.GetSourceFile(FileName)!;
+        var (checker, done) = program.GetTypeCheckerForFile(TestContext.Current.CancellationToken, file);
+        try
+        {
+            var data = (global::Ts.Ls.CompletionDataData)service.GetCompletionData(
+                checker, file, source.IndexOf("s.;", StringComparison.Ordinal) + 2,
+                global::Ts.Ls.UserPreferences.NewDefaultUserPreferences(), false)!;
+            var (uniqueNames, entries) = service.GetCompletionEntriesFromSymbols(
+                checker, data, null /*replacementToken*/, source.IndexOf("s.;", StringComparison.Ordinal) + 2,
+                file, program.Options(), false /*includeSymbols*/);
+            Assert.Contains("area", uniqueNames);
+            Assert.Contains("kind", uniqueNames);
+            var area = entries.Single(e => e.Item!.Label == "area");
+            Assert.Equal(global::Ts.LsProto.CompletionItemKind.Field, area.Item!.Kind);
+            Assert.Equal("11", area.Item.SortText);
+        }
+        finally
+        {
+            done();
+        }
+    }
+
+    [Fact]
     public void PlainCommentReturnsNull()
     {
         var source = "// hello world\nconst x = 1;\n";
