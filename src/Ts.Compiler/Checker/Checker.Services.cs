@@ -677,6 +677,15 @@ public partial class Checker
         return target;
     }
 
+    // printer.go:418-421 — TypeToTypeNode.
+    public Node? TypeToTypeNode(Type t, Node? enclosingDeclaration, global::Ts.NodeBuilder.Flags flags, Dictionary<Node, Symbol>? idToSymbol)
+    {
+        // printer.go:419 getNodeBuilderEx(idToSymbol) — request-scoped builder over a fresh emit
+        // context (the pooled builder cache is deferred; see Checker.TypeToString.cs PORT-NOTE).
+        var nodeBuilder = new NodeBuilder(this, CreateTypeToStringEmitContext(), idToSymbol);
+        return nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, flags, global::Ts.NodeBuilder.InternalFlags.None, null);
+    }
+
     // services.go:461-463 — GetExportSymbolOfSymbol.
     public Symbol GetExportSymbolOfSymbol(Symbol symbol)
     {

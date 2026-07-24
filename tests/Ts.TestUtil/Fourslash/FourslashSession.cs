@@ -104,24 +104,20 @@ public sealed class FourslashSession
     {
         ArgumentNullException.ThrowIfNull(expectedNames);
 
-        CompletionInfo? completions = languageService.GetCompletionsAtPosition(
+        global::Ts.Ls.CompletionList? completions = languageService.GetCompletionsAtPosition(
             activeFileName,
             currentCaretPosition);
         if (completions is null)
         {
-            throw new NotImplementedException("LS: GetCompletionData not landed");
-        }
-        if (completions.IsMemberCompletion && completions.Entries.Length == 0 && expectedNames.Length != 0)
-        {
-            throw new NotImplementedException("LS: getTypeScriptMemberSymbols not landed");
+            throw new InvalidOperationException("Completion request produced no list.");
         }
 
         foreach (string expectedName in expectedNames)
         {
             bool found = false;
-            foreach (CompletionEntry entry in completions.Entries)
+            foreach (global::Ts.Ls.CompletionItem entry in completions.Items ?? [])
             {
-                if (string.Equals(entry.Name, expectedName, StringComparison.Ordinal))
+                if (string.Equals(entry.Item!.Label, expectedName, StringComparison.Ordinal))
                 {
                     found = true;
                     break;

@@ -337,30 +337,15 @@ public sealed class Server
     {
         var (document, service) = GetDocumentAndService(parameters.TextDocument.Uri);
         var offset = PositionToOffset(document.Text, parameters.Position);
-        var completion = service.GetCompletionsAtPosition(document.FileName, offset, cancellationToken);
-        if (completion is null)
+        var completion = service.GetCompletionsAtPosition(
+            document.FileName, offset, null /*triggerCharacter*/, false /*includeSymbols*/, cancellationToken);
+        var lspList = global::Ts.Ls.LanguageService.CompletionListToLSP(completion);
+        if (lspList is null)
         {
             WriteNullResponse(id);
             return;
         }
-
-        var items = new global::Ts.LsProto.CompletionItem[completion.Entries.Length];
-        for (var index = 0; index < completion.Entries.Length; index++)
-        {
-            var entry = completion.Entries[index];
-            items[index] = new global::Ts.LsProto.CompletionItem
-            {
-                Label = entry.Name,
-                Kind = CompletionItemKind(entry.Kind),
-                SortText = entry.SortText,
-                Preselect = entry.IsRecommended,
-            };
-        }
-        WriteResponse(id, new global::Ts.LsProto.CompletionList
-        {
-            IsIncomplete = false,
-            Items = items,
-        }, global::Ts.LsProto.LspJsonContext.Default.CompletionList);
+        WriteResponse(id, lspList, global::Ts.LsProto.LspJsonContext.Default.CompletionList);
     }
 
     private void RebuildProgram()

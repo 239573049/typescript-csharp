@@ -33,10 +33,16 @@ public sealed class UserPreferences
     public Tristate IncludeCompletionsWithObjectLiteralMethodSnippets;
     // If enabled, completions will include snippet-style entries (e.g. class member snippets).
     public Tristate IncludeCompletionsWithSnippetText;
+    // userpreferences.go:80 — EnableJSDocCompletions.
+    public Tristate EnableJSDocCompletions;
+    // userpreferences.go:81 — GenerateReturnInDocTemplate.
+    public Tristate GenerateReturnInDocTemplate;
     // userpreferences.go:15-35 — NewDefaultUserPreferences (completion-relevant subset).
     public static UserPreferences NewDefaultUserPreferences() => new()
     {
         IncludeCompletionsForModuleExports = Tristate.True,
         IncludeCompletionsForImportStatements = Tristate.True,
+        EnableJSDocCompletions = Tristate.True,
+        GenerateReturnInDocTemplate = Tristate.True,
     };
 }

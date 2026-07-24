@@ -718,7 +718,7 @@ public sealed class CompletionList
     public bool IsIncomplete { get; set; }
 
     [JsonPropertyName("itemDefaults")]
-    public JsonElement? ItemDefaults { get; set; }
+    public CompletionItemDefaults? ItemDefaults { get; set; }
 
     [JsonPropertyName("applyKind")]
     public JsonElement? ApplyKind { get; set; }

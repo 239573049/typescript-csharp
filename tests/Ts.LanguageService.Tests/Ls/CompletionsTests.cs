@@ -11,7 +11,7 @@ public sealed class CompletionsTests
     private const string CurrentDirectory = "/src";
     private const string FileName = "/src/main.ts";
 
-    [Fact(Skip = "needs checker API: GetTypeAtLocation, GetApparentType, and GetPropertiesOfType must be public")]
+    [Fact]
     public void GetCompletionsAtPositionReturnsObjectMembersAfterDot()
     {
         const string source = "var x = {a: 1, b: 2}; x.";
@@ -24,16 +24,14 @@ public sealed class CompletionsTests
         var completions = service.GetCompletionsAtPosition(
             FileName,
             source.Length,
-            TestContext.Current.CancellationToken);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(completions);
-        Assert.True(completions.IsMemberCompletion);
-        Assert.False(completions.IsGlobalCompletion);
-        Assert.Contains(completions.Entries, entry => string.Equals(entry.Name, "a", StringComparison.Ordinal));
-        Assert.Contains(completions.Entries, entry => string.Equals(entry.Name, "b", StringComparison.Ordinal));
+        Assert.Contains(completions!.Items!, entry => string.Equals(entry.Item!.Label, "a", StringComparison.Ordinal));
+        Assert.Contains(completions.Items!, entry => string.Equals(entry.Item!.Label, "b", StringComparison.Ordinal));
     }
 
-    [Fact(Skip = "needs checker API: GetSymbolsInScope")]
+    [Fact]
     public void GetCompletionsAtPositionReturnsIdentifiersInScope()
     {
         const string source = "function f() { var foo = 42; return foo + ; }";
@@ -47,12 +45,12 @@ public sealed class CompletionsTests
         var completions = service.GetCompletionsAtPosition(
             FileName,
             position,
-            TestContext.Current.CancellationToken);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(completions);
-        Assert.True(completions.IsGlobalCompletion);
-        Assert.False(completions.IsMemberCompletion);
-        Assert.Contains(completions.Entries, entry => string.Equals(entry.Name, "foo", StringComparison.Ordinal));
+        Assert.Contains(completions!.Items!, entry => string.Equals(entry.Item!.Label, "foo", StringComparison.Ordinal));
+        // Keywords flow in through the keyword filter merge.
+        Assert.Contains(completions.Items!, entry => string.Equals(entry.Item!.Label, "return", StringComparison.Ordinal));
     }
 
     private static global::Ts.Compiler.Program BuildProgram(IReadOnlyDictionary<string, string> files)
