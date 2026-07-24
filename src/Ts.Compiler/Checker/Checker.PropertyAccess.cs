@@ -515,7 +515,7 @@ public partial class Checker
      * @param property property symbol.
      */
     // checker.go:11612
-    internal bool IsPropertyAccessible(Node node, bool isSuper, bool isWrite, Type containingType, Symbol property)
+    public bool IsPropertyAccessible(Node node, bool isSuper, bool isWrite, Type containingType, Symbol property)
     {
         // Short-circuiting for improved performance.
         if (IsTypeAny(containingType))

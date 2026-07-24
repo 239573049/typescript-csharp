@@ -573,7 +573,7 @@ public partial class Checker
     }
 
     // checker/utilities.go:1612-1620 — symbolsToArray.
-    internal static Symbol[] SymbolsToArray(SymbolTable symbols)
+    public static Symbol[] SymbolsToArray(SymbolTable symbols)
     {
         var result = new List<Symbol>();
         foreach (var (id, symbol) in symbols) // map-iter: 序无关 (result is treated as a set; LS consumers sort by display name)

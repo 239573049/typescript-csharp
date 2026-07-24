@@ -2329,7 +2329,7 @@ public partial class Checker
     }
 
     // ast/utilities.go:2906
-    internal static bool IsTypeOnlyImportOrExportDeclaration(Node node) =>
+    public static bool IsTypeOnlyImportOrExportDeclaration(Node node) =>
         IsTypeOnlyImportDeclaration(node) || IsTypeOnlyExportDeclaration(node);
 
     // ast/utilities.go:3163 — isPartOfTypeOnlyImportOrExportDeclaration.

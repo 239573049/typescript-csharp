@@ -251,7 +251,7 @@ public sealed partial class LanguageService
     internal static bool IsTypeKeywordKind(SyntaxKind kind) => TypeKeywords.Contains(kind);
 
     // completions.go:1713-1722 — keywordCompletionData.
-    internal sealed record CompletionDataKeyword(CompletionItem[]? KeywordCompletions, bool IsNewIdentifierLocation);
+    internal sealed record CompletionDataKeyword(CompletionItem[]? KeywordCompletions, bool IsNewIdentifierLocation) : ICompletionData;
 
     internal static CompletionDataKeyword KeywordCompletionData(
         KeywordCompletionFilters keywordFilters,

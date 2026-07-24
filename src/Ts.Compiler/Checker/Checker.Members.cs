@@ -1484,7 +1484,7 @@ public partial class Checker
     }
 
     // checker.go:18751-18757
-    internal Symbol[] GetPropertiesOfType(Type t)
+    public Symbol[] GetPropertiesOfType(Type t)
     {
         t = GetReducedApparentType(t);
         if ((t.flags & TypeFlags.UnionOrIntersection) != 0)
