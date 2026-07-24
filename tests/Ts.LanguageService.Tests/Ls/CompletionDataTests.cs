@@ -113,6 +113,36 @@ public sealed class CompletionDataTests
     }
 
     [Fact]
+    public void StringLiteralCompletionsFromSignatureUnion()
+    {
+        var source = "declare function pick(mode: \"fast\" | \"slow\"): void;\npick(\"\");\n";
+        var program = BuildProgram(new Dictionary<string, string> { [FileName] = source });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var position = source.IndexOf("(\"\")", StringComparison.Ordinal) + 2;
+        var list = service.GetCompletionsAtPosition(
+            FileName, position, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(list);
+        var labels = list!.Items!.Select(e => e.Item!.Label).ToArray();
+        Assert.Contains("fast", labels);
+        Assert.Contains("slow", labels);
+    }
+
+    [Fact]
+    public void StringLiteralCompletionsFromElementAccess()
+    {
+        var source = "interface A { 'prop one': string; two: number; }\ndeclare const a: A;\na[''];\n";
+        var program = BuildProgram(new Dictionary<string, string> { [FileName] = source });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var position = source.IndexOf("['']", StringComparison.Ordinal) + 2;
+        var list = service.GetCompletionsAtPosition(
+            FileName, position, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(list);
+        var labels = list!.Items!.Select(e => e.Item!.Label).ToArray();
+        Assert.Contains("prop one", labels);
+        Assert.Contains("two", labels);
+    }
+
+    [Fact]
     public void PlainCommentReturnsNull()
     {
         var source = "// hello world\nconst x = 1;\n";

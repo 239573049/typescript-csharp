@@ -19,7 +19,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:27302-27311
-    internal Type? GetBaseConstraintOfType(Type t)
+    public Type? GetBaseConstraintOfType(Type t)
     {
         if ((t.flags & (TypeFlags.InstantiableNonPrimitive | TypeFlags.UnionOrIntersection | TypeFlags.TemplateLiteral | TypeFlags.StringMapping | TypeFlags.Index)) != 0 || IsGenericTupleType(t))
         {

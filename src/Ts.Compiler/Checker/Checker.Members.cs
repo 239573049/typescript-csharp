@@ -1613,7 +1613,7 @@ public partial class Checker
 
     // Return the type of the given property in the given type, or nil if no such property exists
     // checker.go:18856-18862
-    internal Type? GetTypeOfPropertyOfType(Type t, string name)
+    public Type? GetTypeOfPropertyOfType(Type t, string name)
     {
         var prop = GetPropertyOfType(t, name);
         if (prop is not null)

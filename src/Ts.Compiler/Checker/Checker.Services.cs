@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Ts.Ast;
+using Ts.Collections;
 
 namespace Ts.Checker;
 
@@ -675,6 +676,131 @@ public partial class Checker
             target = next;
         }
         return target;
+    }
+
+    // services.go:323-342 — runWithInferenceBlockedFromSourceNode.
+    private static T RunWithInferenceBlockedFromSourceNode<T>(Checker c, Node node, Func<T> fn)
+    {
+        var containingCall = AstUtilities.FindAncestor(node, AstUtilities.IsCallLikeExpression);
+        if (containingCall != null)
+        {
+            var toMarkSkip = (Node?)node;
+            while (true)
+            {
+                c.skipDirectInferenceNodes.Add(toMarkSkip!);
+                toMarkSkip = toMarkSkip!.Parent;
+                if (toMarkSkip == null || toMarkSkip == containingCall)
+                {
+                    break;
+                }
+            }
+        }
+
+        c.isInferencePartiallyBlocked = true;
+        var result = RunWithoutResolvedSignatureCaching(c, node, fn);
+        c.isInferencePartiallyBlocked = false;
+
+        c.skipDirectInferenceNodes.Clear();
+        return result;
+    }
+
+    // services.go:344-354 — GetResolvedSignatureForSignatureHelp.
+    public static (Signature? Signature, List<Signature> Candidates) GetResolvedSignatureForSignatureHelp(Node node, int argumentCount, Checker c)
+    {
+        return RunWithoutResolvedSignatureCaching(c, node, () => c.GetResolvedSignatureWorker(node, CheckMode.IsForSignatureHelp, argumentCount));
+    }
+
+    // services.go:356-383 — runWithoutResolvedSignatureCaching.
+    private static T RunWithoutResolvedSignatureCaching<T>(Checker c, Node node, Func<T> fn)
+    {
+        var ancestorNode = AstUtilities.FindAncestor(node, AstUtilities.IsCallLikeOrFunctionLikeExpression);
+        if (ancestorNode != null)
+        {
+            var cachedResolvedSignatures = new Dictionary<SignatureLinks, Signature?>(global::Ts.Core.ReferenceEqualityComparer<SignatureLinks>.Instance);
+            var cachedTypes = new Dictionary<ValueSymbolLinks, Type?>(global::Ts.Core.ReferenceEqualityComparer<ValueSymbolLinks>.Instance);
+            while (ancestorNode != null)
+            {
+                var ancestorSignatureLinks = c.signatureLinks.Get(ancestorNode);
+                cachedResolvedSignatures[ancestorSignatureLinks] = ancestorSignatureLinks.resolvedSignature;
+                ancestorSignatureLinks.resolvedSignature = null;
+                if (AstUtilities.IsFunctionExpressionOrArrowFunction(ancestorNode))
+                {
+                    var symbolLinks = c.valueSymbolLinks.Get(c.GetSymbolOfDeclaration(ancestorNode)!);
+                    var resolvedType = symbolLinks.resolvedType;
+                    cachedTypes[symbolLinks] = resolvedType;
+                    symbolLinks.resolvedType = null;
+                }
+                ancestorNode = AstUtilities.FindAncestor(ancestorNode.Parent, AstUtilities.IsCallLikeOrFunctionLikeExpression);
+            }
+            var result = fn();
+            foreach (var (links, resolvedSignature) in cachedResolvedSignatures) // map-iter: 序无关 (restore writes to disjoint link objects)
+            {
+                links.resolvedSignature = resolvedSignature;
+            }
+            foreach (var (links, resolvedType) in cachedTypes) // map-iter: 序无关 (same reasoning)
+            {
+                links.resolvedType = resolvedType;
+            }
+            return result;
+        }
+        return fn();
+    }
+
+    // services.go:888-898 — getResolvedSignatureWorker.
+    private (Signature? Signature, List<Signature> Candidates) GetResolvedSignatureWorker(Node node, CheckMode checkMode, int argumentCount)
+    {
+        var parsedNode = global::Ts.Printer.EmitContext.NewEmitContext().ParseNode(node);
+        apparentArgumentCount = argumentCount;
+        var candidatesOutArray = new List<Signature>();
+        Signature? res = null;
+        if (parsedNode != null)
+        {
+            res = GetResolvedSignature(parsedNode, candidatesOutArray, checkMode);
+        }
+        apparentArgumentCount = null;
+        return (res, candidatesOutArray);
+    }
+
+    // services.go:900-926 — GetCandidateSignaturesForStringLiteralCompletions.
+    public Signature[] GetCandidateSignaturesForStringLiteralCompletions(Node call, Node editingArgument)
+    {
+        // first, get candidates when inference is blocked from the source node.
+        var candidates = RunWithInferenceBlockedFromSourceNode(this, editingArgument, () =>
+            GetResolvedSignatureWorker(call, CheckMode.Normal, 0).Candidates);
+        var candidatesSet = new HashSet<Signature>(candidates, global::Ts.Core.ReferenceEqualityComparer<Signature>.Instance);
+
+        // next, get candidates where the source node is considered for inference.
+        var otherCandidates = RunWithoutResolvedSignatureCaching(this, editingArgument, () =>
+            GetResolvedSignatureWorker(call, CheckMode.Normal, 0).Candidates);
+
+        foreach (var candidate in otherCandidates)
+        {
+            if (candidatesSet.Contains(candidate))
+            {
+                continue;
+            }
+            candidates.Add(candidate);
+        }
+
+        return candidates.ToArray();
+    }
+
+    // services.go:924-927 — GetTypeAtPosition: returns the type of a parameter at a given index in a signature.
+    public Type GetTypeAtPositionInSignature(Signature s, int pos) => GetTypeAtPosition(s, pos);
+
+    // services.go:929-938 — GetTypeParameterAtPosition.
+    public Type GetTypeParameterAtPosition(Signature s, int pos)
+    {
+        var t = GetTypeAtPosition(s, pos);
+        if (t.IsIndex() && IsThisTypeParameter(t.AsIndexType().target!))
+        {
+            var constraint = GetBaseConstraintOfType(t.AsIndexType().target!);
+            if (constraint != null)
+            {
+                return GetIndexType(constraint);
+            }
+        }
+        return t;
     }
 
     // printer.go:418-421 — TypeToTypeNode.

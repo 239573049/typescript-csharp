@@ -199,10 +199,8 @@ public sealed partial class LanguageService
         return null;
     }
 
-    // string_completions.go:53 — getStringLiteralCompletions.
-    // PORT-NOTE: string_completions.go (2,211L: string-literal contextual completions, module
-    // specifier completions, path completions) is the completions unit's remaining sub-file;
-    // until it lands, string-literal positions produce no dedicated list (Go's nil path).
+    // string_completions.go:53-89 — getStringLiteralCompletions (type-side half live in
+    // Completions.StringLiterals.cs; the module-specifier/path half is PORT-NOTEd there).
     internal CompletionList? GetStringLiteralCompletions(
         SourceFile file,
         int position,
@@ -211,13 +209,7 @@ public sealed partial class LanguageService
         global::Ts.Core.CompilerOptions compilerOptions,
         bool includeSymbols)
     {
-        _ = file;
-        _ = position;
-        _ = previousToken;
-        _ = checker;
-        _ = compilerOptions;
-        _ = includeSymbols;
-        return null;
+        return GetStringLiteralCompletionsWorker(file, position, previousToken, checker, compilerOptions, includeSymbols);
     }
 
     // completions.go:4520-4544 — getLabelCompletionsAtPosition.

@@ -14,7 +14,7 @@ namespace Ts.Printer;
 
 using StringUtil = global::Ts.StringUtil.StringUtil;
 
-internal enum QuoteChar
+public enum QuoteChar
 {
     SingleQuote = '\'',
     DoubleQuote = '"',
@@ -213,7 +213,7 @@ public static partial class PrinterUtilities
     }
 
     // Go: EscapeString (utilities.go:178)
-    internal static string EscapeString(string s, QuoteChar quoteChar)
+    public static string EscapeString(string s, QuoteChar quoteChar)
     {
         var b = new StringBuilder(s.Length + 2);
         EscapeStringWorker(s, quoteChar, GetLiteralTextFlags.NeverAsciiEscape, b);

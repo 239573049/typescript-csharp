@@ -2295,6 +2295,12 @@ public static partial class AstUtilities
         return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Let;
     }
 
+    // utilities.go:2949-2951
+    public static bool IsCallLikeOrFunctionLikeExpression(Node node)
+    {
+        return IsCallLikeExpression(node) || IsFunctionExpressionOrArrowFunction(node);
+    }
+
     // utilities.go:2953-2958
     public static bool NodeHasKind(Node? node, SyntaxKind kind)
     {
