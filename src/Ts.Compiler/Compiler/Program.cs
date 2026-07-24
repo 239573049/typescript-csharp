@@ -298,6 +298,106 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     public ModuleKind GetImpliedNodeFormatForEmit(HasFileName sourceFile) =>
         ModuleFormat.GetImpliedNodeFormatForEmitWorker(sourceFile.FileName(), Mapper.GetCompilerOptionsForFile(sourceFile).GetEmitModuleKind(), GetSourceFileMetaData(sourceFile.Path()));
 
+    // program.go:1553-1558 — IsGlobalTypingsFile.
+    public bool IsGlobalTypingsFile(string fileName)
+    {
+        if (!global::Ts.TsPath.TsPath.IsDeclarationFileName(fileName))
+        {
+            return false;
+        }
+        return global::Ts.TsPath.TsPath.ContainsPath(GetGlobalTypingsCacheLocation(), fileName, comparePathsOptions);
+    }
+
+    // program.go:1936-1946 — ResolvedPackageNames / UnresolvedPackageNames / DeepImportPackageNames.
+    public global::Ts.Collections.Set<string> ResolvedPackageNames() => CollectPackageNames().Resolved;
+
+    public global::Ts.Collections.Set<string> UnresolvedPackageNames() => CollectPackageNames().Unresolved;
+
+    public global::Ts.Collections.Set<string> DeepImportPackageNames() => CollectPackageNames().DeepImportPackages;
+
+    private sealed record PackageNamesInfo(
+        global::Ts.Collections.Set<string> Resolved,
+        global::Ts.Collections.Set<string> Unresolved,
+        global::Ts.Collections.Set<string> DeepImportPackages);
+
+    private readonly LazyValue<PackageNamesInfo> packageNames = new();
+
+    // program.go:1948-2004 — collectPackageNames.
+    private PackageNamesInfo CollectPackageNames()
+    {
+        return packageNames.GetValue(() =>
+        {
+            var names = new PackageNamesInfo(new(), new(), new());
+            foreach (var file in processed.Files)
+            {
+                if (IsSourceFileDefaultLibrary(file.Path()) || IsSourceFileFromExternalLibrary(file) || file.FileName().Contains("/node_modules/", StringComparison.Ordinal))
+                {
+                    // Checking for /node_modules/ is a little imprecise, but ATA treats locally installed typings
+                    // as root files, which would not pass IsSourceFileFromExternalLibrary.
+                    continue;
+                }
+                foreach (var imp in file.Imports() ?? [])
+                {
+                    if (global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(imp.Text()))
+                    {
+                        continue;
+                    }
+                    if (processed.ResolvedModules.TryGetValue(file.Path(), out var resolvedModules))
+                    {
+                        var key = new global::Ts.Module.ModeAwareCacheKey(imp.Text(), GetModeForUsageLocation(file, imp));
+                        if (resolvedModules.TryGetValue(key, out var resolvedModule) && resolvedModule.IsResolved())
+                        {
+                            if (!resolvedModule!.IsExternalLibraryImport)
+                            {
+                                continue;
+                            }
+                            // Priority order for getting package name:
+                            // 1. PackageId.Name (requires both name and version in package.json)
+                            var name = resolvedModule.PackageId.Name;
+                            if (string.IsNullOrEmpty(name))
+                            {
+                                // 2. GetPackageScopeForPath - get name from package.json in the package directory
+                                var packageScope = Resolver.GetPackageScopeForPath(resolvedModule.ResolvedFileName);
+                                if (packageScope != null && packageScope.Exists())
+                                {
+                                    if (packageScope.Contents!.Name.GetValue(out var scopeName))
+                                    {
+                                        name = scopeName;
+                                    }
+                                }
+                            }
+                            if (string.IsNullOrEmpty(name))
+                            {
+                                // 3. GetPackageNameFromDirectory - extract from node_modules path
+                                name = global::Ts.ModuleSpecifiers.ModuleSpecifierUtil.GetPackageNameFromDirectory(resolvedModule.ResolvedFileName);
+                            }
+                            // 4. If all fail, don't add empty string
+                            if (!string.IsNullOrEmpty(name))
+                            {
+                                names.Resolved.Add(name!);
+                                // Detect deep imports: subpath imports in packages without exports.
+                                // These are imports like "lodash/fp" where the package has no exports
+                                // map, so auto-import can only find them via recursive directory search.
+                                var (_, rest) = global::Ts.Module.Module.ParsePackageName(imp.Text());
+                                if (rest.Length != 0)
+                                {
+                                    var scope = Resolver.GetPackageScopeForPath(resolvedModule.ResolvedFileName);
+                                    if (scope != null && scope.Exists() && !scope.Contents!.Exports.IsPresent())
+                                    {
+                                        names.DeepImportPackages.Add(global::Ts.Module.Module.GetPackageNameFromTypesPackageName(name!));
+                                    }
+                                }
+                            }
+                            continue;
+                        }
+                    }
+                    names.Unresolved.Add(imp.Text());
+                }
+            }
+            return names;
+        })!;
+    }
+
     // program.go:1540-1542
     public ResolutionMode GetModeForUsageLocation(HasFileName sourceFile, StringLiteralLikeNode? location) =>
         FileLoader.GetModeForUsageLocation(sourceFile.FileName(), GetSourceFileMetaData(sourceFile.Path()), location!, Mapper.GetCompilerOptionsForFile(sourceFile));
