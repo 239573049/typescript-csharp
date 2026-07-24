@@ -264,4 +264,41 @@ public sealed partial class LanguageService
                 throw new System.InvalidOperationException("Unknown trigger character: " + triggerCharacter);
         }
     }
+
+    // completions.go:2759-2763 — isContextTokenValueLocation.
+    internal static bool IsContextTokenValueLocation(Node? contextToken)
+    {
+        return contextToken != null && ((contextToken.Kind == SyntaxKind.TypeOfKeyword &&
+            (contextToken.Parent!.Kind == SyntaxKind.TypeQuery || NodeTests.IsTypeOfExpression(contextToken.Parent))) ||
+            (contextToken.Kind == SyntaxKind.AssertsKeyword && contextToken.Parent!.Kind == SyntaxKind.TypePredicate));
+    }
+
+    // completions.go:2772-2796 — isContextTokenTypeLocation.
+    internal static bool IsContextTokenTypeLocation(Node? contextToken)
+    {
+        if (contextToken != null)
+        {
+            var parentKind = contextToken.Parent!.Kind;
+            switch (contextToken.Kind)
+            {
+                case SyntaxKind.ColonToken:
+                    return parentKind == SyntaxKind.PropertyDeclaration ||
+                        parentKind == SyntaxKind.PropertySignature ||
+                        parentKind == SyntaxKind.Parameter ||
+                        parentKind == SyntaxKind.VariableDeclaration ||
+                        AstUtilities.IsFunctionLikeKind(parentKind);
+                case SyntaxKind.EqualsToken:
+                    return parentKind == SyntaxKind.TypeAliasDeclaration || parentKind == SyntaxKind.TypeParameter;
+                case SyntaxKind.AsKeyword:
+                    return parentKind == SyntaxKind.AsExpression;
+                case SyntaxKind.LessThanToken:
+                    return parentKind == SyntaxKind.TypeReference || parentKind == SyntaxKind.TypeAssertionExpression;
+                case SyntaxKind.ExtendsKeyword:
+                    return parentKind == SyntaxKind.TypeParameter;
+                case SyntaxKind.SatisfiesKeyword:
+                    return parentKind == SyntaxKind.SatisfiesExpression;
+            }
+        }
+        return false;
+    }
 }
