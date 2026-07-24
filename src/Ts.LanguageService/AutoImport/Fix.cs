@@ -3,11 +3,10 @@
 // tryUseExistingNamespaceImport, tryAddToExistingImport, getExistingImports,
 // shouldUseRequire and the fix comparers).
 //
-// PORT-NOTE(view): the View struct fields fix.go relies on (view.go:21-33) are declared in the
-// partial class at the bottom of this file; the registry/projectKey/conditions/allowedEndings
-// members and NewView land with the registry/view wave, as does GetModuleSpecifier
-// (specifiers.go — it reads registry entrypoints and the specifier cache), which panics until
-// then. locale.FromContext(ctx) collapses to Locale.Default until the locale carrier lands.
+// PORT-NOTE(view): the View struct fields fix.go relies on (view.go:21-33) are split between
+// the partial at the bottom of this file and View.cs (registry/projectKey/conditions/
+// allowedEndings + NewView/Search live there; GetModuleSpecifier lives in Specifiers.cs).
+// locale.FromContext(ctx) collapses to Locale.Default until the locale carrier lands.
 
 using System;
 using System.Collections.Generic;
@@ -1158,20 +1157,6 @@ public sealed partial class View
     internal Tristate shouldUseUriStyleNodeCoreModules;
     internal MultiMap<ModuleID, ExistingImport>? existingImports;
     internal bool? shouldUseRequireForFixes;
-
-    // specifiers.go:9-75 — GetModuleSpecifier. PORT-NOTE: reads registry entrypoints and the
-    // per-file specifier cache; lands with the registry wave.
-    public (string Specifier, global::Ts.ModuleSpecifiers.ResultKind Kind) GetModuleSpecifier(Export export, global::Ts.ModuleSpecifiers.UserPreferences userPreferences)
-    {
-        throw new NotImplementedException("autoimport.View.GetModuleSpecifier: registry wave");
-    }
-
-    // view.go:89-97 — SearchByExportID. PORT-NOTE: searches registry buckets; lands with the
-    // registry/view wave.
-    public Export[] SearchByExportID(ExportID id)
-    {
-        throw new NotImplementedException("autoimport.View.SearchByExportID: registry wave");
-    }
 
     // fix.go:537-603 — GetFixes.
     public Fix[]? GetFixes(Export export, bool forJSX, bool isValidTypeOnlyUseSite, global::Ts.LsProto.Position? usagePosition)

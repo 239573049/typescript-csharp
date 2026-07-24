@@ -408,3 +408,148 @@ public sealed class NodeModulePathParts
     public int PackageRootIndex;
     public int FileNameIndex;
 }
+
+public static partial class ModuleSpecifierUtil
+{
+    // util.go:400-501 — ProcessEntrypointEnding.
+    public static string ProcessEntrypointEnding(
+        global::Ts.Module.ResolvedEntrypoint entrypoint,
+        UserPreferences prefs,
+        ModuleSpecifierGenerationHost host,
+        CompilerOptions options,
+        SourceFileForSpecifierGeneration importingSourceFile,
+        ModuleSpecifierEnding[]? allowedEndings)
+    {
+        var specifier = entrypoint.ModuleSpecifier;
+        if (entrypoint.Ending == global::Ts.Module.Ending.Fixed)
+        {
+            return specifier;
+        }
+
+        if (allowedEndings == null || allowedEndings.Length == 0)
+        {
+            allowedEndings = Specifiers.GetAllowedEndingsInPreferredOrder(
+                prefs,
+                host,
+                options,
+                importingSourceFile,
+                "",
+                host.GetDefaultResolutionModeForFile(importingSourceFile));
+        }
+
+        var preferredEnding = allowedEndings[0];
+
+        // Handle declaration file extensions
+        var dtsExtension = TsPathApi.GetDeclarationFileExtension(specifier);
+        if (dtsExtension.Length != 0)
+        {
+            switch (preferredEnding)
+            {
+                case ModuleSpecifierEnding.TsExtension:
+                case ModuleSpecifierEnding.JsExtension:
+                {
+                    // Map .d.ts -> .js, .d.mts -> .mjs, .d.cts -> .cjs
+                    var jsExtension = GetJSExtensionForDeclarationFileExtension(dtsExtension);
+                    return TsPathApi.ChangeAnyExtension(specifier, jsExtension, [dtsExtension], false);
+                }
+                case ModuleSpecifierEnding.Minimal:
+                case ModuleSpecifierEnding.Index:
+                {
+                    if (entrypoint.Ending == global::Ts.Module.Ending.Changeable)
+                    {
+                        // .d.mts/.d.cts must keep an extension; rewrite to .mjs/.cjs instead of dropping
+                        if (dtsExtension == TsPathApi.ExtensionDts)
+                        {
+                            specifier = TsPathApi.RemoveExtension(specifier, dtsExtension);
+                            if (preferredEnding == ModuleSpecifierEnding.Minimal)
+                            {
+                                specifier = TrimSuffix(specifier, "/index");
+                            }
+                            return specifier;
+                        }
+                        var jsExt = GetJSExtensionForDeclarationFileExtension(dtsExtension);
+                        return TsPathApi.ChangeAnyExtension(specifier, jsExt, [dtsExtension], false);
+                    }
+                    // EndingExtensionChangeable - can only change extension, not remove it
+                    var jsExtension2 = GetJSExtensionForDeclarationFileExtension(dtsExtension);
+                    return TsPathApi.ChangeAnyExtension(specifier, jsExtension2, [dtsExtension], false);
+                }
+            }
+            return specifier;
+        }
+
+        // Handle .ts/.tsx/.mts/.cts extensions
+        if (TsPathApi.FileExtensionIsOneOf(specifier, [TsPathApi.ExtensionTs, TsPathApi.ExtensionTsx, TsPathApi.ExtensionMts, TsPathApi.ExtensionCts]))
+        {
+            switch (preferredEnding)
+            {
+                case ModuleSpecifierEnding.TsExtension:
+                    return specifier;
+                case ModuleSpecifierEnding.JsExtension:
+                {
+                    var jsExtension = global::Ts.Module.Module.TryGetJSExtensionForFile(specifier, options);
+                    if (jsExtension.Length != 0)
+                    {
+                        return TsPathApi.RemoveFileExtension(specifier) + jsExtension;
+                    }
+                    return specifier;
+                }
+                case ModuleSpecifierEnding.Minimal:
+                case ModuleSpecifierEnding.Index:
+                {
+                    if (entrypoint.Ending == global::Ts.Module.Ending.Changeable)
+                    {
+                        specifier = TsPathApi.RemoveFileExtension(specifier);
+                        if (preferredEnding == ModuleSpecifierEnding.Minimal)
+                        {
+                            specifier = TrimSuffix(specifier, "/index");
+                        }
+                        return specifier;
+                    }
+                    // EndingExtensionChangeable - can only change extension, not remove it
+                    var jsExtension = global::Ts.Module.Module.TryGetJSExtensionForFile(specifier, options);
+                    if (jsExtension.Length != 0)
+                    {
+                        return TsPathApi.RemoveFileExtension(specifier) + jsExtension;
+                    }
+                    return specifier;
+                }
+            }
+            return specifier;
+        }
+
+        // Handle .js/.jsx/.mjs/.cjs extensions
+        if (TsPathApi.FileExtensionIsOneOf(specifier, [TsPathApi.ExtensionJs, TsPathApi.ExtensionJsx, TsPathApi.ExtensionMjs, TsPathApi.ExtensionCjs]))
+        {
+            switch (preferredEnding)
+            {
+                case ModuleSpecifierEnding.TsExtension:
+                case ModuleSpecifierEnding.JsExtension:
+                    return specifier;
+                case ModuleSpecifierEnding.Minimal:
+                case ModuleSpecifierEnding.Index:
+                    if (entrypoint.Ending == global::Ts.Module.Ending.Changeable)
+                    {
+                        specifier = TsPathApi.RemoveFileExtension(specifier);
+                        if (preferredEnding == ModuleSpecifierEnding.Minimal)
+                        {
+                            specifier = TrimSuffix(specifier, "/index");
+                        }
+                        return specifier;
+                    }
+                    // EndingExtensionChangeable - keep the extension
+                    return specifier;
+            }
+            return specifier;
+        }
+
+        // For other extensions (like .json), return as-is
+        return specifier;
+    }
+
+    // strings.TrimSuffix.
+    private static string TrimSuffix(string s, string suffix)
+    {
+        return s.EndsWith(suffix, StringComparison.Ordinal) ? s[..^suffix.Length] : s;
+    }
+}

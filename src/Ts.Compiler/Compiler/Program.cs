@@ -298,6 +298,13 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     public ModuleKind GetImpliedNodeFormatForEmit(HasFileName sourceFile) =>
         ModuleFormat.GetImpliedNodeFormatForEmitWorker(sourceFile.FileName(), Mapper.GetCompilerOptionsForFile(sourceFile).GetEmitModuleKind(), GetSourceFileMetaData(sourceFile.Path()));
 
+    // program.go:92 — usesUriStyleNodeCoreModules (declared but never assigned upstream;
+    // stays Unknown, mirrored faithfully).
+    private readonly Tristate usesUriStyleNodeCoreModules = Tristate.Unknown;
+
+    // program.go:224-226 — UsesUriStyleNodeCoreModules.
+    public Tristate UsesUriStyleNodeCoreModules() => usesUriStyleNodeCoreModules;
+
     // program.go — GetResolvedProjectReferences (delegates to the project-reference mapper).
     public global::Ts.TsOptions.ParsedCommandLine[]? GetResolvedProjectReferences() => Mapper.GetResolvedProjectReferences();
 

@@ -1875,4 +1875,25 @@ internal static class LsDeps
         }
         return "_" + resString;
     }
+
+    // lsutil/utilities.go:78-90 — ShouldUseUriStyleNodeCoreModules.
+    internal static global::Ts.Core.Tristate ShouldUseUriStyleNodeCoreModules(global::Ts.Ast.SourceFile file, global::Ts.Compiler.Program program)
+    {
+        foreach (var node in file.Imports() ?? [])
+        {
+            if (global::Ts.Core.Core.NodeCoreModules.Value.Contains(node.Text()) && !global::Ts.Core.Core.ExclusivelyPrefixedNodeCoreModules.Contains(node.Text()))
+            {
+                if (node.Text().StartsWith("node:", StringComparison.Ordinal))
+                {
+                    return global::Ts.Core.Tristate.True;
+                }
+                else
+                {
+                    return global::Ts.Core.Tristate.False;
+                }
+            }
+        }
+
+        return program.UsesUriStyleNodeCoreModules();
+    }
 }
