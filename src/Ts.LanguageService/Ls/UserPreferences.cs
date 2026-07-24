@@ -36,6 +36,65 @@ public sealed class UserPreferences
     // userpreferences.go:89 — ImportModuleSpecifierEnding: determines whether we import
     // `foo/index.ts` as "foo", "foo/index", or "foo/index.js".
     public global::Ts.ModuleSpecifiers.ImportModuleSpecifierEndingPreference ImportModuleSpecifierEnding;
+    // userpreferences.go:85 — ImportModuleSpecifierPreference.
+    public global::Ts.ModuleSpecifiers.ImportModuleSpecifierPreference ImportModuleSpecifierPreference;
+    // userpreferences.go:88 — AutoImportSpecifierExcludeRegexes.
+    public string[]? AutoImportSpecifierExcludeRegexes;
+    // userpreferences.go:89 — AutoImportFileExcludePatterns.
+    public string[]? AutoImportFileExcludePatterns;
+    // userpreferences.go:90 — AutoImportEntrypointDirectorySearch.
+    public Tristate AutoImportEntrypointDirectorySearch;
+    // userpreferences.go:91 — PreferTypeOnlyAutoImports.
+    public Tristate PreferTypeOnlyAutoImports;
+
+    // ------- OrganizeImports (userpreferences.go:93-141) -------
+
+    // Indicates which deterministic preset should be used to sort imports.
+    // "auto" detects the existing ordinal case sensitivity where possible.
+    public OrganizeImportsSort OrganizeImportsSort; // !!!
+    // Indicates whether imports should be organized in a case-insensitive manner.
+    //
+    // Default: TSUnknown ("auto" in strada), will perform detection
+    public Tristate OrganizeImportsIgnoreCase; // !!!
+    // Indicates whether imports should be organized via an "ordinal" (binary) comparison using the numeric value of their
+    // code points, or via "unicode" natural sorting. This implementation is locale-agnostic and approximates the practical
+    // import-sorting behavior rather than the full Unicode Collation Algorithm.
+    //
+    // Default: Ordinal
+    public OrganizeImportsCollation OrganizeImportsCollation; // !!!
+    // Indicates the locale to use for "unicode" collation in legacy clients. This is accepted for compatibility, but
+    // currently ignored because organize-import sorting is deterministic and locale-agnostic.
+    //
+    // This preference is ignored if organizeImportsCollation is not `unicode`.
+    //
+    // Default: `"en"`
+    public string OrganizeImportsLocale = ""; // !!!
+    // Indicates whether numeric collation should be used for digit sequences in strings. When `true`, will collate
+    // strings such that `a1z < a2z < a100z`. When `false`, will collate strings such that `a1z < a100z < a2z`.
+    //
+    // This preference is ignored if organizeImportsCollation is not `unicode`.
+    //
+    // Default: `false`
+    public Tristate OrganizeImportsNumericCollation; // !!!
+    // Indicates whether accents and other diacritic marks are considered unequal for the purpose of sorting.
+    //
+    // This preference is ignored if organizeImportsCollation is not `unicode`.
+    //
+    // Default: `true`
+    public Tristate OrganizeImportsAccentCollation; // !!!
+    // Indicates whether upper case or lower case should sort first.
+    //
+    // This permission is ignored if:
+    //	- organizeImportsCollation is not `unicode`
+    //	- organizeImportsIgnoreCase is `true`
+    //	- organizeImportsIgnoreCase is `auto` and the auto-detected case sensitivity is case-insensitive.
+    //
+    // Default: `false`
+    public OrganizeImportsCaseFirst OrganizeImportsCaseFirst; // !!!
+    // Indicates where named type-only imports should sort. "inline" sorts named imports without regard to if the import is type-only.
+    //
+    // Default: `auto`, which defaults to `last`
+    public OrganizeImportsTypeOrder OrganizeImportsTypeOrder; // !!!
     // userpreferences.go:80 — EnableJSDocCompletions.
     public Tristate EnableJSDocCompletions;
     // userpreferences.go:81 — GenerateReturnInDocTemplate.
@@ -48,4 +107,38 @@ public sealed class UserPreferences
         EnableJSDocCompletions = Tristate.True,
         GenerateReturnInDocTemplate = Tristate.True,
     };
+}
+
+// userpreferences.go:252-260 — OrganizeImportsSort.
+public enum OrganizeImportsSort
+{
+    Auto = 0,
+    Ordinal,
+    OrdinalIgnoreCase,
+    Natural,
+    NaturalIgnoreCase,
+}
+
+// userpreferences.go:262-267 — OrganizeImportsCollation (Go bool type: Ordinal=false, Unicode=true).
+public enum OrganizeImportsCollation : byte
+{
+    Ordinal = 0,
+    Unicode = 1,
+}
+
+// userpreferences.go:269-275 — OrganizeImportsCaseFirst.
+public enum OrganizeImportsCaseFirst
+{
+    False = 0,
+    Lower = 1,
+    Upper = 2,
+}
+
+// userpreferences.go:277-283 — OrganizeImportsTypeOrder.
+public enum OrganizeImportsTypeOrder
+{
+    Auto = 0,
+    Last = 1,
+    Inline = 2,
+    First = 3,
 }

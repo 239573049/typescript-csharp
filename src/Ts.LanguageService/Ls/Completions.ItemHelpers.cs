@@ -779,7 +779,7 @@ public sealed partial class LanguageService
         bool hasAction,
         bool preselect,
         string source,
-        object? autoImportFix,
+        global::Ts.LsProto.AutoImportFix? autoImportFix,
         string? detail)
     {
         var kind = GetCompletionsSymbolKind(elementKind);

@@ -629,10 +629,81 @@ public sealed class CompletionItemData
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
-    // lsp_generated.go:8799 AutoImportFix — typed with the autoimport wave (its enums
-    // AutoImportFixKind/ImportKind/AddAsTypeOnly belong to that unit); always null until then.
-    [JsonIgnore]
-    public object? AutoImport { get; set; }
+    // Auto-import data for this completion item.
+    [JsonPropertyName("autoImport")]
+    public AutoImportFix? AutoImport { get; set; }
+}
+
+// lsp_generated.go:8799-8819 — AutoImportFix.
+public sealed class AutoImportFix
+{
+    [JsonPropertyName("kind")]
+    public AutoImportFixKind Kind { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("importKind")]
+    public ImportKind ImportKind { get; set; }
+
+    [JsonPropertyName("useRequire")]
+    public bool UseRequire { get; set; }
+
+    [JsonPropertyName("addAsTypeOnly")]
+    public AddAsTypeOnly AddAsTypeOnly { get; set; }
+
+    // The module specifier for this auto-import.
+    [JsonPropertyName("moduleSpecifier")]
+    public string ModuleSpecifier { get; set; } = "";
+
+    // Index of the import to modify when adding to an existing import declaration.
+    [JsonPropertyName("importIndex")]
+    public int ImportIndex { get; set; }
+
+    [JsonPropertyName("usagePosition")]
+    public Position? UsagePosition { get; set; }
+
+    [JsonPropertyName("namespacePrefix")]
+    public string NamespacePrefix { get; set; } = "";
+}
+
+// lsp_generated.go:10487-10500 — AutoImportFixKind.
+public enum AutoImportFixKind
+{
+    // Augment an existing namespace import.
+    UseNamespace = 0,
+    // Add a JSDoc-only type import.
+    JsdocTypeImport = 1,
+    // Insert into an existing import declaration.
+    AddToExisting = 2,
+    // Create a fresh import statement.
+    AddNew = 3,
+    // Promote a type-only import when necessary.
+    PromoteTypeOnly = 4,
+}
+
+// lsp_generated.go:10514-10526 — ImportKind.
+public enum ImportKind
+{
+    // Adds a named import.
+    Named = 0,
+    // Adds a default import.
+    Default = 1,
+    // Adds a namespace import.
+    Namespace = 2,
+    // Adds a CommonJS import assignment.
+    CommonJS = 3,
+}
+
+// lsp_generated.go:10539-10548 — AddAsTypeOnly.
+public enum AddAsTypeOnly
+{
+    // Import may be marked type-only if needed.
+    Allowed = 1,
+    // Import must be marked type-only.
+    Required = 2,
+    // Import cannot be marked type-only.
+    NotAllowed = 4,
 }
 
 // lsp_generated.go: CompletionItemDefaults — in many cases the items of an actual completion
