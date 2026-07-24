@@ -162,58 +162,7 @@ public sealed partial class LanguageService
             kind == global::Ts.Ast.SyntaxKind.TypeKeyword ||
             kind == global::Ts.Ast.SyntaxKind.NamespaceKeyword ||
             kind == global::Ts.Ast.SyntaxKind.AbstractKeyword ||
-            (IsTypeKeyword(kind) && kind != global::Ts.Ast.SyntaxKind.UndefinedKeyword);
-    }
-
-    private static bool IsFunctionLikeBodyKeyword(global::Ts.Ast.SyntaxKind kind)
-    {
-        return kind == global::Ts.Ast.SyntaxKind.AsyncKeyword ||
-            kind == global::Ts.Ast.SyntaxKind.AwaitKeyword ||
-            kind == global::Ts.Ast.SyntaxKind.UsingKeyword ||
-            kind == global::Ts.Ast.SyntaxKind.AsKeyword ||
-            kind == global::Ts.Ast.SyntaxKind.SatisfiesKeyword ||
-            kind == global::Ts.Ast.SyntaxKind.TypeKeyword ||
-            (kind < global::Ts.Ast.SyntaxKind.FirstContextualKeyword && !IsClassMemberCompletionKeyword(kind));
-    }
-
-    private static bool IsClassMemberCompletionKeyword(global::Ts.Ast.SyntaxKind kind)
-    {
-        return kind is
-                global::Ts.Ast.SyntaxKind.AbstractKeyword or
-                global::Ts.Ast.SyntaxKind.AccessorKeyword or
-                global::Ts.Ast.SyntaxKind.ConstructorKeyword or
-                global::Ts.Ast.SyntaxKind.GetKeyword or
-                global::Ts.Ast.SyntaxKind.SetKeyword or
-                global::Ts.Ast.SyntaxKind.AsyncKeyword or
-                global::Ts.Ast.SyntaxKind.DeclareKeyword or
-                global::Ts.Ast.SyntaxKind.OverrideKeyword ||
-            global::Ts.Ast.AstUtilities.IsClassMemberModifier(kind);
-    }
-
-    // utilities.go:typeKeywords
-    private static bool IsTypeKeyword(global::Ts.Ast.SyntaxKind kind)
-    {
-        return kind is
-            global::Ts.Ast.SyntaxKind.AnyKeyword or
-            global::Ts.Ast.SyntaxKind.AssertsKeyword or
-            global::Ts.Ast.SyntaxKind.BigIntKeyword or
-            global::Ts.Ast.SyntaxKind.BooleanKeyword or
-            global::Ts.Ast.SyntaxKind.FalseKeyword or
-            global::Ts.Ast.SyntaxKind.InferKeyword or
-            global::Ts.Ast.SyntaxKind.KeyOfKeyword or
-            global::Ts.Ast.SyntaxKind.NeverKeyword or
-            global::Ts.Ast.SyntaxKind.NullKeyword or
-            global::Ts.Ast.SyntaxKind.NumberKeyword or
-            global::Ts.Ast.SyntaxKind.ObjectKeyword or
-            global::Ts.Ast.SyntaxKind.ReadonlyKeyword or
-            global::Ts.Ast.SyntaxKind.StringKeyword or
-            global::Ts.Ast.SyntaxKind.SymbolKeyword or
-            global::Ts.Ast.SyntaxKind.TypeOfKeyword or
-            global::Ts.Ast.SyntaxKind.TrueKeyword or
-            global::Ts.Ast.SyntaxKind.VoidKeyword or
-            global::Ts.Ast.SyntaxKind.UndefinedKeyword or
-            global::Ts.Ast.SyntaxKind.UniqueKeyword or
-            global::Ts.Ast.SyntaxKind.UnknownKeyword;
+            (IsTypeKeywordKind(kind) && kind != global::Ts.Ast.SyntaxKind.UndefinedKeyword);
     }
 
     private static void DeduplicateEntries(List<CompletionEntry> entries)
