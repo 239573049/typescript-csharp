@@ -181,6 +181,20 @@ public sealed class CompletionDataTests
     }
 
     [Fact]
+    public void ResolveCompletionItemFillsSymbolDetail()
+    {
+        var source = "interface Shape { area: number; }\ndeclare const s: Shape;\ns.;\n";
+        var program = BuildProgram(new Dictionary<string, string> { [FileName] = source });
+        var service = global::Ts.Ls.LanguageService.NewLanguageService(program);
+        var position = source.IndexOf("s.;", StringComparison.Ordinal) + 2;
+        var list = service.GetCompletionsAtPosition(
+            FileName, position, cancellationToken: TestContext.Current.CancellationToken);
+        var area = list!.Items!.Single(e => e.Item!.Label == "area").Item!;
+        var resolved = service.ResolveCompletionItem(area, area.Data, TestContext.Current.CancellationToken);
+        Assert.Equal("(property) Shape.area: number", resolved.Detail);
+    }
+
+    [Fact]
     public void PlainCommentReturnsNull()
     {
         var source = "// hello world\nconst x = 1;\n";
