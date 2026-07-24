@@ -554,8 +554,7 @@ public sealed partial class NodeBuilder
     *
     * It also calls `setOriginalNode` to setup a `.original` pointer, since you basically *always* want these in the node builder.
      */
-    // nodebuilderimpl.go:1356 — setTextRange (builder variant). PORT-NOTE: the idToSymbol side-table
-    // copy (inlay-hint support) follows the NewIdentifier precedent and is deferred with that wave.
+    // nodebuilderimpl.go:1356 — setTextRange (builder variant), with the idToSymbol side-table copy.
     private Node? SetTextRangeLocal(Node? range, Node? location)
     {
         if (range is null)
@@ -564,8 +563,13 @@ public sealed partial class NodeBuilder
         }
         if (!AstUtilities.NodeIsSynthesized(range) || (range.Flags & NodeFlags.Synthesized) == 0 || ctx!.enclosingFile is null || ctx.enclosingFile != AstUtilities.GetSourceFileOfNode(e.MostOriginal(range)!))
         {
+            var preCloneRange = range;
             range = range.Clone(f)!; // if `range` is synthesized or originates in another file, copy it so it definitely has synthetic positions
             range.Loc = new TextRange(-1, -1);
+            if (idToSymbol.TryGetValue(preCloneRange, out var symbolForRange))
+            {
+                idToSymbol[range] = symbolForRange;
+            }
         }
         if (range == location || location is null)
         {
@@ -771,8 +775,7 @@ public sealed partial class NodeBuilder
         return parameterNode;
     }
 
-    // nodebuilderimpl.go:1690 — parameterToParameterDeclarationName. PORT-NOTE: the idToSymbol
-    // side-table (inlay-hint support) follows the NewIdentifier precedent and is deferred.
+    // nodebuilderimpl.go:1690 — parameterToParameterDeclarationName (idToSymbol side-table live).
     private Node ParameterToParameterDeclarationName(Symbol parameterSymbol, Node? parameterDeclaration)
     {
         if (parameterDeclaration is null || parameterDeclaration.Name() is null)
@@ -787,12 +790,14 @@ public sealed partial class NodeBuilder
             {
                 var cloned = f.DeepCloneNode(name)!;
                 e.SetEmitFlags(cloned, PrinterNs.EmitFlags.NoAsciiEscaping);
+                idToSymbol[cloned] = parameterSymbol;
                 return cloned;
             }
             case SyntaxKind.QualifiedName:
             {
                 var cloned = f.DeepCloneNode(name.AsQualifiedName().Right!)!;
                 e.SetEmitFlags(cloned, PrinterNs.EmitFlags.NoAsciiEscaping);
+                idToSymbol[cloned] = parameterSymbol;
                 return cloned;
             }
             default:

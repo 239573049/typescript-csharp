@@ -148,14 +148,23 @@ public sealed partial class NodeBuilder
     // nodebuilderimpl.go:96 — pc: the syntactic pseudochecker backing the JS declaration-emit reuse paths.
     private readonly global::Ts.PseudoChecker.PseudoChecker pc;
 
-    // nodebuilder.go:279 / nodebuilderimpl.go:119 — NewNodeBuilder(ch, e) fused with newNodeBuilderImpl.
-    // PORT-NOTE: the idToSymbol map is only used by the deferred symbol-chain paths; omitted here.
+    // nodebuilderimpl.go:100 — idToSymbol: identifier-node → symbol side table (hover classified runs,
+    // addClassModifiers, inlay hints). Reference-keyed (Go map[*ast.IdentifierNode]).
+    internal readonly Dictionary<Node, Symbol> idToSymbol;
+
+    // nodebuilder.go:279/283 — NewNodeBuilder / NewNodeBuilderEx fused with newNodeBuilderImpl.
     internal NodeBuilder(Checker ch, global::Ts.Printer.EmitContext e)
+        : this(ch, e, null)
+    {
+    }
+
+    internal NodeBuilder(Checker ch, global::Ts.Printer.EmitContext e, Dictionary<Node, Symbol>? idToSymbol)
     {
         this.ch = ch;
         this.e = e;
         this.f = e.Factory.AsNodeFactory();
         this.pc = global::Ts.PseudoChecker.PseudoChecker.NewPseudoChecker(ch.strictNullChecks, ch.exactOptionalPropertyTypes);
+        this.idToSymbol = idToSymbol ?? new Dictionary<Node, Symbol>(global::Ts.Core.ReferenceEqualityComparer<Node>.Instance);
     }
 
     // nodebuilderimpl.go:106 — EmitContext(). Exposes the builder's emit context so callers (typeToStringEx)
@@ -620,7 +629,7 @@ public sealed partial class NodeBuilder
         return f.NewIndexSignatureDeclaration(modifiers, f.NewNodeList([indexingParameter]), typeNode);
     }
 
-    // nodebuilderimpl.go:3514 — newIdentifier. PORT-NOTE: the idToSymbol side-table (inlay-hint support)
+    // nodebuilderimpl.go:3514 — newIdentifier (idToSymbol side-table live).
     // is part of the deferred full port; this breadth-first identifier carries no symbol association.
     private Node NewIdentifier(string text) => f.NewIdentifier(text);
 
@@ -1477,5 +1486,13 @@ public sealed partial class NodeBuilder
 
     // nodebuilderimpl.go:3514 — newIdentifier. PORT-NOTE: the idToSymbol side-table (inlay-hint support) is
     // part of the deferred full port; this identifier carries no symbol association.
-    private Node NewIdentifier(string text, Symbol? symbol) => f.NewIdentifier(text);
+    private Node NewIdentifier(string text, Symbol? symbol)
+    {
+        var id = f.NewIdentifier(text);
+        if (symbol != null)
+        {
+            idToSymbol[id] = symbol;
+        }
+        return id;
+    }
 }
