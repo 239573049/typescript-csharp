@@ -2317,6 +2317,60 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.JsxOpeningElement || node.Kind == SyntaxKind.JsxSelfClosingElement;
     }
 
+    // utilities.go:3018-3027
+    public static bool HasInitializer(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.EnumMember:
+            case SyntaxKind.ForStatement:
+            case SyntaxKind.ForInStatement:
+            case SyntaxKind.ForOfStatement:
+            case SyntaxKind.JsxAttribute:
+                return node.Initializer() != null;
+            default:
+                return false;
+        }
+    }
+
+    // utilities.go:3038-3050
+    public static Node? GetTypeAnnotationNode(Node node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.TypePredicate:
+            case SyntaxKind.ParenthesizedType:
+            case SyntaxKind.TypeOperator:
+            case SyntaxKind.MappedType:
+            case SyntaxKind.TypeAssertionExpression:
+            case SyntaxKind.AsExpression:
+            case SyntaxKind.SatisfiesExpression:
+            case SyntaxKind.TypeAliasDeclaration:
+            case SyntaxKind.JSTypeAliasDeclaration:
+            case SyntaxKind.NamedTupleMember:
+            case SyntaxKind.OptionalType:
+            case SyntaxKind.RestType:
+            case SyntaxKind.TemplateLiteralTypeSpan:
+            case SyntaxKind.JSDocTypeExpression:
+            case SyntaxKind.JSDocPropertyTag:
+            case SyntaxKind.JSDocNullableType:
+            case SyntaxKind.JSDocNonNullableType:
+            case SyntaxKind.JSDocOptionalType:
+                return node.Type();
+            default:
+                return null;
+        }
+    }
+
     // utilities.go:3075-3077
     public static bool IsTypeKeywordToken(Node node)
     {

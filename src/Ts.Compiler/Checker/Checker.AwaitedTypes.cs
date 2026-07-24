@@ -24,7 +24,7 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:28679
-    internal Type? GetPromisedTypeOfPromise(Type t) => GetPromisedTypeOfPromiseEx(t, null, out _);
+    public Type? GetPromisedTypeOfPromise(Type t) => GetPromisedTypeOfPromiseEx(t, null, out _);
 
     // Gets the "promised type" of a promise.
     // @param type The type of the promise.

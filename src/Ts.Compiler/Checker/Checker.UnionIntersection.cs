@@ -28,7 +28,7 @@ public partial class Checker
     }
 
     // checker.go:25525-25527
-    internal Type GetUnionType(Type[]? types) =>
+    public Type GetUnionType(Type[]? types) =>
         GetUnionTypeEx(types, UnionReduction.Literal, null /*alias*/, null /*origin*/);
 
     // We sort and deduplicate the constituent types based on object identity. If the subtypeReduction

@@ -116,7 +116,7 @@ public partial class Checker
         return result;
     }
     // utilities.go:690 — delegates to the Ex form landed in Checker.PropertyAccess.cs.
-    internal static ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => GetDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/);
+    public static ModifierFlags GetDeclarationModifierFlagsFromSymbol(Symbol s) => GetDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/);
     // getFlowTypeInConstructor: owned by flow.go — real body in Checker.Flow.cs.
     // getTypeOfPropertyInBaseClass (11423) implemented in Checker.Flow.Deps.cs (wave O).
     // getTypeOfInitializer: owned by flow.go — real body in Checker.Flow.cs.

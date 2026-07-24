@@ -152,7 +152,7 @@ public partial class Checker
     }
     // GetRegularTypeOfObjectLiteral is now REAL in Checker.Widening.cs (checker.go:27988).
     // checker.go:27690
-    internal bool TypeHasCallOrConstructSignatures(Type type) =>
+    public bool TypeHasCallOrConstructSignatures(Type type) =>
         (type.flags & TypeFlags.StructuredType) != 0 && (ResolveStructuredTypeMembers(type).signatures?.Length ?? 0) != 0;
     // GetBaseTypeOfEnumLikeType is now REAL in Checker.Widening.cs (checker.go:25378).
     // checker.go:30897

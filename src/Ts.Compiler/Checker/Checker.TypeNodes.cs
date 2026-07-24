@@ -753,7 +753,7 @@ public partial class Checker
     }
 
     // checker.go:23428-23432
-    internal bool IsArrayLikeType(Type t) =>
+    public bool IsArrayLikeType(Type t) =>
         // A type is array-like if it is a reference to the global Array or global ReadonlyArray type,
         // or if it is not the undefined or null type and if it is assignable to ReadonlyArray<any>
         IsArrayType(t) || (t.flags & TypeFlags.Nullable) == 0 && IsTypeAssignableTo(t, anyReadonlyArrayType!);
