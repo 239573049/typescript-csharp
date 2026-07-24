@@ -1994,7 +1994,7 @@ public partial class Checker
 
     // Cross-cluster helpers used by both #10 and #11 (shared; single declaration here).
     // checker.go:14281
-    internal Symbol? GetMergedSymbol(Symbol? symbol)
+    public Symbol? GetMergedSymbol(Symbol? symbol)
     {
         if (symbol != null)
         {
@@ -2083,7 +2083,7 @@ public partial class Checker
     // SymbolToString / SymbolToStringEx are now REAL in Checker.SymbolToString.cs (printer.go:250/262).
 
     // checker.go:2119
-    internal Node? GetTypeOnlyAliasDeclaration(Symbol symbol)
+    public Node? GetTypeOnlyAliasDeclaration(Symbol symbol)
     {
         if ((symbol.Flags & SymbolFlags.Alias) != 0)
         {
@@ -2333,7 +2333,7 @@ public partial class Checker
         IsTypeOnlyImportDeclaration(node) || IsTypeOnlyExportDeclaration(node);
 
     // ast/utilities.go:3163 — isPartOfTypeOnlyImportOrExportDeclaration.
-    internal static bool IsPartOfTypeOnlyImportOrExportDeclaration(Node node) =>
+    public static bool IsPartOfTypeOnlyImportOrExportDeclaration(Node node) =>
         FindAncestor(node, IsTypeOnlyImportOrExportDeclaration) != null;
 
     // checker/utilities.go:1630 — IsExternalModuleSymbol. (Go decodes the first rune; '"' is ASCII, so

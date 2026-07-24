@@ -587,6 +587,16 @@ public partial class Checker
         return result.ToArray();
     }
 
+    // services.go:385-390 — SkipAlias.
+    public Symbol SkipAliasSymbol(Symbol symbol)
+    {
+        if ((symbol.Flags & SymbolFlags.Alias) != 0)
+        {
+            return GetAliasedSymbol(symbol)!;
+        }
+        return symbol;
+    }
+
     // services.go:392-402 — GetRootSymbols.
     public Symbol[] GetRootSymbols(Symbol symbol)
     {

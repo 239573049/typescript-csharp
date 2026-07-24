@@ -1803,4 +1803,76 @@ internal static class LsDeps
             (global::Ts.Scanner.Scanner.GetTokenPosOfNode(node, sourceFile, false) < position && position < node.End ||
                 (global::Ts.Ast.AstUtilities.IsUnterminatedLiteral(node) && position == node.End));
     }
+    // lsutil/utilities.go:115-117 — ModuleSymbolToValidIdentifier.
+    internal static string ModuleSymbolToValidIdentifier(global::Ts.Ast.Symbol moduleSymbol, bool forceCapitalize)
+    {
+        return ModuleSpecifierToValidIdentifier(global::Ts.StringUtil.StringUtil.StripQuotes(moduleSymbol.Name), forceCapitalize);
+    }
+
+    // lsutil/utilities.go:119-153 — ModuleSpecifierToValidIdentifier.
+    internal static string ModuleSpecifierToValidIdentifier(string moduleSpecifier, bool forceCapitalize)
+    {
+        var trimmed = global::Ts.TsPath.TsPath.RemoveFileExtension(moduleSpecifier);
+        if (trimmed.EndsWith("/index", global::System.StringComparison.Ordinal))
+        {
+            trimmed = trimmed[..^"/index".Length];
+        }
+        var baseName = global::Ts.TsPath.TsPath.GetBaseFileName(trimmed);
+        var res = new global::System.Text.StringBuilder();
+        var lastCharWasValid = true;
+        var runes = new global::System.Collections.Generic.List<int>();
+        for (var i = 0; i < baseName.Length;)
+        {
+            if (char.IsHighSurrogate(baseName[i]) && i + 1 < baseName.Length && char.IsLowSurrogate(baseName[i + 1]))
+            {
+                runes.Add(char.ConvertToUtf32(baseName[i], baseName[i + 1]));
+                i += 2;
+            }
+            else
+            {
+                runes.Add(baseName[i]);
+                i += 1;
+            }
+        }
+        if (runes.Count > 0 && global::Ts.Scanner.Scanner.IsIdentifierStart(runes[0]))
+        {
+            if (forceCapitalize)
+            {
+                res.Append(global::Ts.StringUtil.StringUtil.ToUpperJS(char.ConvertFromUtf32(runes[0])));
+            }
+            else
+            {
+                res.Append(char.ConvertFromUtf32(runes[0]));
+            }
+        }
+        else
+        {
+            lastCharWasValid = false;
+        }
+
+        for (var i = 1; i < runes.Count; i++)
+        {
+            var isValid = global::Ts.Scanner.Scanner.IsIdentifierPart(runes[i]);
+            if (isValid)
+            {
+                if (!lastCharWasValid)
+                {
+                    res.Append(global::Ts.StringUtil.StringUtil.ToUpperJS(char.ConvertFromUtf32(runes[i])));
+                }
+                else
+                {
+                    res.Append(char.ConvertFromUtf32(runes[i]));
+                }
+            }
+            lastCharWasValid = isValid;
+        }
+
+        // Need `"_"` to ensure result isn't empty.
+        var resString = res.ToString();
+        if (resString.Length != 0 && !IsNonContextualKeyword(global::Ts.Scanner.Scanner.StringToToken(resString)))
+        {
+            return resString;
+        }
+        return "_" + resString;
+    }
 }
