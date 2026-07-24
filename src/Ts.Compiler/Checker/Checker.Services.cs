@@ -902,4 +902,10 @@ public partial class Checker
     {
         return ResolveExternalModuleName(moduleSpecifier, moduleSpecifier, true /*ignoreErrors*/);
     }
+
+    // exports.go:104-106 — TryFindAmbientModule (public 1-arg wrapper).
+    public Symbol? TryFindAmbientModule(string moduleName)
+    {
+        return TryFindAmbientModule(moduleName, true /* withAugmentations */);
+    }
 }

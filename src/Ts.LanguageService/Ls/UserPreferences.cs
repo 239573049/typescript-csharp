@@ -99,6 +99,29 @@ public sealed class UserPreferences
     public Tristate EnableJSDocCompletions;
     // userpreferences.go:81 — GenerateReturnInDocTemplate.
     public Tristate GenerateReturnInDocTemplate;
+    // userpreferences.go:866-872 — ModuleSpecifierPreferences.
+    public global::Ts.ModuleSpecifiers.UserPreferences ModuleSpecifierPreferences()
+    {
+        return new global::Ts.ModuleSpecifiers.UserPreferences
+        {
+            ImportModuleSpecifierPreference = ImportModuleSpecifierPreference,
+            ImportModuleSpecifierEnding = ImportModuleSpecifierEnding,
+            AutoImportSpecifierExcludeRegexes = AutoImportSpecifierExcludeRegexes,
+        };
+    }
+
+    // userpreferences.go:874-876 — ParsedAutoImportFileExcludePatterns.
+    public global::Ts.Vfs.VfsMatch.SpecMatcher? ParsedAutoImportFileExcludePatterns(bool useCaseSensitiveFileNames)
+    {
+        return global::Ts.Vfs.VfsMatch.VfsMatch.NewSpecMatcher(AutoImportFileExcludePatterns, "", global::Ts.Vfs.VfsMatch.Usage.Exclude, useCaseSensitiveFileNames);
+    }
+
+    // userpreferences.go:878-880 — IsModuleSpecifierExcluded.
+    public bool IsModuleSpecifierExcluded(string moduleSpecifier)
+    {
+        return global::Ts.ModuleSpecifiers.ModuleSpecifierUtil.IsExcludedByRegex(moduleSpecifier, AutoImportSpecifierExcludeRegexes);
+    }
+
     // userpreferences.go:15-35 — NewDefaultUserPreferences (completion-relevant subset).
     public static UserPreferences NewDefaultUserPreferences() => new()
     {

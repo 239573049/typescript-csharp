@@ -25,7 +25,7 @@ public static partial class ModuleSpecifierUtil
     private static readonly Dictionary<(string Pattern, bool CaseInsensitive), Regex?> s_regexCache = new();
 
     // util.go:46 — IsExcludedByRegex.
-    internal static bool IsExcludedByRegex(string moduleSpecifier, string[]? excludes)
+    public static bool IsExcludedByRegex(string moduleSpecifier, string[]? excludes)
     {
         foreach (string pattern in excludes ?? [])
         {

@@ -298,6 +298,9 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     public ModuleKind GetImpliedNodeFormatForEmit(HasFileName sourceFile) =>
         ModuleFormat.GetImpliedNodeFormatForEmitWorker(sourceFile.FileName(), Mapper.GetCompilerOptionsForFile(sourceFile).GetEmitModuleKind(), GetSourceFileMetaData(sourceFile.Path()));
 
+    // program.go — GetResolvedProjectReferences (delegates to the project-reference mapper).
+    public global::Ts.TsOptions.ParsedCommandLine[]? GetResolvedProjectReferences() => Mapper.GetResolvedProjectReferences();
+
     // program.go:1553-1558 — IsGlobalTypingsFile.
     public bool IsGlobalTypingsFile(string fileName)
     {
