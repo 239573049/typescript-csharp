@@ -832,7 +832,7 @@ public partial class Checker
     // utilities.go:1070 — isSuperCall.
     internal static bool IsSuperCall(Node n) => NodeTests.IsCallExpression(n) && n.Expression()!.Kind == SyntaxKind.SuperKeyword;
     // nodebuilderimpl.go:1187 — TryGetModuleSpecifierFromDeclaration.
-    internal static Node? TryGetModuleSpecifierFromDeclaration(Node node)
+    public static Node? TryGetModuleSpecifierFromDeclaration(Node node)
     {
         Node? res = TryGetModuleSpecifierFromDeclarationWorker(node);
         if (res == null || !NodeTests.IsStringLiteral(res))

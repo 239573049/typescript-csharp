@@ -896,4 +896,10 @@ public partial class Checker
             firstSpreadIndex,
             lastSpreadIndex);
     }
+
+    // exports.go:116-118 — ResolveExternalModuleName (public 1-arg wrapper).
+    public Symbol? ResolveExternalModuleName(Node moduleSpecifier)
+    {
+        return ResolveExternalModuleName(moduleSpecifier, moduleSpecifier, true /*ignoreErrors*/);
+    }
 }

@@ -968,6 +968,20 @@ public static partial class AstUtilities
         return "";
     }
 
+    // Go: utilities.go:2743-2750 — IsRequireVariableStatement.
+    public static bool IsRequireVariableStatement(Node node)
+    {
+        if (NodeTests.IsVariableStatement(node))
+        {
+            var declarations = node.AsVariableStatement().DeclarationList!.AsVariableDeclarationList().Declarations!.Nodes;
+            if (declarations.Length > 0)
+            {
+                return global::Ts.Core.CoreUtil.Every(declarations, IsVariableDeclarationInitializedToRequire);
+            }
+        }
+        return false;
+    }
+
     // Of the form: `const x = require("x")` or `const { x } = require("x")` or with `var` or `let`
     // The variable must not be exported and must not have a type annotation, even a jsdoc one.
     // The initializer must be a call to `require` with a string literal or a string literal-like argument.
