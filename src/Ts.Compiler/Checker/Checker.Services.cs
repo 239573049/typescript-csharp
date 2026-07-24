@@ -586,6 +586,97 @@ public partial class Checker
         return result.ToArray();
     }
 
+    // services.go:392-402 — GetRootSymbols.
+    public Symbol[] GetRootSymbols(Symbol symbol)
+    {
+        var roots = GetImmediateRootSymbols(symbol);
+        if (roots is not { Length: > 0 })
+        {
+            return [symbol];
+        }
+        var result = new List<Symbol>();
+        foreach (var root in roots)
+        {
+            result.AddRange(GetRootSymbols(root));
+        }
+        return result.ToArray();
+    }
+
+    // services.go:404-409 — GetMappedTypeSymbolOfProperty.
+    public Symbol? GetMappedTypeSymbolOfProperty(Symbol symbol)
+    {
+        if (valueSymbolLinks.TryGet(symbol) is { } valueLinks)
+        {
+            return valueLinks.containingType?.symbol;
+        }
+        return null;
+    }
+
+    // services.go:411-440 — getImmediateRootSymbols.
+    private Symbol[]? GetImmediateRootSymbols(Symbol symbol)
+    {
+        if ((symbol.CheckFlags & CheckFlags.Synthetic) != 0)
+        {
+            return global::Ts.Core.CoreUtil.MapNonNil(
+                valueSymbolLinks.Get(symbol).containingType!.Types(),
+                t => GetPropertyOfType(t, symbol.Name))!;
+        }
+        if ((symbol.Flags & SymbolFlags.Transient) != 0)
+        {
+            if (spreadLinks.Has(symbol))
+            {
+                var leftSpread = spreadLinks.Get(symbol).leftSpread;
+                var rightSpread = spreadLinks.Get(symbol).rightSpread;
+                if (leftSpread != null)
+                {
+                    return [leftSpread, rightSpread!];
+                }
+            }
+            if (mappedSymbolLinks.Has(symbol))
+            {
+                var syntheticOrigin = mappedSymbolLinks.Get(symbol).syntheticOrigin;
+                if (syntheticOrigin != null)
+                {
+                    return [syntheticOrigin];
+                }
+            }
+            var target = TryGetTarget(symbol);
+            if (target != null)
+            {
+                return [target];
+            }
+        }
+        return null;
+    }
+
+    // services.go:442-459 — tryGetTarget.
+    private Symbol? TryGetTarget(Symbol symbol)
+    {
+        Symbol? target = null;
+        var next = (Symbol?)symbol;
+        while (true)
+        {
+            if (valueSymbolLinks.Has(next!))
+            {
+                next = valueSymbolLinks.Get(next!).target;
+            }
+            else if (exportTypeLinks.Has(next!))
+            {
+                next = exportTypeLinks.Get(next!).target;
+            }
+            else
+            {
+                next = null;
+            }
+            if (next == null)
+            {
+                break;
+            }
+            target = next;
+        }
+        return target;
+    }
+
     // services.go:830-841 — GetExportsAndPropertiesOfModule.
     public Symbol[] GetExportsAndPropertiesOfModule(Symbol moduleSymbol)
     {

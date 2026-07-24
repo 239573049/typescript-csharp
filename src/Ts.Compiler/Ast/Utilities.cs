@@ -2295,6 +2295,18 @@ public static partial class AstUtilities
         return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Let;
     }
 
+    // utilities.go:2975-2977
+    public static bool IsLet(Node node)
+    {
+        return (GetCombinedNodeFlags(node) & NodeFlags.BlockScoped) == NodeFlags.Let;
+    }
+
+    // utilities.go:1217-1219
+    public static bool IsDeprecatedDeclaration(Node declaration)
+    {
+        return IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlags(declaration));
+    }
+
     // utilities.go:1257-1262
     public static bool IsImportMeta(Node node)
     {
