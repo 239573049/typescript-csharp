@@ -358,7 +358,7 @@ internal sealed class Directory : global::Ts.Project.Dirty.Cloneable<Directory>
 }
 
 // registry.go:323-339 — Registry.
-public sealed class Registry
+public sealed partial class Registry
 {
     internal Func<string, global::Ts.TsPath.Path> toPath = null!;
     internal UserPreferences userPreferences = null!;
