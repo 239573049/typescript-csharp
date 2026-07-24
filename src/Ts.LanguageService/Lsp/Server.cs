@@ -821,42 +821,8 @@ public sealed class Server
         return new global::Ts.LsProto.DocumentUri(new Uri(fileName, UriKind.Absolute).AbsoluteUri);
     }
 
-    private static string DocumentUriToFileName(global::Ts.LsProto.DocumentUri uri)
-    {
-        var value = uri.Value;
-        if (value.StartsWith("file://", StringComparison.Ordinal))
-        {
-            if (!Uri.TryCreate(value, UriKind.Absolute, out var parsed))
-            {
-                throw new JsonException("invalid file URI: " + value);
-            }
-            if (!string.IsNullOrEmpty(parsed.Host))
-            {
-                return global::Ts.TsPath.TsPath.NormalizePath("//" + parsed.Host + parsed.AbsolutePath);
-            }
-            return global::Ts.TsPath.TsPath.NormalizePath(parsed.LocalPath);
-        }
-
-        var colon = value.IndexOf(':', StringComparison.Ordinal);
-        if (colon < 0)
-        {
-            throw new JsonException("invalid URI: " + value);
-        }
-        var scheme = value[..colon];
-        var path = value[(colon + 1)..];
-        var authority = "ts-nul-authority";
-        if (path.StartsWith("//", StringComparison.Ordinal))
-        {
-            var slash = path.IndexOf('/', 2);
-            if (slash < 0)
-            {
-                throw new JsonException("invalid URI: " + value);
-            }
-            authority = path[2..slash];
-            path = path[slash..];
-        }
-        return "^/" + scheme + "/" + authority + "/" + path;
-    }
+    private static string DocumentUriToFileName(global::Ts.LsProto.DocumentUri uri) =>
+        global::Ts.LsProto.DocumentUriExtensions.FileName(uri);
 
     private static global::Ts.LsProto.CompletionItemKind CompletionItemKind(string kind)
     {
