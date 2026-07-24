@@ -106,7 +106,7 @@ internal sealed class NodeBuilderContext
     internal bool canIncreaseExpansionDepth;
     internal bool expansionTruncated;
     // nodebuilderimpl.go:68 — typeStack: expansion-cycle stack (only used when maxExpansionDepth >= 0).
-    internal readonly List<Type> typeStack = new();
+    internal readonly List<Type?> typeStack = new(); // Go: []*Type (nil sentinel used by ExpandSymbolForHover)
     // nodebuilderimpl.go:73 — inferTypeParameters: infer-type-parameter scope (conditional-type path).
     internal Type[]? inferTypeParameters;
     // nodebuilderimpl.go:75 — visitedTypes: circular-reference guard for named anonymous types.
