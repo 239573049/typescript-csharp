@@ -1130,9 +1130,49 @@ public sealed partial class NodeBuilder
         return (existing.TypeArguments()?.Length ?? 0) >= ch.GetMinTypeArgumentCount(t.AsTypeReference()!.target!.AsInterfaceType()!.TypeParameters());
     }
 
-    // nodebuilderimpl.go:1123 — lookupTypeParameterNodes.
-    // The WriteTypeParametersInQualifiedName branch (qualified generic names) is deferred, matching
-    // LookupExpressionChainTypeArgumentNodes; the common path returns null after guarding the symbol id.
+    // nodebuilderimpl.go:1023 — getTypeParametersOfClassOrInterface.
+    private Type[] GetTypeParametersOfClassOrInterface(Symbol symbol)
+    {
+        var result = new List<Type>();
+        result.AddRange(ch.GetOuterTypeParametersOfClassOrInterface(symbol) ?? []);
+        result.AddRange(ch.GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol) ?? []);
+        return result.ToArray();
+    }
+
+    // nodebuilderimpl.go:3540 — lookupInstantiatedTypeArgumentNodes.
+    private TypeParameterList? LookupInstantiatedTypeArgumentNodes(Symbol[] chain, int index)
+    {
+        if (ShouldWriteTypeParametersInQualifiedName(chain, index))
+        {
+            var symbol = chain[index];
+            var nextSymbol = chain[index + 1];
+            if ((nextSymbol.CheckFlags & CheckFlags.Instantiated) == 0)
+            {
+                return null;
+            }
+
+            var targetSymbol = symbol;
+            if ((symbol.Flags & SymbolFlags.Alias) != 0)
+            {
+                targetSymbol = ch.ResolveAlias(symbol).Item1 ?? symbol;
+            }
+
+            var typeParams = GetTypeParametersOfClassOrInterface(targetSymbol);
+            var targetMapper = ch.valueSymbolLinks.Get(nextSymbol).mapper;
+            if (targetMapper != null)
+            {
+                typeParams = typeParams.Select(targetMapper.Map).ToArray();
+            }
+            return MapToTypeNodesLocal(typeParams, false /*isBareList*/);
+        }
+        return null;
+    }
+
+    // nodebuilderimpl.go:3583 — shouldWriteTypeParametersInQualifiedName.
+    private bool ShouldWriteTypeParametersInQualifiedName(Symbol[] chain, int index) =>
+        (ctx!.flags & global::Ts.NodeBuilder.Flags.WriteTypeParametersInQualifiedName) != 0 && index < chain.Length - 1;
+
+    // nodebuilderimpl.go:1030 — lookupTypeParameterNodes.
     private TypeParameterList? LookupTypeParameterNodes(Symbol[] chain, int index)
     {
         global::Ts.Core.Debug.Assert(0 <= index && index < chain.Length);
@@ -1146,8 +1186,16 @@ public sealed partial class NodeBuilder
 
         if ((ctx.flags & global::Ts.NodeBuilder.Flags.WriteTypeParametersInQualifiedName) != 0 && index < chain.Length - 1)
         {
-            // DEFERRED: lookupInstantiatedTypeArgumentNodes / typeParametersToTypeParameterDeclarations.
-            throw new NotImplementedException("nodeBuilder.lookupTypeParameterNodes(WriteTypeParametersInQualifiedName)");
+            if (LookupInstantiatedTypeArgumentNodes(chain, index) is { } typeArgumentNodes)
+            {
+                return typeArgumentNodes;
+            }
+            var typeParameterNodes = TypeParametersToTypeParameterDeclarations(symbol);
+            if (typeParameterNodes is { Length: > 0 })
+            {
+                return f.NewNodeList(typeParameterNodes);
+            }
+            return null;
         }
         return null;
     }
@@ -1451,14 +1499,27 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilderimpl.go:3563 — lookupExpressionChainTypeArgumentNodes.
-    // PORT-NOTE: only WriteTypeParametersInQualifiedName (qualified generic names) exercises the body; the
-    // symbolToString error paths do not set that flag, so this returns null (no smuggled type arguments).
     private TypeList? LookupExpressionChainTypeArgumentNodes(Symbol[] chain, int index)
     {
-        if ((ctx!.flags & global::Ts.NodeBuilder.Flags.WriteTypeParametersInQualifiedName) != 0 && index < chain.Length - 1)
+        if (ShouldWriteTypeParametersInQualifiedName(chain, index))
         {
-            // DEFERRED: lookupInstantiatedTypeArgumentNodes / typeParametersToTypeParameterDeclarations.
-            throw new NotImplementedException("nodeBuilder.lookupExpressionChainTypeArgumentNodes");
+            var symbol = chain[index];
+            var symbolId = AstUtilities.GetSymbolId(symbol);
+            if (ctx!.typeParameterSymbolList.Contains(symbolId))
+            {
+                return null;
+            }
+
+            ctx.typeParameterSymbolList.Add(symbolId);
+            if (LookupInstantiatedTypeArgumentNodes(chain, index) is { } typeArgumentNodes)
+            {
+                return typeArgumentNodes;
+            }
+            var typeParameterNodes = TypeParametersToTypeParameterDeclarations(symbol);
+            if (typeParameterNodes is { Length: > 0 })
+            {
+                return f.NewNodeList(typeParameterNodes);
+            }
         }
         return null;
     }
