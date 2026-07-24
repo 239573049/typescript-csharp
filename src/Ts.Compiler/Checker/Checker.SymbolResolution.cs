@@ -2346,7 +2346,7 @@ public partial class Checker
 
     // ast/utilities.go:2488 — implemented by the EmitResolver wave. internal so the EmitResolver
     // class (separate type, faithful to Go's EmitResolver struct) can reach it.
-    internal static Node GetFirstIdentifier(Node node)
+    public static Node GetFirstIdentifier(Node node)
     {
         switch (node.Kind)
         {

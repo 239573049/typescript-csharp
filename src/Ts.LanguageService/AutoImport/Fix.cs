@@ -1166,6 +1166,13 @@ public sealed partial class View
         throw new NotImplementedException("autoimport.View.GetModuleSpecifier: registry wave");
     }
 
+    // view.go:89-97 — SearchByExportID. PORT-NOTE: searches registry buckets; lands with the
+    // registry/view wave.
+    public Export[] SearchByExportID(ExportID id)
+    {
+        throw new NotImplementedException("autoimport.View.SearchByExportID: registry wave");
+    }
+
     // fix.go:537-603 — GetFixes.
     public Fix[]? GetFixes(Export export, bool forJSX, bool isValidTypeOnlyUseSite, global::Ts.LsProto.Position? usagePosition)
     {
