@@ -514,23 +514,175 @@ public sealed partial class LanguageService
         };
     }
 
-    // completions.go:5949-6100 — getExhaustiveCaseSnippets.
-    // PORT-NOTE: the exhaustive-case snippet item needs the autoimport package (ImportAdder /
-    // TypeToAutoImportableTypeNode), the snippet printer (createSnippetPrinter over the printer
-    // package) and FormatOptions — all owned by later units. Until they land, no case-snippet
-    // entry is produced (Go's nil result path).
+    // completions.go:5949-6081 — getExhaustiveCaseSnippets.
     internal global::Ts.LsProto.CompletionItem? GetExhaustiveCaseSnippets(
         Node caseBlock,
         SourceFile file,
         int position,
         global::Ts.Core.CompilerOptions options,
-        TsChecker typeChecker)
+        TsChecker c)
     {
-        _ = caseBlock;
-        _ = file;
-        _ = position;
-        _ = options;
-        _ = typeChecker;
+        var clauses = caseBlock.AsCaseBlock().Clauses!.Nodes;
+        var switchType = c.GetTypeAtLocation(caseBlock.Parent!.Expression()!);
+        if (switchType != null && switchType.IsUnion() && global::Ts.Core.CoreUtil.Every(switchType.Types(), IsLiteral))
+        {
+            // Collect constant values in existing clauses.
+            var tracker = CaseClauseTracker.NewCaseClauseTracker(c, clauses);
+            var target = options.GetEmitScriptTarget();
+            var quotePreference = LsDeps.GetQuotePreference(file, UserPreferences());
+            // Tolerate a nil import adder in untitled files.
+            global::Ts.Ls.AutoImport.ImportAdder? importAdder = null;
+            if (!global::Ts.TsPath.TsPath.IsDynamicFileName(file.FileName()))
+            {
+                var (view, err) = GetPreparedAutoImportView(file);
+                if (err != null)
+                {
+                    throw err;
+                }
+                if (view != null)
+                {
+                    importAdder = global::Ts.Ls.AutoImport.AutoImportApi.NewImportAdder(
+                        GetProgram(),
+                        c,
+                        file,
+                        view,
+                        FormatOptions(),
+                        Converters(),
+                        UserPreferences());
+                }
+            }
+
+            var elements = new List<Node>();
+            var factory = new global::Ts.Ast.NodeFactory(new NodeFactoryHooks());
+            foreach (var t in switchType.Types())
+            {
+                // Enums
+                if (t.IsEnumLiteral())
+                {
+                    Debug.Assert(t.Symbol != null, "An enum member type should have a symbol");
+                    Debug.Assert(t.Symbol!.Parent != null, "An enum member type should have a parent symbol (the enum symbol)");
+                    // Filter existing enums by their values
+                    object? enumValue = null;
+                    if (t.Symbol!.ValueDeclaration != null)
+                    {
+                        enumValue = c.GetConstantValue(t.Symbol!.ValueDeclaration!);
+                    }
+                    if (enumValue != null)
+                    {
+                        if (tracker.HasValue(enumValue))
+                        {
+                            continue;
+                        }
+                        tracker.AddValue(enumValue);
+                    }
+                    var typeNode = global::Ts.Ls.AutoImport.AutoImportApi.TypeToAutoImportableTypeNode(c, importAdder!, t, caseBlock);
+                    if (typeNode == null)
+                    {
+                        return null;
+                    }
+                    var expr = TypeNodeToExpression(typeNode, target, quotePreference, factory);
+                    if (expr == null)
+                    {
+                        return null;
+                    }
+                    elements.Add(expr);
+                }
+                else
+                {
+                    var value = t.AsLiteralType().Value();
+                    if (value != null && !tracker.HasValue(value))
+                    {
+                        switch (value)
+                        {
+                            case global::Ts.JsNum.PseudoBigInt v:
+                            {
+                                Node bigInt;
+                                if (v.Negative)
+                                {
+                                    var abs = v with { Negative = false };
+                                    bigInt = factory.NewPrefixUnaryExpression(SyntaxKind.MinusToken, factory.NewBigIntLiteral(abs.ToString() + "n", TokenFlags.None));
+                                }
+                                else
+                                {
+                                    bigInt = factory.NewBigIntLiteral(v.ToString() + "n", TokenFlags.None);
+                                }
+                                elements.Add(bigInt);
+                                break;
+                            }
+                            case global::Ts.JsNum.Number v:
+                            {
+                                Node number;
+                                if (v < 0)
+                                {
+                                    number = factory.NewPrefixUnaryExpression(SyntaxKind.MinusToken, factory.NewNumericLiteral(v.Abs().ToString(), TokenFlags.None));
+                                }
+                                else
+                                {
+                                    number = factory.NewNumericLiteral(v.ToString(), TokenFlags.None);
+                                }
+                                elements.Add(number);
+                                break;
+                            }
+                            case string v:
+                            {
+                                var literal = factory.NewStringLiteral(v, quotePreference == QuotePreference.Single ? TokenFlags.SingleQuote : TokenFlags.None);
+                                elements.Add(literal);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (elements.Count == 0)
+            {
+                return null;
+            }
+
+            var newClauses = global::Ts.Core.CoreUtil.Map(elements.ToArray(), element =>
+                factory.NewCaseOrDefaultClause(SyntaxKind.CaseClause, element, factory.NewNodeList([])))!;
+            var newLineChar = FormatOptions().NewLineCharacter;
+            var printer = SnippetPrinter.CreateSnippetPrinter(new global::Ts.Printer.PrinterOptions
+            {
+                RemoveComments = true,
+                NewLine = global::Ts.Core.Core.GetNewLineKind(newLineChar),
+            });
+            var formatCtx = global::Ts.Format.FormatContext.WithFormatCodeSettings(FormatOptions(), newLineChar);
+            global::System.Func<Node, string> printNode = node => printer.PrintAndFormatNode(formatCtx, node, file);
+            var insertText = string.Join(newLineChar, global::Ts.Core.CoreUtil.MapIndex(newClauses, (clause, i) =>
+            {
+                if (ClientSupportsItemSnippet())
+                {
+                    return printNode(clause) + "$" + (i + 1);
+                }
+                return printer.PrintUnescapedNode(clause);
+            })!);
+
+            var firstClause = printer.PrintUnescapedNode(newClauses[0]);
+            var name = firstClause + " ...";
+
+            global::Ts.LsProto.TextEdit[]? additionalTextEdits = null;
+            if (importAdder != null)
+            {
+                additionalTextEdits = importAdder.Edits();
+            }
+
+            return new global::Ts.LsProto.CompletionItem
+            {
+                Label = name,
+                Kind = global::Ts.LsProto.CompletionItemKind.Snippet,
+                SortText = SortTextGlobalsOrKeywordsValue,
+                InsertText = insertText,
+                AdditionalTextEdits = additionalTextEdits,
+                InsertTextFormat = ClientSupportsItemSnippet() ? global::Ts.LsProto.InsertTextFormat.Snippet : null,
+                Data = new global::Ts.LsProto.CompletionItemData
+                {
+                    FileName = file.FileName(),
+                    Position = position,
+                    Name = name,
+                    Source = CompletionSource.SwitchCases,
+                },
+            };
+        }
         return null;
     }
 }
