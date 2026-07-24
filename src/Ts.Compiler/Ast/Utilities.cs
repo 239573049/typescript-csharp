@@ -2317,6 +2317,12 @@ public static partial class AstUtilities
         return node.Kind == SyntaxKind.JsxOpeningElement || node.Kind == SyntaxKind.JsxSelfClosingElement;
     }
 
+    // utilities.go:3075-3077
+    public static bool IsTypeKeywordToken(Node node)
+    {
+        return node.Kind == SyntaxKind.TypeKeyword;
+    }
+
     // utilities.go:3055-3057
     public static bool IsObjectTypeDeclaration(Node node)
     {

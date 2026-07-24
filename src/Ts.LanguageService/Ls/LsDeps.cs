@@ -722,6 +722,80 @@ internal static class LsDeps
         return b.ToString();
     }
 
+    // ls/lsutil/children.go:59-83 — GetLastVisitedChild: the last visited (non-reparsed) child.
+    // Go drives a NodeVisitor with a tail-first list scan; a full forward walk recording the last
+    // non-reparsed child is equivalent.
+    internal static global::Ts.Ast.Node? GetLastVisitedChild(global::Ts.Ast.Node node, global::Ts.Ast.SourceFile sourceFile)
+    {
+        global::Ts.Ast.Node? lastChild = null;
+        node.ForEachChild(n =>
+        {
+            if (n != null && (n.Flags & global::Ts.Ast.NodeFlags.Reparsed) == 0)
+            {
+                lastChild = n;
+            }
+            return false;
+        });
+        return lastChild;
+    }
+
+    // ls/lsutil/children.go:10-33 — GetLastChild: replaces last(node.getChildren(sourceFile)).
+    internal static global::Ts.Ast.Node? GetLastChild(global::Ts.Ast.Node node, global::Ts.Ast.SourceFile sourceFile)
+    {
+        var lastChildNode = GetLastVisitedChild(node, sourceFile);
+        if (global::Ts.Ast.AstUtilities.IsJSDocSingleCommentNode(node) && lastChildNode == null)
+        {
+            return null;
+        }
+        var tokenStartPos = lastChildNode != null ? lastChildNode.End : node.Pos;
+        global::Ts.Ast.Node? lastToken = null;
+        var scanner = global::Ts.Scanner.Scanner.GetScannerForSourceFile(sourceFile, tokenStartPos);
+        for (var startPos = tokenStartPos; startPos < node.End;)
+        {
+            var tokenKind = scanner.Token();
+            var tokenFullStart = scanner.TokenFullStart();
+            var tokenEnd = scanner.TokenEnd();
+            lastToken = sourceFile.GetOrCreateToken(tokenKind, tokenFullStart, tokenEnd, node, scanner.TokenFlags());
+            startPos = tokenEnd;
+            scanner.Scan();
+        }
+        return lastToken ?? lastChildNode;
+    }
+
+    // ls/lsutil/children.go:35-57 — GetLastToken.
+    internal static global::Ts.Ast.Node? GetLastToken(global::Ts.Ast.Node? node, global::Ts.Ast.SourceFile sourceFile)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (global::Ts.Ast.NodeTests.IsTokenKind(node.Kind) || global::Ts.Ast.NodeTests.IsIdentifier(node))
+        {
+            return null;
+        }
+
+        AssertHasRealPosition(node);
+
+        var lastChild = GetLastChild(node, sourceFile);
+        if (lastChild == null)
+        {
+            return null;
+        }
+
+        if (lastChild.Kind < global::Ts.Ast.SyntaxKind.FirstNode)
+        {
+            return lastChild;
+        }
+        return GetLastToken(lastChild, sourceFile);
+    }
+
+    // ls/lsutil/utilities.go:155-157 — IsNonContextualKeyword.
+    internal static bool IsNonContextualKeyword(global::Ts.Ast.SyntaxKind token)
+    {
+        return global::Ts.Ast.NodeTests.IsKeywordKind(token) && !global::Ts.Ast.AstUtilities.IsContextualKeyword(token);
+    }
+
     // ls/lsutil/children.go:85 — GetFirstToken.
     internal static global::Ts.Ast.Node? GetFirstToken(global::Ts.Ast.Node node, global::Ts.Ast.SourceFile sourceFile)
     {

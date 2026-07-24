@@ -482,4 +482,11 @@ public sealed partial class LanguageService
 
         return (false, AllCommitCharacters);
     }
+
+    // completions.go:4244-4247 — isTypeKeywordTokenOrIdentifier.
+    internal static bool IsTypeKeywordTokenOrIdentifier(Node node)
+    {
+        return AstUtilities.IsTypeKeywordToken(node) ||
+            (NodeTests.IsIdentifier(node) && global::Ts.Scanner.Scanner.IdentifierToKeywordKind(node.AsIdentifier()) == SyntaxKind.TypeKeyword);
+    }
 }

@@ -27,7 +27,7 @@ internal enum GetLiteralTextFlags
     AllowNumericSeparator = 1 << 3,
 }
 
-internal static partial class PrinterUtilities
+public static partial class PrinterUtilities
 {
     // Go: ast.IsVarLet (internal/ast/utilities.go:1252)
     internal static bool IsVarLet(Node node)

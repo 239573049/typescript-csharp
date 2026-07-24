@@ -21,7 +21,7 @@ internal enum QuoteChar
     Backtick = '`',
 }
 
-internal static partial class PrinterUtilities
+public static partial class PrinterUtilities
 {
     // Go: jsxEscapedCharsMap (utilities.go:36) — map-iter: N/A (lookup only)
     private static readonly Dictionary<int, string> JsxEscapedCharsMap = new()
@@ -469,7 +469,7 @@ internal static partial class PrinterUtilities
     }
 
     // Go: GetLinesBetweenPositions (utilities.go:380)
-    internal static int GetLinesBetweenPositions(SourceFile sourceFile, int pos1, int pos2)
+    public static int GetLinesBetweenPositions(SourceFile sourceFile, int pos1, int pos2)
     {
         if (pos1 == pos2)
         {

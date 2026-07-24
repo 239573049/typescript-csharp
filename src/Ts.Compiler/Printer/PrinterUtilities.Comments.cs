@@ -7,7 +7,7 @@ using System;
 
 using Ts.Ast;
 
-internal static partial class PrinterUtilities
+public static partial class PrinterUtilities
 {
     // utilities.go:651 — IsFileLevelUniqueName.
     internal static bool IsFileLevelUniqueName(SourceFile sourceFile, string name, Func<string, bool>? hasGlobalName)

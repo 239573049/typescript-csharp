@@ -14,7 +14,7 @@ namespace Ts.Printer;
 // emit paths (isJSDocLikeText / IsPinnedComment / IsRecognizedTripleSlashComment / calculateIndent /
 // siblingNodePositionsAreComparable / originalNodesHaveSameParent) and on unique-name generation with a
 // currentSourceFile (IsFileLevelUniqueName). Port them with the rest of utilities.go and remove these.
-internal static partial class PrinterUtilities
+public static partial class PrinterUtilities
 {
     // utilities.go:422 — siblingNodePositionsAreComparable.
     internal static bool SiblingNodePositionsAreComparable(EmitContext emitContext, Node previousNode, Node nextNode)
