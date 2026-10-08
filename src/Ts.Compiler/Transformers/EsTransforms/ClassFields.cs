@@ -2453,8 +2453,8 @@ internal sealed class ClassFieldsTransformer : Transformer
     }
 
     // classfields.go:3422 — classHasClassThisAssignment checks if a class has a static block that is a
-    // class-this assignment.
-    private static bool ClassHasClassThisAssignment(global::Ts.Printer.EmitContext emitContext, Node node)
+    // class-this assignment. (internal: also consumed by ESDecoratorTransformer.InjectClassThisAssignmentIfMissing)
+    internal static bool ClassHasClassThisAssignment(global::Ts.Printer.EmitContext emitContext, Node node)
     {
         foreach (var member in node.Members() ?? [])
         {
@@ -2621,7 +2621,8 @@ internal sealed class ClassFieldsTransformer : Transformer
     }
 
     // classfields.go:3564 — findComputedPropertyNameCacheAssignment.
-    private static BinaryExpression? FindComputedPropertyNameCacheAssignment(global::Ts.Printer.EmitContext emitContext, Node name)
+    // (internal: also consumed by ESDecoratorTransformer.VisitPropertyDeclaration)
+    internal static BinaryExpression? FindComputedPropertyNameCacheAssignment(global::Ts.Printer.EmitContext emitContext, Node name)
     {
         var node = name.Expression()!;
         while (true)
@@ -2642,7 +2643,8 @@ internal sealed class ClassFieldsTransformer : Transformer
     }
 
     // classfields.go:3580 — expandPreOrPostfixIncrementOrDecrementExpression.
-    private static Node ExpandPreOrPostfixIncrementOrDecrementExpression(global::Ts.Printer.NodeFactory factory, global::Ts.Printer.EmitContext emitContext, Node node, Node expression, Node? resultVariable)
+    // (internal: also consumed by ESDecoratorTransformer.VisitPreOrPostfixUnaryExpression)
+    internal static Node ExpandPreOrPostfixIncrementOrDecrementExpression(global::Ts.Printer.NodeFactory factory, global::Ts.Printer.EmitContext emitContext, Node node, Node expression, Node? resultVariable)
     {
         SyntaxKind @operator;
         Node operand;
