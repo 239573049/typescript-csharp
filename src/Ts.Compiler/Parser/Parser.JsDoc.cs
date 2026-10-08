@@ -1893,8 +1893,21 @@ public sealed partial class Parser
                         }
                         break;
                     case SyntaxKind.ExpressionStatement:
-                        // !!! ast-gap: GetAssignmentDeclarationKind not yet ported (see @type case above).
-                        // JS assignment-declaration @satisfies reparse deferred.
+                        // reparser.go:440-451 — JS assignment-declaration @satisfies reparse: the
+                        // synthesized satisfies-expression wraps the BinaryExpression's right-hand side.
+                        if (parent.Expression()!.Kind == SyntaxKind.BinaryExpression)
+                        {
+                            var bin = parent.Expression()!.AsBinaryExpression();
+                            var kind = AstUtilities.GetAssignmentDeclarationKind(bin);
+                            if (kind != JSDeclarationKind.None && tag.TypeExpression() != null)
+                            {
+                                bin.Right = MakeNewCast(
+                                    AddDeepCloneReparse(tag.TypeExpression()!.Type()),
+                                    bin.Right,
+                                    false /*isAssertion*/);
+                                FinishMutatedNode(bin);
+                            }
+                        }
                         break;
                 }
                 break;

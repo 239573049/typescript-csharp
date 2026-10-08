@@ -139,8 +139,17 @@ internal static class References
         {
             return null;
         }
-        // PORT-NOTE / DEVIATION: opts.Jsx path (isFileModuleFromUsingJSXTag) not yet ported
-        // (ast helper missing). JSX-tag-only module detection is deferred.
+        // parseoptions.go:73-77 — opts.JSX arm. isFileModuleFromUsingJSXTag lives in
+        // Ts.Compiler.ModuleFormat alongside its parseoptions.go siblings. (Former DEVIATION
+        // note here recorded the deferral of this path; the JSX→module chain is now wired.)
+        if (opts.Jsx)
+        {
+            Node? jsxNode = global::Ts.Compiler.ModuleFormat.IsFileModuleFromUsingJSXTag(file);
+            if (jsxNode != null)
+            {
+                return jsxNode;
+            }
+        }
         if (opts.Force)
         {
             return file.AsNode();
@@ -168,10 +177,13 @@ internal static class References
         (NodeTests.IsImportEqualsDeclaration(node) && NodeTests.IsExternalModuleReference(node.AsImportEqualsDeclaration().ModuleReference!)) ||
         NodeTests.IsImportDeclaration(node) || NodeTests.IsExportAssignment(node) || NodeTests.IsExportDeclaration(node);
 
+    // ast/parseoptions.go:101-106 — getImportMetaIfNecessary.
     private static Node? GetImportMetaIfNecessary(SourceFile sourceFile)
     {
-        // PORT-NOTE / DEVIATION: ast.IsImportMeta not yet ported; import.meta module
-        // detection deferred. Affects only files with NodeFlags.PossiblyContainsImportMeta.
+        if ((sourceFile.AsNode().Flags & NodeFlags.PossiblyContainsImportMeta) != 0)
+        {
+            return global::Ts.Compiler.ModuleFormat.FindChildNode(sourceFile.AsNode(), AstUtilities.IsImportMeta);
+        }
         return null;
     }
 }

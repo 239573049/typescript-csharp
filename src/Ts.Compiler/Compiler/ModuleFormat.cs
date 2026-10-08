@@ -1,6 +1,7 @@
 // PORT-NOTE / DEVIATION (registered): compiler-local port of the module-format helpers from
 // tsgo internal/ast/parseoptions.go (GetExternalModuleIndicatorOptions,
-// isFileForcedToBeModuleByFormat) and internal/ast/utilities.go (GetImpliedNodeFormatForFile,
+// isFileForcedToBeModuleByFormat, findChildNode, isFileModuleFromUsingJSXTag,
+// walkTreeForJSXTags) and internal/ast/utilities.go (GetImpliedNodeFormatForFile,
 // GetEmitModuleFormatOfFileWorker, GetImpliedNodeFormatForEmitWorker).
 //
 // These live in the ast package in Go, but the C# Ast port explicitly deferred them
@@ -114,6 +115,62 @@ internal static class ModuleFormat
         // that aren't esm-mode (meaning not in a `type: module` scope).
         return GetImpliedNodeFormatForEmitWorker(fileName, options.GetEmitModuleKind(), metadata) == ModuleKind.ESNext ||
             global::Ts.TsPath.TsPath.FileExtensionIsOneOf(fileName, IsFileForcedToBeModuleByFormatExtensions);
+    }
+
+    // parseoptions.go:108-120 — findChildNode. Shared by getImportMetaIfNecessary (parser's
+    // References.cs hosts the SetExternalModuleIndicator cluster and consumes this).
+    public static Node? FindChildNode(Node root, Func<Node, bool> check)
+    {
+        Node? result = null;
+        bool Visit(Node node)
+        {
+            if (check(node))
+            {
+                result = node;
+                return true;
+            }
+            return node.ForEachChild(Visit);
+        }
+        Visit(root);
+        return result;
+    }
+
+    // parseoptions.go:122-124 — isFileModuleFromUsingJSXTag.
+    public static Node? IsFileModuleFromUsingJSXTag(SourceFile file)
+    {
+        return WalkTreeForJSXTags(file.AsNode());
+    }
+
+    // parseoptions.go:126-128
+    // This is a somewhat unavoidable full tree walk to locate a JSX tag - `import.meta` requires the same,
+    // but we avoid that walk (or parts of it) if at all possible using the `PossiblyContainsImportMeta` node flag.
+    // Unfortunately, there's no `NodeFlag` space to do the same for JSX.
+    private static Node? WalkTreeForJSXTags(Node node)
+    {
+        Node? found = null;
+
+        // PORT-NOTE: Go's visitor parameter shadows the outer `node`; C# forbids that (CS0136), so the
+        // parameter is renamed `n`. Semantics unchanged.
+        bool Visitor(Node n)
+        {
+            if (found != null)
+            {
+                return true;
+            }
+            if ((n.SubtreeFacts() & SubtreeFacts.SubtreeContainsJsx) == 0)
+            {
+                return false;
+            }
+            if (AstUtilities.IsJsxOpeningLikeElement(n) || NodeTests.IsJsxFragment(n))
+            {
+                found = n;
+                return true;
+            }
+            return n.ForEachChild(Visitor);
+        }
+        Visitor(node);
+
+        return found;
     }
 
     // utilities.go:2533-2544

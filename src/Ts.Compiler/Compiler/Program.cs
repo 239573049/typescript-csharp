@@ -177,6 +177,53 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:355-357
     public global::Ts.Checker.ICheckerPool GetCheckerPool() => checkerPool;
 
+    // program.go:105-106 — Cached unresolved imports for ATA.
+    private readonly LazyValue<global::Ts.Collections.Set<string>> unresolvedImports = new();
+
+    // program.go:412-416 — GetUnresolvedImports returns the unresolved imports for this program.
+    // The result is cached and computed only once.
+    public global::Ts.Collections.Set<string> GetUnresolvedImports() => unresolvedImports.GetValue(ExtractUnresolvedImports)!;
+
+    // program.go:418-429 — extractUnresolvedImports.
+    private global::Ts.Collections.Set<string> ExtractUnresolvedImports()
+    {
+        var unresolvedSet = new global::Ts.Collections.Set<string>();
+
+        foreach (var sourceFile in processed.Files)
+        {
+            var unresolvedImports = ExtractUnresolvedImportsFromSourceFile(sourceFile);
+            foreach (var imp in unresolvedImports)
+            {
+                unresolvedSet.Add(imp);
+            }
+        }
+
+        return unresolvedSet;
+    }
+
+    // program.go:431-444 — extractUnresolvedImportsFromSourceFile.
+    private List<string> ExtractUnresolvedImportsFromSourceFile(SourceFile file)
+    {
+        var unresolvedImports = new List<string>();
+
+        // Go: p.resolvedModules[file.Path()] — missing key yields a nil map (no-op iteration).
+        if (processed.ResolvedModules.TryGetValue(file.Path(), out var resolvedModules))
+        {
+            // map-iter: 序无关 (names accumulate into a Set; membership is order-independent)
+            foreach (var (cacheKey, resolution) in resolvedModules)
+            {
+                var resolved = resolution.IsResolved();
+                if ((!resolved || !global::Ts.TsPath.TsPath.ExtensionIsOneOf(resolution.Extension, global::Ts.TsPath.TsPath.SupportedTSExtensionsWithJsonFlat)) &&
+                    !global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(cacheKey.Name))
+                {
+                    unresolvedImports.Add(cacheKey.Name);
+                }
+            }
+        }
+
+        return unresolvedImports;
+    }
+
     // program.go:446-448
     public bool SingleThreaded() => opts.SingleThreaded.DefaultIfUnknown(Options().SingleThreaded).IsTrue();
 
