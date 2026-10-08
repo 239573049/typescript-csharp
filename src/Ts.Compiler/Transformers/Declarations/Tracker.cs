@@ -1,5 +1,6 @@
 // Ported from tsgo internal/transformers/declarations/tracker.go.
 
+using System;
 using System.Collections.Generic;
 using global::Ts.Ast;
 using global::Ts.NodeBuilder;
@@ -18,6 +19,9 @@ public sealed class SymbolTrackerImpl : ISymbolTracker
     private Symbol? watchedClassSymbol;
     private bool classSymbolTracked;
 
+    // tracker.go:23 — produces the isolatedDeclarations error for a node (diagnostics.go:682).
+    private readonly Func<Node, Diagnostic> getIsolatedDeclarationError;
+
     internal SymbolTrackerImpl(
         IDeclarationEmitHost? host,
         EmitResolver? resolver,
@@ -26,6 +30,8 @@ public sealed class SymbolTrackerImpl : ISymbolTracker
         this.host = host;
         this.resolver = resolver;
         this.state = state;
+        // tracker.go:250 — NewSymbolTracker.
+        getIsolatedDeclarationError = DeclarationDiagnostics.CreateGetIsolatedDeclarationErrors(resolver);
     }
 
     public void PopErrorFallbackNode()
@@ -61,15 +67,54 @@ public sealed class SymbolTrackerImpl : ISymbolTracker
             "unique symbol");
     }
 
+    // tracker.go:60-69 — isBoundExpando.
+    private bool IsBoundExpando(Node node)
+    {
+        if (!(global::Ts.Checker.Checker.IsExpandoPropertyDeclaration(node) && NodeTests.IsPropertyAccessExpression(node.AsBinaryExpression().Left!)))
+        {
+            return false;
+        }
+        var @ref = resolver!.GetReferencedValueDeclarationUnsafe(
+            global::Ts.Ast.Precedence.GetLeftmostExpression(node.AsBinaryExpression().Left!, true));
+        if (@ref == null)
+        {
+            return false;
+        }
+        return resolver!.IsExpandoFunctionDeclarationUnsafe(@ref!);
+    }
+
+    // tracker.go:71-78 — isChildOfBoundExpando.
+    private bool IsChildOfBoundExpando(Node node)
+    {
+        return global::Ts.Ast.AstUtilities.FindAncestorOrQuit(node, n =>
+        {
+            if (NodeTests.IsSourceFile(n) || NodeTests.IsBlock(n))
+            {
+                return FindAncestorResult.Quit;
+            }
+            return global::Ts.Ast.AstUtilities.ToFindAncestorResult(IsBoundExpando(n));
+        }) != null;
+    }
+
+    // tracker.go:80-94 — ReportInferenceFallback.
     public void ReportInferenceFallback(Node node)
     {
-        if (!state.IsolatedDeclarations ||
-            (state.CurrentSourceFile is not null &&
-             global::Ts.Ast.AstUtilities.GetSourceFileOfNode(node) != state.CurrentSourceFile))
+        if (!state.IsolatedDeclarations)
         {
             return;
         }
-        state.AddDiagnostic(DeclarationDiagnostics.CreateIsolatedDeclarationError(node));
+        if (global::Ts.Ast.AstUtilities.GetSourceFileOfNode(node) != state.CurrentSourceFile)
+        {
+            return; // Nested error on a declaration in another file - ignore, will be reemitted if file is in the output file set
+        }
+        if (state.Resolver!.IsExpandoFunctionDeclarationUnsafe(node))
+        { // within a node builder call that should already lock the checker, use the unsafe call
+            state.ReportExpandoFunctionErrors?.Invoke(node);
+        }
+        if (!IsChildOfBoundExpando(node))
+        { // expando props get an error when their host is visited by the above, this prevents a follow-on error on a non-inferrable expression
+            state.AddDiagnostic(getIsolatedDeclarationError(node));
+        }
     }
 
     public void ReportLikelyUnsafeImportRequiredError(string specifier, string symbolName)
@@ -164,10 +209,12 @@ public sealed class SymbolTrackerImpl : ISymbolTracker
             resolver.IsSymbolAccessible(symbol, enclosingDeclaration, meaning, true));
     }
 
+    // tracker.go:198-227 — handleSymbolAccessibilityError.
     internal bool HandleSymbolAccessibilityError(SymbolAccessibilityResult result)
     {
         if (result.Accessibility == SymbolAccessibility.Accessible)
         {
+            // Add aliases back onto the possible imports list if they're not there so we can try them again with updated visibility info
             foreach (var alias in result.AliasesToMakeVisible ?? [])
             {
                 if (!state.LateMarkedStatements.Contains(alias))
@@ -175,28 +222,42 @@ public sealed class SymbolTrackerImpl : ISymbolTracker
                     state.LateMarkedStatements.Add(alias);
                 }
             }
-            return false;
+            // TODO: Do all these accessibility checks inside/after the first pass in the checker when declarations are enabled, if possible
+
+            // The checker should issue errors on unresolvable names, skip the declaration emit error for using a private/unreachable name for those
         }
-        if (result.Accessibility == SymbolAccessibility.NotResolved)
+        else if (result.Accessibility != SymbolAccessibility.NotResolved)
         {
-            return false;
+            // Report error
+            var errorInfo = state.GetSymbolAccessibilityDiagnostic?.Invoke(result);
+            if (errorInfo != null)
+            {
+                var diagNode = result.ErrorNode;
+                if (diagNode == null)
+                {
+                    diagNode = errorInfo.ErrorNode;
+                }
+                if (errorInfo.TypeName != null)
+                {
+                    state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(
+                        diagNode,
+                        errorInfo.DiagnosticMessage!,
+                        global::Ts.Scanner.Scanner.GetTextOfNode(errorInfo.TypeName),
+                        result.ErrorSymbolName ?? "",
+                        result.ErrorModuleName ?? ""));
+                }
+                else
+                {
+                    state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(
+                        diagNode,
+                        errorInfo.DiagnosticMessage!,
+                        result.ErrorSymbolName ?? "",
+                        result.ErrorModuleName ?? ""));
+                }
+                return true;
+            }
         }
-        var info = state.GetSymbolAccessibilityDiagnostic?.Invoke(result);
-        if (info?.DiagnosticMessage is null)
-        {
-            return false;
-        }
-        var location = result.ErrorNode ?? info.ErrorNode ?? ErrorLocation();
-        if (location is null)
-        {
-            return false;
-        }
-        state.AddDiagnostic(DeclarationDiagnostics.CreateDiagnosticForNode(
-            location,
-            info.DiagnosticMessage,
-            result.ErrorSymbolName ?? "",
-            result.ErrorModuleName ?? ""));
-        return true;
+        return false;
     }
 
     internal void WatchClassSymbol(Symbol? symbol)
