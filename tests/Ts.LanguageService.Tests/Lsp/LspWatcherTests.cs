@@ -94,8 +94,8 @@ public sealed class LspWatcherTests : IDisposable
         string dir = tmp.Dir;
 
         var mu = new Lock();
-        var batches = new List<IReadOnlyList<FileEvent>>();
-        var w = new Watcher(BundledApi.WrapFS(OsVfsUtil.FS()), changes =>
+        var batches = new List<FileEvent[]>();
+        var w = Watcher.New(BundledApi.WrapFS(OsVfsUtil.FS()), changes =>
         {
             lock (mu)
             {
@@ -121,7 +121,7 @@ public sealed class LspWatcherTests : IDisposable
                 lock (mu)
                 {
                     var all = new List<FileEvent>();
-                    foreach (IReadOnlyList<FileEvent> b in batches)
+                    foreach (FileEvent[] b in batches)
                     {
                         all.AddRange(b);
                     }
@@ -339,8 +339,8 @@ public sealed class LspWatcherTests : IDisposable
         IFileSystem fs = BundledApi.WrapFS(OsVfsUtil.FS());
 
         var mu = new Lock();
-        var batches = new List<IReadOnlyList<FileEvent>>();
-        var w = new Watcher(fs, changes =>
+        var batches = new List<FileEvent[]>();
+        var w = Watcher.New(fs, changes =>
         {
             lock (mu)
             {
@@ -372,7 +372,7 @@ public sealed class LspWatcherTests : IDisposable
                 lock (mu)
                 {
                     var all = new List<FileEvent>();
-                    foreach (IReadOnlyList<FileEvent> b in batches)
+                    foreach (FileEvent[] b in batches)
                     {
                         all.AddRange(b);
                     }
