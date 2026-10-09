@@ -48,12 +48,21 @@
     <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.cs" Link="Fourslash/Fourslash.cs" />
     <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Verify.cs" Link="Fourslash/Fourslash.Verify.cs" />
     <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Baseline.cs" Link="Fourslash/Fourslash.Baseline.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Options.cs" Link="Fourslash/Fourslash.Options.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/FourslashBaselineText.cs" Link="Fourslash/FourslashBaselineText.cs" />
     <Compile Include="../Ts.TestUtil/Fourslash/FourslashMarkers.cs" Link="Fourslash/FourslashMarkers.cs" />
+    <!-- FourslashBaselineUtil.cs is deliberately NOT linked: it is unguarded and therefore
+         already compiled into the referenced Ts.TestUtil assembly, and linking it here would
+         surface CS0436 for every one of its types. -->
   </ItemGroup>
 
   <ItemGroup>
     <!-- Port of internal/fourslash/_scripts/failingTests.txt (skip_if_failing.go). -->
     <EmbeddedResource Include="Scripts/failingTests.txt" />
+    <!-- The C#-only failure list (plan/11 deviation D-021): not a tsgo file. Records the tests
+         whose failure is a known gap in the C# port rather than in the ported test, so the suite
+         can be green while the gap is tracked. -->
+    <EmbeddedResource Include="Scripts/csharpFailingTests.txt" />
   </ItemGroup>
 
 </Project>

@@ -152,8 +152,8 @@ public sealed partial class Tracker
     // trackerimpl.go:114-122 — getFormatCodeSettingsForWriting.
     internal static global::Ts.Format.FormatCodeSettings GetFormatCodeSettingsForWriting(global::Ts.Format.FormatCodeSettings options, SourceFile sourceFile)
     {
-        var shouldAutoDetectSemicolonPreference = options.Semicolons == global::Ts.Format.SemicolonPreference.Ignore;
-        var shouldRemoveSemicolons = options.Semicolons == global::Ts.Format.SemicolonPreference.Remove || shouldAutoDetectSemicolonPreference && !Asi.ProbablyUsesSemicolons(sourceFile);
+        var shouldAutoDetectSemicolonPreference = options.Semicolons.IsIgnore;
+        var shouldRemoveSemicolons = options.Semicolons.IsRemove || shouldAutoDetectSemicolonPreference && !Asi.ProbablyUsesSemicolons(sourceFile);
         if (shouldRemoveSemicolons)
         {
             options.Semicolons = global::Ts.Format.SemicolonPreference.Remove;

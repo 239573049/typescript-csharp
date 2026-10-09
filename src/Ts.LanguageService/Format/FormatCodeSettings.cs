@@ -25,14 +25,29 @@ public enum IndentStyle
     Smart = 2,
 }
 
-// Go: type SemicolonPreference string.
-public enum SemicolonPreference
+// Go: type SemicolonPreference string (the raw values are "ignore"/"insert"/"remove").
+//
+// PORT-NOTE: Go's SemicolonPreference is a string type whose zero value is ""; strada reads
+// the raw preference as a string, and the fourslash corpus assigns the string literal
+// ("remove"). The port stores the string so the corpus and the lsutil raw-option parsers
+// read/assign Go's spelling directly; IsIgnore/IsRemove/IsInsert compare ordinally.
+public readonly record struct SemicolonPreference(string Value)
 {
-    // Go values are the string literals "ignore"/"insert"/"remove"; the engine only
-    // compares them by identity, so an enum is faithful.
-    Ignore = 0,
-    Insert = 1,
-    Remove = 2,
+    public static readonly SemicolonPreference Ignore = new("ignore");
+    public static readonly SemicolonPreference Insert = new("insert");
+    public static readonly SemicolonPreference Remove = new("remove");
+
+    public bool IsIgnore => Value == "ignore";
+    public bool IsInsert => Value == "insert";
+    public bool IsRemove => Value == "remove";
+
+    // Go: the string type carries the literal directly, so an implicit conversion keeps the
+    // corpus's `Semicolons = "remove"` (Go's spelling) reading like Go's.
+    public static implicit operator SemicolonPreference(string value) => new(value);
+
+    public static implicit operator string(SemicolonPreference preference) => preference.Value;
+
+    public override string ToString() => Value;
 }
 
 // Go: type EditorSettings struct { ... }

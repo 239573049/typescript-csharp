@@ -62,14 +62,30 @@ public sealed partial class FourslashTest : IDisposable
 
     private bool stateEnableFormatting = true;
     private readonly UserPreferences userPreferences = UserPreferences.NewDefaultUserPreferences();
+
+    // fourslash.go:690-721 — Configure / ConfigureWithReset install the preferences the LS reads.
+    // Go sends workspace/didChangeConfiguration; the direct-program host hands the copy to the
+    // LanguageService (see LS()), so `null` means "the LS's own defaults stand" — Go's initial
+    // state before any configure command.
+    private UserPreferences? configuredPreferences;
+
+    // fourslash.go:2562 — MarkTestAsStradaServer.
+    private bool isStradaServer;
+
+    // fourslash.go:294-315 — getBaseFileNameFromTest. Go recovers it from the test method name;
+    // the emitted corpus already passes exactly that name as `fileName` to New(), so it is
+    // carried from there.
+    private readonly string testBaseName;
+
     private LsProto.Position currentCaretPosition = new();
     private string? lastKnownMarkerName;
     private string activeFilename;
     private LsProto.Position? selectionEnd;
 
-    // Semantic token configuration (fourslash.go:374-375).
-    private readonly string[] semanticTokenTypes = DefaultSemanticTokenTypes();
-    private readonly string[] semanticTokenModifiers = DefaultSemanticTokenModifiers();
+    // Semantic token configuration (fourslash.go:374-375). Mutable: New() lifts the values out
+    // of FourslashOptions (Go's initialize() stamps the client capabilities into the server).
+    private string[] semanticTokenTypes = DefaultSemanticTokenTypes();
+    private string[] semanticTokenModifiers = DefaultSemanticTokenModifiers();
 
     private readonly CancellationToken cancellationToken;
 
@@ -82,6 +98,7 @@ public sealed partial class FourslashTest : IDisposable
         Dictionary<string, FourslashScriptInfo> scriptInfos,
         Converters converters,
         string activeFilename,
+        string testBaseName,
         CancellationToken cancellationToken)
     {
         this.projectService = projectService;
@@ -92,13 +109,32 @@ public sealed partial class FourslashTest : IDisposable
         this.scriptInfos = scriptInfos;
         this.converters = converters;
         this.activeFilename = activeFilename;
+        this.testBaseName = testBaseName;
         this.cancellationToken = cancellationToken;
     }
 
-    // fourslash.go:133-237 — NewFourslash. `capabilities` has no counterpart: the C# foundation
-    // carries no capability negotiation (the Go defaults shape what the server sends; the raw
-    // LS entries here take explicit parameters instead).
-    public static FourslashTest New(string content, string? fileName = null, CancellationToken cancellationToken = default)
+    // fourslash.go:133-237 — NewFourslash. The Go `capabilities` parameter is threaded
+    // (fourslash.go:472-638): it reaches the server through initialize(), which stamps the
+    // client-provided semantic-token types/modifiers and the completion snippet/insert-replace
+    // flags into the server's capability state. The C# foundation negotiates nothing — the raw
+    // LS entry points take those parameters explicitly (ProvideSemanticTokens takes the
+    // resolved capability object; ProvideCompletions reads preferences, not capabilities) — so
+    // FourslashOptions is accepted and carried for shape parity, and the semantic-token
+    // configuration below is the part that actually feeds a request.
+    public sealed class FourslashOptions
+    {
+        public LsProto.ClientCapabilities? Capabilities;
+
+        // fourslash.go:566-638 — getCapabilitiesWithDefaults (the pieces the C# LS reads).
+        public string[]? SemanticTokenTypes;
+        public string[]? SemanticTokenModifiers;
+    }
+
+    public static FourslashTest New(
+        string content,
+        string? fileName = null,
+        FourslashOptions? options = null,
+        CancellationToken cancellationToken = default)
     {
         if (!global::Ts.Bundled.Bundled.Embedded)
         {
@@ -108,7 +144,8 @@ public sealed partial class FourslashTest : IDisposable
         }
 
         // Go: getBaseFileNameFromTest(t) + tspath.ExtensionTs — the test supplies the base name.
-        string baseFileName = (fileName ?? "test") + ".ts";
+        string testBaseName = fileName ?? "test";
+        string baseFileName = testBaseName + ".ts";
 
         var testfs = new Dictionary<string, object>(StringComparer.Ordinal);
         var scriptInfos = new Dictionary<string, FourslashScriptInfo>(StringComparer.Ordinal);
@@ -167,13 +204,29 @@ public sealed partial class FourslashTest : IDisposable
             scriptInfos,
             converters,
             activeFilename: testData.Files[0].VirtualFileName,
+            testBaseName,
             cancellationToken);
+
+        // fourslash.go:472-556 — GetDefaultCapabilities is what the corpus passes when it needs
+        // the default client capabilities; the pieces the C# LS actually reads (semantic-token
+        // types/modifiers) are lifted from the options here. The raw LS entry points take the
+        // completion/interaction flags explicitly, so Capabilities itself is carried, not
+        // negotiated.
+        if (options?.SemanticTokenTypes is { Length: > 0 } tokenTypes)
+        {
+            f.semanticTokenTypes = tokenTypes;
+        }
+        if (options?.SemanticTokenModifiers is { Length: > 0 } tokenModifiers)
+        {
+            f.semanticTokenModifiers = tokenModifiers;
+        }
 
         if (testData.IsStateBaseliningEnabled)
         {
-            // Single baseline, so initialize project state baseline too. OMITTED: the C#
-            // foundation does not expose the project Snapshot/ProjectCollection surface the Go
-            // state baseline rides on (plan/11 known-deviation entry).
+            // fourslash.go:228-235 — the state baseline (statebaseline.go) rides the project
+            // snapshot/collection surface, which the C# foundation does not expose. The corpus
+            // shape that sets `// @statebaseline` is rejected loudly (recorded seam; the
+            // affected tests are listed in Scripts/csharpFailingTests.txt).
             throw new NotSupportedException(
                 "statebaseline is not supported by the C# fourslash port yet (project snapshot surface not ported).");
         }
@@ -187,9 +240,18 @@ public sealed partial class FourslashTest : IDisposable
         return f;
     }
 
+    // fourslash.go:236-239 — the deferred closeClient()+verifyBaselines() pair. The generated
+    // tests hold the harness in `using var f`, so Dispose is that deferred call.
     public void Dispose()
     {
         projectService.Dispose();
+        if (!testData.IsStateBaseliningEnabled)
+        {
+            // fourslash.go:5041-5049 — verifyBaselines(testPath). Go recovers the test path from
+            // runtime.Caller; here the basename corpus's baseline key comes from the emitted
+            // fileName (FourslashBaselineUtil.GetBaselineFileName).
+            verifyBaselines(testBaseName);
+        }
     }
 
     // fourslash.go:986-1009 — getLanguageKind. (Extensions spelled out; they are the Go

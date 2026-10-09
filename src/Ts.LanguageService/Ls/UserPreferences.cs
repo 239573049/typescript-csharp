@@ -136,6 +136,17 @@ public sealed class UserPreferences
     public Tristate EnableJSDocCompletions;
     // userpreferences.go:81 — GenerateReturnInDocTemplate.
     public Tristate GenerateReturnInDocTemplate;
+
+    // userpreferences.go:148 — UseAliasesForRename (raw:"providePrefixAndSuffixTextForRename"
+    // config:"preferences.useAliasesForRenames"). The fourslash corpus sets this directly and
+    // the rename family reads it; no default is set in Go (TSUnknown stands).
+    public Tristate UseAliasesForRename;
+
+    // userpreferences.go:24 — FormatCodeSettings (embedded in Go's UserPreferences struct;
+    // C# has no field embedding, so a named field with the same default carries it). The
+    // fourslash format tests configure this and FormatDocument/FormatSelection read it.
+    public global::Ts.Format.FormatCodeSettings FormatCodeSettings =
+        global::Ts.Format.FormatCodeSettings.GetDefaultFormatCodeSettings();
     // userpreferences.go:866-872 — ModuleSpecifierPreferences.
     public global::Ts.ModuleSpecifiers.UserPreferences ModuleSpecifierPreferences()
     {

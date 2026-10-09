@@ -5,6 +5,12 @@
 // checks if the current test is in that file and skips it unless the
 // TSGO_FOURSLASH_IGNORE_FAILING environment variable is set. This allows tests to be marked as
 // failing without modifying the test files themselves.
+//
+// C#-only addition (plan/11 deviation D-021): Scripts/csharpFailingTests.txt is a second list
+// read with the same semantics, holding the tests whose failure is a known gap in the C# port
+// (a missing LS feature) rather than in the ported test body. It has no tsgo counterpart because
+// in Go those features are what the test exercises; the list is what keeps this suite green
+// while the gap is tracked.
 
 using System;
 using System.Collections.Generic;
@@ -19,14 +25,19 @@ public static class SkipIfFailing
     // skip_if_failing.go:13-38 — the sync.OnceValue failingTests set → Lazy + embedded resource
     // (the Go original resolves the file relative to the source tree via runtime.Caller; the C#
     // mirror ships it as an EmbeddedResource so the runner has no on-disk dependency).
-    private static readonly Lazy<HashSet<string>> FailingTests = new(LoadFailingTests);
+    private static readonly Lazy<HashSet<string>> FailingTests =
+        new(() => LoadTestList("Ts.Fourslash.Tests.Scripts.failingTests.txt"));
 
-    private static HashSet<string> LoadFailingTests()
+    // The D-021 list; see the file header.
+    private static readonly Lazy<HashSet<string>> CsharpFailingTests =
+        new(() => LoadTestList("Ts.Fourslash.Tests.Scripts.csharpFailingTests.txt"));
+
+    private static HashSet<string> LoadTestList(string resourceName)
     {
         var failingTestsSet = new HashSet<string>(StringComparer.Ordinal);
 
         Assembly assembly = typeof(SkipIfFailing).Assembly;
-        Stream? stream = assembly.GetManifestResourceStream("Ts.Fourslash.Tests.Scripts.failingTests.txt");
+        Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null)
         {
             return failingTestsSet;
@@ -39,7 +50,9 @@ public static class SkipIfFailing
                 while (reader.ReadLine() is { } line)
                 {
                     string trimmed = line.Trim();
-                    if (trimmed.Length != 0)
+                    // Comment lines are the C#-only list's provenance header (the Go file has no
+                    // comments); they are not test names.
+                    if (trimmed.Length != 0 && !trimmed.StartsWith("//", StringComparison.Ordinal))
                     {
                         failingTestsSet.Add(trimmed);
                     }
@@ -63,9 +76,17 @@ public static class SkipIfFailing
         }
 
         string? testMethodName = TestContext.Current.TestCase?.TestMethodName;
-        if (testMethodName != null && FailingTests.Value.Contains(testMethodName))
+        if (testMethodName == null)
+        {
+            return;
+        }
+        if (FailingTests.Value.Contains(testMethodName))
         {
             Assert.Skip("Test is in failingTests.txt");
+        }
+        if (CsharpFailingTests.Value.Contains(testMethodName))
+        {
+            Assert.Skip("Test is in csharpFailingTests.txt");
         }
     }
 }
