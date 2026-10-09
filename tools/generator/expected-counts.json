@@ -1,6 +1,7 @@
 {
   "diagnostics": 2154,
   "libs": 108,
+  "locales": 13,
   "astNodes": 192,
   "astBases": 35,
   "astKindElements": 351

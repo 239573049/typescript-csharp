@@ -241,9 +241,11 @@ public static partial class TsConfigParsing
                 }
             case ExtraValidation.extraValidationLocale:
                 {
-                    // PORT-TODO: locale.Parse (phase 9). Until the locale package lands, the
-                    // BCP-47 validity check is skipped; a bad locale is accepted rather than
-                    // reported. Registered in the phase report.
+                    // tsconfigparsing.go:386-389
+                    if (!global::Ts.Locale.Locale.TryParse((string)val, out _))
+                    {
+                        errors.Add(CreateDiagnosticForNodeInSourceFileOrCompilerDiagnostic(sourceFile, valueExpression, global::Ts.Diagnostics.Diagnostics.Locale_must_be_an_IETF_BCP_47_language_tag_Examples_Colon_0_1, "en", "ja-jp"));
+                    }
                     break;
                 }
         }

@@ -266,7 +266,7 @@ internal sealed class BuildTask
             Host = new BuildCompilerHost
             {
                 host = orchestrator.host,
-                trace = EmitAndReport.GetTraceWithWriterFromSys(new StringWriter(result!.builder), global::Ts.Locale.Locale.Default, orchestrator.opts.Testing),
+                trace = EmitAndReport.GetTraceWithWriterFromSys(new StringWriter(result!.builder), orchestrator.opts.Command.Locale(), orchestrator.opts.Testing),
             },
         });
         compileTimes.ParseTime = orchestrator.opts.Sys.Now() - parseStart;

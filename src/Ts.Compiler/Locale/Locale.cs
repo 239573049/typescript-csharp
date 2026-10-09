@@ -2,27 +2,25 @@
 //
 // Go wraps `golang.org/x/text/language.Tag` (a BCP-47 language tag) and threads it through a
 // context.Context. Per plan/06 §9.3 and plan/07 §7 (InvariantGlobalization), the .NET runtime
-// has no ICU/CultureInfo tables and the `golang.org/x/text/language` matcher is unavailable, so
-// this is a `readonly struct Locale(string Tag)` carrying the raw tag string. There are no
-// localized message files in scope, so the effective behaviour is English identity: the empty
-// tag (`Default`, corresponding to Go's zero `language.Tag` == `language.Und`) resolves to no
-// localized messages, and diagnostics.Localize returns the message template unchanged (see
-// Ts.Diagnostics.Diagnostics.Localize).
+// has no ICU/CultureInfo tables and the `golang.org/x/text/language` package is unavailable, so
+// this is a `readonly struct Locale` carrying the canonicalized tag string. The empty tag
+// (`Default`, corresponding to Go's zero `language.Tag` == `language.Und`) resolves to no
+// localized messages; any other tag is matched against the 13 embedded locale tables by
+// Ts.Diagnostics.Diagnostics.GetLocalizedMessages (plan/04 §3.5-7).
 //
 // PORT-NOTE: Go's context.Context threading (WithLocale/FromContext) is not modelled here — per
 // plan/06 §9.3 「context 传递 → 显式参数」, callers pass the Locale explicitly (the diagnosticwriter
-// surface already does so via FormattingOptions.Locale). Those two functions are omitted until a
-// consumer needs them; the current output-side formatter has none.
+// surface already does so via FormattingOptions.Locale).
 
 using System;
+using System.Text;
 
 namespace Ts.Locale;
 
 // locale.go:9 — `type Locale language.Tag`. In Go a `language.Tag` is an opaque struct that
-// stringifies to a canonical BCP-47 tag; here we retain only the raw tag string because no
-// culture-aware operation is performed on it under InvariantGlobalization. Equality is by tag
-// value (default record-struct semantics), matching Go's Tag comparison well enough for the
-// closed set of locale keys used by the localized-message lookup (empty == Und == default).
+// stringifies to a canonical BCP-47 tag; here we retain the canonical tag string (language
+// lower-case, script title-case, region upper-case, everything else lower-case — the casing
+// x/text's Tag.String() produces). Equality is by tag value.
 public readonly struct Locale : IEquatable<Locale>
 {
     private readonly string? tag;
@@ -32,8 +30,7 @@ public readonly struct Locale : IEquatable<Locale>
         this.tag = tag;
     }
 
-    // The canonical BCP-47 tag string. The zero value reads as "" (Go's `language.Und` also
-    // renders as the empty/undefined tag and yields no localized messages).
+    // The canonical BCP-47 tag string. The zero value reads as "" (Go's `language.Und`).
     public string Tag => tag ?? "";
 
     // locale.go:11 — `var Default Locale`. Go's package-level zero value; the undefined tag.
@@ -49,37 +46,173 @@ public readonly struct Locale : IEquatable<Locale>
 
     // locale.go:23-27 — `func Parse(localeStr string) (locale Locale, ok bool)`. Go delegates to
     // `language.Parse`, which "gracefully fails" (returns the parsed tag plus an error that is
-    // discarded except for the ok flag). Under InvariantGlobalization there is no BCP-47 parser
-    // available; per plan/06 §9.3 the corpus is a closed set and a lenient normalization suffices.
-    // We accept any non-empty, syntactically plausible tag (letters, digits, '-') and store it
-    // verbatim; ok reflects whether it looked like a tag. The message-lookup side (phase 9) does
-    // the actual matching against the fixed locale table, so exact canonicalization is not
-    // load-bearing here.
+    // discarded except for the ok flag).
     //
-    // PORT-NOTE: Go's `language.Parse` performs canonicalization/validation this cannot; kept
-    // minimal because no localized-message files are in scope and Default (Und) is the only tag
-    // exercised by the errors.txt output path. (AGENTS.md §6 deviation registration.)
+    // PORT-NOTE (deviation D-020): x/text validates subtags against the IANA registry
+    // ("well-formed but unknown" is an error there); without that table this accepts every
+    // syntactically well-formed BCP-47 tag (RFC 5646 §2.1 grammar, '_' accepted as a separator
+    // like x/text). The well-formed tags it accepts beyond Go only affect the tsconfig "locale"
+    // validation diagnostic; message matching (Diagnostics.GetLocalizedMessages) treats an
+    // unknown language as "no translation", matching Go's matcher confidence No → English.
     public static bool TryParse(string localeStr, out Locale locale)
     {
-        if (!IsWellFormed(localeStr))
+        string? canonical = Canonicalize(localeStr);
+        if (canonical == null)
         {
             locale = Default;
             return false;
         }
-        locale = new Locale(localeStr);
+        // x/text: "und" is the zero tag.
+        locale = canonical == "und" ? Default : new Locale(canonical);
         return true;
     }
 
-    private static bool IsWellFormed(string s)
+    // Returns the canonical form of a well-formed BCP-47 tag, or null if it is not well-formed.
+    //   langtag    = language ["-" script] ["-" region] *("-" variant) *("-" extension) ["-" privateuse]
+    //   language   = 2*3ALPHA ["-" extlang] / 4ALPHA / 5*8ALPHA ; extlang = 3ALPHA *2("-" 3ALPHA)
+    //   script     = 4ALPHA ; region = 2ALPHA / 3DIGIT
+    //   variant    = 5*8alphanum / (DIGIT 3alphanum)
+    //   extension  = singleton 1*("-" (2*8alphanum)) ; privateuse = "x" 1*("-" (1*8alphanum))
+    private static string? Canonicalize(string s)
     {
         if (s.Length == 0)
         {
+            return null;
+        }
+        string[] parts = s.Replace('_', '-').Split('-');
+        foreach (string part in parts)
+        {
+            if (part.Length == 0 || part.Length > 8 || !IsAlphaNum(part))
+            {
+                return null;
+            }
+        }
+
+        var sb = new StringBuilder(s.Length);
+        int i = 0;
+
+        // Private-use-only tag ("x-…").
+        if (IsSingleton(parts[0], 'x'))
+        {
+            return AppendPrivateUse(parts, 0, sb) ? sb.ToString() : null;
+        }
+
+        // language
+        string lang = parts[i];
+        if (!IsAlpha(lang) || lang.Length < 2)
+        {
+            return null;
+        }
+        sb.Append(Lower(lang));
+        i++;
+        if (lang.Length is 2 or 3)
+        {
+            // up to three extlang subtags
+            for (int n = 0; n < 3 && i < parts.Length && parts[i].Length == 3 && IsAlpha(parts[i]); n++, i++)
+            {
+                sb.Append('-').Append(Lower(parts[i]));
+            }
+        }
+
+        // script
+        if (i < parts.Length && parts[i].Length == 4 && IsAlpha(parts[i]))
+        {
+            string script = Lower(parts[i]);
+            sb.Append('-').Append(char.ToUpperInvariant(script[0])).Append(script, 1, 3);
+            i++;
+        }
+
+        // region
+        if (i < parts.Length && ((parts[i].Length == 2 && IsAlpha(parts[i])) || (parts[i].Length == 3 && IsDigits(parts[i]))))
+        {
+            sb.Append('-').Append(global::Ts.StringUtil.StringUtil.ToUpperJS(parts[i]));
+            i++;
+        }
+
+        // variants
+        while (i < parts.Length && (parts[i].Length >= 5 || (parts[i].Length == 4 && char.IsAsciiDigit(parts[i][0]))))
+        {
+            sb.Append('-').Append(Lower(parts[i]));
+            i++;
+        }
+
+        // extensions
+        while (i < parts.Length && parts[i].Length == 1 && !IsSingleton(parts[i], 'x'))
+        {
+            sb.Append('-').Append(Lower(parts[i]));
+            i++;
+            int start = i;
+            while (i < parts.Length && parts[i].Length >= 2)
+            {
+                sb.Append('-').Append(Lower(parts[i]));
+                i++;
+            }
+            if (i == start)
+            {
+                return null;
+            }
+        }
+
+        // private use
+        if (i < parts.Length)
+        {
+            if (!IsSingleton(parts[i], 'x'))
+            {
+                return null;
+            }
+            sb.Append('-');
+            return AppendPrivateUse(parts, i, sb) ? sb.ToString() : null;
+        }
+        return sb.ToString();
+    }
+
+    private static bool AppendPrivateUse(string[] parts, int i, StringBuilder sb)
+    {
+        if (i + 1 >= parts.Length)
+        {
             return false;
         }
+        sb.Append('x');
+        for (int j = i + 1; j < parts.Length; j++)
+        {
+            sb.Append('-').Append(Lower(parts[j]));
+        }
+        return true;
+    }
+
+    private static bool IsSingleton(string part, char c) => part.Length == 1 && (part[0] | 0x20) == c;
+
+    private static string Lower(string s) => global::Ts.StringUtil.StringUtil.ToLowerJS(s); // inputs are validated ASCII alphanumerics
+
+    private static bool IsAlphaNum(string s)
+    {
         foreach (char c in s)
         {
-            bool ok = c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9') or '-';
-            if (!ok)
+            if (!char.IsAsciiLetterOrDigit(c))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool IsAlpha(string s)
+    {
+        foreach (char c in s)
+        {
+            if (!char.IsAsciiLetter(c))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool IsDigits(string s)
+    {
+        foreach (char c in s)
+        {
+            if (!char.IsAsciiDigit(c))
             {
                 return false;
             }

@@ -118,7 +118,7 @@ internal sealed class Watcher : IExecuteWatcher
             commandLineRaw = commandLineRaw,
             reportDiagnostic = reportDiagnostic,
             reportErrorSummary = reportErrorSummary,
-            reportWatchStatus = DiagnosticReporters.CreateWatchStatusReporter(sys, global::Ts.Locale.Locale.Default, configParseResult.CompilerOptions()!, testing),
+            reportWatchStatus = DiagnosticReporters.CreateWatchStatusReporter(sys, configParseResult.Locale(), configParseResult.CompilerOptions()!, testing),
             testing = testing,
             wm = wm,
         };
@@ -136,7 +136,7 @@ internal sealed class Watcher : IExecuteWatcher
         extendedConfigCache = new TscExtendedConfigCache();
         var host = global::Ts.Compiler.CompilerHosts.NewCompilerHost(
             sys.GetCurrentDirectory(), sys.FS(), sys.DefaultLibraryPath(), extendedConfigCache,
-            EmitAndReport.GetTraceWithWriterFromSys(sys.Writer(), global::Ts.Locale.Locale.Default, testing));
+            EmitAndReport.GetTraceWithWriterFromSys(sys.Writer(), config.Locale(), testing));
         program = global::Ts.Execute.Incremental.BuildInfoReaderHelpers.ReadBuildInfoProgram(
             config, global::Ts.Execute.Incremental.BuildInfoReaderHelpers.NewBuildInfoReader(host), host);
 
@@ -346,7 +346,7 @@ internal sealed class Watcher : IExecuteWatcher
         var tfs = new global::Ts.Vfs.TrackingVfs.TrackingFs { Inner = cached };
         var innerHost = global::Ts.Compiler.CompilerHosts.NewCompilerHost(
             sys.GetCurrentDirectory(), tfs, sys.DefaultLibraryPath(), extendedConfigCache,
-            EmitAndReport.GetTraceWithWriterFromSys(sys.Writer(), global::Ts.Locale.Locale.Default, testing));
+            EmitAndReport.GetTraceWithWriterFromSys(sys.Writer(), config.Locale(), testing));
         var host = new WatchCompilerHost { inner = innerHost, cache = sourceFileCache };
 
         if (config.ConfigFile != null)

@@ -384,11 +384,11 @@ public sealed class Orchestrator : IExecuteWatcher
 
     // orchestrator.go:674-676
     internal DiagnosticReporter CreateBuilderStatusReporter(BuildTask? task) =>
-        DiagnosticReporters.CreateBuilderStatusReporter(opts.Sys, GetWriter(task), global::Ts.Locale.Locale.Default, opts.Command.CompilerOptions!, opts.Testing);
+        DiagnosticReporters.CreateBuilderStatusReporter(opts.Sys, GetWriter(task), opts.Command.Locale(), opts.Command.CompilerOptions!, opts.Testing);
 
     // orchestrator.go:678-680
     internal DiagnosticReporter CreateDiagnosticReporter(BuildTask? task) =>
-        DiagnosticReporters.CreateDiagnosticReporter(opts.Sys, GetWriter(task), global::Ts.Locale.Locale.Default, opts.Command.CompilerOptions!);
+        DiagnosticReporters.CreateDiagnosticReporter(opts.Sys, GetWriter(task), opts.Command.Locale(), opts.Command.CompilerOptions!);
 
     // orchestrator.go:682-713
     public static Orchestrator NewOrchestrator(BuildOptionsBag opts)
@@ -416,7 +416,7 @@ public sealed class Orchestrator : IExecuteWatcher
         };
         if (opts.Command.CompilerOptions!.Watch.IsTrue())
         {
-            orchestrator.watchStatusReporter = DiagnosticReporters.CreateWatchStatusReporter(opts.Sys, global::Ts.Locale.Locale.Default, opts.Command.CompilerOptions, opts.Testing);
+            orchestrator.watchStatusReporter = DiagnosticReporters.CreateWatchStatusReporter(opts.Sys, opts.Command.Locale(), opts.Command.CompilerOptions, opts.Testing);
             if (opts.Testing is global::Ts.Execute.WatchManagement.ICommandLineTestingWithWatchBackend t)
             {
                 wm.SetBackend(t.WatchBackend());
@@ -424,7 +424,7 @@ public sealed class Orchestrator : IExecuteWatcher
         }
         else
         {
-            orchestrator.errorSummaryReporter = DiagnosticReporters.CreateReportErrorSummary(opts.Sys, global::Ts.Locale.Locale.Default, opts.Command.CompilerOptions);
+            orchestrator.errorSummaryReporter = DiagnosticReporters.CreateReportErrorSummary(opts.Sys, opts.Command.Locale(), opts.Command.CompilerOptions);
         }
         return orchestrator;
     }

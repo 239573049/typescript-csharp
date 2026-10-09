@@ -1,23 +1,17 @@
 // Ported from typescript-go internal/diagnostics/diagnostics.go — the message
 // localization/formatting surface (diagnostics.go:67-159): Message.Localize, the package-level
-// Localize, Format (the "{0}" placeholder substitution), StringifyArgs, and NewAdHocMessage.
+// Localize, getLocalizedMessages, Format (the "{0}" placeholder substitution), StringifyArgs, and
+// NewAdHocMessage; plus the hand-written half of loc_generated.go (loadLocaleData and the
+// x/text language matcher, plan/04 §3.5-7).
 //
-// This is the output-side text formatter that the diagnosticwriter package (errors.txt) depends
-// on. It was previously deferred to phase 9 along with the *localized* message tables; here we
-// land only the formatting half, which is English-identity and byte-load-bearing:
-//
-//   * getLocalizedMessages (diagnostics.go:89-113) uses `golang.org/x/text/language`'s matcher
-//     against the 13 embedded `loc/*.json.gz` tables. Under InvariantGlobalization those tables
-//     and matcher are unavailable (plan/07 §5.3, §7), and no localized message files are in
-//     scope. Faithful reduction: for the undefined tag (Go's `language.Und`, == global::Ts.Locale.Locale.Default)
-//     getLocalizedMessages returns nil, so `text` stays `message.text` and Localize == Format.
-//     Since Default is the only tag exercised by the errors.txt path, GetLocalizedMessages always
-//     returns null here — Localize therefore returns the (English) template with args substituted,
-//     byte-identical to Go running with locale.Default. The gzip/matcher plumbing arrives in
-//     phase 9 (plan/06 §9.3) and will replace GetLocalizedMessages then.
-//
-// PORT-NOTE (AGENTS.md §6): the localized-table lookup is reduced to a null return pending the
-// phase-9 locale loader. The Format placeholder logic and StringifyArgs are ported verbatim.
+// PORT-NOTE (plan/04 §3.5-7, risk registered in plan/12): Go matches the requested tag with
+// `golang.org/x/text/language.NewMatcher` over English + the 13 embedded locales and accepts any
+// confidence >= Low. Under InvariantGlobalization that package (and CultureInfo matching) is
+// unavailable, so MatchLocale hand-codes the matcher's behaviour on this closed set: English →
+// index 0 (no translation); Chinese → zh-TW for the Hant script or TW/HK/MO regions, else
+// zh-CN; any other language → the registered locale with the same primary language subtag
+// (x/text yields High/Low confidence for a same-language match regardless of region); unknown
+// languages → confidence No → no translation.
 
 using System;
 using System.Collections.Generic;
@@ -56,14 +50,130 @@ public static partial class Diagnostics
         return Format(text, args);
     }
 
-    // diagnostics.go:89-113 — getLocalizedMessages. See file header: reduced to null (English
-    // identity) until the phase-9 locale loader lands. Go returns nil for `language.Und`; every
-    // errors.txt-path caller passes global::Ts.Locale.Locale.Default (== Und), so returning null is exact.
+    // diagnostics.go:87 — `var localizedMessagesCache sync.Map // map[language.Tag]map[Key]string`.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Dictionary<string, string>?> localizedMessagesCache =
+        new(StringComparer.Ordinal);
+
+    // diagnostics.go:89-113 — getLocalizedMessages.
     private static Dictionary<string, string>? GetLocalizedMessages(global::Ts.Locale.Locale locale)
     {
-        // Go: `if loc == language.Und { return nil }` — Default is the only tag in scope.
-        _ = locale;
-        return null;
+        string loc = locale.Tag;
+        if (loc.Length == 0)
+        {
+            // Go: `if loc == language.Und { return nil }`.
+            return null;
+        }
+
+        // Check cache first
+        if (localizedMessagesCache.TryGetValue(loc, out var cached))
+        {
+            return cached;
+        }
+
+        Dictionary<string, string>? messages = null;
+
+        int index = MatchLocale(loc);
+        if (index >= 0 && index < LocaleFuncs.Length)
+        {
+            var fn = LocaleFuncs[index];
+            if (fn != null)
+            {
+                messages = fn.Value;
+            }
+        }
+
+        localizedMessagesCache[loc] = messages;
+        return messages;
+    }
+
+    // ≙ `_, index, confidence := matcher.Match(loc)` + `confidence >= language.Low`
+    // (diagnostics.go:104-105). Returns the LocaleTags index, or -1 for confidence No.
+    // See the file header PORT-NOTE for the rules.
+    internal static int MatchLocale(string tag)
+    {
+        string[] parts = tag.Replace('_', '-').Split('-');
+        string lang = global::Ts.StringUtil.StringUtil.ToLowerJS(parts[0]);
+        string script = "";
+        string region = "";
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string part = parts[i];
+            if (part.Length == 1)
+            {
+                break; // extensions / private use carry no matching information
+            }
+            if (part.Length == 4 && script.Length == 0 && region.Length == 0 && char.IsAsciiLetter(part[0]))
+            {
+                script = global::Ts.StringUtil.StringUtil.ToLowerJS(part);
+            }
+            else if (region.Length == 0 && (part.Length == 2 || (part.Length == 3 && char.IsAsciiDigit(part[0]))))
+            {
+                region = global::Ts.StringUtil.StringUtil.ToUpperJS(part);
+            }
+        }
+
+        if (lang == "zh")
+        {
+            bool traditional = script == "hant" || (script.Length == 0 && region is "TW" or "HK" or "MO");
+            return Array.IndexOf(LocaleTags, traditional ? "zh-TW" : "zh-CN");
+        }
+
+        int sameLanguage = -1;
+        for (int i = 0; i < LocaleTags.Length; i++)
+        {
+            string candidate = LocaleTags[i];
+            int dash = candidate.IndexOf('-', StringComparison.Ordinal);
+            string candidateLang = dash < 0 ? candidate : candidate[..dash];
+            if (!string.Equals(candidateLang, lang, StringComparison.Ordinal))
+            {
+                continue;
+            }
+            if (dash >= 0 && string.Equals(candidate[(dash + 1)..], region, StringComparison.Ordinal))
+            {
+                return i; // exact language + region
+            }
+            if (sameLanguage < 0)
+            {
+                sameLanguage = i;
+            }
+        }
+        return sameLanguage;
+    }
+
+    // loc_generated.go — loadLocaleData: gunzip + JSON-decode a flat `map[Key]string`. Go
+    // panics on a malformed resource (it is a build product); we throw likewise. The JSON is
+    // read with Utf8JsonReader (AOT-safe, no serializer metadata needed for string→string).
+    private static Dictionary<string, string> LoadLocaleData(string resourceName)
+    {
+        using var stream = typeof(Diagnostics).Assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException("failed to create gzip reader: missing resource " + resourceName);
+        using var gr = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress);
+        using var buffer = new System.IO.MemoryStream();
+        gr.CopyTo(buffer);
+
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        var reader = new System.Text.Json.Utf8JsonReader(buffer.GetBuffer().AsSpan(0, (int)buffer.Length));
+        try
+        {
+            if (!reader.Read() || reader.TokenType != System.Text.Json.JsonTokenType.StartObject)
+            {
+                throw new InvalidOperationException("failed to unmarshal locale data: expected object");
+            }
+            while (reader.Read() && reader.TokenType == System.Text.Json.JsonTokenType.PropertyName)
+            {
+                string key = reader.GetString()!;
+                if (!reader.Read() || reader.TokenType != System.Text.Json.JsonTokenType.String)
+                {
+                    throw new InvalidOperationException("failed to unmarshal locale data: expected string value for " + key);
+                }
+                result[key] = reader.GetString()!;
+            }
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            throw new InvalidOperationException("failed to unmarshal locale data: " + ex.Message, ex);
+        }
+        return result;
     }
 
     // diagnostics.go:115 — `var placeholderRegexp = regexp.MustCompile(`{(\d+)}`)`. Source-generated

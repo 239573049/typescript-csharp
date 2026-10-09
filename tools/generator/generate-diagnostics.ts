@@ -1,10 +1,7 @@
-// gen:diagnostics — ports typescript-go internal/diagnostics/generate.go (the
-// diagnostics half: generateDiagnostics + convertPropertyName) to emit
-// src/Ts.Compiler/Diagnostics/Messages.g.cs.
-//
-// NOT YET PORTED (lands with the localization runtime, plan/04-codegen.md §3.5):
-// the 13-locale pipeline generateLocalizations (generate.go:176-338) producing
-// Diagnostics/Loc.g.cs + Diagnostics/loc/*.json.gz.
+// gen:diagnostics — ports typescript-go internal/diagnostics/generate.go:
+//   - generateDiagnostics + convertPropertyName → src/Ts.Compiler/Diagnostics/Messages.g.cs;
+//   - generateLocalizations + readLocalizedMessages (generate.go:176-338, :363-400)
+//     → src/Ts.Compiler/Diagnostics/Loc.g.cs + Diagnostics/loc/*.json.gz (plan/04 §3.5).
 //
 // Semantics replicated exactly (plan/04 §3.2/§3.3):
 //   - both JSON inputs are indexed by code; same-file code collisions: later key
@@ -16,6 +13,8 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import * as zlib from "node:zlib";
+import { XMLParser } from "fast-xml-parser";
 import {
     CodeWriter,
     ROOT,
@@ -217,3 +216,135 @@ w.block("public static partial class Diagnostics", () => {
 
 writeIfChanged(path.join(ROOT, "src", "Ts.Compiler", "Diagnostics", "Messages.g.cs"), w.toString());
 console.log(`diagnostics: ${diagnosticMessages.length} messages (expected ${expected})`);
+
+// ─── localizations (generate.go:176-338) ────────────────────────────────────────
+
+// readLocalizedMessages (generate.go:363-400): three nested <Item> levels under
+// <LCX>; ItemId is ";key_code" (leading ';' trimmed); Str/Tgt/Val if non-empty,
+// else Str/Val.
+interface LclVal {
+    Val?: string;
+}
+interface LclStr extends LclVal {
+    Tgt?: LclVal;
+}
+interface LclItem {
+    "@_ItemId"?: string;
+    Item?: LclItem[];
+    Str?: LclStr;
+}
+
+function readLocalizedMessages(p: string): { messages: Map<string, string>; tgtCul: string } {
+    let xml = fs.readFileSync(p, "utf8");
+    if (xml.charCodeAt(0) === 0xfeff) {
+        xml = xml.slice(1);
+    }
+    const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: "@_",
+        parseTagValue: false,
+        parseAttributeValue: false,
+        trimValues: false,
+        processEntities: true,
+        isArray: name => name === "Item",
+    });
+    const doc = parser.parse(xml) as { LCX: { "@_TgtCul"?: string; Item?: LclItem[] } };
+    const lcx = doc.LCX;
+    const messages = new Map<string, string>();
+    for (const rootItem of lcx.Item ?? []) {
+        for (const stringTable of rootItem.Item ?? []) {
+            for (const item of stringTable.Item ?? []) {
+                const itemId = (item["@_ItemId"] ?? "").replace(/^;/, "");
+                const str = item.Str ?? {};
+                const tgtVal = str.Tgt?.Val;
+                const text = tgtVal !== undefined && String(tgtVal) !== "" ? String(tgtVal) : String(str.Val ?? "");
+                messages.set(itemId, text);
+            }
+        }
+    }
+    return { messages, tgtCul: lcx["@_TgtCul"] ?? "" };
+}
+
+const knownKeys = new Set(converted.map(c => c.key));
+const lclRoot = path.join(ROOT, "_submodules", "TypeScript", "src", "loc", "lcl");
+const localeFiles = fs.readdirSync(lclRoot)
+    .map(d => path.join(lclRoot, d, "diagnosticMessages", "diagnosticMessages.generated.json.lcl"))
+    .filter(p => fs.existsSync(p))
+    .sort(); // generate.go:208 — slices.Sort(localeFiles): path order = output order
+if (localeFiles.length === 0) {
+    throw new Error(`no locale files found in ${lclRoot}`);
+}
+
+// Remove and recreate the loc directory for a clean state (generate.go:193-198).
+const locDir = path.join(ROOT, "src", "Ts.Compiler", "Diagnostics", "loc");
+fs.rmSync(locDir, { recursive: true, force: true });
+fs.mkdirSync(locDir, { recursive: true });
+
+const locales: { tgtCul: string; filename: string }[] = [];
+for (const localeFile of localeFiles) {
+    const { messages, tgtCul } = readLocalizedMessages(localeFile);
+    if (messages.size === 0) {
+        continue;
+    }
+    // Filter to only known keys (generate.go:227-232).
+    for (const key of [...messages.keys()]) {
+        if (!knownKeys.has(key)) {
+            messages.delete(key);
+        }
+    }
+    if (messages.size === 0) {
+        continue;
+    }
+    // Sorted keys → deterministic JSON (generate.go:259-263; Go sorts by byte order,
+    // which for these ASCII keys equals UTF-16 order).
+    const keys = [...messages.keys()].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    const ordered: Record<string, string> = {};
+    for (const key of keys) {
+        ordered[key] = messages.get(key)!;
+    }
+    const filename = `${tgtCul}.json.gz`;
+    const compressed = zlib.gzipSync(Buffer.from(JSON.stringify(ordered), "utf8"), { level: 9 });
+    writeIfChanged(path.join(locDir, filename), compressed);
+    locales.push({ tgtCul, filename });
+}
+
+const expectedLocales = expectedCount("locales");
+if (locales.length !== expectedLocales) {
+    throw new Error(`locale count ${locales.length} != expected ${expectedLocales} (plan/04 §3.5-6)`);
+}
+
+const lw = new CodeWriter();
+for (const line of autoGeneratedHeader("generate-diagnostics.ts", [
+    "_submodules/TypeScript/src/loc/lcl/*/diagnosticMessages/diagnosticMessages.generated.json.lcl",
+])) {
+    lw.writeLine(line);
+}
+lw.writeLine();
+lw.writeLine("namespace Ts.Diagnostics;");
+lw.writeLine();
+lw.block("public static partial class Diagnostics", () => {
+    // ≙ loc_generated.go `matcher` tag list; English is index 0 (default, no translation).
+    lw.writeLine("internal static readonly string[] LocaleTags =");
+    lw.writeLine("[");
+    lw.increaseIndent();
+    lw.writeLine(`${csStringLiteral("en")},`);
+    for (const loc of locales) {
+        lw.writeLine(`${csStringLiteral(loc.tgtCul)},`);
+    }
+    lw.decreaseIndent();
+    lw.writeLine("];");
+    lw.writeLine();
+    // ≙ loc_generated.go `localeFuncs` + per-locale sync.OnceValue over go:embed data.
+    lw.writeLine("private static readonly System.Lazy<System.Collections.Generic.Dictionary<string, string>>?[] LocaleFuncs =");
+    lw.writeLine("[");
+    lw.increaseIndent();
+    lw.writeLine("null, // English (default)");
+    for (const loc of locales) {
+        lw.writeLine(`new(() => LoadLocaleData(${csStringLiteral("loc/" + loc.filename)})),`);
+    }
+    lw.decreaseIndent();
+    lw.writeLine("];");
+});
+
+writeIfChanged(path.join(ROOT, "src", "Ts.Compiler", "Diagnostics", "Loc.g.cs"), lw.toString());
+console.log(`localizations: ${locales.length} locales (expected ${expectedLocales})`);
