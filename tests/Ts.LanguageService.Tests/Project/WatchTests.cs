@@ -21,16 +21,13 @@ public sealed class WatchTests
         Assert.Equal(new[] { "/home/andrew", "project" }, WatchUtil.GetPathComponentsForWatching("/home/andrew/project", ""));
     }
 
-    // watch_test.go:22-28 — TestNilWatchedFilesClone: Go calls Clone on a nil *WatchedFiles
-    // receiver and asserts nil comes back. Go nil-receiver methods have no C# equivalent —
-    // the C# Clone is an instance method (null target throws NRE) per plan/05 §10; only the
-    // ID accessor got the nullable extension form (Watch.cs PORT-NOTE at watch.go:239-244).
-    // Skipped: depends on Go nil-receiver semantics that are deliberately not ported.
-    [Fact(Skip = "Go nil-receiver method semantics have no C# equivalent: WatchedFiles<T>.Clone is an instance method (plan/05 §10); a null receiver throws NRE instead of returning null")]
+    // watch_test.go:22-28 — TestNilWatchedFilesClone. (Clone's nil-receiver tolerance is the
+    // WatchedFilesExtensions.Clone extension, plan/05 §10.3.)
+    [Fact]
     public void NilWatchedFilesClone()
     {
         WatchedFiles<int>? w = null;
-        WatchedFiles<int>? result = w!.Clone(42);
+        WatchedFiles<int>? result = w.Clone(42);
         Assert.Null(result);
     }
 }

@@ -479,8 +479,9 @@ public sealed class WatchedFiles<T> where T : notnull
     // watch.go:250-252 — WatchKind.
     public WatchKind WatchKind() => watchKind;
 
-    // watch.go:254-269 — Clone.
-    public WatchedFiles<T>? Clone(T input)
+    // watch.go:254-269 — Clone (non-nil body; the nil-receiver guard is the
+    // WatchedFilesExtensions.Clone extension, plan/05 §10.3).
+    internal WatchedFiles<T> CloneNonNil(T input)
     {
         mu.EnterReadLock();
         try
@@ -508,6 +509,16 @@ public static class WatchedFilesExtensions
             return default;
         }
         return w.GetWatchers().WatcherID;
+    }
+
+    // watch.go:254-269 — Clone. Go tolerates a nil receiver (returns nil).
+    public static WatchedFiles<T>? Clone<T>(this WatchedFiles<T>? w, T input) where T : notnull
+    {
+        if (w is null)
+        {
+            return null;
+        }
+        return w.CloneNonNil(input);
     }
 }
 
