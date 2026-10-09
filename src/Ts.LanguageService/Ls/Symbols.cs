@@ -5,19 +5,14 @@
 // HierarchicalDocumentSymbolSupport). The C# LS foundation has no per-request context
 // carrier yet, so the capability bit is an explicit parameter; ctx.Err() checks map to
 // CancellationToken.IsCancellationRequested. Positions are UTF-16 code units.
-//
-// PORT-NOTE (deferred tail, symbols.go:516-636): ProvideWorkspaceSymbols and its
-// private support set (DeclarationInfo, shouldExcludeFile, isInsideNodeModules,
-// getMatchScore, compareDeclarationInfos) are not ported in this wave. They need
-// ast.SourceFile.GetDeclarationMap (unported, see Ast/SourceFile.cs PORT-NOTE),
-// lsutil.UserPreferences, lsconv.Converters.ToLSPLocation, ls getContainerNode, and a
-// multi-Program host — none of which exist on the C# surface yet.
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Text; // Rune (getMatchScore)
 using System.Threading;
 using Ts.Ast; // instance-syntax resolution of the Ts.Ast.NodeAccessors extension methods
+using Ts.Core; // Tristate.IsTrue (ProvideWorkspaceSymbols)
+using Ts.Ls.Change; // SourceFileScriptExtensions.AsScript (Converters.ToLSPLocation)
 using DocumentSymbol = Ts.LsProto.DocumentSymbol;
 using LspLocation = Ts.LsProto.Location;
 using LspRange = Ts.LsProto.Range;
@@ -714,6 +709,168 @@ public sealed partial class LanguageService
             result = result + "." + node.Name()!.Text();
         }
         return result;
+    }
+
+    // symbols.go:516-522 — DeclarationInfo.
+    private sealed class DeclarationInfo
+    {
+        internal string name = "";
+        internal Node declaration = null!;
+        internal int matchScore;
+    }
+
+    // symbols.go:524-596 — ProvideWorkspaceSymbols. Go returns (resp, error) with the error
+    // always nil, so the C# signature drops it.
+    public static global::Ts.LsProto.SymbolInformationsOrWorkspaceSymbolsOrNull ProvideWorkspaceSymbols(
+        global::Ts.Core.RequestContext ctx,
+        IReadOnlyList<global::Ts.Compiler.Program> programs,
+        global::Ts.Ls.LsConv.Converters converters,
+        global::Ts.Ls.UserPreferences preferences,
+        string query)
+    {
+        var excludeLibrarySymbols = preferences.ExcludeLibrarySymbolsInNavTo.IsTrue();
+        // Obtain set of non-declaration source files from all active programs.
+        var sourceFiles = new Dictionary<global::Ts.TsPath.Path, SourceFile>();
+        foreach (var program in programs)
+        {
+            foreach (var sourceFile in program.SourceFiles())
+            {
+                if ((program.HasTSFile() || !sourceFile.IsDeclarationFile) &&
+                    !ShouldExcludeFile(sourceFile, program, excludeLibrarySymbols))
+                {
+                    sourceFiles[sourceFile.Path()] = sourceFile;
+                }
+            }
+        }
+        // Create DeclarationInfos for all declarations in the source files.
+        var infos = new List<DeclarationInfo>();
+        // map-iter: 序无关 (the enumeration order is irrelevant — DeclarationInfos are
+        // sorted by compareDeclarationInfos before the top 256 are taken).
+        foreach (var sourceFile in sourceFiles.Values)
+        {
+            if (ctx.Cancellation.IsCancellationRequested)
+            {
+                return new global::Ts.LsProto.SymbolInformationsOrWorkspaceSymbolsOrNull();
+            }
+            var declarationMap = sourceFile.GetDeclarationMap();
+            // map-iter: 序无关 (see above; names and declarations are score-filtered then sorted).
+            foreach (var (name, declarations) in declarationMap)
+            {
+                var score = GetMatchScore(name, query);
+                if (score >= 0)
+                {
+                    foreach (var declaration in declarations)
+                    {
+                        infos.Add(new DeclarationInfo { name = name, declaration = declaration, matchScore = score });
+                    }
+                }
+            }
+        }
+        // Sort the DeclarationInfos and return the top 256 matches.
+        infos.Sort(CompareDeclarationInfos);
+        var count = Math.Min(infos.Count, 256);
+        var symbols = new SymbolInformation[count];
+        for (var i = 0; i < count; i++)
+        {
+            var info = infos[i];
+            var node = info.declaration;
+            var sourceFile = AstUtilities.GetSourceFileOfNode(node)!;
+            var container = global::Ts.Ls.LsMeaning.GetContainerNode(info.declaration);
+            string? containerName = null;
+            if (container != null)
+            {
+                containerName = AstUtilities.GetDeclarationName(container);
+            }
+            // Use the name node's span so that VS selects just the symbol name (matching
+            // the TS5 navto behaviour). GetNameOfDeclaration is always non-nil here because
+            // computeDeclarationMap only adds declarations whose GetDeclarationName (string
+            // form) is non-empty, which implies a name node exists.
+            var nameNode = AstUtilities.GetNameOfDeclaration(node)!;
+            var nameStart = global::Ts.AstNav.Tokens.GetStartOfNode(nameNode, sourceFile, false /*includeJsDoc*/);
+            var nameRange = new global::Ts.Core.TextRange(nameStart, nameNode.End);
+            var symbol = new SymbolInformation
+            {
+                Name = info.name,
+                Kind = GetSymbolKindFromNode(info.declaration),
+                Location = converters.ToLSPLocation(sourceFile.AsScript(), nameRange),
+                ContainerName = containerName,
+            };
+            symbols[i] = symbol;
+        }
+
+        return global::Ts.LsProto.SymbolInformationsOrWorkspaceSymbolsOrNull.FromSymbolInformations(symbols);
+    }
+
+    // symbols.go:598-600 — shouldExcludeFile.
+    private static bool ShouldExcludeFile(SourceFile file, global::Ts.Compiler.Program program, bool excludeLibrarySymbols)
+    {
+        return excludeLibrarySymbols && (IsInsideNodeModules(file.FileName()) || program.IsLibFile(file));
+    }
+
+    // symbols.go:602-604 — isInsideNodeModules.
+    private static bool IsInsideNodeModules(string fileName)
+    {
+        return fileName.Contains("/node_modules/", StringComparison.Ordinal);
+    }
+
+    // symbols.go:606-628 — getMatchScore.
+    //
+    // Return a score for matching `s` against `pattern`. In order to match, `s` must contain each of the characters in
+    // `pattern` in the same order. Upper case characters in `pattern` must match exactly, whereas lower case characters
+    // in `pattern` match either case in `s`. If `s` doesn't match, -1 is returned. Otherwise, the returned score is the
+    // number of characters in `s` that weren't matched. Thus, zero represents an exact match, and higher values represent
+    // increasingly less specific partial matches.
+    internal static int GetMatchScore(string s, string pattern)
+    {
+        var score = 0;
+        foreach (var p in pattern.EnumerateRunes())
+        {
+            var exact = Rune.IsUpper(p);
+            while (true)
+            {
+                var (c, size) = global::Ts.StringUtil.StringUtil.DecodeRuneAt(s, 0);
+                if (size == 0)
+                {
+                    return -1;
+                }
+                s = s[size..];
+                if (exact && c == p.Value || !exact && Rune.ToLowerInvariant(new Rune(c)) == Rune.ToLowerInvariant(p))
+                {
+                    break;
+                }
+                score++;
+            }
+        }
+        return score;
+    }
+
+    // symbols.go:630-638 — compareDeclarationInfos.
+    //
+    // Sort DeclarationInfos by ascending match score, then ascending case insensitive name, then
+    // ascending case sensitive name, and finally by source file name and position.
+    private static int CompareDeclarationInfos(DeclarationInfo d1, DeclarationInfo d2)
+    {
+        if (d1.matchScore != d2.matchScore)
+        {
+            return d1.matchScore - d2.matchScore;
+        }
+        var c = global::Ts.StringUtil.StringUtil.CompareStringsCaseInsensitive(d1.name, d2.name);
+        if (c != 0)
+        {
+            return c;
+        }
+        c = global::Ts.StringUtil.StringUtil.CompareRuneOrdinal(d1.name, d2.name);
+        if (c != 0)
+        {
+            return c;
+        }
+        var s1 = AstUtilities.GetSourceFileOfNode(d1.declaration)!;
+        var s2 = AstUtilities.GetSourceFileOfNode(d2.declaration)!;
+        if (s1 != s2)
+        {
+            return global::Ts.StringUtil.StringUtil.CompareRuneOrdinal(s1.Path().Value, s2.Path().Value);
+        }
+        return d1.declaration.Pos - d2.declaration.Pos;
     }
 
     // symbols.go:640 — getSymbolKindFromNode converts an AST node to an LSP SymbolKind.
