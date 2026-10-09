@@ -29,10 +29,21 @@ M:System.Reflection.FieldInfo.SetValue(System.Object,System.Object,System.Reflec
 
 // Metadata enumeration is not trim safe. typeof(T), GetType() equality, and constant-name
 // manifest-resource access remain allowed as listed in plan/07 §2.
+//
+// Three overloads are intentionally ABSENT from this list because .NET 10's STJ source
+// generator emits them unconditionally as lazy AttributeProviderFactory /
+// ConstructorAttributeProviderFactory delegates for every serialized member and object
+// type (dotnet/runtime release/10.0 gen/JsonSourceGenerator.Emitter.cs:529,669-670):
+//   Type.GetConstructor(BindingFlags, Binder?, Type[], ParameterModifier[]?)
+//   Type.GetField(string, BindingFlags)
+//   Type.GetProperty(string, BindingFlags, Binder?, Type?, Type[], ParameterModifier[]?)
+// RS0030 is NotConfigurable, so these cannot be scoped via .editorconfig, and /nowarn
+// would disable the whole ban. They open no usable reflection path by themselves —
+// FieldInfo/PropertyInfo GetValue/SetValue and CustomAttributeExtensions remain banned.
+// Registered: plan/07 §12 item 7, plan/11 §8.1 D-019.
 M:System.Type.GetConstructors;Metadata enumeration is forbidden; generate the required dispatch table.
 M:System.Type.GetConstructors(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
 M:System.Type.GetConstructor(System.Reflection.BindingFlags,System.Reflection.Binder,System.Reflection.CallingConventions,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
-M:System.Type.GetConstructor(System.Reflection.BindingFlags,System.Reflection.Binder,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetConstructor(System.Reflection.BindingFlags,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetConstructor(System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetEvents;Metadata enumeration is forbidden; generate the required dispatch table.
@@ -42,7 +53,6 @@ M:System.Type.GetEvent(System.String,System.Reflection.BindingFlags);Reflection 
 M:System.Type.GetFields;Metadata enumeration is forbidden; generate the required dispatch table.
 M:System.Type.GetFields(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
 M:System.Type.GetField(System.String);Reflection lookup is forbidden; generate the required dispatch table.
-M:System.Type.GetField(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetInterfaces;Metadata enumeration is forbidden; generate the required dispatch table.
 M:System.Type.GetInterface(System.String);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetInterface(System.String,System.Boolean);Reflection lookup is forbidden; generate the required dispatch table.
@@ -73,7 +83,6 @@ M:System.Type.GetProperties;Metadata enumeration is forbidden; generate the requ
 M:System.Type.GetProperties(System.Reflection.BindingFlags);Metadata enumeration is forbidden; generate the required dispatch table.
 M:System.Type.GetProperty(System.String);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetProperty(System.String,System.Reflection.BindingFlags);Reflection lookup is forbidden; generate the required dispatch table.
-M:System.Type.GetProperty(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Type,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetProperty(System.String,System.Type);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetProperty(System.String,System.Type,System.Type[]);Reflection lookup is forbidden; generate the required dispatch table.
 M:System.Type.GetProperty(System.String,System.Type,System.Type[],System.Reflection.ParameterModifier[]);Reflection lookup is forbidden; generate the required dispatch table.
