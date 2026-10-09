@@ -51,7 +51,7 @@ interface test4 implements Foo./*4*/ {}
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -63,7 +63,7 @@ interface test4 implements Foo./*4*/ {}
     Label = "prototype",
     SortText = Ls_.SortTextLocationPriority,
     },
-    ]),
+    ])],
         },
         
     });

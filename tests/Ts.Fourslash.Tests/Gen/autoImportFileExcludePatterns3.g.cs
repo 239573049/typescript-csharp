@@ -49,7 +49,7 @@ declare module "foo" {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -77,7 +77,7 @@ declare module "foo" {
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], false),
+    ], false)],
         },
         UserPreferences = new LsUtil.UserPreferences
     {
@@ -95,7 +95,7 @@ declare module "foo" {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         UserPreferences = new LsUtil.UserPreferences
     {

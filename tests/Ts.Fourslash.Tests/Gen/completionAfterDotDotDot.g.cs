@@ -39,7 +39,7 @@ public class CompletionAfterDotDotDotTests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });

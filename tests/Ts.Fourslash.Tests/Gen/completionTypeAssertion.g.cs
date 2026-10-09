@@ -40,10 +40,10 @@ var y = this as/*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "x",
-    ], false),
+    ], false)],
         },
         
     });

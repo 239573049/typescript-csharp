@@ -50,7 +50,7 @@ Button/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -65,7 +65,7 @@ Button/**/
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], false),
+    ], false)],
         },
         UserPreferences = new LsUtil.UserPreferences
     {

@@ -51,7 +51,7 @@ const [] = [Math.min(./*marker*/)]
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });

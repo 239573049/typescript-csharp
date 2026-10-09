@@ -71,11 +71,11 @@ var b = point./*3*/equals(p1, p2);
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototypePlus(
+            Exact = [.. CompletionFunctionMembersWithPrototypePlus(
     [
     "equals",
     "origin",
-    ]),
+    ])],
         },
         
     });

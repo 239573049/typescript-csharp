@@ -49,7 +49,7 @@ fo/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -88,7 +88,7 @@ fo/**/
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], true),
+    ], true)],
         },
         
     });

@@ -53,7 +53,7 @@ conso/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -61,7 +61,7 @@ conso/**/
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextGlobalsOrKeywords,
     },
-    ], false),
+    ], false)],
         },
         
     });

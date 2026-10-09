@@ -39,7 +39,7 @@ Harness.newLine = ""\n/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });

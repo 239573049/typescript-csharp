@@ -44,7 +44,7 @@ function updateCalendarEvent() {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

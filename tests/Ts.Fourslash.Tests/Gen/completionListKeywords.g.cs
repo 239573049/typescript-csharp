@@ -39,9 +39,9 @@ public class CompletionListKeywordsTests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
-    ], true),
+    ], true)],
         },
         
     });

@@ -55,7 +55,7 @@ var ngShowDirective = ['$animate', function($animate) {}];
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

@@ -54,7 +54,7 @@ Person.getNa/**/ = 10;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototypePlus(
+            Exact = [.. CompletionFunctionMembersWithPrototypePlus(
     [
     "getName",
     "getNa",
@@ -73,7 +73,7 @@ Person.getNa/**/ = 10;
     Label = "age",
     SortText = Ls_.SortTextJavascriptIdentifiers,
     },
-    ]),
+    ])],
         },
         
     });

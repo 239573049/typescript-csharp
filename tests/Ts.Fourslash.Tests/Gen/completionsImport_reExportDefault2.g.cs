@@ -53,7 +53,7 @@ defaultExp/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsInJSPlus(
+            Exact = [.. CompletionGlobalsInJSPlus(
     [
     "namedExport",
     new LsProto.CompletionItem
@@ -69,7 +69,7 @@ defaultExp/**/
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], false),
+    ], false)],
         },
         
     });

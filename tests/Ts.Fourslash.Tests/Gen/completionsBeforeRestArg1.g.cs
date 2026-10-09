@@ -40,7 +40,7 @@ const layers = Object.assign({}, /*1*/...[]);
         },
         Items = new CompletionsExpectedItems
         {
-            Includes = CompletionGlobals,
+            Includes = [.. CompletionGlobals],
         },
         
     });

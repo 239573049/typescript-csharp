@@ -46,7 +46,7 @@ public class CompletionListInComments3Tests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });

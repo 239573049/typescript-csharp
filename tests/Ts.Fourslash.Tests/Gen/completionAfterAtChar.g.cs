@@ -39,7 +39,7 @@ public class CompletionAfterAtCharTests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });

@@ -41,11 +41,11 @@ a4(...<crash>/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "a4",
     "array",
-    ], false),
+    ], false)],
         },
         
     });

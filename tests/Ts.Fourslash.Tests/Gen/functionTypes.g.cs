@@ -60,7 +60,7 @@ l./*7*/prototype = Object.prototype;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototype,
+            Exact = [.. CompletionFunctionMembersWithPrototype],
         },
         
     });
@@ -75,10 +75,10 @@ l./*7*/prototype = Object.prototype;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     "prototype",
-    ]),
+    ])],
         },
         
     });

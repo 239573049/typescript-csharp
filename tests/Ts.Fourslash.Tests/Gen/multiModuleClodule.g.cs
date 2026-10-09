@@ -73,7 +73,7 @@ c./*3*/foo = C./*4*/foo;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -95,7 +95,7 @@ c./*3*/foo = C./*4*/foo;
     Label = "x",
     SortText = Ls_.SortTextLocationPriority,
     },
-    ]),
+    ])],
         },
         
     });

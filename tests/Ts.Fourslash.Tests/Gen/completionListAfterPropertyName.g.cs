@@ -95,7 +95,7 @@ class Test14 {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionConstructorParameterKeywords,
+            Exact = [.. CompletionConstructorParameterKeywords],
         },
         
     });

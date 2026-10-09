@@ -63,7 +63,7 @@ import "@scope/react";
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -91,7 +91,7 @@ import "@scope/react";
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], false),
+    ], false)],
         },
         
     });

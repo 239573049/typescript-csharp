@@ -44,7 +44,7 @@ t/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -71,7 +71,7 @@ t/**/
                     Description = "./a",
                 },
     },
-    ], true),
+    ], true)],
         },
         
     });

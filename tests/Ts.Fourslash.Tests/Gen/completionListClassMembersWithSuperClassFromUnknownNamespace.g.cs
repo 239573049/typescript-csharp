@@ -40,7 +40,7 @@ class Child extends Namespace.Parent {
         },
         Items = new CompletionsExpectedItems
         {
-            Includes = CompletionClassElementKeywords,
+            Includes = [.. CompletionClassElementKeywords],
         },
         
     });

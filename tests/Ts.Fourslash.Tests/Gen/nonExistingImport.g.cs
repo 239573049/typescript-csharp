@@ -42,10 +42,10 @@ namespace m {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "foo",
-    ]),
+    ])],
         },
         
     });

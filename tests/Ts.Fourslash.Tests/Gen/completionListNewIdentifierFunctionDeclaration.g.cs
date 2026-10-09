@@ -39,7 +39,7 @@ function F(pref: (a/*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionTypeKeywords,
+            Exact = [.. CompletionTypeKeywords],
         },
         
     });

@@ -4798,6 +4798,72 @@ function contentLiteral(inputContent: string): string {
     return `${fence}\n${content}\n${fence}`;
 }
 
+// ---------------------------------------------------------------------------
+// C# list-in-initializer demotion.
+//
+// The Go corpus writes expectations as a spread of a named []completionItem value inside a
+// composite literal:
+//
+//     Exact: append(ls.GlobalCompletionVars, "y", "z")      →  utilities.CompletionGlobalsPlus("y", "z")
+//     Exact: ls.GlobalCompletionVars                        →  utilities.CompletionGlobals
+//
+// The emit half maps those helpers to List<object> factories, but the C# collection-expression
+// form `Exact = Helper("a", "b")` is not a collection expression at all: three+ arguments parse
+// as a *method-invocation initializer* (enclosed in `()`), which has no implicit conversion to
+// List<object> (CS0029 at every such site). Wrapping the value in `[...]` makes it a genuine
+// collection expression whose element type is inferred from the target `List<object>`.
+// ---------------------------------------------------------------------------
+function demoteInitializerLists(text: string): string {
+    // The Go corpus writes completions expectations as a spread of a util completion list:
+    //     Exact: append(ls.GlobalCompletionVars, ...)     -> CompletionGlobalsPlus(...)
+    //     Exact: ls.GlobalCompletionVars                  -> CompletionGlobals
+    // The emit half maps those to util members whose C# type is either object[] (the sorted
+    // constant lists and every *Plus factory) or List<object> (the util.go list literals), and
+    // the expected-items fields are List<object>. A bare value converts when it is already a
+    // List<object> but not when it is an object[] (CS0029 at 145+ sites), and wrapping with a
+    // plain element expression would nest the list. A collection-expression *spread* is the one
+    // form that is correct for both element types, so every value becomes `[.. value]`.
+    let out = "";
+    let index = 0;
+    const re = /\b(?:Exact|Includes|Unsorted)\s*=\s*([A-Za-z_][A-Za-z0-9_]*)/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+        const name = m[1];
+        if (!name.startsWith("Completion")) {
+            continue;
+        }
+        const valueStart = m.index + m[0].length - name.length;
+        let valueEnd = valueStart + name.length;
+        if (text[valueEnd] === "(") {
+            let depth = 0;
+            let cursor = valueEnd;
+            let close = -1;
+            while (cursor < text.length) {
+                const ch = text[cursor];
+                if (ch === "(") {
+                    depth++;
+                } else if (ch === ")") {
+                    depth--;
+                    if (depth === 0) {
+                        close = cursor;
+                        break;
+                    }
+                }
+                cursor++;
+            }
+            if (close < 0) {
+                continue;
+            }
+            valueEnd = close + 1;
+        }
+        out += text.slice(index, valueStart) + "[.. " + text.slice(valueStart, valueEnd) + "]";
+        index = valueEnd;
+        re.lastIndex = valueEnd;
+    }
+    out += text.slice(index);
+    return out;
+}
+
 function generateCSharpTest(test: GoTest, isServer: boolean, isCrashing: boolean): string {
     const name = testName(test.name);
     const hasDocCommentTemplateCommands = test.commands.some(hasDocCommentTemplateCommand);
@@ -4813,7 +4879,7 @@ function generateCSharpTest(test: GoTest, isServer: boolean, isCrashing: boolean
     const body = `        SkipIfFailing.Check();
         const string content = ${contentLiteral(content)};
 ${newStatement}
-${isServer ? `        f.MarkTestAsStradaServer();\n` : ""}${indentBlock(commands)}`;
+${isServer ? `        f.MarkTestAsStradaServer();\n` : ""}${indentBlock(demoteInitializerLists(commands))}`;
 
     const testClass = fileHeader(name, test.name) + body + "\n" + fileFooter;
     if (isCrashing) {

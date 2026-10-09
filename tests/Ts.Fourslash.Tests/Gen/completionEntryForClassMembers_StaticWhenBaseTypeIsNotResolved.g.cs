@@ -47,7 +47,7 @@ class Slider extends React.Component {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionClassElementKeywords,
+            Exact = [.. CompletionClassElementKeywords],
         },
         
     });

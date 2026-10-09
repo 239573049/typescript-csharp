@@ -46,9 +46,9 @@ fooB/*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
-    ], true),
+    ], true)],
         },
         
     });

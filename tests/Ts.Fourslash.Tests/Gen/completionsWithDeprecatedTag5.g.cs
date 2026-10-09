@@ -43,7 +43,7 @@ Foo./**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -57,7 +57,7 @@ Foo./**/
     SortText = Ls_.DeprecateSortText(Ls_.SortTextLocalDeclarationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
-    ]),
+    ])],
         },
         
     });

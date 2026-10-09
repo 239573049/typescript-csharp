@@ -42,7 +42,7 @@ function fn() {}
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

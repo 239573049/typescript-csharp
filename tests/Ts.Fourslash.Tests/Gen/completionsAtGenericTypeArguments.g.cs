@@ -43,10 +43,10 @@ const f = foo</*3*/, /*4*/,
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "Foo",
-    ]),
+    ])],
         },
         
     });
@@ -61,10 +61,10 @@ const f = foo</*3*/, /*4*/,
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "Foo",
-    ]),
+    ])],
         },
         
     });
@@ -79,10 +79,10 @@ const f = foo</*3*/, /*4*/,
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "Foo",
-    ]),
+    ])],
         },
         
     });
@@ -97,10 +97,10 @@ const f = foo</*3*/, /*4*/,
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "Foo",
-    ]),
+    ])],
         },
         
     });

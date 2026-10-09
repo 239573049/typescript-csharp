@@ -40,7 +40,7 @@ f./*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototype,
+            Exact = [.. CompletionFunctionMembersWithPrototype],
         },
         
     });

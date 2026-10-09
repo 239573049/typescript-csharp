@@ -47,7 +47,7 @@ Table/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -75,7 +75,7 @@ Table/**/
     SortText = Ls_.SortTextAutoImportSuggestions,
     AdditionalTextEdits = AnyTextEdits,
     },
-    ], false),
+    ], false)],
         },
         
     });

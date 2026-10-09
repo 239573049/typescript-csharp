@@ -54,7 +54,7 @@ class Foo {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -75,7 +75,7 @@ class Foo {
     {
     Label = "prototype",
     },
-    ]),
+    ])],
         },
         
     });

@@ -81,7 +81,7 @@ D./*2*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -108,7 +108,7 @@ D./*2*/
     Label = "x",
     SortText = Ls_.SortTextLocationPriority,
     },
-    ]),
+    ])],
         },
         
     });

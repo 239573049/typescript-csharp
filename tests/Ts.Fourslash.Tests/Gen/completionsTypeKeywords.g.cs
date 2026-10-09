@@ -39,11 +39,11 @@ type T = /**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionTypeKeywordsPlus(
+            Exact = [.. CompletionTypeKeywordsPlus(
     [
     "T",
     CompletionGlobalThisItem,
-    ]),
+    ])],
         },
         
     });

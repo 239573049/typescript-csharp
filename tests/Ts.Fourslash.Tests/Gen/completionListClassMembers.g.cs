@@ -59,7 +59,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -86,7 +86,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
     Label = "prototype",
     SortText = Ls_.SortTextLocationPriority,
     },
-    ]),
+    ])],
         },
         
     });
@@ -121,7 +121,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -138,7 +138,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
     Label = "prototype",
     SortText = Ls_.SortTextLocationPriority,
     },
-    ]),
+    ])],
         },
         
     });

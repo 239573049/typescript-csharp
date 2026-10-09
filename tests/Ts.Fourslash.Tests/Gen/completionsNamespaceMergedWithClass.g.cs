@@ -66,7 +66,7 @@ D./*value*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersPlus(
+            Exact = [.. CompletionFunctionMembersPlus(
     [
     new LsProto.CompletionItem
     {
@@ -78,7 +78,7 @@ D./*value*/
     Label = "prototype",
     SortText = Ls_.SortTextLocationPriority,
     },
-    ]),
+    ])],
         },
         
     });

@@ -49,7 +49,7 @@ y/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "x",
     new LsProto.CompletionItem
@@ -65,7 +65,7 @@ y/**/
     SortText = Ls_.SortTextAutoImportSuggestions,
     AdditionalTextEdits = AnyTextEdits,
     },
-    ], false),
+    ], false)],
         },
         
     });

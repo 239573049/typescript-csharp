@@ -42,11 +42,11 @@ f2({ x/*2*/ });
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "f1",
     "f2",
-    ], false),
+    ], false)],
         },
         
     });

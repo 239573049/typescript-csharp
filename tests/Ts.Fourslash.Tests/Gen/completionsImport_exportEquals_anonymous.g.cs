@@ -48,9 +48,9 @@ fooB/*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
-    ], true),
+    ], true)],
         },
         
     });
@@ -65,7 +65,7 @@ fooB/*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -82,7 +82,7 @@ fooB/*1*/
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], true),
+    ], true)],
         },
         
     });

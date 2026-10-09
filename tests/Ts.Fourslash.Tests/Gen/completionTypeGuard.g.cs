@@ -43,7 +43,7 @@ hi
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });
@@ -58,7 +58,7 @@ hi
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });
@@ -73,7 +73,7 @@ hi
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

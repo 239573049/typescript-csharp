@@ -65,7 +65,7 @@ var x = class myClass {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionClassElementKeywords,
+            Exact = [.. CompletionClassElementKeywords],
         },
         
     });

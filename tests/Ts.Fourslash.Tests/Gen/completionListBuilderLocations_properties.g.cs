@@ -44,7 +44,7 @@ class A2 {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionClassElementKeywords,
+            Exact = [.. CompletionClassElementKeywords],
         },
         
     });

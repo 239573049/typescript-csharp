@@ -41,7 +41,7 @@ public class CompletionListInTemplateLiteralParts1Tests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });
@@ -56,7 +56,7 @@ public class CompletionListInTemplateLiteralParts1Tests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });

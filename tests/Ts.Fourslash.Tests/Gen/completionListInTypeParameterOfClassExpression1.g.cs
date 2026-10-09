@@ -45,10 +45,10 @@ var C4 = class D<T extends /*4*/>{}
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "D",
-    ]),
+    ])],
         },
         
     });

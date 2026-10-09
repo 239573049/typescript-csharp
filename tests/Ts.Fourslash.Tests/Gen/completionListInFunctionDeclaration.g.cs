@@ -56,7 +56,7 @@ function foo(/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

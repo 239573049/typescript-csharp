@@ -45,7 +45,7 @@ export import foo = N.foo;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
@@ -59,7 +59,7 @@ export import foo = N.foo;
     Kind = LsProto.CompletionItemKind.Module,
     Detail = "namespace N",
     },
-    ], false),
+    ], false)],
         },
         
     });

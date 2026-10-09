@@ -55,7 +55,7 @@ BrowserRouter/**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsInJSPlus(
+            Exact = [.. CompletionGlobalsInJSPlus(
     [
     new LsProto.CompletionItem
     {
@@ -70,7 +70,7 @@ BrowserRouter/**/
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], false),
+    ], false)],
         },
         
     });

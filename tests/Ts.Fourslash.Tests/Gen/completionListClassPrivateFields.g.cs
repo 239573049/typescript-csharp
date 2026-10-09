@@ -44,7 +44,7 @@ class B extends A {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionClassElementKeywords,
+            Exact = [.. CompletionClassElementKeywords],
         },
         
     });

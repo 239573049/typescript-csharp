@@ -44,7 +44,7 @@ class bar7{ constructor(private a, /*6*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionConstructorParameterKeywords,
+            Exact = [.. CompletionConstructorParameterKeywords],
         },
         
     });

@@ -121,7 +121,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototypePlus(
+            Exact = [.. CompletionFunctionMembersWithPrototypePlus(
     [
     new LsProto.CompletionItem
     {
@@ -168,7 +168,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     Label = "nc_fnfoo",
     Detail = "(method) i2.nc_fnfoo(b: number): string",
     },
-    ]),
+    ])],
         },
         
     });

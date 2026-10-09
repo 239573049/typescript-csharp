@@ -49,10 +49,10 @@ t2./**/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototypePlus(
+            Exact = [.. CompletionFunctionMembersWithPrototypePlus(
     [
     "foo",
-    ]),
+    ])],
         },
         
     });

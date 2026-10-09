@@ -46,12 +46,12 @@ const obj2: any = {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "bar",
     "foo",
     "obj2",
-    ], false),
+    ], false)],
         },
         
     });
@@ -66,12 +66,12 @@ const obj2: any = {
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "bar",
     "foo",
     "obj1",
-    ], false),
+    ], false)],
         },
         
     });

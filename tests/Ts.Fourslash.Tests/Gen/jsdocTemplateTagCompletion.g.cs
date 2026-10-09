@@ -43,7 +43,7 @@ public class JsdocTemplateTagCompletionTests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

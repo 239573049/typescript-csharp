@@ -43,10 +43,10 @@ function f(Abc: Ab/**/) {}
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionTypeKeywordsPlus(
+            Exact = [.. CompletionTypeKeywordsPlus(
     [
     "Abc",
-    ]),
+    ])],
         },
         
     });

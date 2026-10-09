@@ -47,7 +47,7 @@ var c = </*3*/>42
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionTypeAssertionKeywords,
+            Exact = [.. CompletionTypeAssertionKeywords],
         },
         
     });

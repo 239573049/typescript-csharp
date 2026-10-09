@@ -58,10 +58,10 @@ var /*3*/r2 = t./*4*/foo; // t should have 'foo' in dropdown list and be of type
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionFunctionMembersWithPrototypePlus(
+            Exact = [.. CompletionFunctionMembersWithPrototypePlus(
     [
     "foo",
-    ]),
+    ])],
         },
         
     });

@@ -52,11 +52,11 @@ var y = 10; y=/*var12*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "C",
     "y",
-    ], false),
+    ], false)],
         },
         
     });
@@ -71,12 +71,12 @@ var y = 10; y=/*var12*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     "C",
     "x",
     "y",
-    ], false),
+    ], false)],
         },
         
     });

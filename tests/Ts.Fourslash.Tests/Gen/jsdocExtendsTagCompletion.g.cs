@@ -40,10 +40,10 @@ class A {}
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypesPlus(
+            Exact = [.. CompletionGlobalTypesPlus(
     [
     "A",
-    ]),
+    ])],
         },
         
     });

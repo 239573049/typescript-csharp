@@ -52,7 +52,7 @@ export default foo.b;
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsInJSPlus(
+            Exact = [.. CompletionGlobalsInJSPlus(
     [
     "foo",
     new LsProto.CompletionItem
@@ -81,7 +81,7 @@ export default foo.b;
     AdditionalTextEdits = AnyTextEdits,
     SortText = Ls_.SortTextAutoImportSuggestions,
     },
-    ], false),
+    ], false)],
         },
         
     });

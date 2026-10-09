@@ -40,7 +40,7 @@ function test1<T = /*1*/>() {}
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalTypes,
+            Exact = [.. CompletionGlobalTypes],
         },
         
     });

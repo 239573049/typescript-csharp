@@ -43,13 +43,13 @@ let foo /*1*/
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobalsPlus(
+            Exact = [.. CompletionGlobalsPlus(
     [
     new LsProto.CompletionItem
     {
     Label = "foo",
     },
-    ], false),
+    ], false)],
         },
         
     });

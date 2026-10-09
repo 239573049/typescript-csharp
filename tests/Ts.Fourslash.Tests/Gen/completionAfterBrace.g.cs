@@ -41,7 +41,7 @@ public class CompletionAfterBraceTests
         },
         Items = new CompletionsExpectedItems
         {
-            Exact = CompletionGlobals,
+            Exact = [.. CompletionGlobals],
         },
         
     });
