@@ -158,29 +158,85 @@ internal sealed class DirWatch
 
     private void OnCreated(object sender, FileSystemEventArgs e)
     {
-        _events.Create(Canonicalize.CanonicalizePath(e.FullPath));
+        if (OperatingSystem.IsMacOS())
+        {
+            RecordFSEventsDarwin(e.FullPath);
+        }
+        else
+        {
+            _events.Create(Canonicalize.CanonicalizePath(e.FullPath));
+        }
         Notify();
     }
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
-        _events.Update(Canonicalize.CanonicalizePath(e.FullPath));
+        if (OperatingSystem.IsMacOS())
+        {
+            RecordFSEventsDarwin(e.FullPath);
+        }
+        else
+        {
+            _events.Update(Canonicalize.CanonicalizePath(e.FullPath));
+        }
         Notify();
     }
 
     private void OnDeleted(object sender, FileSystemEventArgs e)
     {
-        _events.Remove(Canonicalize.CanonicalizePath(e.FullPath));
+        if (OperatingSystem.IsMacOS())
+        {
+            RecordFSEventsDarwin(e.FullPath);
+        }
+        else
+        {
+            _events.Remove(Canonicalize.CanonicalizePath(e.FullPath));
+        }
         Notify();
     }
 
     private void OnRenamed(object sender, RenamedEventArgs e)
     {
+        if (OperatingSystem.IsMacOS())
+        {
+            RecordFSEventsDarwin(e.OldFullPath);
+            RecordFSEventsDarwin(e.FullPath);
+            Notify();
+            return;
+        }
         // A rename is a delete of the old name + create of the new name — the
         // eventList coalesces these into the right EventDelete/EventUpdate.
         _events.Remove(Canonicalize.CanonicalizePath(e.OldFullPath));
         _events.Create(Canonicalize.CanonicalizePath(e.FullPath));
         Notify();
+    }
+
+    // fsevents_darwin.go:569-609 (fsEventsCallback classification). FSEvents
+    // reports a cumulative flag bitmask per path; CoreFX's FileSystemWatcher
+    // splits that mask into separate Created/Changed/Deleted callbacks, so a
+    // delete of a recently created file arrives as phantom Created+Changed
+    // followed by Deleted (which the eventList would cancel as create+delete).
+    // Go never records creates on darwin: ambiguous combos are resolved with one
+    // Lstat — present → update, absent → delete. With the flags gone, every
+    // callback is resolved the same way here.
+    private void RecordFSEventsDarwin(string fullPath)
+    {
+        string path = Canonicalize.CanonicalizePath(fullPath);
+        if (LstatExists(fullPath))
+        {
+            _events.Update(path);
+        }
+        else
+        {
+            _events.Remove(path);
+        }
+    }
+
+    // Go: unix.Lstat(rawPath, &st) == nil. On Unix, File.Exists falls back to
+    // lstat, so a dangling symlink still counts as present.
+    private static bool LstatExists(string path)
+    {
+        return File.Exists(path) || Directory.Exists(path);
     }
 
     private void OnError(object sender, ErrorEventArgs e)
