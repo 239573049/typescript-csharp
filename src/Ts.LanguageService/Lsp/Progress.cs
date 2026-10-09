@@ -4,9 +4,8 @@
 // {p.ch, delay.C, done} maps to a dedicated task that Task.WhenAny's over the channel
 // reader, the pending delay task, and a done-task built from reporter.Done(). The delay
 // timer is created through a timer factory (real Task.Delay by default) so tests can
-// replace testing/synctest with manual firing. `stopDelay` maps to dropping the pending
-// task reference (an abandoned Task.Delay completing has no observer, exactly like a
-// stopped Go timer).
+// replace testing/synctest with manual firing. `stopDelay` (Go: timer.Stop()) maps to
+// cancelling the token handed to the factory and dropping the pending task reference.
 
 using System;
 using System.Threading;
@@ -90,7 +89,7 @@ internal sealed class ProjectLoadingProgress
 {
     // Default delay-timer factory (Go: time.NewTimer).
     private static readonly Func<TimeSpan, CancellationToken, Task> RealDelayTimer =
-        static (delay, _) => Task.Delay(delay, CancellationToken.None);
+        static (delay, stop) => Task.Delay(delay, stop);
 
     private readonly ProgressReporter reporter;
 
@@ -182,7 +181,20 @@ internal sealed class ProjectLoadingProgress
         bool begun = false; // whether "begin" has been sent for the current token
 
         Task? delayTask = null;
+        CancellationTokenSource? delayStop = null;
         bool delayFired = false; // true after the delay timer fires
+
+        // progress.go:125-130 — stopDelay.
+        void StopDelay()
+        {
+            if (delayStop is not null)
+            {
+                delayStop.Cancel();
+                delayStop.Dispose();
+                delayStop = null;
+            }
+            delayTask = null;
+        }
 
         // done arm: reporter.Done() as a task.
         var doneTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -200,7 +212,7 @@ internal sealed class ProjectLoadingProgress
 
                     if (completed == doneTcs.Task)
                     {
-                        // Go: stopDelay(); return.
+                        StopDelay();
                         SignalIdle();
                         return;
                     }
@@ -209,6 +221,8 @@ internal sealed class ProjectLoadingProgress
                         // Go: case <-delayC(): — a Go timer's channel delivers once; the
                         // pending task is dropped here for the same effect.
                         delayTask = null;
+                        delayStop?.Dispose();
+                        delayStop = null;
                         delayFired = true;
                         if (token != "" && loading.Size() > 0)
                         {
@@ -244,7 +258,8 @@ internal sealed class ProjectLoadingProgress
                             else
                             {
                                 delayFired = false;
-                                delayTask = delayTimerFactory(this.delay, CancellationToken.None);
+                                delayStop = new CancellationTokenSource();
+                                delayTask = delayTimerFactory(this.delay, delayStop.Token);
                             }
                         }
                         if (delayFired)
@@ -275,8 +290,7 @@ internal sealed class ProjectLoadingProgress
                                 reporter.SendProgress(token, global::Ts.LsProto.WorkDoneProgressBeginOrReportOrEnd.FromEnd(
                                     new global::Ts.LsProto.WorkDoneProgressEnd()));
                             }
-                            // Go: stopDelay().
-                            delayTask = null;
+                            StopDelay();
                             token = "";
                         }
                         else if (delayFired)

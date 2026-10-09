@@ -926,6 +926,24 @@ public sealed class Server
         writer.Write(buffer.WrittenSpan.ToArray());
     }
 
+    // TEMP(server port in progress): members consumed by Logger/Progress.
+    internal bool InitStarted => initializeStarted;
+    internal TextWriter Stderr => stderr;
+    internal CancellationToken BackgroundCancellation => CancellationToken.None;
+    internal global::Ts.Locale.Locale Locale => global::Ts.Locale.Locale.Default;
+
+    internal Exception? Send(global::Ts.LsProto.Message message)
+    {
+        WriteMessage(message.WriteTo);
+        return null;
+    }
+
+    internal Exception? SendClientRequestFireAndForget<TParams, TResult>(global::Ts.LsProto.RequestInfo<TParams, TResult> info, TParams parameters) =>
+        Send(global::Ts.LsProto.RequestMessage.New(info, global::Ts.JsonRpc.Id.NewIdString("ts0"), parameters).Message());
+
+    internal Exception? SendNotification<TParams>(global::Ts.LsProto.NotificationInfo<TParams> info, TParams parameters) =>
+        Send(global::Ts.LsProto.RequestMessage.New(info, parameters).Message());
+
     private sealed record OpenDocument(
         global::Ts.LsProto.DocumentUri Uri,
         string FileName,
