@@ -1,9 +1,8 @@
 // CLI wave (tsc type-check-and-report): drives the Ts.Execute.Tsc.CommandLine flow through a fake
 // ISystem so the parse → dispatch → report → exit-code path is exercised without touching the real OS.
 //
-// The end-to-end "type-check a legal file and exit 0" test is skipped: the checker's CheckSourceFile
-// path is being filled in parallel and currently throws NotImplementedException (checkDecorators) for
-// even a trivial legal program. Un-skip once the checker semantic path is real.
+// The end-to-end "type-check a legal file and exit 0" test runs over the bundled lib files: with
+// --noLib tsc (like tsgo) correctly reports TS2318 for the missing global types.
 
 using System;
 using System.Collections.Generic;
@@ -36,7 +35,7 @@ public sealed class ExecuteTests
 
         public TextWriter Writer() => writer;
         public IFileSystem FS() => fs;
-        public string DefaultLibraryPath() => "/lib";
+        public string DefaultLibraryPath() => global::Ts.Bundled.Bundled.LibPath();
         public string GetCurrentDirectory() => cwd;
         public bool WriteOutputIsTTY() => false;
         public int GetWidthOfTerminal() => 0;
@@ -47,7 +46,7 @@ public sealed class ExecuteTests
 
     private static FakeSystem NewSystem(IReadOnlyDictionary<string, string>? files = null)
     {
-        var fs = VfsTestUtil.FromMap(files ?? new Dictionary<string, string>(), useCaseSensitiveFileNames: true);
+        var fs = global::Ts.Bundled.Bundled.WrapFS(VfsTestUtil.FromMap(files ?? new Dictionary<string, string>(), useCaseSensitiveFileNames: true));
         return new FakeSystem(fs, "/src");
     }
 
@@ -85,13 +84,13 @@ public sealed class ExecuteTests
         Assert.Contains("COMMON COMMANDS", sys.Output);
     }
 
-    [Fact(Skip = "checker path WIP: CheckSourceFile throws NotImplementedException (checkDecorators) for legal programs; un-skip when the semantic report path is real")]
+    [Fact]
     public void LegalFile_TypeChecks_ExitsZero()
     {
         var sys = NewSystem(new Dictionary<string, string> { ["/src/only.ts"] = "export const x = 1;\n" });
-        var result = Tsc.CommandLine(sys, ["--noLib", "/src/only.ts"]);
+        var result = Tsc.CommandLine(sys, ["/src/only.ts"]);
 
+        Assert.Equal("", sys.Output);
         Assert.Equal(ExitStatus.Success, result.Status);
-        Assert.Empty(sys.Output);
     }
 }

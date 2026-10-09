@@ -50,7 +50,7 @@ public sealed class Watcher
     internal readonly IFileSystem fs;
     internal readonly IWatcherBackend backend;
     private readonly Action<FileEvent[]> onChanges;
-    internal readonly Logger logger;
+    internal readonly global::Ts.Project.Logging.Logger logger;
 
     // Go: mu sync.Mutex → System.Threading.Lock (plan/05 §11).
     private readonly Lock mu = new();
@@ -67,7 +67,7 @@ public sealed class Watcher
 
     // lspwatcher.go:93-97 — New constructs a Watcher backed by internal/fswatch's platform-default
     // watcher implementation.
-    public static Watcher New(IFileSystem fs, Action<FileEvent[]> onChanges, Logger logger)
+    public static Watcher New(IFileSystem fs, Action<FileEvent[]> onChanges, global::Ts.Project.Logging.Logger logger)
     {
         return NewWithFSWatcher(fs, FsWatch.Watcher.Default(), onChanges, logger);
     }
@@ -75,18 +75,18 @@ public sealed class Watcher
     // lspwatcher.go:99-104 — NewWithFSWatcher constructs a Watcher backed by the provided fswatch.Watcher.
     // Use this to select a specific backend (e.g. fswatch.Kqueue()) instead of the
     // platform default.
-    public static Watcher NewWithFSWatcher(IFileSystem fs, FsWatch.IWatcher watcher, Action<FileEvent[]> onChanges, Logger logger)
+    public static Watcher NewWithFSWatcher(IFileSystem fs, FsWatch.IWatcher watcher, Action<FileEvent[]> onChanges, global::Ts.Project.Logging.Logger logger)
     {
         return NewWithBackend(fs, new DefaultWatcherBackend(watcher), onChanges, logger);
     }
 
     // lspwatcher.go:106-114 — newWithBackend.
-    internal static Watcher NewWithBackend(IFileSystem fs, IWatcherBackend backend, Action<FileEvent[]> onChanges, Logger logger)
+    internal static Watcher NewWithBackend(IFileSystem fs, IWatcherBackend backend, Action<FileEvent[]> onChanges, global::Ts.Project.Logging.Logger logger)
     {
         return new Watcher(fs, backend, onChanges, logger);
     }
 
-    private Watcher(IFileSystem fs, IWatcherBackend backend, Action<FileEvent[]> onChanges, Logger logger)
+    private Watcher(IFileSystem fs, IWatcherBackend backend, Action<FileEvent[]> onChanges, global::Ts.Project.Logging.Logger logger)
     {
         this.fs = fs;
         this.backend = backend;

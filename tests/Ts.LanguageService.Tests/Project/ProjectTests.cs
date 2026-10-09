@@ -82,11 +82,7 @@ public sealed class ProjectTests
     }
 
     // project_test.go:62-81 — TestProjectProgramUpdateKind "Cloned on single-file change".
-    // SKIPPED: Go's dirty-file path (Project.CreateProgram → compiler.Program.UpdateProgram)
-    // is not ported to the C# compiler yet; the C# CreateProgram always rebuilds, so
-    // ProgramUpdateKind.Cloned is never produced (PORT-NOTE at
-    // src/Ts.LanguageService/Project/Project.cs:7 and :327).
-    [Fact(Skip = "compiler.Program.UpdateProgram (incremental dirty-file program update) is not ported to C# yet; Project.CreateProgram always rebuilds and never yields ProgramUpdateKind.Cloned, Go test TestProjectProgramUpdateKind/Cloned on single-file change")]
+    [Fact]
     public void TestProjectProgramUpdateKind_ClonedOnSingleFileChange()
     {
         var files = new Dictionary<string, object?>

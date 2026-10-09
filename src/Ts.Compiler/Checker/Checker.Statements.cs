@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Ts.Ast;
 using Ts.Collections;
 using Ts.Core;
@@ -26,7 +27,25 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:2182
-    internal void CheckSourceFile(SourceFile sourceFile, bool checkUnused)
+    // checker.go:2182 — the per-file cancellation token is a parameter (Go: the ctx argument),
+    // stored in c.ctx for the duration of the check so IsCanceled() reads the request it belongs
+    // to; cleared at the end (Go: c.ctx = nil). Callers that never cancel pass None.
+    internal void CheckSourceFile(SourceFile sourceFile, bool checkUnused, CancellationToken cancellation = default)
+    {
+        ctx = cancellation;
+        ctxSet = true;
+        try
+        {
+            CheckSourceFileWorker(sourceFile, checkUnused);
+        }
+        finally
+        {
+            ctx = default;
+            ctxSet = false;
+        }
+    }
+
+    private void CheckSourceFileWorker(SourceFile sourceFile, bool checkUnused)
     {
         var links = sourceFileLinks.Get(sourceFile);
         if (!links.typeChecked)

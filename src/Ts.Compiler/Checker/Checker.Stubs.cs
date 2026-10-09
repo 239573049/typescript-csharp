@@ -5,6 +5,7 @@
 // for the assembly to compile, and (b) a representative set of the section entry-point functions
 // anchored per §4.2 partial. It is not an exhaustive transcription of every checker.go function.
 
+using System.Threading;
 using Ts.Ast;
 using Ts.Core;
 
@@ -267,16 +268,22 @@ public partial class Checker
     // ===== #9 diagnostics =====
 
     // checker.go:13875 GetDiagnostics — check the file, then return its collected diagnostics.
-    internal Diagnostic[] GetDiagnostics(SourceFile? sourceFile) => GetDiagnosticsWorker(sourceFile!, diagnostics);
+    // Go exports this (checker.go capitalization); the token carries the request's cancellation
+    // (Go: the ctx argument, threaded to checkSourceFile).
+    public Diagnostic[] GetDiagnostics(SourceFile? sourceFile, CancellationToken cancellation = default) =>
+        GetDiagnosticsWorker(sourceFile!, diagnostics, cancellation);
 
     // checker.go:13879 GetSuggestionDiagnostics
-    public Diagnostic[] GetSuggestionDiagnostics(SourceFile sourceFile) => GetDiagnosticsWorker(sourceFile, suggestionDiagnostics);
+    public Diagnostic[] GetSuggestionDiagnostics(SourceFile sourceFile, CancellationToken cancellation = default) =>
+        GetDiagnosticsWorker(sourceFile, suggestionDiagnostics, cancellation);
 
     // checker.go:13883 getDiagnostics
-    private Diagnostic[] GetDiagnosticsWorker(SourceFile sourceFile, DiagnosticsCollection collection)
+    private Diagnostic[] GetDiagnosticsWorker(SourceFile sourceFile, DiagnosticsCollection collection, CancellationToken cancellation)
     {
+        // checker.go:13884 — a checker that already canceled throws on reuse (Go panics).
+        CheckNotCanceled();
         bool checkUnused = compilerOptions.NoUnusedLocals.IsTrue() || compilerOptions.NoUnusedParameters.IsTrue() || ReferenceEquals(collection, suggestionDiagnostics);
-        CheckSourceFile(sourceFile, checkUnused);
+        CheckSourceFile(sourceFile, checkUnused, cancellation);
         if (wasCanceled)
         {
             return [];

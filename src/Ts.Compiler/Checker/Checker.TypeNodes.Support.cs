@@ -90,37 +90,8 @@ public partial class Checker
     // ast/utilities.go:1315-1317 (ast.IsLiteralImportTypeNode)
     internal static bool IsLiteralImportTypeNode(Node node) => AstUtilities.IsLiteralImportTypeNode(node);
 
-    // ast/utilities.go:1990-2081 (ast.IsPartOfTypeNode). MINIMAL: covers the type-node range and
-    // the type keywords; the expression-context walk (ExpressionWithTypeArguments/TypeParameter/
-    // qualified-name-in-type positions) is deferred. Only reached in the >=10,000-element tuple
-    // overflow error-message branch, so the message selection may differ in that edge path.
-    // TODO(csport): port the full expression-context cases.
-    internal static bool IsPartOfTypeNode(Node node)
-    {
-        var kind = node.Kind;
-        if (kind >= SyntaxKind.FirstTypeNode && kind <= SyntaxKind.LastTypeNode)
-        {
-            return true;
-        }
-        switch (kind)
-        {
-            case SyntaxKind.AnyKeyword:
-            case SyntaxKind.UnknownKeyword:
-            case SyntaxKind.NumberKeyword:
-            case SyntaxKind.BigIntKeyword:
-            case SyntaxKind.StringKeyword:
-            case SyntaxKind.BooleanKeyword:
-            case SyntaxKind.SymbolKeyword:
-            case SyntaxKind.ObjectKeyword:
-            case SyntaxKind.UndefinedKeyword:
-            case SyntaxKind.NullKeyword:
-            case SyntaxKind.NeverKeyword:
-                return true;
-            case SyntaxKind.VoidKeyword:
-                return node.Parent!.Kind != SyntaxKind.VoidExpression;
-        }
-        return false;
-    }
+    // ast/utilities.go:1990-2081 (ast.IsPartOfTypeNode) — the full port lives in AstUtilities.
+    internal static bool IsPartOfTypeNode(Node node) => AstUtilities.IsPartOfTypeNode(node);
 
     // Intrinsic string-mapping / NoInfer alias name table (Go package var intrinsicTypeKinds).
     // TODO(csport): confirm parity with the upstream table when the string-mapping wave lands.

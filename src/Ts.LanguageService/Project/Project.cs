@@ -2,9 +2,7 @@
 // landed foundation subset. The foundation members (Reload/SetInferredRoots/watches and
 // the private (kind, name, cwd, caseSensitive) constructor) are kept because
 // ProjectService still drives them; every Go member missing from that subset is ported
-// below in Go's declaration order. Registered deviation: compiler.Program.UpdateProgram
-// is not ported yet (see IncludeProcessor.cs header), so CreateProgram always takes the
-// full-rebuild path and never produces ProgramUpdateKind.Cloned.
+// below in Go's declaration order.
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +38,7 @@ public enum PendingReload
     Full,
 }
 
-public sealed class Project : IDisposable, LsProject, global::Ts.Project.Dirty.Cloneable<Project>
+public sealed class Project : IDisposable, global::Ts.Ls.Project, global::Ts.Project.Dirty.Cloneable<Project>
 {
     internal const string InferredProjectName = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
 
@@ -319,8 +317,45 @@ public sealed class Project : IDisposable, LsProject, global::Ts.Project.Dirty.C
         // Create the command line, potentially augmented with typing files
         global::Ts.TsOptions.ParsedCommandLine? commandLine = GetCommandLineWithTypingsFiles();
 
-        // PORT-NOTE (deviation): Go's dirty-file path (`p.Program.UpdateProgram`) is not
-        // available in the C# compiler yet; this always rebuilds (programCloned stays false).
+        if (dirtyFilePath.Value is { Length: > 0 } && Program is not null && ReferenceEquals(Program.CommandLine(), commandLine))
+        {
+            global::Ts.Ast.SourceFile? dirtyFile;
+            (newProgram, dirtyFile, programCloned) = global::Ts.Core.LargeStackExecutor.Run(() =>
+                Program.UpdateProgram(dirtyFilePath, host!, CreateCheckerPool));
+            // PORT-NOTE: the parse cache lives on the session builder; the foundation
+            // ProjectService host (builder == null) parses uncached, so there is nothing to
+            // ref-count on that path.
+            RefCountCache<ParseCacheKey, global::Ts.Ast.SourceFile, FileHandle>? parseCache = host!.builder?.ParseCache;
+            if (programCloned)
+            {
+                updateKind = ProgramUpdateKind.Cloned;
+                if (parseCache is not null)
+                {
+                    foreach (global::Ts.Ast.SourceFile file in newProgram.SourceFiles())
+                    {
+                        // Use pointer identity: dirtyFile is the exact instance UpdateProgram acquired,
+                        // and it is the only file whose refcount is already accounted for.
+                        if (!ReferenceEquals(file, dirtyFile))
+                        {
+                            // UpdateProgram acquired the changed file only, so we need to ref everything else
+                            parseCache.Ref(ParseCache.NewParseCacheKey(file.ParseOptions(), file.Hash, file.ScriptKind));
+                        }
+                    }
+                    foreach (global::Ts.Compiler.DuplicateSourceFile file in newProgram.DuplicateSourceFiles())
+                    {
+                        parseCache.Ref(ParseCache.NewParseCacheKey(file.ParseOptions, file.Hash, file.ScriptKind));
+                    }
+                }
+            }
+            else if (dirtyFile is not null)
+            {
+                // UpdateProgram always acquires the dirty file before deciding whether it can
+                // reuse the old program. If it falls back to a full rebuild, release that
+                // speculative acquire so the rebuilt program is the only remaining owner.
+                parseCache?.Deref(ParseCache.NewParseCacheKey(dirtyFile.ParseOptions(), dirtyFile.Hash, dirtyFile.ScriptKind));
+            }
+        }
+        else
         {
             string typingsLocation = "";
             if (GetTypeAcquisition()!.Enable.IsTrue())

@@ -2563,11 +2563,25 @@ function emitProtocol(skipped: Set<string>, skipNote: string[]): string {
             if (index > 0) w();
             emitDocs(out, formatDocumentation(prop.documentation), "    ");
             const info = propTypeText(prop);
+            const memberName = csMemberName(structure, prop);
+            if (info.omitzero && info.text === "string") {
+                // Go omitzero drops the zero string "", but STJ's WhenWritingDefault compares a
+                // string against null. The public property keeps Go's zero value; the wire
+                // shape goes through a shadow property that maps "" ⇄ absent/null.
+                w("    [JsonIgnore]");
+                w(`    public string ${memberName} { get; set; } = "";`);
+                w();
+                w(`    [JsonPropertyName(${JSON.stringify(prop.name)})]`);
+                w("    [JsonInclude]");
+                w("    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]");
+                w(`    internal string? ${memberName}OmitZero { get => ${memberName}.Length == 0 ? null : ${memberName}; set => ${memberName} = value ?? ""; }`);
+                return;
+            }
             for (const attr of propAttributes(prop, info)) {
                 w("    " + attr);
             }
             const initializer = propInitializer(info.text);
-            w(`    public ${info.text} ${csMemberName(structure, prop)} { get; set; }${initializer}`);
+            w(`    public ${info.text} ${memberName} { get; set; }${initializer}`);
         });
 
         // Special: add RegisterOptions field to Registration
@@ -3800,6 +3814,8 @@ function emitJson(skipped: Set<string>): { text: string; accessors: Map<string, 
     serializableTypes.push("typeof(ServerCapabilities)");
     serializableTypes.push("typeof(CompletionItem)");
     serializableTypes.push("typeof(CompletionList)");
+    // lsp/server.go handleInitialize logs json.MarshalIndent(s.clientCapabilities).
+    serializableTypes.push("typeof(ResolvedClientCapabilities)");
     // Pin the accessor name so contextAccessorFor is authoritative for both the
     // registration and every LspJsonContext.Default.<name> use site; relying on
     // STJ's derived names would leave primitives/arrays/nullables unspellable.

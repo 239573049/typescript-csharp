@@ -31,6 +31,10 @@ public interface Host
 
     // host.go:16 — AutoImportRegistry.
     global::Ts.Ls.AutoImport.Registry? AutoImportRegistry();
+
+    // host.go:13 — Converters. PORT-NOTE: null means "no session converters" (the direct
+    // program host); the language service then builds its own over the program's files.
+    global::Ts.Ls.LsConv.Converters? Converters();
 }
 
 public sealed class ProgramHost : Host
@@ -71,4 +75,6 @@ public sealed class ProgramHost : Host
     // the direct program host has none, so auto-imports are unavailable (Go host always
     // supplies one via the project system).
     public global::Ts.Ls.AutoImport.Registry? AutoImportRegistry() => null;
+
+    public global::Ts.Ls.LsConv.Converters? Converters() => null;
 }

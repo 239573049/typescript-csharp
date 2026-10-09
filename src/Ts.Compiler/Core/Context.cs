@@ -36,6 +36,15 @@ public readonly struct RequestContext
 
     public CheckerLifetime CheckerLifetime { get; init; }
 
+    // Go carries the locale through locale.WithLocale(ctx, ...) context values
+    // (locale/locale.go); per plan/01 §4.4 it becomes an explicit field. The struct
+    // default is locale.Locale.Default (Go's zero language.Tag == Und), matching
+    // locale.FromContext's unset fallback.
+    public global::Ts.Locale.Locale Locale { get; init; }
+
+    // Go: locale.WithLocale (locale/locale.go).
+    public RequestContext WithLocale(global::Ts.Locale.Locale locale) => this with { Locale = locale };
+
     // Corresponds to Go's ctx.Done()==nil test (plan/01 §4.4).
     public bool CanBeCanceled => Cancellation.CanBeCanceled;
 

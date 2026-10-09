@@ -251,9 +251,9 @@ public sealed class ProjectCollection
     public Project? InferredProject() => inferredProject;
 
     // projectcollection.go:136-147 — GetProjectsContainingFile.
-    public List<LsProject> GetProjectsContainingFile(global::Ts.TsPath.Path path)
+    public List<global::Ts.Ls.Project> GetProjectsContainingFile(global::Ts.TsPath.Path path)
     {
-        var projects = new List<LsProject>();
+        var projects = new List<global::Ts.Ls.Project>();
         foreach (Project project in ConfiguredProjects())
         {
             if (project.ContainsFile(path))

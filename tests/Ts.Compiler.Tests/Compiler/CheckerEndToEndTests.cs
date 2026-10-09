@@ -57,7 +57,7 @@ public sealed class CheckerEndToEndTests
         var (checker, release) = program.GetTypeChecker(CancellationToken.None);
         try
         {
-            var diags = checker.GetDiagnostics(sf);
+            var diags = checker.GetDiagnostics(sf, TestContext.Current.CancellationToken);
             Assert.NotEmpty(diags); // expect the not-assignable error
         }
         finally

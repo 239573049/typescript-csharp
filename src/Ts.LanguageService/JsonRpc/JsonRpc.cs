@@ -30,7 +30,7 @@ public readonly struct JsonRpcVersion
 // PORT-NOTE: Go models this as a struct with two private fields (str, int) and a
 // convention that an all-zero value means "integer 0". We keep the same field
 // layout so classification (String()/MarshalJSON()/TryInt()) is byte-identical.
-public sealed class Id
+public sealed class Id : IEquatable<Id>
 {
     // Go: str string
     internal string str = "";
@@ -99,6 +99,13 @@ public sealed class Id
     public string StringValue => str;
 
     public int IntValue => intValue;
+
+    // Go compares ID structs with == (map keys in the LSP server); value equality here.
+    public bool Equals(Id? other) => other is not null && str == other.str && intValue == other.intValue;
+
+    public override bool Equals(object? obj) => obj is Id other && Equals(other);
+
+    public override int GetHashCode() => HashCode.Combine(str, intValue);
 }
 
 // IntegerOrString is a helper type for creating IDs.

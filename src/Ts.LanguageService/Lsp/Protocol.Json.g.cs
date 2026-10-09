@@ -5805,6 +5805,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(DocumentLink[]), TypeInfoPropertyName = "DocumentLinkArray")]
 [JsonSerializable(typeof(MultiDocumentHighlight[]), TypeInfoPropertyName = "MultiDocumentHighlightArray")]
 [JsonSerializable(typeof(VSReferenceItem[]), TypeInfoPropertyName = "VSReferenceItemArray")]
+[JsonSerializable(typeof(ResolvedClientCapabilities), TypeInfoPropertyName = "ResolvedClientCapabilities")]
 public sealed partial class LspJsonContext : JsonSerializerContext
 {
 }

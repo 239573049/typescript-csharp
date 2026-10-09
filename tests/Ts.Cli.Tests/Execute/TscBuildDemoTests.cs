@@ -152,7 +152,7 @@ public sealed class TscBuildDemoTests
 					}
 """);
 
-    [Fact(Skip = "declaration emit drops a used default-import when its module resolution goes through a project-reference redirect (dog.d.ts loses `import Animal from '.'`); reproducer for the import-preservation unit")]
+    [Fact]
     public void InMasterBranch()
     {
         new TscInput
@@ -178,7 +178,7 @@ public sealed class TscBuildDemoTests
     }
 
     // !!! sheetal - this has missing errors from strada about files not in rootDir (3)
-    [Fact(Skip = "declaration emit drops a used default-import when its module resolution goes through a project-reference redirect (dog.d.ts loses `import Animal from '.'`); reproducer for the import-preservation unit")]
+    [Fact]
     public void InBadRefBranch()
     {
         new TscInput
@@ -191,7 +191,7 @@ public sealed class TscBuildDemoTests
         }.RunAndAssert("demo");
     }
 
-    [Fact(Skip = "declaration emit drops a used default-import when its module resolution goes through a project-reference redirect (dog.d.ts loses `import Animal from '.'`); reproducer for the import-preservation unit")]
+    [Fact]
     public void InCircularIsSetInTheReference()
     {
         new TscInput
@@ -258,7 +258,7 @@ public sealed class TscBuildDemoTests
         }.RunAndAssert("demo");
     }
 
-    [Fact(Skip = "declaration emit drops a used default-import when its module resolution goes through a project-reference redirect (dog.d.ts loses `import Animal from '.'`); reproducer for the import-preservation unit")]
+    [Fact]
     public void UpdatesWithCircularReference()
     {
         new TscInput
@@ -287,7 +287,7 @@ public sealed class TscBuildDemoTests
     }
 
     // !!! sheetal - this has missing errors from strada about files not in rootDir (3)
-    [Fact(Skip = "declaration emit drops a used default-import when its module resolution goes through a project-reference redirect (dog.d.ts loses `import Animal from '.'`); reproducer for the import-preservation unit")]
+    [Fact]
     public void UpdatesWithBadReference()
     {
         new TscInput

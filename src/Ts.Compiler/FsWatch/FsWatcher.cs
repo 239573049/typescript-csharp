@@ -173,8 +173,11 @@ internal sealed class FsWatcher : IWatcher
         }
 
         // Arm the underlying FileSystemWatchers once for the batch. A start
-        // failure (e.g. the directory does not exist) surfaces to the callback
-        // as ErrWatchTerminated, matching Go's start-error propagation.
+        // failure (e.g. the directory does not exist) is returned to the caller
+        // only, matching Go's watchAddMany: a failed subscribe returns its error
+        // without invoking the just-registered callbacks. (Notifying them here
+        // re-entered lspwatcher's terminated-watch recovery synchronously, which
+        // retried the same failing subscribe until the stack overflowed.)
         foreach (DirWatch dw in uniqueDirWatches)
         {
             try
@@ -183,9 +186,6 @@ internal sealed class FsWatcher : IWatcher
             }
             catch (Exception e) when (e is ArgumentException or FileNotFoundException or DirectoryNotFoundException)
             {
-                // Deliver a terminal error to the just-added callbacks, then roll
-                // back registration for a clean caller-visible failure.
-                dw.NotifyError(new FsWatchException(FsWatchErrors.ErrWatchTerminated.Message, e));
                 Rollback();
                 throw new FsWatchException(FsWatchErrors.ErrWatchTerminated.Message, e);
             }

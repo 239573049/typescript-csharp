@@ -279,7 +279,7 @@ public sealed class Snapshot
         ProjectCollection.GetDefaultProject(uri.Path(UseCaseSensitiveFileNames()));
 
     // snapshot.go:223-228 — GetProjectsContainingFile.
-    public LsProject[] GetProjectsContainingFile(global::Ts.LsProto.DocumentUri uri)
+    public global::Ts.Ls.Project[] GetProjectsContainingFile(global::Ts.LsProto.DocumentUri uri)
     {
         string fileName = uri.FileName();
         global::Ts.TsPath.Path path = toPath(fileName);
@@ -351,8 +351,47 @@ public sealed class Snapshot
     public string[] GetDirectories(string path) => fs.fs.GetAccessibleEntries(path).Directories ?? [];
 
     // snapshot.go:292-294 — ReadDirectory.
-    public string[] ReadDirectory(string currentDir, string path, string[] extensions, string[]? excludes, string[]? includes, int depth) =>
+    public string[] ReadDirectory(string currentDir, string path, string[]? extensions, string[]? excludes, string[]? includes, int depth) =>
         global::Ts.Vfs.VfsMatch.VfsMatch.ReadDirectory(fs.fs, currentDir, path, extensions, excludes, includes, depth).ToArray();
+
+    // Go: the *Snapshot passed as the ls.Host argument of ls.NewLanguageService.
+    internal SessionOptions Options() => sessionOptions;
+
+    // PORT-NOTE: Go's ls.Host is the snapshot itself, with the program passed alongside;
+    // the C# Ts.Ls.Host also owns the program/checker lifetime surface, so the snapshot is
+    // adapted together with the project's program.
+    internal global::Ts.Ls.Host LsHost(global::Ts.Compiler.Program program) => new SnapshotLsHost(this, program);
+
+    private sealed class SnapshotLsHost : global::Ts.Ls.Host
+    {
+        private readonly Snapshot snapshot;
+        private readonly global::Ts.Compiler.Program program;
+
+        public SnapshotLsHost(Snapshot snapshot, global::Ts.Compiler.Program program)
+        {
+            this.snapshot = snapshot;
+            this.program = program;
+        }
+
+        public global::Ts.Compiler.Program GetProgram() => program;
+
+        public (global::Ts.Checker.Checker Checker, Action Release) GetTypeCheckerForFile(
+            System.Threading.CancellationToken cancellationToken,
+            global::Ts.Ast.SourceFile file) => program.GetTypeCheckerForFile(cancellationToken, file);
+
+        public string[] ReadDirectory(string currentDir, string path, string[]? extensions, string[]? excludes, string[]? includes, int depth) =>
+            snapshot.ReadDirectory(currentDir, path, extensions, excludes, includes, depth);
+
+        public string[] GetDirectories(string path) => snapshot.GetDirectories(path);
+
+        public bool DirectoryExists(string path) => snapshot.DirectoryExists(path);
+
+        public bool FileExists(string path) => snapshot.FileExists(path);
+
+        public global::Ts.Ls.AutoImport.Registry? AutoImportRegistry() => snapshot.AutoImportRegistry();
+
+        public global::Ts.Ls.LsConv.Converters? Converters() => snapshot.Converters();
+    }
 
     // snapshot.go:297-303 — APISnapshotRequest.
     public sealed class APISnapshotRequest

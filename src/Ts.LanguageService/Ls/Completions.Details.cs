@@ -72,11 +72,42 @@ public sealed partial class LanguageService
         }
     }
 
-    // completions.go:4907-4909 — getCompletionDocumentationFormat.
-    // PORT-NOTE: reads the LSP client capabilities off the request context in Go; the raw API has
-    // no context yet (same shape as the clientSupports* probes), and Go's zero-value capabilities
-    // resolve through PreferredMarkupKind to plaintext.
-    internal static string GetCompletionDocumentationFormat() => "plaintext";
+    // completions.go:4888-4905 — ResolveCompletionItem (LSP-level entry). Go's (T, error)
+    // pair maps to exceptions: nil data and a missing file both surface as
+    // InvalidOperationException (the repository's Go-error mapping for request invariants).
+    public global::Ts.LsProto.CompletionItem ResolveCompletionItem(
+        global::Ts.Core.RequestContext ctx,
+        global::Ts.LsProto.CompletionItem item,
+        global::Ts.LsProto.CompletionItemData? data)
+    {
+        if (data == null)
+        {
+            throw new InvalidOperationException("completion item data is nil");
+        }
+
+        var (program, file) = TryGetProgramAndFile(data.FileName);
+        if (file == null)
+        {
+            throw new InvalidOperationException($"file not found: {data.FileName}");
+        }
+
+        var (checker, done) = program.GetTypeCheckerForFile(ctx.Cancellation, file);
+        try
+        {
+            return GetCompletionItemDetails(checker, data.Position, file, item, data);
+        }
+        finally
+        {
+            done();
+        }
+    }
+
+    // completions.go:4907-4909 — getCompletionDocumentationFormat. Resolves the stored
+    // client capabilities through PreferredMarkupKind; the default-constructed capabilities
+    // (no DocumentationFormat entries) resolve to plaintext, matching the previous
+    // constant-shaped stub this replaces.
+    internal string GetCompletionDocumentationFormat() =>
+        LsUtil.PreferredMarkupKind(ClientCapabilities().TextDocument.Completion.CompletionItem.DocumentationFormat).Value ?? "plaintext";
 
     // completions.go:4911-4996 — getCompletionItemDetails.
     internal global::Ts.LsProto.CompletionItem GetCompletionItemDetails(

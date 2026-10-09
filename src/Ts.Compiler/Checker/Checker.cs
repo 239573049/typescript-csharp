@@ -414,6 +414,10 @@ public sealed partial class Checker
     internal Node? jsxFactoryEntity; // Go: _jsxFactoryEntity
     internal readonly Set<Node> skipDirectInferenceNodes = new();
     internal CancellationToken ctx; // Go context.Context
+    // Go tests `c.ctx != nil`; CancellationToken.None and default(CancellationToken) are
+    // indistinguishable from "no cancellation set", so Go's nil check needs its own flag.
+    // Set at the top of checkSourceFile and cleared at its end (Go: c.ctx = nil).
+    internal bool ctxSet;
     internal Dictionary<string, bool>? packagesMap;
     internal List<TypeMapper> activeMappers = [];
     internal List<Dictionary<CacheHashKey, Type>> activeTypeMappersCaches = [];

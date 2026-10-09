@@ -24,7 +24,7 @@ public sealed class LanguageServiceTests
         Assert.Same(program, service.GetProgram());
     }
 
-    [Fact(Skip = "Blocked by Checker semantic query API: GetSymbolAtLocation is internal, and the currently public emit reference resolver does not resolve an ordinary bound identifier use-site (IsNameResolvable returns false).")]
+    [Fact]
     public void GetDefinitionAtPositionReturnsDeclarationNameSpan()
     {
         const string source = "const answer: number = 42;\nanswer;\n";
@@ -43,7 +43,7 @@ public sealed class LanguageServiceTests
         Assert.Equal(new global::Ts.Core.TextRange(declarationPosition, declarationPosition + "answer".Length), definition.TextSpan);
     }
 
-    [Fact(Skip = "Blocked by Checker public API: GetSymbolAtLocation, GetTypeOfSymbolAtLocation, and TypeToString(Ex) are internal; the type-at-symbol implementation is also still a throwing stub.")]
+    [Fact]
     public void GetQuickInfoAtPositionReturnsIdentifierTypeDisplay()
     {
         const string source = "const answer: number = 42;\nanswer;\n";

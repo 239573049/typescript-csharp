@@ -6,10 +6,8 @@
 //    RequestContext fields (plan/01 §4.4). Ts.Checker.ICheckerPool's interface only
 //    carries a CancellationToken, so the typed RequestContext overload is the real
 //    entry point and the interface method adapts with a default (Temporary) lifetime.
-//  * checker.Checker exposes no cancellation surface yet in C# (wasCanceled is an
-//    internal field with no accessor), so WasCanceled reads are ported as a
-//    registered deviation: they always observe false until the Checker cancellation
-//    surface lands (session_test.go's cancel paths exercise it in Go only).
+//  * checker.WasCanceled() (checker.go:615, exports.go:164) is the real flag: the checker
+//    records cancellation for the request whose token it checked last.
 //  * context.AfterFunc → CancellationToken.Register; sync.OnceFunc → a small
 //    execute-once guard; time.Timer → System.Threading.Timer.
 
@@ -52,10 +50,15 @@ public sealed record CheckerPoolOptions
 //     Never idle-cleaned.
 internal sealed class CheckerPool : global::Ts.Checker.ICheckerPool
 {
-    private CheckerPoolOptions opts;
-    private readonly global::Ts.Compiler.Program program;
+    // PORT-NOTE (visibility): Go's unexported fields are package-visible, so the Go
+    // checkerpool_test.go reads checkers/opts/program/fileAssociations/requestAssociations/
+    // persistentChecker/cleanupTimer directly. C# has no package-private visibility, so those
+    // become `internal` (visible across files of the assembly and to Ts.LanguageService.Tests
+    // via InternalsVisibleTo) per plan/05 §1.1; the pool's own locks still guard them.
+    internal CheckerPoolOptions opts;
+    internal readonly global::Ts.Compiler.Program program;
 
-    private readonly object mu = new();
+    internal readonly object mu = new();
 
     // discarded is set when the pool's program has been replaced. The pool
     // remains fully functional but stops its idle-cleanup timer so that
@@ -65,21 +68,21 @@ internal sealed class CheckerPool : global::Ts.Checker.ICheckerPool
     // checkers[0] is the diagnostics checker.
     // checkers[1:] are ephemeral query checkers.
     // All are idle-cleaned.
-    private readonly global::Ts.Checker.Checker?[] checkers;
+    internal readonly global::Ts.Checker.Checker?[] checkers;
     private readonly string?[] heldBy; // heldBy[i] is the requestID holding checker i, checkerHeldAnonymous, or "" if not held
-    private readonly Dictionary<global::Ts.Ast.SourceFile, int> fileAssociations; // file → query checker index (1+)
-    private readonly Dictionary<string, int> requestAssociations; // requestID → checker index
+    internal readonly Dictionary<global::Ts.Ast.SourceFile, int> fileAssociations; // file → query checker index (1+)
+    internal readonly Dictionary<string, int> requestAssociations; // requestID → checker index
 
     // lastReleased tracks when each checker was last released.
     private readonly DateTime[] lastReleased;
 
     // cleanupTimer is reset each time a checker is released.
     // When it fires, idle checkers are disposed.
-    private Timer? cleanupTimer;
+    internal Timer? cleanupTimer;
 
     // persistentChecker is the API checker. It is never idle-cleaned,
     // providing stable instance identity for API clients.
-    private global::Ts.Checker.Checker? persistentChecker;
+    internal global::Ts.Checker.Checker? persistentChecker;
     // Go: persistentHeld — package-visible in Go, hence internal here.
     internal bool persistentHeld;
 
@@ -411,10 +414,7 @@ internal sealed class CheckerPool : global::Ts.Checker.ICheckerPool
                 lock (mu)
                 {
                     persistentHeld = false;
-                    // PORT-NOTE: WasCanceled always observes false in C# for now — see the
-                    // file-header deviation note (Checker has no cancellation surface yet).
-                    bool wasCanceled = false; // Go: c.WasCanceled()
-                    if (wasCanceled)
+                    if (checker.WasCanceled()) // checkerpool.go:332
                     {
                         // A canceled checker panics on reuse, so drop it; the next API
                         // acquisition will create a fresh persistent checker.
@@ -444,9 +444,7 @@ internal sealed class CheckerPool : global::Ts.Checker.ICheckerPool
 
             lock (mu)
             {
-                // PORT-NOTE: WasCanceled always observes false in C# for now — see the
-                // file-header deviation note (Checker has no cancellation surface yet).
-                bool wasCanceled = false; // Go: c.WasCanceled()
+                bool wasCanceled = c.WasCanceled(); // checkerpool.go:349
                 if (wasCanceled)
                 {
                     // Canceled checkers must be disposed.
@@ -540,7 +538,9 @@ internal sealed class CheckerPool : global::Ts.Checker.ICheckerPool
 
     // checkerpool.go:426-456 — cleanupIdleCheckers disposes checkers that have been idle for
     // longer than the idle timeout. The API checker is separate and never idle-cleaned.
-    private void CleanupIdleCheckers()
+    // checkerpool.go:428 — cleanupIdleCheckers. internal so the ported checkerpool_test.go can
+    // drive the timer callback after Discard, exactly as Go's package-visible method allows.
+    internal void CleanupIdleCheckers()
     {
         lock (mu)
         {

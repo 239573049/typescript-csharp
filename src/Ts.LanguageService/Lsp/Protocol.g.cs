@@ -8502,9 +8502,13 @@ public sealed partial class AutoImportFix
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public AutoImportFixKind Kind { get; set; }
 
-    [JsonPropertyName("name")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public string Name { get; set; } = "";
+
+    [JsonPropertyName("name")]
+    [JsonInclude]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal string? NameOmitZero { get => Name.Length == 0 ? null : Name; set => Name = value ?? ""; }
 
     [JsonPropertyName("importKind")]
     [JsonRequired]
@@ -8519,9 +8523,13 @@ public sealed partial class AutoImportFix
     public AddAsTypeOnly AddAsTypeOnly { get; set; }
 
     // The module specifier for this auto-import.
-    [JsonPropertyName("moduleSpecifier")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public string ModuleSpecifier { get; set; } = "";
+
+    [JsonPropertyName("moduleSpecifier")]
+    [JsonInclude]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal string? ModuleSpecifierOmitZero { get => ModuleSpecifier.Length == 0 ? null : ModuleSpecifier; set => ModuleSpecifier = value ?? ""; }
 
     // Index of the import to modify when adding to an existing import declaration.
     [JsonPropertyName("importIndex")]
@@ -8532,18 +8540,26 @@ public sealed partial class AutoImportFix
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Position? UsagePosition { get; set; }
 
-    [JsonPropertyName("namespacePrefix")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public string NamespacePrefix { get; set; } = "";
+
+    [JsonPropertyName("namespacePrefix")]
+    [JsonInclude]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal string? NamespacePrefixOmitZero { get => NamespacePrefix.Length == 0 ? null : NamespacePrefix; set => NamespacePrefix = value ?? ""; }
 }
 
 // CompletionItemData is preserved on a CompletionItem between CompletionRequest and CompletionResolveRequest.
 public sealed partial class CompletionItemData
 {
     // The file name where the completion was requested.
-    [JsonPropertyName("fileName")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public string FileName { get; set; } = "";
+
+    [JsonPropertyName("fileName")]
+    [JsonInclude]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal string? FileNameOmitZero { get => FileName.Length == 0 ? null : FileName; set => FileName = value ?? ""; }
 
     // The position where the completion was requested.
     [JsonPropertyName("position")]
@@ -8551,14 +8567,22 @@ public sealed partial class CompletionItemData
     public int Position { get; set; }
 
     // Special source value for disambiguation.
-    [JsonPropertyName("source")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public string Source { get; set; } = "";
 
+    [JsonPropertyName("source")]
+    [JsonInclude]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal string? SourceOmitZero { get => Source.Length == 0 ? null : Source; set => Source = value ?? ""; }
+
     // The name of the completion item.
-    [JsonPropertyName("name")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public string Name { get; set; } = "";
+
+    [JsonPropertyName("name")]
+    [JsonInclude]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    internal string? NameOmitZero { get => Name.Length == 0 ? null : Name; set => Name = value ?? ""; }
 
     // Auto-import data for this completion item.
     [JsonPropertyName("autoImport")]
