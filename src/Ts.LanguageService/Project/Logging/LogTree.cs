@@ -19,8 +19,10 @@ internal sealed class LogEntry
     internal LogTree? child;
 }
 
-// logtree.go:31-41 — LogTree.
-public sealed class LogTree
+// logtree.go:31-41 — LogTree. (*LogTree satisfies logging.Logger in Go; Log/Logf live
+// as null-tolerant extensions here, so the interface surface forwards to them via
+// explicit implementations and SetVerbose/Verbose are ported directly.)
+public sealed class LogTree : Logger
 {
     private static long seqCounter; // logtree.go:11 — var seq atomic.Uint64
 
@@ -88,6 +90,18 @@ public sealed class LogTree
     public void Info(params object?[] msg) => this.Log(msg);
 
     public void Infof(string format, params object?[] args) => this.Logf(format, args);
+
+    // Go: *LogTree satisfies logging.Logger through Log/Logf/Verbose/SetVerbose, which
+    // are null-tolerant extensions here (Go nil receivers → extensions, plan/05 §10.3).
+    // The interface surface forwards to them explicitly; call sites keep calling the
+    // extensions directly.
+    void Logger.Log(params object?[] msg) => this.Log(msg);
+
+    void Logger.Logf(string format, params object?[] args) => this.Logf(format, args);
+
+    Logger? Logger.Verbose() => this.Verbose();
+
+    void Logger.SetVerbose(bool verbose) => this.SetVerbose(verbose);
 
     // logtree.go:141-152 — String.
     public override string ToString()
