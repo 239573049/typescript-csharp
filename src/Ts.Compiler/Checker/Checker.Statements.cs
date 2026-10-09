@@ -76,7 +76,7 @@ public partial class Checker
             // The unused identifiers check relies on a full type check having first been performed
             if (!sourceFile.IsDeclarationFile && !IsCanceled())
             {
-                CheckUnusedIdentifiers(links.identifierCheckNodes!);
+                CheckUnusedIdentifiers(links.identifierCheckNodes);
             }
             links.unusedChecked = true;
         }

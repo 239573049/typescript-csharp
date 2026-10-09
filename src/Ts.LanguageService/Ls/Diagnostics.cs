@@ -1,15 +1,9 @@
 // Ported from tsgo internal/ls/diagnostics.go.
 //
-// PORT-NOTE: the Go entry point reads the user preferences (EnableValidation,
-// ReportStyleChecksAsWarnings) and the client capabilities from the request context.
-// The C# LS foundation has no per-request context carrier yet, so the
-// ReportStyleChecksAsWarnings preference is an explicit parameter and the
-// EnableValidation gate (diagnostics.go:28-35, empty result when validation is off)
-// stays with the deferred preferences layer — callers that want it off simply do not
-// ask for diagnostics. The lsproto pull-report union wrapper
-// (RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport) is part of
-// the LSP server wire layer; this port returns the report's Items directly.
-// Positions are UTF-16 code units throughout.
+// PORT-NOTE: the LSP-currency entry (ctx, DocumentUri → pull-report union, with the
+// EnableValidation gate of diagnostics.go:28-35) lives in LanguageService.Lsp.cs and
+// delegates here; this file-name form takes ReportStyleChecksAsWarnings explicitly so
+// direct (non-LSP) callers can use it. Positions are UTF-16 code units throughout.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -29,13 +23,9 @@ public sealed partial class LanguageService
         var diags = new List<global::Ts.Ast.Diagnostic>();
         diags.AddRange(program.GetSyntacticDiagnostics(ctx, file));
         diags.AddRange(program.GetSemanticDiagnostics(ctx, file));
-        // PORT-NOTE: Go appends program.GetSuggestionDiagnostics here (diagnostics.go:18).
-        // That compiler surface is deferred (phase 6; see Program.Diagnostics.cs header),
-        // so the append lands with it.
+        diags.AddRange(program.GetSuggestionDiagnostics(ctx, file));
         if (program.Options().GetEmitDeclarations())
         {
-            // Faithful call shape: the C# GetDeclarationDiagnostics is a compiler-side
-            // NotImplementedException stub until the emit host lands (phase 6).
             diags.AddRange(program.GetDeclarationDiagnostics(ctx, file));
         }
         return diags;

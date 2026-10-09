@@ -29,9 +29,11 @@ namespace Ts.Checker;
 public partial class Checker
 {
     // checker.go:7023-7048
-    internal void CheckUnusedIdentifiers(Node[] potentiallyUnusedIdentifiers)
+    // PORT-NOTE: Go `range nil` is zero iterations — a script file never registers identifier
+    // check nodes, so the slice may be nil here (05-conventions.md §6.1).
+    internal void CheckUnusedIdentifiers(Node[]? potentiallyUnusedIdentifiers)
     {
-        foreach (var node in potentiallyUnusedIdentifiers) // map-iter: N/A — []*ast.Node slice, order preserved
+        foreach (var node in potentiallyUnusedIdentifiers.OrEmpty()) // map-iter: N/A — []*ast.Node slice, order preserved
         {
             switch (node.Kind)
             {
