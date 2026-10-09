@@ -12,6 +12,7 @@ using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Ts.Collections;
 using OrderedMap = global::Ts.Collections.OrderedMap<string, int>;
 
 namespace Ts.Lsp;
@@ -49,13 +50,13 @@ internal sealed class ServerProgressReporter(Server server) : ProgressReporter
 
     public string Localize(global::Ts.Diagnostics.Message msg, params object?[] args)
     {
-        return msg.Localize(server.Locale, args);
+        return global::Ts.Diagnostics.Diagnostics.Localize(msg, server.Locale, args);
     }
 
     public void CreateWorkDoneProgress(string token)
     {
         _ = server.SendClientRequestFireAndForget(
-            global::Ts.LsProto.Methods.WindowWorkDoneProgressCreateInfo,
+            global::Ts.LsProto.Infos.WindowWorkDoneProgressCreateInfo,
             new global::Ts.LsProto.WorkDoneProgressCreateParams
             {
                 Token = global::Ts.LsProto.IntegerOrString.FromString(token),
@@ -65,7 +66,7 @@ internal sealed class ServerProgressReporter(Server server) : ProgressReporter
     public void SendProgress(string token, global::Ts.LsProto.WorkDoneProgressBeginOrReportOrEnd value)
     {
         _ = server.SendNotification(
-            global::Ts.LsProto.Methods.ProgressInfo,
+            global::Ts.LsProto.Infos.ProgressInfo,
             new global::Ts.LsProto.ProgressParams
             {
                 Token = global::Ts.LsProto.IntegerOrString.FromString(token),
@@ -180,7 +181,7 @@ internal sealed class ProjectLoadingProgress
         int tokenID = 0;
         bool begun = false; // whether "begin" has been sent for the current token
 
-        Task? delay = null;
+        Task? delayTask = null;
         bool delayFired = false; // true after the delay timer fires
 
         // done arm: reporter.Done() as a task.
@@ -193,10 +194,9 @@ internal sealed class ProjectLoadingProgress
                 try
                 {
                     Task<bool> readTask = ch.Reader.WaitToReadAsync(CancellationToken.None).AsTask();
-                    Task completed = delay is not null
-                        ? Task.WhenAny(readTask, delay, doneTcs.Task)
-                        : Task.WhenAny(readTask, doneTcs.Task);
-                    completed.GetAwaiter().GetResult();
+                    Task completed = (delayTask is not null
+                        ? Task.WhenAny(readTask, delayTask, doneTcs.Task)
+                        : Task.WhenAny(readTask, doneTcs.Task)).GetAwaiter().GetResult();
 
                     if (completed == doneTcs.Task)
                     {
@@ -204,11 +204,11 @@ internal sealed class ProjectLoadingProgress
                         SignalIdle();
                         return;
                     }
-                    if (delay is not null && completed == delay)
+                    if (delayTask is not null && completed == delayTask)
                     {
                         // Go: case <-delayC(): — a Go timer's channel delivers once; the
                         // pending task is dropped here for the same effect.
-                        delay = null;
+                        delayTask = null;
                         delayFired = true;
                         if (token != "" && loading.Size() > 0)
                         {
@@ -236,7 +236,7 @@ internal sealed class ProjectLoadingProgress
                             tokenID++;
                             token = $"tsgo-loading-{tokenID}";
                             begun = false;
-                            if (delay <= TimeSpan.Zero)
+                            if (this.delay <= TimeSpan.Zero)
                             {
                                 delayFired = true;
                                 reporter.CreateWorkDoneProgress(token);
@@ -244,7 +244,7 @@ internal sealed class ProjectLoadingProgress
                             else
                             {
                                 delayFired = false;
-                                delay = delayTimerFactory(delay, CancellationToken.None);
+                                delayTask = delayTimerFactory(this.delay, CancellationToken.None);
                             }
                         }
                         if (delayFired)
@@ -276,7 +276,7 @@ internal sealed class ProjectLoadingProgress
                                     new global::Ts.LsProto.WorkDoneProgressEnd()));
                             }
                             // Go: stopDelay().
-                            delay = null;
+                            delayTask = null;
                             token = "";
                         }
                         else if (delayFired)

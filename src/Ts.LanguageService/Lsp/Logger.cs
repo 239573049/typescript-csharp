@@ -72,7 +72,7 @@ public sealed class Logger : global::Ts.Project.Logging.Logger
         }
 
         var notification = global::Ts.LsProto.RequestMessage.New(
-            global::Ts.LsProto.Methods.WindowLogMessageInfo,
+            global::Ts.LsProto.Infos.WindowLogMessageInfo,
             new global::Ts.LsProto.LogMessageParams
             {
                 Type = msgType,

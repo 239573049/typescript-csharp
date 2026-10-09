@@ -15,17 +15,18 @@
 
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 
 namespace Ts.LsProto;
 
 // jsonrpc.go:10-17 — NewID. Go wraps it because lsproto has its own IntegerOrString type;
-// the generated C# IntegerOrString is the same type jsonrpc-independent, so this forwards
-// to JsonRpc.Id.NewId.
+// this converts the generated C# IntegerOrString to the jsonrpc one and forwards to
+// JsonRpc.Id.NewId.
 public static class LsProtoNewId
 {
     public static global::Ts.JsonRpc.Id NewId(IntegerOrString rawValue) =>
-        global::Ts.JsonRpc.Id.NewId(rawValue);
+        global::Ts.JsonRpc.Id.NewId(new global::Ts.JsonRpc.IntegerOrString { Integer = rawValue.Integer, String = rawValue.String });
 }
 
 // jsonrpc.go:19-31 — Message (Kind + private request/response payload).
@@ -222,7 +223,7 @@ public sealed class RequestMessage
     // Go: Params any `json:"params,omitzero"` — raw JSON; nil means absent.
     public JsonElement? Params { get; init; }
 
-    public Message Message() => Message.OfRequest(this);
+    public Message Message() => global::Ts.LsProto.Message.OfRequest(this);
 
     // lsp.go NewRequestMessage — builds an outgoing request with the params serialized
     // via the source-generated type info. NoParams (omitzero in Go) is left absent.
@@ -273,7 +274,7 @@ public sealed class ResponseMessage
 
     public global::Ts.JsonRpc.ResponseError? Error { get; init; }
 
-    public Message Message() => Message.OfResponse(this);
+    public Message Message() => global::Ts.LsProto.Message.OfResponse(this);
 }
 
 // Go: the lsproto.ErrorCode values double as error values (errors.Is targets). C# wraps
