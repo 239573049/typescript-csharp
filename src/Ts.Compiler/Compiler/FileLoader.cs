@@ -106,6 +106,9 @@ internal sealed class ProcessedFiles
     internal Dictionary<global::Ts.TsPath.Path, List<string>>? RedirectTargetsMap;
     internal Dictionary<global::Ts.TsPath.Path, RedirectsFile>? RedirectFilesByPath;
     internal bool FinishedProcessing;
+
+    // Go embeds processedFiles in Program by value; UpdateProgram's struct copy is this shallow clone.
+    internal ProcessedFiles ShallowClone() => (ProcessedFiles)MemberwiseClone();
 }
 
 // Minimal HasFileName carrier — Go uses ast.NewHasFileName(fileName, path); the C# Ast port has no

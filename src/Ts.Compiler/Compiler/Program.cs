@@ -40,6 +40,9 @@ public sealed class ProgramOptions
     // program.go:46-48
     internal bool CanUseProjectReferenceSource() =>
         UseSourceOfProjectReference && !Config.CompilerOptions()!.DisableSourceOfProjectReferenceRedirect.IsTrue();
+
+    // Go copies ProgramOptions by value (UpdateProgram: newOpts := p.opts).
+    internal ProgramOptions ShallowCopy() => (ProgramOptions)MemberwiseClone();
 }
 
 // program.go:79-119
@@ -76,6 +79,162 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
         InitCheckerPool();
         VerifyCompilerOptions();
     }
+
+    // program.go:319-326 — the `&Program{...}` literal UpdateProgram builds for a reused program:
+    // the processed-files snapshot, path-compare options, and program diagnostics carry over;
+    // every other field starts at its zero value. (Go's struct copy shares the diagnostics slice
+    // and the emit-blocking set's map; the same instances are shared here.)
+    private Program(
+        ProgramOptions opts,
+        global::Ts.TsPath.ComparePathsOptions comparePathsOptions,
+        ProcessedFiles processed,
+        List<Diagnostic> programDiagnostics,
+        global::Ts.Collections.Set<global::Ts.TsPath.Path> hasEmitBlockingDiagnostics)
+    {
+        this.opts = opts;
+        this.comparePathsOptions = comparePathsOptions;
+        this.processed = processed;
+        this.programDiagnostics = programDiagnostics;
+        this.hasEmitBlockingDiagnostics = hasEmitBlockingDiagnostics;
+    }
+
+    // program.go:285-338 — UpdateProgram.
+    // Return an updated program for which it is known that only the file with the given path has changed.
+    // In addition to a new program, return a boolean indicating whether the data of the old program was reused.
+    // createCheckerPool, if non-nil, overrides the CreateCheckerPool stored in the old program's options,
+    // ensuring each caller uses a fresh closure and avoiding data races on captured variables.
+    // The returned SourceFile is the changed file as acquired through newHost; it is null
+    // only if the host cannot locate the file (e.g. it was deleted). Callers that manage
+    // host-side parse caches must release this exact instance when the old program could not be
+    // reused, since it was acquired speculatively before that decision was made.
+    public (Program Program, SourceFile? DirtyFile, bool Reused) UpdateProgram(
+        global::Ts.TsPath.Path changedFilePath,
+        CompilerHost newHost,
+        Func<Program, global::Ts.Checker.ICheckerPool>? createCheckerPool)
+    {
+        ProgramOptions newOpts = opts.ShallowCopy();
+        newOpts.Host = newHost;
+        if (createCheckerPool is not null)
+        {
+            newOpts.CreateCheckerPool = createCheckerPool;
+        }
+
+        SourceFile oldFile = processed.FilesByPath[changedFilePath];
+        SourceFile? newFile = newHost.GetSourceFile(oldFile.ParseOptions());
+
+        // If this file is part of a package redirect group (same package installed in multiple
+        // node_modules locations), we need to rebuild the program because the redirect targets
+        // might need recalculation.
+        bool inRedirectFiles = processed.RedirectFilesByPath?.ContainsKey(changedFilePath) ?? false;
+        bool isRedirectTarget = processed.RedirectTargetsMap?.ContainsKey(changedFilePath) ?? false;
+        if (inRedirectFiles || isRedirectTarget)
+        {
+            return (new Program(newOpts), newFile, false);
+        }
+
+        if (!CanReplaceFileInProgram(oldFile, newFile))
+        {
+            return (new Program(newOpts), newFile, false);
+        }
+        bool oldNeedsImportHelpers = processed.ImportHelpersImportSpecifiers?.GetValueOrDefault(oldFile.Path()) is not null;
+        if (oldNeedsImportHelpers != NeedsImportHelpersImportSpecifier(newFile!))
+        {
+            return (new Program(newOpts), newFile, false);
+        }
+        // TODO: reverify compiler options when config has changed?
+        var result = new Program(
+            newOpts,
+            comparePathsOptions,
+            processed.ShallowClone(),
+            programDiagnostics,
+            hasEmitBlockingDiagnostics);
+        result.unresolvedImports.TryReuse(unresolvedImports);
+        result.knownSymlinks.TryReuse(knownSymlinks);
+        result.packageNames.TryReuse(packageNames);
+        result.InitCheckerPool();
+        int index = Array.FindIndex(result.processed.Files, file => file.Path() == newFile!.Path());
+        result.processed.Files = (SourceFile[])result.processed.Files.Clone();
+        result.processed.Files[index] = newFile!;
+        result.processed.FilesByPath = new Dictionary<global::Ts.TsPath.Path, SourceFile>(result.processed.FilesByPath);
+        result.processed.FilesByPath[newFile!.Path()] = newFile;
+        IncludeProcessor.UpdateFileIncludeProcessor(result.processed);
+        return (result, newFile, true);
+    }
+
+    // program.go:359-370 — canReplaceFileInProgram.
+    private static bool CanReplaceFileInProgram(SourceFile file1, SourceFile? file2)
+    {
+        return file2 is not null &&
+            EqualParseOptions(file1.ParseOptions(), file2.ParseOptions()) &&
+            file1.UsesUriStyleNodeCoreModules == file2.UsesUriStyleNodeCoreModules &&
+            EqualSlices(file1.Imports(), file2.Imports(), EqualModuleSpecifiers) &&
+            EqualSlices(file1.ModuleAugmentations, file2.ModuleAugmentations, EqualModuleAugmentationNames) &&
+            EqualSlices(file1.AmbientModuleNames, file2.AmbientModuleNames, static (a, b) => a == b) &&
+            EqualSlices(file1.ReferencedFiles, file2.ReferencedFiles, EqualFileReferences) &&
+            EqualSlices(file1.TypeReferenceDirectives, file2.TypeReferenceDirectives, EqualFileReferences) &&
+            EqualSlices(file1.LibReferenceDirectives, file2.LibReferenceDirectives, EqualFileReferences) &&
+            EqualCheckJSDirectives(file1.CheckJsDirective, file2.CheckJsDirective);
+    }
+
+    // Go: file1.ParseOptions() == file2.ParseOptions() (struct ==, field-wise).
+    private static bool EqualParseOptions(SourceFileParseOptions a, SourceFileParseOptions b) =>
+        a.FileName == b.FileName &&
+        a.Path == b.Path &&
+        a.ExternalModuleIndicatorOptions.Jsx == b.ExternalModuleIndicatorOptions.Jsx &&
+        a.ExternalModuleIndicatorOptions.Force == b.ExternalModuleIndicatorOptions.Force;
+
+    // Go: slices.Equal / slices.EqualFunc (a nil slice equals an empty one).
+    private static bool EqualSlices<T>(T[]? s1, T[]? s2, Func<T, T, bool> eq)
+    {
+        int n1 = s1?.Length ?? 0;
+        int n2 = s2?.Length ?? 0;
+        if (n1 != n2)
+        {
+            return false;
+        }
+        for (int i = 0; i < n1; i++)
+        {
+            if (!eq(s1![i], s2![i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // program.go:372-384 — needsImportHelpersImportSpecifier.
+    private bool NeedsImportHelpersImportSpecifier(SourceFile file)
+    {
+        var (redirect, _) = Mapper.GetRedirectForResolution(file);
+        CompilerOptions optionsForFile = ModuleFormat.CompilerOptionsForRedirect(opts.Config.CompilerOptions()!, redirect);
+        if (!optionsForFile.ImportHelpers.IsTrue())
+        {
+            return false;
+        }
+        bool isJavaScriptFile = AstUtilities.IsSourceFileJS(file);
+        bool isExternalModuleFile = AstUtilities.IsExternalModule(file);
+        if (!isJavaScriptFile && (file.IsDeclarationFile || (!optionsForFile.GetIsolatedModules() && !isExternalModuleFile)))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    // program.go:386-388
+    private static bool EqualModuleSpecifiers(Node n1, Node n2) =>
+        n1.Kind == n2.Kind && (!NodeTests.IsStringLiteral(n1) || n1.Text() == n2.Text());
+
+    // program.go:390-392
+    private static bool EqualModuleAugmentationNames(Node n1, Node n2) =>
+        n1.Kind == n2.Kind && n1.Text() == n2.Text();
+
+    // program.go:394-396
+    private static bool EqualFileReferences(FileReference f1, FileReference f2) =>
+        f1.FileName == f2.FileName && f1.ResolutionMode == f2.ResolutionMode && f1.Preserve == f2.Preserve;
+
+    // program.go:398-400
+    private static bool EqualCheckJSDirectives(CheckJsDirective? d1, CheckJsDirective? d2) =>
+        d1 is null && d2 is null || d1 is not null && d2 is not null && d1.Enabled == d2.Enabled;
 
     internal ProgramOptions Opts => opts;
 

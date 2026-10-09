@@ -44,10 +44,7 @@ public sealed class SnapshotTests
     }
 
     // snapshot_test.go:38-71 — "compilerHost gets frozen with snapshot's FS only once".
-    [Fact(Skip = "Depends on the dirty-file program clone path (Go project.go Program.UpdateProgram " +
-        "-> ProgramUpdateKindCloned), a registered un-ported deviation (Project.cs header PORT-NOTE): " +
-        "the C# CreateProgram always full-rebuilds, so a changed file yields SameFileNames, never Cloned " +
-        "(snapshot_test.go:65 asserts Cloned).")]
+    [Fact]
     public void Snapshot_CompilerHostGetsFrozenWithSnapshotFsOnlyOnce()
     {
         var files = new Dictionary<string, string>

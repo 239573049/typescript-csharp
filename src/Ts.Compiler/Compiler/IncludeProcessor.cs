@@ -5,9 +5,6 @@
 // materializes them into user-facing diagnostics on demand (getDiagnostics and the cached
 // reference-location / related-info / redirect-format explainers).
 //
-// PORT-NOTE: updateFileIncludeProcessor (includeprocessor.go:28-33) belongs to the incremental
-// program-update surface (UpdateProgram), which is not ported yet.
-//
 // §1.5 (namespace shadowing): cross-package class names equal to a sibling namespace segment
 // are fully qualified with global::.
 
@@ -32,6 +29,18 @@ internal sealed class IncludeProcessor
     private readonly Once computedDiagnosticsOnce = new();
     private ObjectLiteralExpression? compilerOptionsSyntax;
     private readonly Once compilerOptionsSyntaxOnce = new();
+
+    // includeprocessor.go:28-33 — updateFileIncludeProcessor. (Go assigns the embedded
+    // processedFiles.includeProcessor; C# Program composes ProcessedFiles, so the update
+    // targets that snapshot.)
+    internal static void UpdateFileIncludeProcessor(ProcessedFiles p)
+    {
+        p.IncludeProcessor = new IncludeProcessor
+        {
+            FileIncludeReasons = p.IncludeProcessor.FileIncludeReasons,
+            ProcessingDiagnostics = p.IncludeProcessor.ProcessingDiagnostics,
+        };
+    }
 
     // includeprocessor.go:35-57
     internal DiagnosticsCollection GetDiagnostics(Program p)
