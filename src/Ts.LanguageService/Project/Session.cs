@@ -10,9 +10,8 @@
 //    error of GetProjectsForFile is dropped (plan/05 §4, third judgment).
 //  * Go runtime-metrics / os-memory sampling in sendPerformanceTelemetry maps to the
 //    nearest .NET equivalents; counters without an analog stay 0 (marked inline).
-//  * Go `ls.NewLanguageService(projectPath, program, snapshot, activeFile)` collapses
-//    to the landed foundation form `Ls.LanguageService.NewLanguageService(program)`
-//    (see NewLanguageServiceWorker).
+//  * Go `ls.NewLanguageService(projectPath, program, snapshot, activeFile)` funnels
+//    through NewLanguageServiceWorker (snapshot adapted as the Ts.Ls.Host).
 
 using System;
 using System.Collections.Generic;
@@ -1309,16 +1308,18 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
     }
 
     // Go: ls.NewLanguageService(project.configFilePath, project.GetProgram(), snapshot,
-    // activeFile). PORT-NOTE(project): the C# foundation only carries
-    // LanguageService.NewLanguageService(program) (Ls/LanguageService.cs:20-27); the
-    // projectPath/snapshot-host/activeFile wiring lands with the lsp-server wave, so
-    // every session construction site funnels through here to keep the call shape
-    // recognizable. Deviation registered in the Ls/LanguageService.cs header.
+    // activeFile). PORT-NOTE: Go reads the client capabilities off the request context;
+    // in C# they ride SessionOptions.ClientCapabilities (see the SessionOptions field).
     private static global::Ts.Ls.LanguageService NewLanguageServiceWorker(Project project, Snapshot snap, string activeFile)
     {
-        _ = snap;
-        _ = activeFile;
-        return global::Ts.Ls.LanguageService.NewLanguageService(project.GetProgram()!);
+        global::Ts.Compiler.Program program = project.GetProgram()!;
+        SessionOptions options = snap.Options();
+        return new global::Ts.Ls.LanguageService(
+            project.configFilePath,
+            snap.LsHost(program),
+            options.ClientCapabilities,
+            snap.GetPreferences(activeFile),
+            options.PositionEncoding.Value is { Length: > 0 } encoding ? encoding : "utf-16");
     }
 
     // session.go:988-994 — GetLanguageService.

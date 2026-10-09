@@ -1,4 +1,7 @@
 // Ported from tsgo internal/lsp/server_shutdown_test.go (whole file).
+//
+// PORT-NOTE: Go's `if !bundled.Embedded { t.Skip(...) }` guards are omitted: Bundled.Embedded
+// is `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 
 using System;
 using System.Collections.Generic;
@@ -30,11 +33,6 @@ public sealed class ServerShutdownTests
     [Fact]
     public async Task TestServerShutdownNoDeadlock()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         global::Ts.Vfs.IFileSystem fs = ServerTestUtil.WrapMapFS(new Dictionary<string, string>
         {
             ["/test/tsconfig.json"] = "{}",
@@ -80,7 +78,7 @@ public sealed class ServerShutdownTests
         });
 
         // Open a file to establish a project
-        server.session.DidOpenFile(ctx, new LsProtoT.DocumentUri("file:///test/index.ts"), 1, "const x = 1;", LsProtoT.LanguageKind.TypeScript.Value);
+        server.session.DidOpenFile(ctx, new LsProtoT.DocumentUri("file:///test/index.ts"), 1, "const x = 1;", LsProtoT.LanguageKind.TypeScript.Value!);
         server.session.WaitForBackgroundTasks();
 
         // Shutdown (cancel context and wait for write loop to exit)

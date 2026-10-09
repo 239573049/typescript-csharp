@@ -1,4 +1,7 @@
 // Ported from tsgo internal/lsp/server_projectinfo_test.go (whole file).
+//
+// PORT-NOTE: Go's `if !bundled.Embedded { t.Skip(...) }` guards are omitted: Bundled.Embedded
+// is `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 
 using System;
 using System.Collections.Generic;
@@ -54,11 +57,6 @@ public sealed class ServerProjectInfoTests : IDisposable
     [Fact]
     public void TestProjectInfoConfiguredProject()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitProjectInfoClient(new Dictionary<string, string>
         {
             ["/home/projects/tsconfig.json"] = "{}",
@@ -73,11 +71,6 @@ public sealed class ServerProjectInfoTests : IDisposable
     [Fact]
     public void TestProjectInfoInferredProject()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitProjectInfoClient(new Dictionary<string, string>
         {
             ["/home/projects/index.ts"] = "export const x = 1;",

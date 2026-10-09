@@ -1,12 +1,8 @@
 // Shared helpers for the ported internal/lsp server_*_test.go files.
 //
-// PORT-NOTE: Go's onServerRequest closures answer workspace/configuration with
-// `[]any{prefs}`, which json-marshals the *lsutil.UserPreferences through its
-// MarshalJSONTo (config-path keyed object). The tests below build that wire object
-// directly from the config paths of the fields each test sets (PrefsConfig); Go's
-// marshal also emits explicit values for the untouched fields, which re-state the
-// defaults ParseUserPreferences starts from and so do not change the parsed result
-// the assertions observe.
+// Go's onServerRequest closures answer workspace/configuration with `[]any{prefs}`,
+// which json-marshals the *lsutil.UserPreferences through its MarshalJSONTo
+// (UserPreferences.ToJsonElement here).
 
 using System.Collections.Generic;
 using System.Text.Json;
@@ -27,11 +23,14 @@ internal static class ServerTestUtil
 
     // Go: lsutil.UserPreferences{IncludeCompletionsForModuleExports: core.TSTrue,
     // IncludeCompletionsForImportStatements: core.TSTrue} on the wire.
-    public static JsonElement AutoImportPrefsConfig { get; } =
-        Json("""{"suggest":{"autoImports":true,"includeCompletionsForImportStatements":true}}""");
+    public static JsonElement AutoImportPrefsConfig { get; } = new global::Ts.Ls.UserPreferences
+    {
+        IncludeCompletionsForModuleExports = global::Ts.Core.Tristate.True,
+        IncludeCompletionsForImportStatements = global::Ts.Core.Tristate.True,
+    }.ToJsonElement();
 
     // Go: &lsutil.UserPreferences{} on the wire.
-    public static JsonElement EmptyPrefsConfig { get; } = Json("{}");
+    public static JsonElement EmptyPrefsConfig { get; } = new global::Ts.Ls.UserPreferences().ToJsonElement();
 
     public static global::Ts.Vfs.IFileSystem WrapMapFS(Dictionary<string, string> files) =>
         global::Ts.Bundled.Bundled.WrapFS(global::Ts.Vfs.VfsTest.VfsTestUtil.FromMap(files, false));

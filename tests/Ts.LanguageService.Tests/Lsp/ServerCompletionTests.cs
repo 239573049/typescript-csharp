@@ -1,4 +1,7 @@
 // Ported from tsgo internal/lsp/server_completion_test.go (whole file).
+//
+// PORT-NOTE: Go's `if !bundled.Embedded { t.Skip(...) }` guards are omitted: Bundled.Embedded
+// is `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 
 using System.Collections.Generic;
 using Ts.TestUtil.LspTestUtil;
@@ -90,11 +93,6 @@ public sealed class ServerCompletionTests : System.IDisposable
     [Fact]
     public void TestCompletionAfterFileClose()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitCompletionClient(AutoImportFiles("/home/projects/b.ts", "s"), ServerTestUtil.AutoImportPrefsConfig);
 
         LsProtoT.DocumentUri aURI = global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI("/home/projects/a.ts");
@@ -121,11 +119,6 @@ public sealed class ServerCompletionTests : System.IDisposable
     [Fact]
     public void TestCompletionWithConcurrentFileClose()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitCompletionClient(AutoImportFiles("/home/projects/b.ts", "s"), ServerTestUtil.AutoImportPrefsConfig);
 
         LsProtoT.DocumentUri aURI = global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI("/home/projects/a.ts");
@@ -153,11 +146,6 @@ public sealed class ServerCompletionTests : System.IDisposable
     [Fact]
     public void TestCompletionForUnopenedFile()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitCompletionClient(new Dictionary<string, string>
         {
             ["/home/projects/tsconfig.json"] = """{"compilerOptions": {"module": "esnext", "target": "esnext"}}""",
@@ -180,11 +168,6 @@ public sealed class ServerCompletionTests : System.IDisposable
     [Fact]
     public void TestAutoImportCompletionForUnopenedFile()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitCompletionClient(AutoImportFiles("/home/projects/c.ts", "s"), ServerTestUtil.AutoImportPrefsConfig);
 
         LsProtoT.DocumentUri cURI = global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI("/home/projects/c.ts");
@@ -204,11 +187,6 @@ public sealed class ServerCompletionTests : System.IDisposable
     [Fact]
     public void TestCompletionSnapshotFreezing()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         LSPClient client = InitCompletionClient(AutoImportFiles("/home/projects/b.ts", "someV"), ServerTestUtil.AutoImportPrefsConfig);
 
         LsProtoT.DocumentUri aURI = global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI("/home/projects/a.ts");

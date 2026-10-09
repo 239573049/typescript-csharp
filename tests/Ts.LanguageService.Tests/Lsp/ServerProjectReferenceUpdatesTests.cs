@@ -1,4 +1,7 @@
 // Ported from tsgo internal/lsp/server_projectreference_updates_test.go (whole file).
+//
+// PORT-NOTE: Go's `if !bundled.Embedded { t.Skip(...) }` guards are omitted: Bundled.Embedded
+// is `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 
 using System;
 using System.Collections.Generic;
@@ -48,11 +51,6 @@ public sealed class ServerProjectReferenceUpdatesTests : IDisposable
     [Fact]
     public void TestReferencesAfterAncestorProjectConfigDeletion1()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         var (client, fs) = InitMutableLSPClient(new Dictionary<string, string>
         {
             ["/root/tsconfig.json"] = """

@@ -1,4 +1,7 @@
 // Ported from tsgo internal/lsp/server_semantictokens_test.go (whole file).
+//
+// PORT-NOTE: Go's `if !bundled.Embedded { t.Skip(...) }` guards are omitted: Bundled.Embedded
+// is `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 
 using System;
 using System.Collections.Generic;
@@ -20,11 +23,6 @@ public sealed class ServerSemanticTokensTests
     [Fact]
     public void TestSemanticTokensCRLF()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         // Enough lines so the cumulative \r\n vs \n offset difference
         // causes an LF-based position to land on a \r in the CRLF text.
         const string fileOnDisk = "var x\nvar x\nvar x\nvar x\nvar x\nvar x\nconst a = 1\n";

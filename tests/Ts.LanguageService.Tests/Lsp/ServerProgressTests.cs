@@ -1,4 +1,7 @@
 // Ported from tsgo internal/lsp/server_progress_test.go (whole file).
+//
+// PORT-NOTE: Go's `if !bundled.Embedded { t.Skip(...) }` guards are omitted: Bundled.Embedded
+// is `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 
 using System.Collections.Generic;
 using System.Threading;
@@ -16,11 +19,6 @@ public sealed class ServerProgressTests
     [Fact]
     public async Task TestProgressNotificationsEndToEnd()
     {
-        if (!global::Ts.Bundled.Bundled.Embedded)
-        {
-            Assert.Skip("bundled files are not embedded");
-        }
-
         global::Ts.Vfs.IFileSystem fs = ServerTestUtil.WrapMapFS(new Dictionary<string, string>
         {
             ["/home/projects/tsconfig.json"] = "{}",

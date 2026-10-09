@@ -99,7 +99,7 @@ public sealed partial class LanguageService
 
     internal global::Ts.Ls.LsConv.Converters Converters()
     {
-        return converters ??= new global::Ts.Ls.LsConv.Converters(positionEncoding, fileName =>
+        return converters ??= host.Converters() ?? new global::Ts.Ls.LsConv.Converters(positionEncoding, fileName =>
             global::Ts.Ls.LsConv.LineMap.ComputeLSPLineStarts(program.GetSourceFile(fileName)!.Text()));
     }
 

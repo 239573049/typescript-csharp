@@ -64,7 +64,7 @@ public sealed class ServerReplayTests
 
             Assert.Contains(PullDiagnostics(client, uri), diagnostic =>
                 HasCode(diagnostic, 2322) &&
-                diagnostic.Message.Contains("not assignable", System.StringComparison.Ordinal));
+                (diagnostic.Message.String ?? diagnostic.Message.MarkupContent?.Value ?? "").Contains("not assignable", System.StringComparison.Ordinal));
 
             var (hoverMsg, _, hoverOk) = LSPClient.SendRequest(client, LsProtoT.Infos.TextDocumentHoverInfo, new LsProtoT.HoverParams
             {
