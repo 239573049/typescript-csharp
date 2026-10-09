@@ -51,7 +51,7 @@ public static class CompilerHosts
 }
 
 // host.go:25-31
-internal sealed class CompilerHostImpl : CompilerHost
+internal sealed class CompilerHostImpl : CompilerHost, global::Ts.TsOptions.ParseConfigHost
 {
     private readonly string currentDirectory;
     private readonly IFileSystem fs;
@@ -117,30 +117,13 @@ internal sealed class CompilerHostImpl : CompilerHost
         return global::Ts.Parser.Parser.ParseSourceFile(opts, text, global::Ts.Core.CoreUtil.GetScriptKindFromFileName(opts.FileName));
     }
 
-    // host.go:86-89 — the loader resolves every project reference config through the host, so this
-    // must parse the referenced tsconfig (host.go:87 calls
-    // tsoptions.GetParsedCommandLineOfConfigFilePath with this host as the ParseConfigHost; a nil
-    // commandLine simply means "unresolvable reference", which surfaces as TS6053).
+    // host.go:86-89
     public global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path)
     {
+        // Go: `commandLine, _ := tsoptions.GetParsedCommandLineOfConfigFilePath(fileName, path,
+        // nil /*options*/, nil /*optionsRaw*/, h, h.extendedConfigCache); return commandLine`.
         var (commandLine, _) = global::Ts.TsOptions.TsConfigParsing.GetParsedCommandLineOfConfigFilePath(
-            fileName, path, null, null, new CompilerHostParseConfigHost(this), extendedConfigCache);
+            fileName, path, null, null, this, extendedConfigCache);
         return commandLine;
     }
-}
-
-// host.go:86-89 — the compilerHost doubles as the ParseConfigHost for referenced configs (FS +
-// GetCurrentDirectory are the only members ParseConfigHost needs).
-internal sealed class CompilerHostParseConfigHost : global::Ts.TsOptions.ParseConfigHost
-{
-    private readonly CompilerHostImpl host;
-
-    internal CompilerHostParseConfigHost(CompilerHostImpl host)
-    {
-        this.host = host;
-    }
-
-    public IFileSystem FS() => host.FS();
-
-    public string GetCurrentDirectory() => host.GetCurrentDirectory();
 }

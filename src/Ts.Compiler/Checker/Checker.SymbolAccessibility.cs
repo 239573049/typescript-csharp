@@ -6,18 +6,14 @@
 // locals/exports/members/globals tables used for (1) the visited-set cycle guard, (2) the isGlobals
 // check, and (3) per-table alias/chain caching — is replaced by SymbolTable *reference identity*
 // (SymbolTable is `Dictionary<string,Symbol>`, a reference type): the visited-set is a
-// HashSet<SymbolTable>; isGlobals is `ReferenceEquals(table, globals)`; the caches are dropped
-// (recomputed each call, behaviorally identical, only slower). This eliminates the entire symbolTableID
-// + symbolContainerLinks/symbolTableAliasCache infrastructure. The dropped callback param `tableId` is
-// removed from the someSymbolTableInScope callback signature.
+// HashSet<SymbolTable>; isGlobals is `ReferenceEquals(table, globals)`; the per-table alias/chain caches
+// are dropped (recomputed each call, behaviorally identical, only slower), but the *symbol-container*
+// links (ContainingSymbolLinks.extendedContainers/extendedContainersByFile/accessibleChainCache, keyed
+// off the symbol, not the table) are retained. The dropped callback param `tableId` is removed from the
+// someSymbolTableInScope callback signature.
 //
-// PORT-NOTE (deferred): getWithAlternativeContainers' alternative-module discovery
-// (getAlternativeContainingModules / getFileSymbolIfFileSymbolExportEqualsContainer /
-// getVariableDeclarationOfObjectLiteral) and getContainersOfSymbol's declaration-scanning fallback are
-// simplified to the in-scope parent container. Symbols reachable *only* via those alternatives fall
-// through to structural expansion — matching the pre-port behavior for those cases, never producing a
-// wrong alias name. JSDoc reparse (GetReparsedNodeForNode) is likewise deferred (TS conformance does
-// not hit it); the raw node is used.
+// PORT-NOTE (deferred): JSDoc reparse (GetReparsedNodeForNode) is deferred (TS conformance does not hit
+// it); the raw node is used. accessibleChainCache is present but not consulted (recomputed each call).
 
 using System;
 using System.Collections.Generic;
@@ -461,19 +457,41 @@ public partial class Checker
             useOnlyExternalAliasing, new Dictionary<SymbolId, HashSet<SymbolTable>>()));
     }
 
-    // symbolaccessibility.go getWithAlternativeContainers — SIMPLIFIED (in-scope container only; alternative
-    // module / object-literal / reexport containers deferred, PORT-NOTE at file head).
+    // symbolaccessibility.go:117 — getWithAlternativeContainers.
     private List<Symbol> GetWithAlternativeContainers(Symbol container, Symbol symbol, Node? enclosingDeclaration, SymbolFlags meaning)
     {
-        var leftMeaning = GetQualifiedLeftMeaning(meaning);
-        if (enclosingDeclaration != null && (container.Flags & leftMeaning) != 0 &&
-            GetAccessibleSymbolChain(container, enclosingDeclaration, SymbolFlags.Namespace, false).Count > 0)
+        // core.MapNonNil(container.Declarations, d => getFileSymbolIfFileSymbolExportEqualsContainer(d, container))
+        var additionalContainers = new List<Symbol>();
+        foreach (var d in container.Declarations ?? [])
         {
-            return new List<Symbol> { container };
+            var additional = GetFileSymbolIfFileSymbolExportEqualsContainer(d, container);
+            if (additional != null)
+            {
+                additionalContainers.Add(additional);
+            }
         }
-        // variable-in-scope matching (a value acting as a namespace, e.g. `Symbol`).
+        var reexportContainers = enclosingDeclaration != null ? GetAlternativeContainingModules(symbol, enclosingDeclaration) : new List<Symbol>();
+        var objectLiteralContainer = GetVariableDeclarationOfObjectLiteral(container, meaning);
+        var leftMeaning = GetQualifiedLeftMeaning(meaning);
+        if (enclosingDeclaration != null &&
+            (container.Flags & leftMeaning) != 0 &&
+            GetAccessibleSymbolChain(container, enclosingDeclaration, SymbolFlags.Namespace /*useOnlyExternalAliasing*/, false).Count > 0)
+        {
+            // This order expresses a preference for the real container if it is in scope.
+            var preferred = new List<Symbol> { container };
+            preferred.AddRange(additionalContainers);
+            preferred.AddRange(reexportContainers);
+            if (objectLiteralContainer != null)
+            {
+                preferred.Add(objectLiteralContainer);
+            }
+            return preferred;
+        }
+        // The container is a member of the instance side of something; look for a variable in scope with
+        // the container's type that may be acting like a namespace (e.g. `Symbol` → `Symbol.toStringTag`).
         var variableMatches = new List<Symbol>();
-        if (meaning == SymbolFlags.Value && (container.Flags & leftMeaning) == 0 &&
+        if (meaning == SymbolFlags.Value &&
+            (container.Flags & leftMeaning) == 0 &&
             (container.Flags & SymbolFlags.Type) != 0 &&
             (GetDeclaredTypeOfSymbol(container).flags & TypeFlags.Object) != 0)
         {
@@ -495,12 +513,114 @@ public partial class Checker
         }
         var res = new List<Symbol>();
         res.AddRange(variableMatches);
+        res.AddRange(additionalContainers);
         res.Add(container);
+        if (objectLiteralContainer != null)
+        {
+            res.Add(objectLiteralContainer);
+        }
+        res.AddRange(reexportContainers);
         return res;
     }
 
-    // symbolaccessibility.go getContainersOfSymbol — SIMPLIFIED to the parent-based branch (declaration-scanning
-    // module-export container discovery deferred, PORT-NOTE at file head).
+    // symbolaccessibility.go:171 — getAlternativeContainingModules.
+    private List<Symbol> GetAlternativeContainingModules(Symbol symbol, Node enclosingDeclaration)
+    {
+        var containingFile = AstUtilities.GetSourceFileOfNode(enclosingDeclaration);
+        var id = AstUtilities.GetNodeId(containingFile!.AsNode());
+        var links = symbolContainerLinks.Get(symbol);
+        links.extendedContainersByFile ??= new Dictionary<NodeId, Symbol[]>();
+        if (links.extendedContainersByFile.TryGetValue(id, out var existing) && existing != null)
+        {
+            return existing.ToList();
+        }
+        var results = new List<Symbol>();
+        var imports = containingFile.Imports();
+        if (imports is { Length: > 0 })
+        {
+            // Try to make an import using an import already in the enclosing file, if possible.
+            foreach (var importRef in imports)
+            {
+                if (AstUtilities.NodeIsSynthesized(importRef))
+                {
+                    // Synthetic names can't be resolved by `resolveExternalModuleName` - they'd error.
+                    continue;
+                }
+                var resolvedModule = ResolveExternalModuleName(enclosingDeclaration, importRef /*ignoreErrors*/, true);
+                if (resolvedModule == null)
+                {
+                    continue;
+                }
+                var reference = GetAliasForSymbolInContainer(resolvedModule, symbol);
+                if (reference == null)
+                {
+                    continue;
+                }
+                results.Add(resolvedModule);
+            }
+            if (results.Count > 0)
+            {
+                links.extendedContainersByFile[id] = results.ToArray();
+                return results;
+            }
+        }
+
+        if (links.extendedContainers != null)
+        {
+            return links.extendedContainers.ToList();
+        }
+        // No results from files already being imported by this file - expand the search (expensive, but not
+        // location-specific, so cached).
+        foreach (var file in program.SourceFiles())
+        {
+            if (!AstUtilities.IsExternalModule(file))
+            {
+                continue;
+            }
+            var sym = GetSymbolOfDeclaration(file.AsNode())!;
+            var reference = GetAliasForSymbolInContainer(sym, symbol);
+            if (reference == null)
+            {
+                continue;
+            }
+            results.Add(sym);
+        }
+        links.extendedContainers = results.ToArray();
+        return results;
+    }
+
+    // symbolaccessibility.go:222 — getVariableDeclarationOfObjectLiteral.
+    private Symbol? GetVariableDeclarationOfObjectLiteral(Symbol symbol, SymbolFlags meaning)
+    {
+        // If we're trying to reference some object literal in, eg `var a = { x: 1 }`, the symbol for the
+        // literal, `__object`, is distinct from the symbol of the declaration it is assigned to. We can use
+        // the declaration to refer to the literal, however.
+        if ((meaning & SymbolFlags.Value) == 0)
+        {
+            return null;
+        }
+        if (symbol.Declarations is not { Length: > 0 })
+        {
+            return null;
+        }
+        var firstDecl = symbol.Declarations[0];
+        if (firstDecl.Parent == null)
+        {
+            return null;
+        }
+        if (!NodeTests.IsVariableDeclaration(firstDecl.Parent))
+        {
+            return null;
+        }
+        var parent = firstDecl.Parent.AsVariableDeclaration();
+        if ((NodeTests.IsObjectLiteralExpression(firstDecl) && firstDecl == parent.Initializer) ||
+            (NodeTests.IsTypeLiteralNode(firstDecl) && firstDecl == parent.Type))
+        {
+            return GetSymbolOfDeclaration(firstDecl.Parent);
+        }
+        return null;
+    }
+
     // symbolaccessibility.go:342 — getAliasForSymbolInContainer
     internal Symbol? GetAliasForSymbolInContainer(Symbol container, Symbol symbol)
     {
@@ -601,7 +721,7 @@ public partial class Checker
         }
         if (candidates.Count == 0)
         {
-            return new List<Symbol>();
+            return null!;
         }
 
         var bestContainers = new List<Symbol>();
@@ -627,7 +747,7 @@ public partial class Checker
     // symbolaccessibility.go IsAnySymbolAccessible.
     private PrinterNs.SymbolAccessibilityResult? IsAnySymbolAccessible(List<Symbol> symbols, Node? enclosingDeclaration, Symbol initialSymbol, SymbolFlags meaning, bool shouldComputeAliasesToMakeVisible, bool allowModules)
     {
-        if (symbols.Count == 0)
+        if (symbols is not { Count: > 0 })
         {
             return null;
         }

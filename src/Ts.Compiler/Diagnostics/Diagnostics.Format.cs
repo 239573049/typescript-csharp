@@ -275,13 +275,35 @@ public static partial class Diagnostics
             }
             else
             {
-                // Go: fmt.Sprintf("%v", arg). AST/diagnostic args are strings/numbers in practice;
-                // ToString() matches for those (plan/05 §8, and mirrors the local StringifyArgs in
-                // Ast/Diagnostic.cs which this can eventually supersede).
-                result[i] = args[i]?.ToString() ?? "";
+                result[i] = SprintV(args[i]);
             }
         }
         return result;
+    }
+
+    // diagnostics.go:146 — Go's `fmt.Sprintf("%v", arg)` fallback. Diagnostic args are strings,
+    // booleans, numbers or a nested diagnostic (handled by the caller); this reproduces %v for
+    // those, most importantly bool → "true"/"false" (C# ToString would give "True"/"False"),
+    // which is byte-load-bearing in the tsc trace baselines (e.g. resolver.go:395's
+    // `result.Primary`). Numbers use the invariant culture; the default case keeps ToString, so
+    // types Go would print as their struct value are only approximate (none observed in practice).
+    private static string SprintV(object? arg)
+    {
+        switch (arg)
+        {
+            case null:
+                return "<nil>";
+            case bool b:
+                return b ? "true" : "false";
+            case byte or sbyte or short or ushort or int or uint or long or ulong:
+                return System.Convert.ToString(arg, System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            case float f:
+                return f.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+            case double d:
+                return d.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+            default:
+                return arg.ToString() ?? "";
+        }
     }
 
     // diagnostics.go:152-159 — NewAdHocMessage.
