@@ -10,7 +10,7 @@ namespace Ts.TestUtil;
 using PathT = global::Ts.TsPath.Path;
 using TsPathApi = global::Ts.TsPath.TsPath;
 
-public static class HarnessUtil
+public static partial class HarnessUtil
 {
     // harnessutil.go:41
     public const string FakeTSVersion = "FakeTSVersion";
