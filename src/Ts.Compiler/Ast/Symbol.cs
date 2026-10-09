@@ -54,11 +54,15 @@ public sealed class Symbol
 // Go: internal/ast/symbol.go — internal symbol name sentinels.
 public static class InternalSymbolName
 {
-    // Go: symbol.go:47 — `const InternalSymbolNamePrefix = "\xFE"` (invalid UTF-8 byte in
-    // Go; never occurs as an IdentifierName). PORT-NOTE: in UTF-16 this is the single code
-    // unit U+00FE; escaping to "__" (below) is what reaches baselines, so the raw sentinel
-    // is internal-only. See binder report for the UTF-16 identifier-collision note.
-    public const string Prefix = "\xFE";
+    // Go: symbol.go:47 — `const InternalSymbolNamePrefix = "\xFE"` (the raw byte 0xFE, which is
+    // an invalid UTF-8 encoding and therefore never occurs as an IdentifierName). PORT-NOTE
+    // (UTF-16 shim, plan D-008): a C# string is UTF-16 and cannot carry an invalid byte, so the
+    // sentinel is the UTF-16 analogue of one — a lone low surrogate (Kept as WTF-16). Like Go's
+    // byte it is not a Unicode scalar value, so: DecodeRuneAt yields RuneError (IsIdentifierText
+    // false, exactly as in Go), and every UTF-8/JSON encoding of it produces U+FFFD — which is
+    // how Go's invalid byte surfaces in diagnostic text and in .tsbuildinfo. Unlike U+00FE (a
+    // valid identifier character, e.g. þ) it can never collide with a real identifier.
+    public const string Prefix = "\uDC00";
 
     public const string Call = Prefix + "call"; // Call signatures
     public const string Constructor = Prefix + "constructor"; // Constructor implementations

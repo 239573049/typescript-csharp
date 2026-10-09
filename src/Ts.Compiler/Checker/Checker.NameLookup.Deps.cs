@@ -75,7 +75,7 @@ public partial class Checker
         string GetCandidateName(Symbol candidate)
         {
             var candidateName = AstUtilities.SymbolName(candidate);
-            if (candidateName.Length == 0 || candidateName[0] == '"' || candidateName[0] == '\xFE')
+            if (candidateName.Length == 0 || candidateName[0] == '"' || candidateName[0] == '\uDC00')
             {
                 return "";
             }
