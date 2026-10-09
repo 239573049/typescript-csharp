@@ -202,7 +202,11 @@ internal sealed class ConfigFileEntry : global::Ts.Project.Dirty.Cloneable<Confi
                 "root files for " + fileName,
                 WatchKind.Create | WatchKind.Change | WatchKind.Delete,
                 hasRelativePatternCapability,
-                static input => input), // core.Identity
+                // Go: core.Identity over the PatternsAndIgnored STRUCT — Watchers() on a
+                // fresh entry receives the zero struct (nil slices, watch.go:195). The class
+                // zero value here would be nil and crash GetWatchers — substitute the
+                // equivalent empty instance.
+                static input => input ?? new PatternsAndIgnored()),
         };
     }
 

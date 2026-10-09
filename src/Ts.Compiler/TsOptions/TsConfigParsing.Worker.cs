@@ -951,7 +951,7 @@ public static partial class TsConfigParsing
         var (configFileText, errors) = tryReadFileList(configFileName, fn =>
         {
             var ok = sys.FS().TryReadFile(fn, out var contents);
-            return (contents, ok);
+            return (contents ?? "", ok);
         });
         if (errors.Len() > 0)
         {

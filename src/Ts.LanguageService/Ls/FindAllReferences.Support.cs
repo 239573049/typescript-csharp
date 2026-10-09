@@ -282,11 +282,18 @@ internal static class FindRefsSupport
         return node.Parent.Name() == node;
     }
 
-    // ls/utilities.go:197 — isExpressionOfExternalModuleImportEqualsDeclaration.
+    // ls/utilities.go:197 — isExpressionOfExternalModuleImportEqualsDeclaration. The guard
+    // is ast.IsExternalModuleImportEqualsDeclaration (ast/utilities.go:1307: kind check
+    // before the cast), NOT ls.isExternalModuleImportEquals (importTracker.go:662, which
+    // relies on its callers to kind-check). FIX: the port previously called
+    // ImportTrackerSupport.IsExternalModuleImportEquals here, which hard-casts and throws
+    // InvalidCastException on non-ImportEqualsDeclaration parents (hit by any find-
+    // references over a StringLiteral whose Parent.Parent is another node kind).
     internal static bool IsExpressionOfExternalModuleImportEqualsDeclaration(Node node)
     {
-        return ImportTrackerSupport.IsExternalModuleImportEquals(node.Parent!.Parent!) &&
-            node.Parent!.Parent!.AsImportEqualsDeclaration().ModuleReference!.Expression() == node;
+        return node.Parent!.Kind == global::Ts.Ast.SyntaxKind.ImportEqualsDeclaration &&
+            node.Parent!.AsImportEqualsDeclaration().ModuleReference!.Kind == global::Ts.Ast.SyntaxKind.ExternalModuleReference &&
+            node.Parent!.AsImportEqualsDeclaration().ModuleReference!.Expression() == node;
     }
 
     // ls/utilities.go:239 — isThis.

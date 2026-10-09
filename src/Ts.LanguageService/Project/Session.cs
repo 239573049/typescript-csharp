@@ -264,6 +264,10 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
             ClientCapabilitiesAccess.GetClientCapabilities(init.Options).Workspace.DidChangeWatchedFiles.RelativePatternSupport,
             nodeModulesDirs =>
             {
+                // Go: len(nil map) == 0 and ranging over a nil map is a no-op; before the
+                // first Clone the input here is Go's nil map, so a null dictionary reads
+                // as empty (05 §5 nil-map semantics).
+                nodeModulesDirs ??= new Dictionary<global::Ts.TsPath.Path, string>();
                 var patterns = new List<string>(nodeModulesDirs.Count);
                 // map-iter: 已排序 — patterns are sorted below to match Go's slices.Sort.
                 foreach (string dir in nodeModulesDirs.Values)
@@ -1217,7 +1221,9 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
                 {
                     updateReason = UpdateReason.RequestedLoadProjectTree;
                 }
-                else if (request.AutoImports.Value.Length != 0)
+                // Go: request.AutoImports != "" (session.go:934) — DocumentUri's zero value
+                // has a null Value, so test emptiness like snapshot.go:427 does.
+                else if (!string.IsNullOrEmpty(request.AutoImports.Value))
                 {
                     updateReason = UpdateReason.RequestedLanguageServiceWithAutoImports;
                 }
