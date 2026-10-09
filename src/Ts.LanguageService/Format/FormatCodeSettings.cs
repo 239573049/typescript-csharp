@@ -7,10 +7,7 @@
 // core 已落地则用，否则在 Format 内定义." When lsutil is ported these types should
 // move there (namespace Ts.Ls.LsUtil) and Format should alias/reference them.
 //
-// The LSP conversion helpers (FromLSFormatOptions / ToLSFormatOptions) and the
-// `parseIndentStyle`/`parseSemicolonPreference` raw-option parsers are omitted here
-// because they depend on lsproto (not yet ported); they will be reintroduced with
-// lsutil. The struct shape, defaults, and GetDefaultFormatCodeSettings are ported
+// FromLSFormatOptions lives in Ls/Format.cs (LsUtil). The struct shape, defaults, and GetDefaultFormatCodeSettings are ported
 // 1:1 since the rule engine reads them directly.
 
 using Ts.Core;
@@ -104,6 +101,52 @@ public sealed class FormatCodeSettings
     // The printer package is not yet ported; its default indent size is 4
     // (tsgo internal/printer default). We inline the literal 4 and note it here.
     public const int DefaultIndentSize = 4; // printer.GetDefaultIndentSize()
+
+    // PORT-NOTE: Go's FormatCodeSettings is a value struct; this class stands in for it, so
+    // copies made by Go assignment are explicit Clone() calls here.
+    public FormatCodeSettings Clone() => (FormatCodeSettings)MemberwiseClone();
+
+    // formatcodeoptions.go:19-36 — parseIndentStyle (v is a Go-decoded JSON `any`).
+    public static IndentStyle ParseIndentStyle(object? v)
+    {
+        switch (v)
+        {
+            case string s:
+                switch (global::Ts.StringUtil.StringUtil.ToLowerJS(s))
+                {
+                    case "none":
+                        return IndentStyle.None;
+                    case "block":
+                        return IndentStyle.Block;
+                    case "smart":
+                        return IndentStyle.Smart;
+                }
+                break;
+            case double d:
+                return (IndentStyle)(int)d;
+            case int i:
+                return (IndentStyle)i;
+        }
+        return IndentStyle.Smart;
+    }
+
+    // formatcodeoptions.go:46-58 — parseSemicolonPreference.
+    public static SemicolonPreference ParseSemicolonPreference(object? v)
+    {
+        if (v is string s)
+        {
+            switch (global::Ts.StringUtil.StringUtil.ToLowerJS(s))
+            {
+                case "ignore":
+                    return SemicolonPreference.Ignore;
+                case "insert":
+                    return SemicolonPreference.Insert;
+                case "remove":
+                    return SemicolonPreference.Remove;
+            }
+        }
+        return SemicolonPreference.Ignore;
+    }
 
     public static FormatCodeSettings GetDefaultFormatCodeSettings()
     {

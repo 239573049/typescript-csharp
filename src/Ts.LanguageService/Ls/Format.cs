@@ -20,7 +20,7 @@ public static class LsUtil
 {
     public static global::Ts.Format.FormatCodeSettings FromLSFormatOptions(global::Ts.Format.FormatCodeSettings f, global::Ts.LsProto.FormattingOptions opt)
     {
-        var updatedSettings = f;
+        var updatedSettings = f.Clone();
         updatedSettings.TabSize = (int)opt.TabSize;
         updatedSettings.IndentSize = (int)opt.TabSize;
         updatedSettings.ConvertTabsToSpaces = TristateExtensions.BoolToTristate(opt.InsertSpaces);
