@@ -67,17 +67,37 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     private bool hasTSFile;
 
     // program.go:274-283 (NewProgram)
+    // program.go:274-282
     public Program(ProgramOptions opts)
     {
         this.opts = opts;
-        processed = FileLoader.ProcessAllProgramFiles(opts, SingleThreaded());
-        comparePathsOptions = new global::Ts.TsPath.ComparePathsOptions
+        Action releaseTracing = NoOp;
+        if (opts.Tracing is not null)
         {
-            UseCaseSensitiveFileNames = opts.Host.FS().UseCaseSensitiveFileNames(),
-            CurrentDirectory = opts.Host.GetCurrentDirectory(),
-        };
-        InitCheckerPool();
-        VerifyCompilerOptions();
+            releaseTracing = global::Ts.Tracing.TracingExtensions.Push(
+                opts.Tracing, global::Ts.Tracing.Phase.Program, "createProgram",
+                new Dictionary<string, object?> { ["configFilePath"] = opts.Config.CompilerOptions()!.ConfigFilePath },
+                separateBeginAndEnd: true);
+        }
+        try
+        {
+            processed = FileLoader.ProcessAllProgramFiles(opts, SingleThreaded());
+            comparePathsOptions = new global::Ts.TsPath.ComparePathsOptions
+            {
+                UseCaseSensitiveFileNames = opts.Host.FS().UseCaseSensitiveFileNames(),
+                CurrentDirectory = opts.Host.GetCurrentDirectory(),
+            };
+            InitCheckerPool();
+            VerifyCompilerOptions();
+        }
+        finally
+        {
+            releaseTracing();
+        }
+    }
+
+    private static void NoOp()
+    {
     }
 
     // program.go:319-326 — the `&Program{...}` literal UpdateProgram builds for a reused program:
@@ -412,7 +432,21 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
             if (!file.IsBound())
             {
                 var f = file;
-                wg.Queue(() => global::Ts.Binder.Binder.BindSourceFile(f));
+                wg.Queue(() =>
+                {
+                    // program.go:456-458 — one bind event per file, on its own trace thread.
+                    Action releaseTracing = global::Ts.Tracing.TracingExtensions.Push(
+                        opts.Tracing, global::Ts.Tracing.Phase.Bind, "bindSourceFile",
+                        new Dictionary<string, object?> { ["path"] = f.Path().Value }, true);
+                    try
+                    {
+                        global::Ts.Binder.Binder.BindSourceFile(f);
+                    }
+                    finally
+                    {
+                        releaseTracing();
+                    }
+                });
             }
         }
         wg.RunAndWait();

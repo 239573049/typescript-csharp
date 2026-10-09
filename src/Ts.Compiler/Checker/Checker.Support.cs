@@ -48,21 +48,8 @@ internal sealed class Relation
 // namespace Ts.Checker); the throwing shell that lived here was removed by the phase-6 NodeBuilder
 // request-builder wave.
 
-// tracer.go:13-31 — --generateTrace tracer (phase 9). Minimal shell + factory.
-public sealed class Tracer
-{
-    // tracer.go:21
-    public static Tracer NewTracer(global::Ts.Tracing.Tracing tracing, int checkerIndex) => new();
-
-    // Records a type for trace output. Full body deferred (needs Type→ITracedType adapter).
-    internal void RecordType(Type type)
-    {
-    }
-
-    internal void DumpTypes()
-    {
-    }
-}
+// tracer.go:13-31 — the --generateTrace tracer lives in Tracer.cs (full port: tracing
+// session + per-checker type recorder + Type→ITracedType adapter).
 
 // sync.Once analogue (plan/05 §5.1).
 internal sealed class Once

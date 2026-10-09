@@ -51,8 +51,30 @@ public partial class Checker
         if (!links.typeChecked)
         {
             saveDeferredDiagnostics = true;
-            // !!! tracing: defer tr.Push(...) omitted at skeleton level (tracer surface not yet landed).
-            // Grammar checking
+            // checker.go:2187-2189 — one check event per source file, on the checker's trace thread.
+            Action releaseTracing = NoOp;
+            if (tracer is not null)
+            {
+                releaseTracing = tracer.Push(
+                    global::Ts.Tracing.Phase.Check, "checkSourceFile",
+                    new Dictionary<string, object?> { ["path"] = sourceFile.FileName() }, true);
+            }
+            try
+            {
+                CheckSourceFileWorkerBody(sourceFile, checkUnused, links);
+            }
+            finally
+            {
+                releaseTracing();
+            }
+        }
+    }
+
+    private static readonly Action NoOp = static () => { };
+
+    private void CheckSourceFileWorkerBody(SourceFile sourceFile, bool checkUnused, SourceFileLinks links)
+    {
+        {
             CheckGrammarSourceFile(sourceFile);
             renamedBindingElementsInTypes = null;
             CheckSourceElements(sourceFile.Statements!.Nodes);

@@ -117,14 +117,30 @@ internal sealed class CompilerHostImpl : CompilerHost
         return global::Ts.Parser.Parser.ParseSourceFile(opts, text, global::Ts.Core.CoreUtil.GetScriptKindFromFileName(opts.FileName));
     }
 
-    // host.go:86-89
-    // PORT-NOTE (phase 4/5): reached only when project references are configured. The Go body calls
-    // tsoptions.GetParsedCommandLineOfConfigFilePath, whose C# equivalent + its ParseConfigHost wiring
-    // are part of the deferred project-reference surface. Returns null until that lands; the loader's
-    // project-reference path (addProjectReferenceTasks) is a no-op when there are no references.
+    // host.go:86-89 — the loader resolves every project reference config through the host, so this
+    // must parse the referenced tsconfig (host.go:87 calls
+    // tsoptions.GetParsedCommandLineOfConfigFilePath with this host as the ParseConfigHost; a nil
+    // commandLine simply means "unresolvable reference", which surfaces as TS6053).
     public global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path)
     {
-        _ = extendedConfigCache;
-        return null;
+        var (commandLine, _) = global::Ts.TsOptions.TsConfigParsing.GetParsedCommandLineOfConfigFilePath(
+            fileName, path, null, null, new CompilerHostParseConfigHost(this), extendedConfigCache);
+        return commandLine;
     }
+}
+
+// host.go:86-89 — the compilerHost doubles as the ParseConfigHost for referenced configs (FS +
+// GetCurrentDirectory are the only members ParseConfigHost needs).
+internal sealed class CompilerHostParseConfigHost : global::Ts.TsOptions.ParseConfigHost
+{
+    private readonly CompilerHostImpl host;
+
+    internal CompilerHostParseConfigHost(CompilerHostImpl host)
+    {
+        this.host = host;
+    }
+
+    public IFileSystem FS() => host.FS();
+
+    public string GetCurrentDirectory() => host.GetCurrentDirectory();
 }
