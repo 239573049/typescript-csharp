@@ -102,14 +102,16 @@ internal sealed class ProjectReferenceParser
     private void InitMapper(List<ProjectReferenceParseTask> tasks)
     {
         var mapper = Loader.ProjectReferenceFileMapper;
-        mapper.ConfigToProjectReference = new Dictionary<global::Ts.TsPath.Path, global::Ts.TsOptions.ParsedCommandLine>();
-        mapper.ReferencesInConfigFile = new Dictionary<global::Ts.TsPath.Path, global::Ts.TsPath.Path[]>();
+        int totalReferences = TasksByFileName.Size() + 1;
+        mapper.ConfigToProjectReference = new Dictionary<global::Ts.TsPath.Path, global::Ts.TsOptions.ParsedCommandLine>(totalReferences);
+        mapper.ReferencesInConfigFile = new Dictionary<global::Ts.TsPath.Path, global::Ts.TsPath.Path[]>(totalReferences);
         mapper.SourceToProjectReference = new Dictionary<global::Ts.TsPath.Path, global::Ts.TsOptions.SourceOutputAndProjectReference>();
         mapper.OutputDtsToProjectReference = new Dictionary<global::Ts.TsPath.Path, global::Ts.TsOptions.SourceOutputAndProjectReference>();
         mapper.ReferencesInConfigFile[Loader.Opts.Config.ConfigFile!.SourceFile.Path()] = InitMapperWorker(tasks, new Set<ProjectReferenceParseTask>());
-        // PORT-NOTE: newProjectReferenceDtsFakingHost (projectreferenceparser.go:77-79 — source
-        // redirection for the LSP UseSourceOfProjectReference mode) is deferred with the LS wave;
-        // the CLI never enables CanUseProjectReferenceSource.
+        if (mapper.Opts.CanUseProjectReferenceSource() && mapper.OutputDtsToProjectReference.Count != 0)
+        {
+            mapper.Host = ProjectReferenceDtsFakingHost.NewProjectReferenceDtsFakingHost(Loader);
+        }
     }
 
     // projectreferenceparser.go:82-115
@@ -134,6 +136,8 @@ internal sealed class ProjectReferenceParser
             {
                 mapper.ConfigToProjectReference![path] = task.Resolved;
             }
+            // projectreferenceparser.go records the config first and only then maps the
+            // resolved project's files; this order is load-bearing (see the Go comment).
             if (task.Resolved != null && !ReferenceEquals(mapper.Opts.Config.ConfigFile, task.Resolved.ConfigFile))
             {
                 // Map current task's files first, before recursing into subtasks.
