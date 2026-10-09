@@ -1317,9 +1317,6 @@ public sealed partial class NodeBuilder
     }
 
     // nodebuilderimpl.go:638 — symbolToTypeNode.
-    // PORT-NOTE: getSpecifierForModuleSymbol is still stubbed, so the external-module (ImportTypeNode)
-    // branch throws when chain[0] is a non-global-augmentation external module. Reached only for those
-    // symbols; the common qualified-name path below (createAccessFromSymbolChain) is fully real.
     private Node? SymbolToTypeNode(Symbol symbol, SymbolFlags mask, TypeList? typeArguments)
     {
         var chain = LookupSymbolChain(symbol, mask, (ctx!.flags & global::Ts.NodeBuilder.Flags.UseAliasDefinedOutsideCurrentScope) == 0);
@@ -1330,24 +1327,76 @@ public sealed partial class NodeBuilder
         var isTypeOf = mask == SymbolFlags.Value;
         if (CoreUtil.Some(chain[0].Declarations, global::Ts.Checker.Checker.HasNonGlobalAugmentationExternalModuleSymbol))
         {
-            // module is root, must use `ImportTypeNode`
+            // module is root, must use `ImportTypeNode`.
             Node? nonRootParts = null;
             if (chain.Length > 1)
             {
                 nonRootParts = CreateAccessFromSymbolChain(chain, chain.Length - 1, 1, typeArguments);
             }
             var typeParameterNodes = typeArguments ?? LookupTypeParameterNodes(chain, 0);
-            var specifier = GetSpecifierForModuleSymbol(chain[0], global::Ts.Core.Core.ResolutionModeNone);
+            var contextFile = AstUtilities.GetSourceFileOfNode(e.MostOriginal(ctx.enclosingDeclaration));
+            var targetFile = AstUtilities.GetSourceFileOfModule(chain[0]);
+            var specifier = "";
+            Node? attributes = null;
+            var moduleResolutionKind = ch.compilerOptions.GetModuleResolutionKind();
+            if (moduleResolutionKind == ModuleResolutionKind.Node16 || moduleResolutionKind == ModuleResolutionKind.NodeNext)
+            {
+                // An `import` type directed at an esm format file is only going to resolve in esm
+                // mode - set the esm mode assertion.
+                if (targetFile != null && contextFile != null &&
+                    ch.program.GetEmitModuleFormatOfFile(SourceFileAsHasFileName(targetFile)) == ModuleKind.ESNext &&
+                    ch.program.GetEmitModuleFormatOfFile(SourceFileAsHasFileName(targetFile)) != ch.program.GetEmitModuleFormatOfFile(SourceFileAsHasFileName(contextFile)))
+                {
+                    specifier = GetSpecifierForModuleSymbol(chain[0], global::Ts.Core.Core.ResolutionModeESM);
+                    attributes = MakeResolutionModeAttributes("import");
+                }
+            }
+            if (specifier.Length == 0)
+            {
+                specifier = GetSpecifierForModuleSymbol(chain[0], global::Ts.Core.Core.ResolutionModeNone);
+            }
+            if ((ctx.flags & global::Ts.NodeBuilder.Flags.AllowNodeModulesRelativePaths) == 0 && specifier.Contains("/node_modules/", StringComparison.Ordinal))
+            {
+                var oldSpecifier = specifier;
+                if (moduleResolutionKind == ModuleResolutionKind.Node16 || moduleResolutionKind == ModuleResolutionKind.NodeNext)
+                {
+                    // We might be able to write a portable import type using a mode override; try
+                    // specifier generation again, but with a different mode set.
+                    var swappedMode = ModuleKind.ESNext;
+                    if (ch.program.GetEmitModuleFormatOfFile(SourceFileAsHasFileName(contextFile!)) == ModuleKind.ESNext)
+                    {
+                        swappedMode = ModuleKind.CommonJS;
+                    }
+                    specifier = GetSpecifierForModuleSymbol(chain[0], swappedMode);
+                    if (specifier.Contains("/node_modules/", StringComparison.Ordinal))
+                    {
+                        // Still unreachable :(
+                        specifier = oldSpecifier;
+                    }
+                    else
+                    {
+                        attributes = MakeResolutionModeAttributes(swappedMode == ModuleKind.ESNext ? "import" : "require");
+                    }
+                }
+                if (attributes == null)
+                {
+                    // If ultimately we can only name the symbol with a reference that dives into a
+                    // `node_modules` folder, we should error since declaration files with these kinds
+                    // of references are liable to fail when published :(
+                    ctx.encounteredError = true;
+                    ctx.tracker?.ReportLikelyUnsafeImportRequiredError(oldSpecifier, symbol.Name);
+                }
+            }
             var lit = f.NewLiteralTypeNode(NewStringLiteralEx(specifier, false));
             ctx.approximateLength += specifier.Length + 10;
             if (nonRootParts == null || AstUtilities.IsEntityName(nonRootParts))
             {
-                return f.NewImportTypeNode(isTypeOf, lit, null, nonRootParts, typeParameterNodes);
+                return f.NewImportTypeNode(isTypeOf, lit, attributes, nonRootParts, typeParameterNodes);
             }
             var splitNode = GetTopmostIndexedAccessType(nonRootParts.AsIndexedAccessTypeNode());
             var qualifier = splitNode.ObjectType!.AsTypeReferenceNode().TypeName!;
             return f.NewIndexedAccessTypeNode(
-                f.NewImportTypeNode(isTypeOf, lit, null, qualifier, typeParameterNodes),
+                f.NewImportTypeNode(isTypeOf, lit, attributes, qualifier, typeParameterNodes),
                 splitNode.IndexType!);
         }
 
@@ -1371,6 +1420,24 @@ public sealed partial class NodeBuilder
         }
         return entityName;
     }
+
+    // nodebuilderimpl.go:678-697 — the `with { "resolution-mode": "import" | "require" }` import
+    // attributes the mode-swapping fallback attaches.
+    private Node MakeResolutionModeAttributes(string modeString)
+    {
+        var importAttribute = f.NewImportAttribute(
+            NewStringLiteralEx("resolution-mode", false),
+            NewStringLiteralEx(modeString, false));
+        return f.NewImportAttributes(
+            SyntaxKind.WithKeyword,
+            f.NewNodeList([importAttribute]),
+            false);
+    }
+
+    // checker.Grammar.Deps — Go `module.GetSourceFileOfNode` results implement ast.HasFileName
+    // structurally; the C# port wraps them at the call site (see CompilerHasFileName).
+    private static HasFileName SourceFileAsHasFileName(SourceFile file) =>
+        new global::Ts.Compiler.CompilerHasFileName(file.FileName(), file.Path());
 
     // nodebuilderimpl.go:846 — getTopmostIndexedAccessType.
     private static IndexedAccessTypeNode GetTopmostIndexedAccessType(IndexedAccessTypeNode node)
