@@ -124,29 +124,11 @@ internal static class LsDeps
         return node.Kind is global::Ts.Ast.SyntaxKind.ImportDeclaration or global::Ts.Ast.SyntaxKind.ImportEqualsDeclaration;
     }
 
-    // ast/ast.go:2957 — GetDeclarationName (the string form).
+    // ast/ast.go:2957 — GetDeclarationName (the string form). The authoritative port now
+    // lives in Ts.Ast.AstUtilities; this shim keeps the existing call sites working.
     internal static string GetDeclarationName(global::Ts.Ast.Node declaration)
     {
-        var name = global::Ts.Ast.AstUtilities.GetNonAssignedNameOfDeclaration(declaration);
-        if (name != null)
-        {
-            if (global::Ts.Ast.NodeTests.IsComputedPropertyName(name))
-            {
-                if (global::Ts.Ast.AstUtilities.IsStringOrNumericLiteralLike(name.Expression()!))
-                {
-                    return name.Expression()!.Text();
-                }
-                if (global::Ts.Ast.NodeTests.IsPropertyAccessExpression(name.Expression()!))
-                {
-                    return name.Expression()!.Name()!.Text();
-                }
-            }
-            else if (global::Ts.Ast.AstUtilities.IsPropertyName(name))
-            {
-                return name.Text();
-            }
-        }
-        return "";
+        return global::Ts.Ast.AstUtilities.GetDeclarationName(declaration);
     }
 
     // ls/utilities.go:27-46 — IsInString.
