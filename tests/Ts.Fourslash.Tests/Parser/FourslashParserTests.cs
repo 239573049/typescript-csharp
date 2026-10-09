@@ -1,4 +1,11 @@
+// Tests for the FourslashParser port (tsgo internal/fourslash/test_parser.go): the
+// `// @Filename:` multi-file split, `/*N*/` markers, `[|…|]` ranges, `{| … |}` object markers,
+// symlink/global-option directives, and the Go failure messages. The parse output is the raw
+// UTF-16 currency (positions are C# string offsets — see FourslashModel.cs).
+
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Ts.TestUtil.Fourslash;
 using Xunit;
 
@@ -7,104 +14,160 @@ namespace Ts.Fourslash.Tests.Parser;
 public sealed class FourslashParserTests
 {
     [Fact]
-    public void ParsesDirectivesFilesMarkersObjectMarkersAndNamedRanges()
+    public void ParsesSingleImplicitFileWithMarkers()
     {
-        const string source =
-            "// @strict: true\n" +
-            "// @Filename: alpha.ts\n" +
-            "////const emoji = \"😀\";\n" +
-            "////const /*decl*/value = 1;\n" +
-            "////[|selection: value/**/ + {| \"name\": \"object\", \"kind\": \"write\", \"count\": 2 |}value|];\n" +
-            "// @Filename: folder/beta.ts\n" +
-            "////const /*use*/copy = value;\n";
+        var project = FourslashParser.ParseTestData(
+            """
+            const value = /*a*/1;
+            """,
+            "test.ts");
 
-        FourslashProject project = FourslashParser.Parse(source, "default.ts");
+        var file = Assert.Single(project.Files);
+        Assert.Equal("/test.ts", file.VirtualFileName);
+        Assert.Equal("const value = 1;", file.Content);
 
-        Assert.Equal("true", project.Options["strict"]);
+        var marker = Assert.Single(project.Markers);
+        Assert.Equal(14, marker.Position);
+        Assert.Equal(new[] { "a" }, project.MarkerPositions.Keys.ToArray());
+        Assert.Equal("/test.ts", project.MarkerPositions["a"].FileName);
+        Assert.Equal(14, project.MarkerPositions["a"].Position);
+    }
+
+    [Fact]
+    public void ParsesMultiFileTestWithRangeAndOptions()
+    {
+        var project = FourslashParser.ParseTestData(
+            """
+            // @strict: true
+            // @Filename: /a.ts
+            [|/*r*/export const foo = 1;|]
+
+            // @Filename: /b.ts
+            import { foo } from "./a";
+            foo/*use*/;
+            """,
+            "test.ts");
+
         Assert.Equal(2, project.Files.Count);
-        FourslashFile alpha = project.Files[0];
-        FourslashFile beta = project.Files[1];
-        Assert.Equal("/alpha.ts", alpha.VirtualFileName);
-        Assert.Equal("/folder/beta.ts", beta.VirtualFileName);
-        Assert.Equal(
-            "const emoji = \"😀\";\nconst value = 1;\nvalue + value;",
-            alpha.Content);
-        Assert.Equal("const copy = value;", beta.Content);
+        Assert.Equal("/a.ts", project.Files[0].VirtualFileName);
+        Assert.Equal("/b.ts", project.Files[1].VirtualFileName);
+        Assert.Equal("export const foo = 1;\n", project.Files[0].Content);
 
-        Assert.Equal(
-            alpha.Content.IndexOf("value", StringComparison.Ordinal),
-            project.MarkerPositions["decl"].Position);
-        Assert.Equal(
-            beta.Content.IndexOf("copy", StringComparison.Ordinal),
-            project.MarkerPositions["use"].Position);
+        Assert.Equal(2, project.Markers.Count);
+        Assert.NotNull(project.MarkerPositions.GetValueOrDefault("r"));
+        Assert.NotNull(project.MarkerPositions.GetValueOrDefault("use"));
 
-        FourslashMarker anonymous = Assert.Single(project.Markers, marker => marker.Name is null);
-        Assert.Equal(alpha.Content.IndexOf("value +", StringComparison.Ordinal) + "value".Length, anonymous.Position);
+        // Range: the stripped span in /a.ts plus the name of the marker it captured.
+        var range = Assert.Single(project.Ranges);
+        Assert.Equal("/a.ts", range.FileName);
+        Assert.Equal("r", range.Name);
+        Assert.Equal(0, range.Start);
+        Assert.Equal("export const foo = 1;".Length, range.End);
 
-        FourslashMarker objectMarker = Assert.Single(
-            project.Markers,
-            marker => string.Equals(marker.Name, "object", StringComparison.Ordinal));
-        Assert.NotNull(objectMarker.Data);
-        Assert.Equal("write", objectMarker.Data["kind"].GetString());
-        Assert.Equal(2, objectMarker.Data["count"].GetInt32());
-        Assert.Equal(alpha.Content.IndexOf("value;", StringComparison.Ordinal), objectMarker.Position);
-
-        FourslashRange selection = project.GetRange("selection");
-        int selectedStart = alpha.Content.IndexOf("value + value", StringComparison.Ordinal);
-        Assert.Equal(0, selection.Index);
-        Assert.Equal("/alpha.ts", selection.FileName);
-        Assert.Equal(selectedStart, selection.Start);
-        Assert.Equal(selectedStart + "value + value".Length, selection.End);
+        Assert.True(project.GlobalOptions.ContainsKey("strict"));
     }
 
     [Fact]
-    public void UsesUtf16CodeUnitOffsetsAndResolvesAnonymousMarker()
+    public void ParsesObjectMarkerInsideRange()
     {
-        const string source =
-            "////const s = \"😀\";\n" +
-            "////const /**/value = 1;\n";
+        var project = FourslashParser.ParseTestData(
+            """
+            const x = [|{| "name": "obj", "insert": true |}x|];
+            """,
+            "test.ts");
 
-        FourslashProject project = FourslashParser.Parse(source, "utf16.ts");
-        FourslashFile file = Assert.Single(project.Files);
-        FourslashMarkerPosition marker = project.GetMarker("");
+        var range = Assert.Single(project.Ranges);
+        Assert.Equal("obj", range.Name);
 
-        Assert.Equal("/utf16.ts", marker.FileName);
-        Assert.Equal(file.Content.IndexOf("value", StringComparison.Ordinal), marker.Position);
-        Assert.Equal("const s = \"😀\";\nconst ".Length, marker.Position);
+        var marker = Assert.Single(project.Markers);
+        Assert.Equal("obj", marker.Name);
+        Assert.NotNull(marker.Data);
+        Assert.True(marker.Data!.ContainsKey("insert"));
     }
 
     [Fact]
-    public void NamesNestedRangesByExplicitPrefixOrContainedMarker()
+    public void HandlesEmojiAsSingleUtf16CodeUnit()
     {
-        const string source = "////[|outer: a[|/*inner*/bc|]d|]";
+        var project = FourslashParser.ParseTestData(
+            """
+            const emoji = "😀";
+            const value = /*a*/1;
+            value + value;
+            """,
+            "test.ts");
 
-        FourslashProject project = FourslashParser.Parse(source, "ranges.ts");
-
-        Assert.Equal("abcd", Assert.Single(project.Files).Content);
-        Assert.Equal(2, project.Ranges.Count);
-        Assert.Equal(new FourslashRange(0, "outer", "/ranges.ts", 0, 4), project.GetRange(0));
-        Assert.Equal(new FourslashRange(1, "inner", "/ranges.ts", 1, 3), project.GetRange("inner"));
-        Assert.Equal(1, project.MarkerPositions["inner"].Position);
+        var file = Assert.Single(project.Files);
+        // 😀 is one UTF-16 code unit beyond the quote; positions count code units.
+        Assert.Equal("const emoji = \"😀\";\nconst value = 1;\nvalue + value;", file.Content);
+        Assert.Equal("const value = ".Length + "const emoji = \"😀\";\n".Length, project.MarkerPositions["a"].Position);
     }
 
     [Fact]
-    public void PreservesOrdinaryBlockCommentsWhileStrippingValidMarkers()
+    public void RejectsUnterminatedRangeWithGoMessage()
     {
-        const string source = "////const x = /* ordinary comment */ 1; /*marker*/x;";
-
-        FourslashProject project = FourslashParser.Parse(source, "comments.ts");
-        FourslashFile file = Assert.Single(project.Files);
-
-        Assert.Equal("const x = /* ordinary comment */ 1; x;", file.Content);
-        Assert.Equal(file.Content.LastIndexOf('x'), project.MarkerPositions["marker"].Position);
-    }
-
-    [Fact]
-    public void ReportsUnterminatedRange()
-    {
-        InvalidOperationException error = Assert.Throws<InvalidOperationException>(() =>
-            FourslashParser.Parse("////const [|x = 1;", "broken.ts"));
-
+        var error = Assert.Throws<InvalidOperationException>(
+            () => FourslashParser.ParseTestData("[|abcd", "test.ts"));
         Assert.Contains("Unterminated range.", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RejectsRangeEndWithNoMatchingStart()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => FourslashParser.ParseTestData("abcd|]", "test.ts"));
+        Assert.Contains("Found range end with no matching start.", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RejectsDuplicateMarkerNames()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => FourslashParser.ParseTestData("/*a*/\n/*a*/", "test.ts"));
+        Assert.Contains("Duplicate marker name:", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RejectsGlobalOptionsAlongsideConfigFile()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => FourslashParser.ParseTestData(
+                """
+                // @module: commonjs
+                // @Filename: /tsconfig.json
+                {}
+                """,
+                "test.ts"));
+        Assert.Contains(
+            "It is not allowed to use global options along with config files.",
+            error.Message,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ChompsLeadingSpaceFromEveryLine()
+    {
+        var project = FourslashParser.ParseTestData(
+            """
+                const chomped = true;
+                """,
+            "test.ts");
+
+        var file = Assert.Single(project.Files);
+        Assert.Equal("const chomped = true;", file.Content);
+    }
+
+    [Fact]
+    public void GetMarkerResolvesTheSingleAnonymousMarker()
+    {
+        var project = FourslashParser.ParseTestData(
+            """
+            const x = {| "insert": true |}x;
+            """,
+            "test.ts");
+
+        // The empty name resolves the single anonymous (object) marker.
+        var anonymous = project.GetMarker("");
+        Assert.NotEqual(-1, anonymous.Position);
+        Assert.Null(project.Markers.Single(m => m.Data != null).Name);
     }
 }

@@ -4,16 +4,21 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Ts</RootNamespace>
     <DefineConstants>$(DefineConstants);TS_FOURSLASH_RUNNER</DefineConstants>
-    <!-- Generated fourslash corpus (phase 8); excluded from routine builds until populated. -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <!-- Ts.Compiler's checker pool hashes with System.IO.Hashing.XxHash128; declare the
+         runtime asset here so it always reaches the test output directory. -->
+    <PackageReference Include="System.IO.Hashing" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The linked GlobalUsings.g.cs aliases Ts.Ast/*, so Ts.Compiler must be visible to this
+         compilation, not just transitively through Ts.LanguageService. -->
+    <ProjectReference Include="../../src/Ts.Compiler/Ts.Compiler.csproj" />
     <ProjectReference Include="../../src/Ts.LanguageService/Ts.LanguageService.csproj" />
     <ProjectReference Include="../Ts.TestUtil/Ts.TestUtil.csproj" />
   </ItemGroup>
@@ -23,8 +28,17 @@
          linking the file (plan/04-codegen.md §2.2 #5). -->
     <Compile Include="../../src/Ts.Compiler/Ast/GlobalUsings.g.cs" Link="Ast/GlobalUsings.g.cs" />
     <!-- Ts.TestUtil intentionally does not depend on Ts.LanguageService. Compile the runner
-         foundation into this LS-facing test assembly while keeping its source beside the parser. -->
-    <Compile Include="../Ts.TestUtil/Fourslash/FourslashSession.cs" Link="Fourslash/FourslashSession.cs" />
+         partials into this LS-facing test assembly while keeping their sources beside the
+         parser (plan/08 §7.3; TS_FOURSLASH_RUNNER gates them out of Ts.TestUtil's own build). -->
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.cs" Link="Fourslash/Fourslash.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Verify.cs" Link="Fourslash/Fourslash.Verify.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Baseline.cs" Link="Fourslash/Fourslash.Baseline.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/FourslashMarkers.cs" Link="Fourslash/FourslashMarkers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Port of internal/fourslash/_scripts/failingTests.txt (skip_if_failing.go). -->
+    <EmbeddedResource Include="Scripts/failingTests.txt" />
   </ItemGroup>
 
 </Project>
