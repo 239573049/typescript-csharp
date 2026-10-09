@@ -6,11 +6,6 @@
 // dispatch, @ts-ignore/@ts-expect-error directive filtering, and SortAndDeduplicateDiagnostics are
 // ported real.
 //
-// Deferred subsurfaces (documented with PORT-NOTE, not reached by a legal type-check-and-report run):
-//   * GetDeclarationDiagnostics / GetSuggestionDiagnostics — emit-host / suggestion surfaces (phase 6).
-//   * The plain-JS diagnostic-code filter (plainJSErrors, ~100 codes) — the checker's JS surface is
-//     being filled in parallel; the plain-JS branch is stubbed behind IsPlainJSFile.
-//
 // §1.5 (namespace shadowing): sibling-namespace static classes / types are fully qualified with global::.
 
 using System;
@@ -126,11 +121,52 @@ public sealed partial class Program
         CollectDiagnostics(ctx, sourceFile, false /*concurrent*/, (_, file) =>
         {
             var diags = CoreUtil.Concatenate(file.Diagnostics(), file.JSDiagnostics()) ?? [];
-            // PORT-NOTE: the option-dependent JS syntactic diagnostics (getAdditionalJSSyntacticDiagnostics,
-            // program.go:610-612) apply only to unchecked JS files; deferred with the JS surface. A legal
-            // .ts type-check-and-report run never reaches this branch.
+            // For JS files that won't be checked by the checker (no checkJs/ts-check), we need
+            // program-level syntactic checks that require compiler options. This mirrors Strada's
+            // getJSSyntacticDiagnosticsForFile in program.ts.
+            if (AstUtilities.IsSourceFileJS(file) && !AstUtilities.IsCheckJSEnabledForFile(file, Options()))
+            {
+                diags = CoreUtil.Concatenate(diags, GetAdditionalJSSyntacticDiagnostics(file, Options())) ?? [];
+            }
             return diags;
         });
+
+    // program.go:617-646 — getAdditionalJSSyntacticDiagnostics produces option-dependent syntactic
+    // diagnostics for JS files that aren't covered by the parser or the checker. In Strada, the equivalent
+    // logic lives in getJSSyntacticDiagnosticsForFile in program.ts. In Corsa, most of that function's
+    // checks were moved into the parser (checkJSSyntax/checkJSDecoratorSyntax), but checks that depend on
+    // compiler options can't live in the parser and must remain here. The checker handles these for
+    // checked files, but doesn't run on unchecked JS files (no checkJs/ts-check).
+    private static Diagnostic[]? GetAdditionalJSSyntacticDiagnostics(SourceFile file, CompilerOptions options)
+    {
+        if (options.ExperimentalDecorators.IsTrue())
+        {
+            return null;
+        }
+        List<Diagnostic>? diags = null;
+        // Parameter decorators are only valid with experimentalDecorators. Without it,
+        // the checker would report this, but the checker doesn't run on unchecked JS files.
+        Visitor walk = null!;
+        walk = node =>
+        {
+            if ((node.SubtreeFacts() & SubtreeFacts.SubtreeContainsDecorators) == 0)
+            {
+                return false;
+            }
+            if (node.Kind == SyntaxKind.Parameter && AstUtilities.HasDecorators(node))
+            {
+                var decorator = CoreUtil.Find(node.ModifierNodes(), NodeTests.IsDecorator);
+                if (decorator is not null)
+                {
+                    (diags ??= []).Add(Diagnostic.NewDiagnostic(file, decorator.Loc, global::Ts.Diagnostics.Diagnostics.Decorators_are_not_valid_here));
+                }
+            }
+            node.ForEachChild(walk);
+            return false;
+        };
+        file.AsNode().ForEachChild(walk);
+        return diags?.ToArray();
+    }
 
     // program.go:648-657
     public Diagnostic[] GetBindDiagnostics(CancellationToken ctx, SourceFile? sourceFile)
@@ -174,7 +210,7 @@ public sealed partial class Program
             return [];
         }
         // Checker creation forces binding, so bind suggestion diagnostics will be populated.
-        return CoreUtil.Concatenate(sourceFile.BindSuggestionDiagnostics, fileChecker.GetSuggestionDiagnostics(sourceFile)) ?? [];
+        return CoreUtil.Concatenate(sourceFile.BindSuggestionDiagnostics, fileChecker.GetSuggestionDiagnostics(sourceFile, ctx)) ?? [];
     }
 
     // program.go:676-681 — program (options) + include-processor global diagnostics.
@@ -282,8 +318,8 @@ public sealed partial class Program
         }
 
         bool isJS = sourceFile.ScriptKind == ScriptKind.JS || sourceFile.ScriptKind == ScriptKind.Jsx;
-        bool isCheckJS = isJS && IsCheckJSEnabledForFile(sourceFile, Options());
-        bool isPlainJS = IsPlainJSFile(sourceFile, Options().CheckJs);
+        bool isCheckJS = isJS && AstUtilities.IsCheckJSEnabledForFile(sourceFile, Options());
+        bool isPlainJS = AstUtilities.IsPlainJSFile(sourceFile, Options().CheckJs);
 
         // By default, only type-check .ts, .tsx, Deferred, plain JS, checked JS and External.
         return isPlainJS || isCheckJS || sourceFile.ScriptKind == ScriptKind.Deferred;
@@ -316,11 +352,9 @@ public sealed partial class Program
 
         // Checker creation forces binding, so bind diagnostics will be populated.
         var diags = new List<Diagnostic>(sourceFile.BindDiagnostics() ?? []);
-        // PORT-NOTE: C# Checker.GetDiagnostics takes only the SourceFile (no CancellationToken); the Go
-        // ctx is threaded through the aggregation shell but the checker query itself is uncancelled here.
-        diags.AddRange(fileChecker.GetDiagnostics(sourceFile));
+        diags.AddRange(fileChecker.GetDiagnostics(sourceFile, ctx));
 
-        bool isPlainJS = IsPlainJSFile(sourceFile, compilerOptions.CheckJs);
+        bool isPlainJS = AstUtilities.IsPlainJSFile(sourceFile, compilerOptions.CheckJs);
         if (isPlainJS)
         {
             // program.go:1340-1345 — for plain (unchecked) JS files, report only the allowlisted
@@ -329,7 +363,7 @@ public sealed partial class Program
         }
 
         bool isJS = sourceFile.ScriptKind == ScriptKind.JS || sourceFile.ScriptKind == ScriptKind.Jsx;
-        bool isCheckJS = isJS && IsCheckJSEnabledForFile(sourceFile, compilerOptions);
+        bool isCheckJS = isJS && AstUtilities.IsCheckJSEnabledForFile(sourceFile, compilerOptions);
         if (isCheckJS)
         {
             var jsdoc = sourceFile.JSDocDiagnostics();
@@ -512,29 +546,6 @@ public sealed partial class Program
         }
         return allDiagnostics.ToArray();
     }
-
-    // -----------------------------------------------------------------------------------------------
-    // Local ports of small pure ast helpers. AstUtilities.IsCheckJSEnabledForFile / IsPlainJSFile are
-    // deferred stubs in the (parallel-owned) Ast surface; these faithful copies of ast.go:2863-2871 keep
-    // the diagnostics path within this file's boundary without touching Ast/.
-    // -----------------------------------------------------------------------------------------------
-
-    // ast.go:2863-2868
-    private static bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions compilerOptions)
-    {
-        if (sourceFile.CheckJsDirective is not null)
-        {
-            return sourceFile.CheckJsDirective.Enabled;
-        }
-        return compilerOptions.CheckJs == Tristate.True;
-    }
-
-    // ast.go:2870-2872
-    private static bool IsPlainJSFile(SourceFile? file, Tristate checkJs) =>
-        file is not null &&
-        (file.ScriptKind == ScriptKind.JS || file.ScriptKind == ScriptKind.Jsx) &&
-        file.CheckJsDirective is null &&
-        checkJs == Tristate.Unknown;
 
     // slices.Concat: flatten a jagged array of diagnostic arrays into one array (nulls treated as empty).
     private static Diagnostic[] Concat(Diagnostic[][] arrays)

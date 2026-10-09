@@ -291,8 +291,12 @@ public partial class Checker
         return collection.GetDiagnosticsForFile(sourceFile.FileName());
     }
 
-    // checker.go:13894 GetGlobalDiagnostics
-    public Diagnostic[] GetGlobalDiagnostics() => diagnostics.GetGlobalDiagnostics();
+    // checker.go:13894-13897 GetGlobalDiagnostics
+    public Diagnostic[] GetGlobalDiagnostics()
+    {
+        CheckNotCanceled();
+        return diagnostics.GetGlobalDiagnostics();
+    }
 
     // ===== #10 symbol resolution =====
 
