@@ -193,7 +193,7 @@ public static class EmitAndReport
             }
             if (options.ExplainFiles.IsTrue())
             {
-                input.Program.ExplainFiles(input.Writer, global::Ts.Locale.Locale.Default); // PORT-NOTE: config.Locale() lands with the locale wave (phase 9); Default == Go locale.Default here
+                input.Program.ExplainFiles(input.Writer, input.Config.Locale()); // emit.go:148
             }
             else if (options.ListFiles.IsTrue() || options.ListFilesOnly.IsTrue())
             {

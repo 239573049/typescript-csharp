@@ -291,7 +291,8 @@ public sealed class WatchBuildTests
         var result = Tsc.CommandLine(
             sys,
             ["--watch", "--project", "/user/username/projects/src/tsconfig.json"],
-            testing);
+            testing,
+            TestContext.Current.CancellationToken);
 
         Assert.Equal(ExitStatus.Success, result.Status);
         Assert.NotNull(result.Watcher);
@@ -336,7 +337,7 @@ public sealed class WatchBuildTests
         var sys = new FakeSystem(fs, "/src");
         var testing = new TestingHooks();
 
-        var result = Tsc.CommandLine(sys, ["--build", "--verbose", "B"], testing);
+        var result = Tsc.CommandLine(sys, ["--build", "--verbose", "B"], testing, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExitStatus.Success, result.Status);
         // The 1:1 build orchestrator reports per-project progress through the build-status hook

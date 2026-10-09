@@ -13,29 +13,19 @@ internal static class Program
             switch (args[0])
             {
                 case "--lsp":
-                    var lspSystem = global::Ts.Execute.OsSystem.New();
-                    var server = new global::Ts.Lsp.Server(new global::Ts.Lsp.ServerOptions
-                    {
-                        In = Console.OpenStandardInput(),
-                        Out = Console.OpenStandardOutput(),
-                        Err = Console.Error,
-                        Cwd = lspSystem.GetCurrentDirectory(),
-                        FileSystem = lspSystem.FS(),
-                        DefaultLibraryPath = lspSystem.DefaultLibraryPath(),
-                    });
-                    return server.Run();
+                    return Lsp.RunLSP(args[1..]);
                 case "--api":
-                    Console.Error.WriteLine("tscs: '--api' is not implemented yet (API server is a later phase).");
-                    return 1;
+                    return Api.RunAPI(args[1..]);
                 default:
                     break;
             }
         }
 
-        // cmd/tsgo/main.go:28-32 — default tsc CLI. Signal-based cancellation (SIGINT/SIGTERM) is not
-        // modelled in this wave; the type-check-and-report path is synchronous and short-lived.
+        // cmd/tsgo/main.go:28-32 — default tsc CLI. SIGINT/SIGTERM cancel the run
+        // (Go: signal.NotifyContext); Dispose (Go stop()) runs at scope exit.
+        using var signals = global::Ts.Execute.Signals.NotifyContext(); // main.go:28
         var sys = global::Ts.Execute.OsSystem.New();
-        var result = global::Ts.Execute.Tsc.CommandLine(sys, args);
+        var result = global::Ts.Execute.Tsc.CommandLine(sys, args, testing: null, signals.Token); // main.go:30
         return (int)result.Status;
     }
 }

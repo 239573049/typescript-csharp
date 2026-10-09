@@ -258,8 +258,9 @@ public sealed class Orchestrator : IExecuteWatcher
         }
     }
 
-    // orchestrator.go:227-238
-    public CommandLineResult Start()
+    // orchestrator.go:227-238 — Go: Start(ctx context.Context); the ctx becomes the
+    // CancellationToken threaded in from Tsc.CommandLine (tsc.go:118).
+    public CommandLineResult Start(CancellationToken ctx)
     {
         if (opts.Command.CompilerOptions!.Watch.IsTrue())
         {
@@ -269,7 +270,7 @@ public sealed class Orchestrator : IExecuteWatcher
         var result = BuildOrClean();
         if (opts.Command.CompilerOptions.Watch.IsTrue())
         {
-            Watch(CancellationToken.None);
+            Watch(ctx); // orchestrator.go:234
             result.Watcher = this;
         }
         return result;
