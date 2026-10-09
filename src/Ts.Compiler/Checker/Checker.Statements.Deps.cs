@@ -136,8 +136,13 @@ public partial class Checker
         deferredDiagnosticCallbacks = [];
     }
 
-    // isCanceled (utilities.go:1635): Go `c.ctx != nil && c.ctx.Err() != nil`.
-    internal bool IsCanceled() => ctx.IsCancellationRequested;
+    // isCanceled (utilities.go:1635): Go `c.ctx != nil && c.ctx.Err() != nil`. ctxSet mirrors
+    // the nil check — a default CancellationToken would otherwise read as already canceled.
+    internal bool IsCanceled() => ctxSet && ctx.IsCancellationRequested;
+
+    // checker.go:615 — the exported cancellation surface (`wasCanceled` as a method).
+    // checkerpool.go:332,349 reads it via the Go exports.go wrapper.
+    public bool WasCanceled() => wasCanceled;
 
     // utilities.go:1639 — checkNotCanceled.
     internal void CheckNotCanceled()

@@ -41,7 +41,7 @@ public sealed class CallResolutionTests
         var (checker, release) = program.GetTypeChecker(CancellationToken.None);
         try
         {
-            return checker.GetDiagnostics(sf);
+            return checker.GetDiagnostics(sf, TestContext.Current.CancellationToken);
         }
         finally
         {
