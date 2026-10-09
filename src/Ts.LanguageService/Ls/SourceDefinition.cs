@@ -133,81 +133,8 @@ public sealed partial class LanguageService
         return CreateDefinitionLocations(originSelectionRange, clientSupportsLink, declarations, null /*reference*/);
     }
 
-    // definition.go:155 — createDefinitionLocations. Hosted here: the C# Definition.cs
-    // foundation subset predates the LSP-shaped definition pipeline (see the file
-    // PORT-NOTE); this source-definition consumer owns the LSP-shaped builder.
-    private global::Ts.LsProto.DefinitionResponse CreateDefinitionLocations(
-        global::Ts.LsProto.Range originSelectionRange,
-        bool clientSupportsLink,
-        List<Node> declarations,
-        RefInfo? reference)
-    {
-        var locations = new List<global::Ts.LsProto.LocationLink>();
-        var locationRanges = new HashSet<(string FileName, global::Ts.Core.TextRange Range)>();
-
-        if (reference != null)
-        {
-            var emptyTargetRange = new global::Ts.LsProto.Range
-            {
-                Start = new global::Ts.LsProto.Position
-                {
-                    Line = 0,
-                    Character = 0,
-                },
-                End = new global::Ts.LsProto.Position
-                {
-                    Line = 0,
-                    Character = 0,
-                },
-            };
-            locations.Add(new global::Ts.LsProto.LocationLink
-            {
-                OriginSelectionRange = originSelectionRange,
-                TargetUri = LsDeps.FileNameToDocumentURI(reference.FileName),
-                TargetRange = emptyTargetRange,
-                TargetSelectionRange = emptyTargetRange,
-            });
-        }
-
-        foreach (var decl in declarations)
-        {
-            var file = AstUtilities.GetSourceFileOfNode(decl)!;
-            var fileName = file.FileName();
-            var name = AstUtilities.GetNameOfDeclaration(decl) ?? decl;
-            global::Ts.Core.TextRange nameRange;
-            if (name.Kind == SyntaxKind.EmptyStatement)
-            {
-                nameRange = new global::Ts.Core.TextRange(name.Pos, name.Pos);
-            }
-            else
-            {
-                nameRange = CreateRangeFromNode(name, file);
-            }
-            if (locationRanges.Add((fileName, nameRange)))
-            {
-                var contextNode = SourceDefinitionDeps.GetContextNode(decl) ?? decl;
-                var contextRange = SourceDefinitionDeps.ToContextRange(nameRange, file, contextNode) ?? nameRange;
-                // PORT-NOTE(getMappedLocation): the source-map detour is deferred with the
-                // sourcemap wave; the identity mapping stands in.
-                var targetUri = LsDeps.FileNameToDocumentURI(fileName);
-                var targetSelectionLoc = LsDeps.ToLspRange(file, nameRange);
-                var targetLoc = LsDeps.ToLspRange(file, contextRange);
-                locations.Add(new global::Ts.LsProto.LocationLink
-                {
-                    OriginSelectionRange = originSelectionRange,
-                    TargetSelectionRange = targetSelectionLoc,
-                    TargetUri = targetUri,
-                    TargetRange = targetLoc,
-                });
-            }
-        }
-
-        if (clientSupportsLink)
-        {
-            return new global::Ts.LsProto.DefinitionResponse { DefinitionLinks = locations.ToArray() };
-        }
-        return new global::Ts.LsProto.DefinitionResponse { Locations = SourceDefinitionDeps.CreateLocationsFromLinks(locations.ToArray()) };
-    }
+    // definition.go:155 — createDefinitionLocations is owned by Definition.cs (the Go
+    // canonical home, definition.go); this partial's calls resolve to that member.
 
     // definition.go — provideDefinitionWorker. PORT-NOTE: the Go worker resolves the
     // symbol declarations through the checker and rebuilds the response; the C#
@@ -637,11 +564,8 @@ public sealed partial class LanguageService
         return program.Host().FS().TryReadFile(fileName, out var text) ? text : null;
     }
 
-    // languageservice.go — toPath.
-    private global::Ts.TsPath.Path ToPath(string fileName)
-    {
-        return global::Ts.TsPath.TsPath.ToPath(fileName, program.GetCurrentDirectory(), program.UseCaseSensitiveFileNames());
-    }
+    // languageservice.go — toPath lives on the canonical LanguageService partial
+    // (Ls/SourceMap.cs, riding l.UseCaseSensitiveFileNames); call sites use it directly.
 
     // sourcedefinition.go:111 — sourceDefResolver. Resolves source definitions by mapping
     // .d.ts declarations to their implementation files (.js/.ts). It uses the NoDts module

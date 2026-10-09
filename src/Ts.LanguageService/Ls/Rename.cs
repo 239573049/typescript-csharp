@@ -56,7 +56,7 @@ public sealed partial class LanguageService
             var (checker, done) = host.GetTypeCheckerForFile(cancellationToken, sourceFile);
             try
             {
-                var renameInfo = GetRenameInfoForNode(newName, node, sourceFile, checker.GetEmitResolver());
+                var renameInfo = GetRenameInfoForNode(newName, node, sourceFile, checker.GetEmitResolver(), checker);
                 if (renameInfo != null)
                 {
                     return renameInfo;
@@ -116,7 +116,7 @@ public sealed partial class LanguageService
 
             // rename.go:69 — defense-in-depth: validate rename eligibility even if the
             // client skipped prepareRename.
-            var info = GetRenameInfoForNode(newName, originalNode, sourceFile, emitResolver);
+            var info = GetRenameInfoForNode(newName, originalNode, sourceFile, emitResolver, checker);
             if (info == null || !info.CanRename)
             {
                 return null;
@@ -206,7 +206,8 @@ public sealed partial class LanguageService
         string newName,
         Node node,
         SourceFile sourceFile,
-        global::Ts.Checker.EmitResolver emitResolver)
+        global::Ts.Checker.EmitResolver emitResolver,
+        global::Ts.Checker.Checker checker)
     {
         global::Ts.Ast.Symbol? symbol = null;
         if (node.Kind is SyntaxKind.Identifier or SyntaxKind.PrivateIdentifier)
@@ -217,9 +218,13 @@ public sealed partial class LanguageService
         {
             if (AstUtilities.IsStringLiteralLike(node))
             {
-                // Allow renaming of string literal types with contextual string literal
-                // types. Requires checker.GetContextualType (internal to Ts.Compiler).
-                throw new NotImplementedException("getContextualTypeFromParentOrAncestorTypeNode");
+                // Allow renaming of string literal types with contextual string literal types.
+                var typ = FindRefsSpecial.GetContextualTypeFromParentOrAncestorTypeNode(node, checker);
+                if (typ != null && (typ.IsStringLiteral() ||
+                    (typ.IsUnion() && global::Ts.Core.CoreUtil.Every(typ.Types(), t => t.IsStringLiteral()))))
+                {
+                    return GetRenameInfoSuccess(node, sourceFile, node.Text());
+                }
             }
             else if (LsDeps.IsLabelName(node))
             {
@@ -353,18 +358,106 @@ public sealed partial class LanguageService
         return null;
     }
 
-    // rename.go:236 — getRenameInfoForModule handles rename validation for module
-    // specifiers. Deep unported surface: module-specifier rename produces file renames
-    // (FileToRename/NewFileName via tspath extension juggling and the client
-    // capabilities carrier), all of which belong to the deferred project/resource-
-    // operation layer. Unreachable while AllowRenameOfImportPath stays false.
+    // rename.go:223-233 — client-capability gates for module rename. PORT-NOTE: the
+    // per-request capability carrier (lsproto.GetClientCapabilities(ctx)) is not wired in
+    // this port yet, so both gates read the Go zero-value ClientCapabilities: no
+    // workspace/workspaceEdit.documentChanges and an empty resourceOperations list —
+    // i.e. both return false. The Go branch structure is kept verbatim so the gates flip
+    // with the lsp capability wave.
+    private static bool ClientSupportsDocumentChanges() => false;
+
+    private static bool ClientSupportsRenameResourceOperations() => false;
+
+    // rename.go:236-276 — getRenameInfoForModule handles rename validation for module
+    // specifiers.
     private RenameInfo? GetRenameInfoForModule(
         string newName,
         Node specifier,
         SourceFile sourceFile,
         global::Ts.Ast.Symbol moduleSymbol)
     {
-        throw new NotImplementedException("getRenameInfoForModule");
+        if (!global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(specifier.Text()))
+        {
+            return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.You_cannot_rename_a_module_via_a_global_import);
+        }
+        if (!ClientSupportsDocumentChanges() || !ClientSupportsRenameResourceOperations())
+        {
+            return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.File_rename_is_not_supported_by_the_editor);
+        }
+
+        Node? moduleSourceFile = null;
+        foreach (var decl in moduleSymbol.Declarations ?? [])
+        {
+            if (NodeTests.IsSourceFile(decl))
+            {
+                moduleSourceFile = decl;
+                break;
+            }
+        }
+        if (moduleSourceFile == null)
+        {
+            return null;
+        }
+
+        var fileName = moduleSourceFile.AsSourceFile().FileName();
+        var withoutIndex = "";
+        var specifierText = specifier.Text();
+        if (!specifierText.EndsWith("/index", StringComparison.Ordinal) && !specifierText.EndsWith("/index.js", StringComparison.Ordinal))
+        {
+            var candidate = global::Ts.TsPath.TsPath.RemoveFileExtension(fileName);
+            if (candidate.EndsWith("/index", StringComparison.Ordinal))
+            {
+                withoutIndex = candidate[..^"/index".Length];
+            }
+        }
+
+        var displayName = fileName;
+        if (withoutIndex.Length != 0)
+        {
+            displayName = withoutIndex;
+        }
+        var newFileName = GetNewFileNameForModuleRename(displayName, specifierText, newName);
+
+        // Span should only be the last component of the path. + 1 to account for the quote character.
+        var indexAfterLastSlash = specifierText.LastIndexOf('/') + 1;
+        var start = specifier.Pos + 1 + indexAfterLastSlash;
+        var length = specifierText.Length - indexAfterLastSlash;
+
+        return new RenameInfo
+        {
+            CanRename = true,
+            DisplayName = specifierText[indexAfterLastSlash..],
+            TriggerSpan = LsDeps.ToLspRange(sourceFile, new global::Ts.Core.TextRange(start, start + length)),
+            FileToRename = displayName,
+            NewFileName = newFileName,
+        };
+    }
+
+    // rename.go:278-295 — getNewFileNameForModuleRename. Adjust the new name based on the
+    // old path that an import specifier resolves to. For example, if specifier "a.js"
+    // resolves to file a.ts, renaming "a.js" -> "b.js" should mean file rename a.ts -> b.ts.
+    private string GetNewFileNameForModuleRename(string oldPath, string specifierText, string newName)
+    {
+        var newPath = global::Ts.TsPath.TsPath.CombinePaths(global::Ts.TsPath.TsPath.GetDirectoryPath(oldPath), newName);
+        var ignoreCase = !UseCaseSensitiveFileNames();
+        string oldExt;
+        if (global::Ts.TsPath.TsPath.IsDeclarationFileName(oldPath))
+        {
+            oldExt = global::Ts.TsPath.TsPath.GetDeclarationFileExtension(oldPath);
+        }
+        else
+        {
+            oldExt = global::Ts.TsPath.TsPath.GetAnyExtensionFromPath(oldPath, null /*extensions*/, ignoreCase);
+        }
+        if (!global::Ts.TsPath.TsPath.HasExtension(newPath))
+        {
+            newPath = newPath + oldExt;
+        }
+        else if (global::Ts.TsPath.TsPath.GetAnyExtensionFromPath(newPath, null /*extensions*/, ignoreCase) == global::Ts.TsPath.TsPath.GetAnyExtensionFromPath(specifierText, null /*extensions*/, ignoreCase))
+        {
+            newPath = global::Ts.TsPath.TsPath.ChangeAnyExtension(newPath, oldExt, null /*extensions*/, ignoreCase);
+        }
+        return newPath;
     }
 
     // rename.go:297 — getTextForRename. PORT-NOTE: the subset reference engine produces

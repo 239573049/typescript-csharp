@@ -32,7 +32,7 @@ namespace Ts.LsProto
 {
 
 // lsp_generated.go: LocationLink.
-public sealed class LocationLink
+public sealed class LocationLink : IHasLocation
 {
     [System.Runtime.Serialization.DataMember(Name = "originSelectionRange")]
     [System.Text.Json.Serialization.JsonPropertyName("originSelectionRange")]
@@ -49,6 +49,9 @@ public sealed class LocationLink
     [System.Runtime.Serialization.DataMember(Name = "targetSelectionRange")]
     [System.Text.Json.Serialization.JsonPropertyName("targetSelectionRange")]
     public required Range TargetSelectionRange { get; set; }
+
+    // lsp_generated.go:3706-3711 — GetLocation.
+    public Location GetLocation() => new() { Uri = TargetUri, Range = TargetRange };
 }
 
 // lsp_generated.go: DefinitionResponse — the Location | Locations | DefinitionLinks union.

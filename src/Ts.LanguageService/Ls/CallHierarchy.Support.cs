@@ -22,7 +22,7 @@ namespace Ts.LsProto
 {
 
 // lsp_generated.go: CallHierarchyItem.
-public sealed class CallHierarchyItem
+public sealed class CallHierarchyItem : IHasLocation
 {
     [System.Runtime.Serialization.DataMember(Name = "name")]
     [System.Text.Json.Serialization.JsonPropertyName("name")]
@@ -51,6 +51,9 @@ public sealed class CallHierarchyItem
     [System.Runtime.Serialization.DataMember(Name = "selectionRange")]
     [System.Text.Json.Serialization.JsonPropertyName("selectionRange")]
     public required Range SelectionRange { get; set; }
+
+    // lsp_generated.go:564-569 — GetLocation.
+    public Location GetLocation() => new() { Uri = Uri, Range = Range };
 }
 
 // lsp_generated.go: CallHierarchyIncomingCall.

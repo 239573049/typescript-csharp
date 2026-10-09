@@ -119,6 +119,10 @@ public sealed partial class LanguageService
         return host.GetDirectories(path);
     }
 
+    // languageservice.go — getProgramAndFile(documentURI): fileName := documentURI.FileName().
+    private global::Ts.Ast.SourceFile GetProgramAndFile(global::Ts.LsProto.DocumentUri documentURI) =>
+        GetProgramAndFile(global::Ts.LsProto.DocumentUriExtensions.FileName(documentURI));
+
     private global::Ts.Ast.SourceFile GetProgramAndFile(string fileName)
     {
         var file = program.GetSourceFile(fileName);

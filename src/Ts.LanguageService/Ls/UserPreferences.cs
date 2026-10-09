@@ -47,6 +47,43 @@ public sealed class UserPreferences
     // userpreferences.go:91 — PreferTypeOnlyAutoImports.
     public Tristate PreferTypeOnlyAutoImports;
 
+    // ------- InlayHints (userpreferences.go:155-157) -------
+    public InlayHintsPreferences InlayHints;
+
+    // ------- CodeLens (userpreferences.go:159-161) -------
+    public CodeLensUserPreferences CodeLens;
+
+    // userpreferences.go:79 — EnableAutoClosingTags
+    // (raw:"autoClosingTags" config:"autoClosingTags.enabled" fallbackConfig:"autoClosingTags").
+    public Tristate EnableAutoClosingTags;
+    // userpreferences.go:174 — EnableValidation (`validate.enabled`).
+    public Tristate EnableValidation;
+    // userpreferences.go:177 — ReportStyleChecksAsWarnings
+    // (raw:"reportStyleChecksAsWarnings" config:"reportStyleChecksAsWarnings").
+    public Tristate ReportStyleChecksAsWarnings;
+    // userpreferences.go:183 — DisableAutomaticTypeAcquisition is the deprecated setting
+    // from typescript.disableAutomaticTypeAcquisition.
+    public Tristate DisableAutomaticTypeAcquisition;
+    // userpreferences.go:186 — AutomaticTypeAcquisitionEnabled is the unified setting from
+    // tsserver.automaticTypeAcquisition.enabled under the js/ts section.
+    public Tristate AutomaticTypeAcquisitionEnabled;
+    // userpreferences.go:192 — CustomConfigFileName specifies a custom config file name to
+    // use before defaulting to tsconfig.json/jsconfig.json.
+    public string CustomConfigFileName = "";
+
+    // userpreferences.go:198-203 — IsATADisabled returns whether Automatic Type Acquisition
+    // is disabled based on user preferences. It checks the unified setting
+    // (tsserver.automaticTypeAcquisition.enabled) first, then falls back to the deprecated
+    // setting (disableAutomaticTypeAcquisition).
+    public bool IsATADisabled()
+    {
+        if (!AutomaticTypeAcquisitionEnabled.IsUnknown())
+        {
+            return !AutomaticTypeAcquisitionEnabled.IsTrue();
+        }
+        return DisableAutomaticTypeAcquisition.IsTrue();
+    }
+
     // ------- OrganizeImports (userpreferences.go:93-141) -------
 
     // Indicates which deterministic preset should be used to sort imports.
@@ -125,12 +162,28 @@ public sealed class UserPreferences
     // userpreferences.go:15-35 — NewDefaultUserPreferences (completion-relevant subset).
     public static UserPreferences NewDefaultUserPreferences() => new()
     {
+        // userpreferences.go:21 — EnableAutoClosingTags: core.TSTrue.
+        EnableAutoClosingTags = Tristate.True,
         IncludeCompletionsForModuleExports = Tristate.True,
         IncludeCompletionsForImportStatements = Tristate.True,
         EnableJSDocCompletions = Tristate.True,
         GenerateReturnInDocTemplate = Tristate.True,
+        // userpreferences.go:28-31 — protocol defaults.
+        EnableValidation = Tristate.True,
+        ReportStyleChecksAsWarnings = Tristate.True,
     };
 }
+
+// userpreferences.go:205-214 — InlayHintsPreferences is owned by InlayHints.Support.cs
+// (the typed lsutil port); this file's older string-typed record copy was removed.
+
+// userpreferences.go:216-222 — CodeLensUserPreferences.
+public record struct CodeLensUserPreferences(
+    Tristate ReferencesCodeLensEnabled,
+    Tristate ImplementationsCodeLensEnabled,
+    Tristate ReferencesCodeLensShowOnAllFunctions,
+    Tristate ImplementationsCodeLensShowOnInterfaceMethods,
+    Tristate ImplementationsCodeLensShowOnAllClassMethods);
 
 // userpreferences.go:252-260 — OrganizeImportsSort.
 public enum OrganizeImportsSort
@@ -165,3 +218,4 @@ public enum OrganizeImportsTypeOrder
     Inline = 2,
     First = 3,
 }
+

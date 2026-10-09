@@ -29,7 +29,7 @@ namespace Ts.Ls;
 public sealed partial class LanguageService
 {
     // symbols.go:24 — ProvideDocumentSymbols.
-    public global::Ts.LsProto.SymbolInformationsOrDocumentSymbols ProvideDocumentSymbols(
+    public global::Ts.LsProto.SymbolInformationsOrDocumentSymbolsOrNull ProvideDocumentSymbols(
         string fileName,
         bool hierarchicalDocumentSymbolSupport = true,
         CancellationToken cancellationToken = default)
@@ -38,11 +38,11 @@ public sealed partial class LanguageService
         if (hierarchicalDocumentSymbolSupport)
         {
             var symbols = GetDocumentSymbolsForChildren(cancellationToken, file, file);
-            return global::Ts.LsProto.SymbolInformationsOrDocumentSymbols.FromDocumentSymbols(symbols);
+            return global::Ts.LsProto.SymbolInformationsOrDocumentSymbolsOrNull.FromDocumentSymbols(symbols);
         }
         // Client doesn't support hierarchical document symbols, return flat SymbolInformation array
         var symbolInfos = GetDocumentSymbolInformations(cancellationToken, file, fileName);
-        return global::Ts.LsProto.SymbolInformationsOrDocumentSymbols.FromSymbolInformations(symbolInfos);
+        return global::Ts.LsProto.SymbolInformationsOrDocumentSymbolsOrNull.FromSymbolInformations(symbolInfos);
     }
 
     // symbols.go:40 — getDocumentSymbolInformations converts hierarchical DocumentSymbols
