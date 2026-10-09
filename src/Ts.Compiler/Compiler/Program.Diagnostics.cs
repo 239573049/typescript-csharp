@@ -540,8 +540,14 @@ public sealed partial class Program
                     allDiagnostics.AddRange(program.GetGlobalDiagnostics(ctx));
                 }
 
-                // PORT-NOTE: the declaration-diagnostics branch (program.go:1785-1787) needs the emit host
-                // (phase 6, GetEmitDeclarations); deferred out of the type-check-and-report subset.
+                // program.go:1785-1787 — when noEmit skips emit (or dts diagnostics are always wanted),
+                // declaration emit diagnostics are collected here rather than during emit.
+                if ((skipNoEmitCheckForDtsDiagnostics || program.Options().NoEmit.IsTrue()) &&
+                    program.Options().GetEmitDeclarations() &&
+                    allDiagnostics.Count == configFileParsingDiagnosticsLength)
+                {
+                    allDiagnostics.AddRange(program.GetDeclarationDiagnostics(ctx, file));
+                }
             }
         }
         return allDiagnostics.ToArray();
