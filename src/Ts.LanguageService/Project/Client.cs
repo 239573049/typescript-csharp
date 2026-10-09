@@ -5,14 +5,13 @@
 using System;
 using System.Threading;
 
+using FileSystemWatcher = global::Ts.LsProto.FileSystemWatcher;
+using TelemetryEvent = global::Ts.LsProto.RequestFailureTelemetryEventOrPerformanceStatsTelemetryEventOrProjectInfoTelemetryEventOrNull;
+
 namespace Ts.Project;
 
 // client.go:11-21 — Client.
-// PORT-NOTE(project): Go's WatchFiles takes []lsproto.FileSystemWatcher. Lsp/** is
-// off-limits in this pass and its generated Ts.LsProto.FileSystemWatcher differs in
-// shape (PatternOrRelativePattern vs the local GlobPattern), so the project-local
-// protocol subset (LsProto.Missing.cs, registered location deviation) crosses the
-// boundary; the server-side client implementation must adapt.
+// (Go's lsproto.TelemetryEvent alias is the generated union spelled out below.)
 public interface Client
 {
     Exception? WatchFiles(CancellationToken ctx, WatcherID id, FileSystemWatcher[] watchers);

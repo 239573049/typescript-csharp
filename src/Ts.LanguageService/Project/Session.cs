@@ -28,6 +28,17 @@ using SnapshotChange = Ts.Project.Snapshot.SnapshotChange;
 // called fully qualified (global::Ts.TsPath.TsPath.*).
 using static global::Ts.LsProto.DocumentUriExtensions;
 
+using WatchKind = global::Ts.LsProto.WatchKind;
+using FileChangeType = global::Ts.LsProto.FileChangeType;
+using FileSystemWatcher = global::Ts.LsProto.FileSystemWatcher;
+using FileEvent = global::Ts.LsProto.FileEvent;
+using ResolvedClientCapabilities = global::Ts.LsProto.ResolvedClientCapabilities;
+using ProjectInfoTelemetryMeasurements = global::Ts.LsProto.ProjectInfoTelemetryMeasurements;
+using ProjectInfoTelemetryEvent = global::Ts.LsProto.ProjectInfoTelemetryEvent;
+using PerformanceStatsTelemetryMeasurements = global::Ts.LsProto.PerformanceStatsTelemetryMeasurements;
+using PerformanceStatsTelemetryEvent = global::Ts.LsProto.PerformanceStatsTelemetryEvent;
+using TelemetryEvent = global::Ts.LsProto.RequestFailureTelemetryEventOrPerformanceStatsTelemetryEventOrProjectInfoTelemetryEventOrNull;
+
 namespace Ts.Project;
 
 // session.go:33-47 — UpdateReason.
@@ -81,7 +92,7 @@ public sealed class SessionOptions
     // session-lsp.go — GetClientCapabilities(ctx). Registered deviation (see
     // LsProto.Missing.cs ClientCapabilitiesAccess): the RequestContext has no context
     // values in C#, so the resolved capabilities travel on SessionOptions instead.
-    public global::Ts.Project.ResolvedClientCapabilities ClientCapabilities { get; set; } = new();
+    public ResolvedClientCapabilities ClientCapabilities { get; set; } = new();
 }
 
 // session.go:69-77 — SessionInit.
@@ -2218,9 +2229,9 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
             diagnostics = null;
         }
         ResolvedClientCapabilities clientCaps = ClientCapabilitiesAccess.GetClientCapabilities(options);
-        ResolvedPublishDiagnosticsClientCapabilities clientDiagnosticCaps = clientCaps.TextDocument.PublishDiagnostics;
+        global::Ts.LsProto.ResolvedPublishDiagnosticsClientCapabilities clientDiagnosticCaps = clientCaps.TextDocument.PublishDiagnostics;
         var lspDiagnostics = new List<global::Ts.LsProto.Diagnostic>(diagnostics?.Length ?? 0);
-        var tagValueSet = clientDiagnosticCaps.TagSupport?.ValueSet ?? [];
+        var tagValueSet = clientDiagnosticCaps.TagSupport.ValueSet ?? [];
         foreach (global::Ts.Ast.Diagnostic diag in diagnostics ?? [])
         {
             lspDiagnostics.Add(global::Ts.Ls.LsDeps.DiagnosticToLSP(

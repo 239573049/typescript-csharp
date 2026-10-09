@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using Ts.Collections;
 
+using WatchKind = global::Ts.LsProto.WatchKind;
+
 namespace Ts.Project;
 
 // configfileregistry.go:13-23 — ConfigFileRegistry.

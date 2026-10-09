@@ -34,7 +34,7 @@ namespace Ts.Ls;
 public sealed partial class LanguageService
 {
     // sourcedefinition.go:24 — ProvideSourceDefinition.
-    public global::Ts.LsProto.DefinitionResponse ProvideSourceDefinition(
+    public global::Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull ProvideSourceDefinition(
         string documentURI,
         global::Ts.LsProto.Position position,
         bool clientSupportsLink = false,
@@ -61,7 +61,7 @@ public sealed partial class LanguageService
                 var refSelectionRange = CreateLspRangeFromBounds(@ref.GetValueOrDefault().Pos, @ref.GetValueOrDefault().End, file);
                 return CreateDefinitionLocations(refSelectionRange, clientSupportsLink, tripleSlashDeclarations, null /*reference*/);
             }
-            return new global::Ts.LsProto.DefinitionResponse();
+            return new global::Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull();
         }
 
         var originSelectionRange = CreateLspRangeFromNode(node, file);
@@ -141,14 +141,14 @@ public sealed partial class LanguageService
     // foundation's go-to-definition entry is the reduced GetDefinitionAtPosition
     // (Definition.cs), so the fallback maps its DefinitionLocation[] result into the
     // response shape until the full definition.go port lands.
-    private global::Ts.LsProto.DefinitionResponse ProvideDefinitionWorker(string documentURI, global::Ts.LsProto.Position position, CancellationToken cancellationToken)
+    private global::Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull ProvideDefinitionWorker(string documentURI, global::Ts.LsProto.Position position, CancellationToken cancellationToken)
     {
         var file = GetProgramAndFile(documentURI);
         var pos = LsDeps.LineAndCharacterToPosition(file, position.Line, position.Character);
         var definitions = GetDefinitionAtPosition(documentURI, pos, cancellationToken);
         if (definitions.Length == 0)
         {
-            return new global::Ts.LsProto.DefinitionResponse();
+            return new global::Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull();
         }
         var locations = new global::Ts.LsProto.Location[definitions.Length];
         for (var i = 0; i < definitions.Length; i++)
@@ -160,7 +160,7 @@ public sealed partial class LanguageService
                 Range = LsDeps.ToLspRange(targetFile, definitions[i].TextSpan),
             };
         }
-        return new global::Ts.LsProto.DefinitionResponse { Locations = locations };
+        return new global::Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull { Locations = locations };
     }
 
     // sourcedefinition.go:121 — newSourceDefResolver.

@@ -6,6 +6,12 @@ using System.Linq;
 using System.Threading;
 using Ts.Collections;
 
+using WatchKind = global::Ts.LsProto.WatchKind;
+using GlobPattern = global::Ts.LsProto.PatternOrRelativePattern;
+using RelativePattern = global::Ts.LsProto.RelativePattern;
+using WorkspaceFolderOrURI = global::Ts.LsProto.WorkspaceFolderOrURI;
+using FileSystemWatcher = global::Ts.LsProto.FileSystemWatcher;
+
 namespace Ts.Project;
 
 // watch.go:18-20 — minWatchLocationDepth. (Go package-level const → WatchConstants
@@ -227,7 +233,7 @@ internal static class WatchUtil
                     {
                         BaseUri = new WorkspaceFolderOrURI
                         {
-                            URI = baseUri,
+                            URI = new global::Ts.LsProto.URI(baseUri.Value),
                         },
                         Pattern = "**/*",
                     },

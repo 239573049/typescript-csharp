@@ -28,42 +28,6 @@ using Ts.Ast; // instance-syntax resolution of the Ts.Ast.NodeAccessors extensio
 using Ts.Checker; // CheckerLsExports extension methods (GetResolvedSymbol)
 using ResolutionMode = Ts.Core.ModuleKind;
 
-namespace Ts.LsProto
-{
-
-// lsp_generated.go: LocationLink.
-public sealed class LocationLink : IHasLocation
-{
-    [System.Runtime.Serialization.DataMember(Name = "originSelectionRange")]
-    [System.Text.Json.Serialization.JsonPropertyName("originSelectionRange")]
-    public Range? OriginSelectionRange { get; set; }
-
-    [System.Runtime.Serialization.DataMember(Name = "targetUri")]
-    [System.Text.Json.Serialization.JsonPropertyName("targetUri")]
-    public required DocumentUri TargetUri { get; set; }
-
-    [System.Runtime.Serialization.DataMember(Name = "targetRange")]
-    [System.Text.Json.Serialization.JsonPropertyName("targetRange")]
-    public required Range TargetRange { get; set; }
-
-    [System.Runtime.Serialization.DataMember(Name = "targetSelectionRange")]
-    [System.Text.Json.Serialization.JsonPropertyName("targetSelectionRange")]
-    public required Range TargetSelectionRange { get; set; }
-
-    // lsp_generated.go:3706-3711 — GetLocation.
-    public Location GetLocation() => new() { Uri = TargetUri, Range = TargetRange };
-}
-
-// lsp_generated.go: DefinitionResponse — the Location | Locations | DefinitionLinks union.
-public sealed class DefinitionResponse
-{
-    public Location? Location { get; set; }
-    public Location[]? Locations { get; set; }
-    public LocationLink[]? DefinitionLinks { get; set; }
-}
-
-}
-
 namespace Ts.Ls
 {
 

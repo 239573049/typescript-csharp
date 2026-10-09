@@ -19,6 +19,8 @@ using Ts.Project.Logging;
 using static global::Ts.LsProto.DocumentUriExtensions;
 using static global::Ts.Compiler.ProgramLsExports;
 
+using FileChangeType = global::Ts.LsProto.FileChangeType;
+
 namespace Ts.Project;
 
 // projectcollectionbuilder.go:21-28 — projectLoadKind.

@@ -19,192 +19,6 @@ using Ts.Core;
 using Ts.Collections; // Set<T>/SetExtensions.Has
 using Ts.Diagnostics; // Message.Localize extension
 
-namespace Ts.LsProto
-{
-
-// lsp_generated.go:9895 — CodeActionKind (Go string type; hierarchy semantics demand the raw
-// string, so a record struct wrapper instead of an enum — matching DocumentUri's shape).
-[System.Text.Json.Serialization.JsonConverter(typeof(CodeActionKindJsonConverter))]
-public readonly record struct CodeActionKind
-{
-    public CodeActionKind(string value)
-    {
-        Value = value ?? throw new ArgumentNullException(nameof(value));
-    }
-
-    public string Value { get; }
-
-    // lsp_generated.go:9901 — Empty kind.
-    public static readonly CodeActionKind Empty = new("");
-    // lsp_generated.go:9904 — Base kind for quickfix actions: 'quickfix'.
-    public static readonly CodeActionKind QuickFix = new("quickfix");
-    // lsp_generated.go:9907 — Base kind for refactoring actions: 'refactor'.
-    public static readonly CodeActionKind Refactor = new("refactor");
-    // lsp_generated.go:9916 — Base kind for refactoring extraction actions: 'refactor.extract'.
-    public static readonly CodeActionKind RefactorExtract = new("refactor.extract");
-    // lsp_generated.go:9928 — Base kind for refactoring inline actions: 'refactor.inline'.
-    public static readonly CodeActionKind RefactorInline = new("refactor.inline");
-    // lsp_generated.go:9940 — Base kind for refactoring move actions: 'refactor.move'.
-    public static readonly CodeActionKind RefactorMove = new("refactor.move");
-    // lsp_generated.go:9950 — Base kind for refactoring rewrite actions: 'refactor.rewrite'.
-    public static readonly CodeActionKind RefactorRewrite = new("refactor.rewrite");
-    // lsp_generated.go:9953 — Base kind for source actions: 'source'.
-    public static readonly CodeActionKind Source = new("source");
-    // lsp_generated.go:9956 — Base kind for an organize imports source action.
-    public static readonly CodeActionKind SourceOrganizeImports = new("source.organizeImports");
-    // lsp_generated.go:9959 — Base kind for auto-fix source actions: 'source.fixAll'.
-    public static readonly CodeActionKind SourceFixAll = new("source.fixAll");
-    // lsp.go:310 — source.removeUnusedImports.
-    public static readonly CodeActionKind SourceRemoveUnusedImports = new("source.removeUnusedImports");
-    // lsp.go:311 — source.sortImports.
-    public static readonly CodeActionKind SourceSortImports = new("source.sortImports");
-}
-
-public sealed class CodeActionKindJsonConverter : System.Text.Json.Serialization.JsonConverter<CodeActionKind>
-{
-    public override CodeActionKind Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
-    {
-        if (reader.TokenType != System.Text.Json.JsonTokenType.String)
-        {
-            throw new System.Text.Json.JsonException("CodeActionKind must be a string");
-        }
-        return new CodeActionKind(reader.GetString()!); // A String token is never null unless its value is JSON null.
-    }
-
-    public override void Write(System.Text.Json.Utf8JsonWriter writer, CodeActionKind value, System.Text.Json.JsonSerializerOptions options)
-    {
-        writer.WriteStringValue(value.Value);
-    }
-}
-
-// lsp_generated.go:10323 — CodeActionTriggerKind.
-public enum CodeActionTriggerKind : uint
-{
-    Invoked = 1,
-    Automatic = 2,
-}
-
-// lsp_generated.go:5934 — CodeActionContext: contains additional diagnostic information about
-// the context in which a action is run.
-public sealed class CodeActionContext
-{
-    [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public Diagnostic[] Diagnostics { get; set; } = [];
-
-    // Requested kind of actions to return.
-    [System.Text.Json.Serialization.JsonPropertyName("only")]
-    public CodeActionKind[]? Only { get; set; }
-
-    // The reason why code actions were requested. Since: 3.17.0.
-    [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]
-    public CodeActionTriggerKind? TriggerKind { get; set; }
-}
-
-// lsp_generated.go:2809 — CodeActionParams: the parameters of a CodeActionRequest.
-public sealed class CodeActionParams
-{
-    // An optional token that a server can use to report work done progress.
-    [System.Text.Json.Serialization.JsonPropertyName("workDoneToken")]
-    public IntegerOrString? WorkDoneToken { get; set; }
-
-    // An optional token that a server can use to report partial results (e.g. streaming) to
-    // the client.
-    [System.Text.Json.Serialization.JsonPropertyName("partialResultToken")]
-    public IntegerOrString? PartialResultToken { get; set; }
-
-    // The document in which the command was invoked.
-    [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public TextDocumentIdentifier TextDocument { get; set; } = null!;
-
-    // The range for which the command was invoked.
-    [System.Text.Json.Serialization.JsonPropertyName("range")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public Range Range { get; set; } = null!;
-
-    // Context carrying additional information.
-    [System.Text.Json.Serialization.JsonPropertyName("context")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public CodeActionContext? Context { get; set; }
-
-    // lsp_generated.go:2831 — TextDocumentURI.
-    public DocumentUri TextDocumentURI() => TextDocument.Uri;
-}
-
-// lsp_generated.go:2837 — Command: represents a reference to a command.
-public sealed class Command
-{
-    // Title of the command, like `save`.
-    [System.Text.Json.Serialization.JsonPropertyName("title")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public string Title { get; set; } = "";
-
-    // An optional tooltip. Since: 3.18.0.
-    [System.Text.Json.Serialization.JsonPropertyName("tooltip")]
-    public string? Tooltip { get; set; }
-
-    // The identifier of the actual command handler.
-    [System.Text.Json.Serialization.JsonPropertyName("command")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public string CommandName { get; set; } = "";
-
-    // Arguments that the command handler should be invoked with.
-    [System.Text.Json.Serialization.JsonPropertyName("arguments")]
-    public object[]? Arguments { get; set; }
-}
-
-// lsp_generated.go:2868 — CodeAction: represents a change that can be performed in code, e.g.
-// to fix a problem or to refactor code.
-//
-// PORT-NOTE(subset): the Disabled/Command/Data/Tags arms (:2905-:2927) ride the
-// codeAction/resolve request wave and land with it; every field consumed by the ls
-// code-actions pipeline is present.
-public sealed class CodeAction
-{
-    // A short, human-readable, title for this code action.
-    [System.Text.Json.Serialization.JsonPropertyName("title")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public string Title { get; set; } = "";
-
-    // The kind of the code action. Used to filter code actions.
-    [System.Text.Json.Serialization.JsonPropertyName("kind")]
-    public CodeActionKind? Kind { get; set; }
-
-    // The diagnostics that this code action resolves.
-    [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
-    public Diagnostic[]? Diagnostics { get; set; }
-
-    // Marks this as a preferred action. Since: 3.15.0.
-    [System.Text.Json.Serialization.JsonPropertyName("isPreferred")]
-    public bool? IsPreferred { get; set; }
-
-    // The workspace edit this code action performs.
-    [System.Text.Json.Serialization.JsonPropertyName("edit")]
-    public WorkspaceEdit? Edit { get; set; }
-}
-
-// lsp_generated.go:14140 — CommandOrCodeAction union.
-public sealed class CommandOrCodeAction
-{
-    public Command? Command { get; set; }
-    public CodeAction? CodeAction { get; set; }
-
-    public static CommandOrCodeAction FromCommand(Command value) => new() { Command = value };
-    public static CommandOrCodeAction FromCodeAction(CodeAction value) => new() { CodeAction = value };
-}
-
-// lsp_generated.go:14173 — CommandOrCodeActionArrayOrNull (:11324 CodeActionResponse alias).
-public sealed class CommandOrCodeActionArrayOrNull
-{
-    public List<CommandOrCodeAction>? CommandOrCodeActionArray { get; set; }
-
-    public static CommandOrCodeActionArrayOrNull FromArray(List<CommandOrCodeAction> value) =>
-        new() { CommandOrCodeActionArray = value };
-}
-
-} // namespace Ts.LsProto
-
 namespace Ts.Ls
 {
 
@@ -346,8 +160,8 @@ public static partial class CodeActions
     internal static bool CodeActionKindContains(global::Ts.LsProto.CodeActionKind requestedKind, global::Ts.LsProto.CodeActionKind actionKind)
     {
         return requestedKind == actionKind ||
-            requestedKind.Value.Length == 0 ||
-            actionKind.Value.StartsWith(requestedKind.Value + ".", StringComparison.Ordinal);
+            (requestedKind.Value ?? "").Length == 0 ||
+            (actionKind.Value ?? "").StartsWith(requestedKind.Value + ".", StringComparison.Ordinal);
     }
 
     // codeactions.go:240-243 — isFixAllKind returns true if the requested kind matches
@@ -540,7 +354,7 @@ public sealed partial class LanguageService
             actions.AddRange(fixAllActions);
         }
 
-        return new global::Ts.LsProto.CommandOrCodeActionArrayOrNull { CommandOrCodeActionArray = actions };
+        return new global::Ts.LsProto.CommandOrCodeActionArrayOrNull { CommandOrCodeActionArray = actions.ToArray() };
     }
 
     // codeactions.go:160-212 — getFixAllQuickFixes returns per-provider "Fix all in file"

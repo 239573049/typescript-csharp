@@ -901,32 +901,12 @@ const customTypeAliases: TypeAlias[] = [
 // CompletionList) land here through the cascade; their [JsonSerializable]
 // registrations are added to LspJsonContext in emitJson.
 // ---------------------------------------------------------------------------
-const temporarilyHostedInLs = new Set<string>([
-    "CallHierarchyIncomingCall",
-    "CallHierarchyItem",
-    "CallHierarchyOutgoingCall",
-    "CodeAction",
-    "CodeActionContext",
-    "CodeActionKind",
-    "CodeActionParams",
-    "CodeActionTriggerKind",
-    "Command",
-    "CommandOrCodeAction",
-    "CommandOrCodeActionArrayOrNull",
-    "InlayHint",
-    "InlayHintKind",
-    "InlayHintLabelPart",
-    "LocationLink",
-    "SemanticTokenModifier",
-    "SemanticTokenType",
-    "SemanticTokens",
-    "SemanticTokensLegend",
-]);
+// The Ts.Ls subsets have been absorbed into the generated surface (lsp server wave);
+// the skip machinery is kept so a future temporary host can reuse it.
+const temporarilyHostedInLs = new Set<string>([]);
 
-// Go's Resolved*ClientCapabilities + resolve() generation (generate.mts:3337-3376)
-// is deferred until the Ts.Ls subset hosting ResolvedSemanticTokensClientCapabilities
-// is absorbed (its resolve() chain would collide).
-const emitResolvedCapabilities = false;
+// Go's Resolved*ClientCapabilities + resolve() generation (generate.mts:3337-3376).
+const emitResolvedCapabilities = true;
 
 // Go valueTypes (generate.mts:1686-1696) become C# readonly record structs per
 // plan/04 §5.3 — but Position/Range/Location/... are consumed as classes by the
@@ -1455,6 +1435,13 @@ function goFieldName(prop: Property): string {
         return "VS" + titleCase(prop.name.slice(4));
     }
     return titleCase(prop.name);
+}
+
+// C# forbids a member named like its enclosing type (CS0542): Go's Command.Command
+// becomes Command.CommandName (the spelling the Ts.Ls consumers already use).
+function csMemberName(structure: Structure, prop: Property): string {
+    const name = goFieldName(prop);
+    return name === structure.name ? name + "Name" : name;
 }
 
 function resolveType(type: Type): CsType {
@@ -2391,9 +2378,9 @@ function emitProtocol(skipped: Set<string>, skipNote: string[]): string {
     w("// - Go `type X = Y` response/telemetry aliases are inlined into the RequestInfo");
     w("//   generics (C# has no type aliases).");
     w("// - Position/Range/Location/… ship as classes, not readonly record structs");
-    w("//   (plan/04 §5.3) until the Ts.Ls subsets that consume them are absorbed.");
-    w("// - The Resolved*ClientCapabilities + resolve() family is not emitted yet;");
-    w("//   it collides with Ts.Ls/SemanticTokens.Support.cs.");
+    w("//   (plan/04 §5.3).");
+    w("// - Go Resolved*ClientCapabilities are value structs; here they are classes whose");
+    w("//   nested Resolved* members are never null, and (*X).resolve() is an extension.");
     if (skipNote.length > 0) {
         w("// - The following names are temporarily hosted as hand-written subsets in Ts.Ls");
         w("//   (CodeActions.cs / *Support.cs) and are skipped here, together with every type");
@@ -2580,7 +2567,7 @@ function emitProtocol(skipped: Set<string>, skipNote: string[]): string {
                 w("    " + attr);
             }
             const initializer = propInitializer(info.text);
-            w(`    public ${info.text} ${goFieldName(prop)} { get; set; }${initializer}`);
+            w(`    public ${info.text} ${csMemberName(structure, prop)} { get; set; }${initializer}`);
         });
 
         // Special: add RegisterOptions field to Registration
@@ -2645,7 +2632,7 @@ function emitProtocol(skipped: Set<string>, skipNote: string[]): string {
             // The implicit string conversion mirrors Go, where string constants are
             // assignable to the named string type (e.g. MarkupContent.Kind = "plaintext").
             w(`[JsonConverter(typeof(${enumeration.name}JsonConverter))]`);
-            w(`public readonly record struct ${enumeration.name}`);
+            w(`public readonly partial record struct ${enumeration.name}`);
             w("{");
             w(`    public ${enumeration.name}(string? value)`);
             w("    {");
@@ -2765,7 +2752,135 @@ function emitProtocol(skipped: Set<string>, skipNote: string[]): string {
     w("}");
     w();
 
+    if (emitResolvedCapabilities) {
+        emitResolvedClientCapabilities(out);
+    }
+
     return out.join("\n") + "\n";
+}
+
+// generate.mts:2126-2258, 3337-3376 — Resolved*ClientCapabilities.
+function emitResolvedClientCapabilities(out: string[]) {
+    const w = (s = "") => out.push(s);
+    const clientCaps = model.structures.find(s => s.name === "ClientCapabilities");
+    if (!clientCaps) return;
+
+    const structureByName = (name: string) => model.structures.find(s => s.name === name);
+
+    function collectDeps(structure: Structure, visited = new Set<string>()): Structure[] {
+        if (visited.has(structure.name)) return [];
+        visited.add(structure.name);
+        const deps: Structure[] = [];
+        for (const prop of structure.properties) {
+            if (prop.type.kind === "reference") {
+                const ref = structureByName(prop.type.name);
+                if (ref) {
+                    deps.push(...collectDeps(ref, new Set(visited)));
+                    deps.push(ref);
+                }
+            }
+        }
+        return deps;
+    }
+
+    function resolvedFieldType(prop: Property): { text: string; init: string; structure?: Structure; } {
+        if (prop.type.kind === "reference") {
+            const ref = structureByName(prop.type.name);
+            if (ref) return { text: `Resolved${ref.name}`, init: " = new();", structure: ref };
+        }
+        // Go derefOr(ptr): the zero value. C# value types default; strings become "";
+        // reference-shaped values (arrays, unions, maps) stay nullable (Go nil).
+        const text = resolveType(prop.type).name;
+        if (text.endsWith("?")) return { text, init: "" };
+        if (text === "string") return { text, init: ' = "";' };
+        if (csPrimitiveTypeNames.has(text) || isCsValueType(text) || [...typeInfo.literalTypes.values()].includes(text)) {
+            return { text, init: "" };
+        }
+        return { text: text + "?", init: "" };
+    }
+
+    function emitResolved(structure: Structure, isMain: boolean) {
+        const typeName = `Resolved${structure.name}`;
+        if (!isMain) {
+            w(`// ${typeName} is a resolved version of ${structure.name} with all optional fields`);
+            w(`// converted to non-pointer values for easier access.`);
+            const docs = formatDocumentation(structure.documentation);
+            if (docs.length > 0) {
+                w("//");
+                emitDocs(out, docs);
+            }
+        }
+        w(`public sealed class ${typeName}`);
+        w("{");
+        structure.properties.forEach((prop, index) => {
+            if (index > 0) w();
+            emitDocs(out, formatDocumentation(prop.documentation), "    ");
+            const field = resolvedFieldType(prop);
+            w(`    public ${field.text} ${csMemberName(structure, prop)} { get; set; }${field.init}`);
+        });
+        w("}");
+        w();
+    }
+
+    function emitResolveConversion(structure: Structure, isMain: boolean) {
+        const typeName = `Resolved${structure.name}`;
+        const methodName = isMain ? "Resolve" : "ResolveInternal";
+        const access = isMain ? "public" : "internal";
+        w(`    ${access} static ${typeName} ${methodName}(this ${structure.name}? v)`);
+        w("    {");
+        w("        if (v is null)");
+        w("        {");
+        w(`            return new ${typeName}();`);
+        w("        }");
+        w(`        return new ${typeName}`);
+        w("        {");
+        for (const prop of structure.properties) {
+            const name = csMemberName(structure, prop);
+            const field = resolvedFieldType(prop);
+            if (field.structure) {
+                w(`            ${name} = v.${name}.ResolveInternal(),`);
+                continue;
+            }
+            const info = propTypeText(prop);
+            if (field.text === "string" && info.text.endsWith("?")) {
+                w(`            ${name} = v.${name} ?? "",`);
+            }
+            else if (info.text.endsWith("?") && !field.text.endsWith("?")) {
+                w(`            ${name} = v.${name} ?? default,`);
+            }
+            else {
+                w(`            ${name} = v.${name},`);
+            }
+        }
+        w("        };");
+        w("    }");
+    }
+
+    const deps = collectDeps(clientCaps);
+    const uniqueDeps = Array.from(new Map(deps.map(d => [d.name, d])).values());
+    for (const dep of uniqueDeps) {
+        emitResolved(dep, false);
+    }
+
+    w("// ResolvedClientCapabilities is a version of ClientCapabilities where all nested");
+    w("// fields are values (not pointers), making it easier to access deeply nested capabilities.");
+    w("// Use ClientCapabilities.Resolve() to convert from ClientCapabilities.");
+    const docs = formatDocumentation(clientCaps.documentation);
+    if (docs.length > 0) {
+        w("//");
+        emitDocs(out, docs);
+    }
+    emitResolved(clientCaps, true);
+
+    w("public static class ResolvedClientCapabilitiesExtensions");
+    w("{");
+    for (const dep of uniqueDeps) {
+        emitResolveConversion(dep, false);
+        w();
+    }
+    emitResolveConversion(clientCaps, true);
+    w("}");
+    w();
 }
 
 function registrationMethodSkipped(reg: RegistrationMethodInfo, skipped: Set<string>): boolean {

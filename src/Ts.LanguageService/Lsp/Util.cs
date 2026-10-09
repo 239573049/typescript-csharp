@@ -36,6 +36,13 @@ public static class Util
     }
 }
 
+// lsp.go:309-312 — hand-written CodeActionKind extensions beyond the metamodel.
+public readonly partial record struct CodeActionKind
+{
+    public static CodeActionKind SourceRemoveUnusedImports => new("source.removeUnusedImports");
+    public static CodeActionKind SourceSortImports => new("source.sortImports");
+}
+
 // lsproto lsp.go — DocumentUri.FileName(): URI → file name.
 public static class DocumentUriExtensions
 {

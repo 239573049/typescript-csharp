@@ -199,6 +199,39 @@ public sealed class TextDocumentEditOrCreateFileOrRenameFileOrDeleteFileConverte
     }
 }
 
+public sealed class StringOrInlayHintLabelPartsConverter : JsonConverter<StringOrInlayHintLabelParts>
+{
+    public override StringOrInlayHintLabelParts? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.String:
+                return new StringOrInlayHintLabelParts { String = reader.GetString()! };
+            case JsonTokenType.StartArray:
+                return new StringOrInlayHintLabelParts { InlayHintLabelParts = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.InlayHintLabelPartArray) };
+            default:
+                throw new JsonException("invalid StringOrInlayHintLabelParts: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, StringOrInlayHintLabelParts value, JsonSerializerOptions options)
+    {
+        if (value.String is not null)
+        {
+            writer.WriteStringValue(value.String);
+            return;
+        }
+
+        if (value.InlayHintLabelParts is not null)
+        {
+            JsonSerializer.Serialize(writer, value.InlayHintLabelParts, LspJsonContext.Default.InlayHintLabelPartArray);
+            return;
+        }
+
+        throw new JsonException("exactly one element of StringOrInlayHintLabelParts should be set");
+    }
+}
+
 public sealed class StringOrMarkupContentConverter : JsonConverter<StringOrMarkupContent>
 {
     public override StringOrMarkupContent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -1173,6 +1206,40 @@ public sealed class BooleanOrDocumentSymbolOptionsConverter : JsonConverter<Bool
     }
 }
 
+public sealed class BooleanOrCodeActionOptionsConverter : JsonConverter<BooleanOrCodeActionOptions>
+{
+    public override BooleanOrCodeActionOptions? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.True:
+            case JsonTokenType.False:
+                return new BooleanOrCodeActionOptions { Boolean = reader.GetBoolean() };
+            case JsonTokenType.StartObject:
+                return new BooleanOrCodeActionOptions { CodeActionOptions = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CodeActionOptions) };
+            default:
+                throw new JsonException("invalid BooleanOrCodeActionOptions: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, BooleanOrCodeActionOptions value, JsonSerializerOptions options)
+    {
+        if (value.Boolean is not null)
+        {
+            writer.WriteBooleanValue(value.Boolean.Value);
+            return;
+        }
+
+        if (value.CodeActionOptions is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CodeActionOptions, LspJsonContext.Default.CodeActionOptions);
+            return;
+        }
+
+        throw new JsonException("exactly one element of BooleanOrCodeActionOptions should be set");
+    }
+}
+
 public sealed class BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptionsConverter : JsonConverter<BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions>
 {
     public override BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -1561,6 +1628,40 @@ public sealed class BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRangeRegist
         }
 
         throw new JsonException("exactly one element of BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRangeRegistrationOptions should be set");
+    }
+}
+
+public sealed class SemanticTokensOptionsOrRegistrationOptionsConverter : JsonConverter<SemanticTokensOptionsOrRegistrationOptions>
+{
+    public override SemanticTokensOptionsOrRegistrationOptions? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        // Presence dispatch (generate.mts findPresenceDiscriminator).
+        switch (UnionSerialization.JsonObjectHasKey(root, "documentSelector"))
+        {
+            case 0: // documentSelector
+                return new SemanticTokensOptionsOrRegistrationOptions { RegistrationOptions = root.Deserialize(LspJsonContext.Default.SemanticTokensRegistrationOptions) };
+            default:
+                return new SemanticTokensOptionsOrRegistrationOptions { Options = root.Deserialize(LspJsonContext.Default.SemanticTokensOptions) };
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, SemanticTokensOptionsOrRegistrationOptions value, JsonSerializerOptions options)
+    {
+        if (value.Options is not null)
+        {
+            JsonSerializer.Serialize(writer, value.Options, LspJsonContext.Default.SemanticTokensOptions);
+            return;
+        }
+
+        if (value.RegistrationOptions is not null)
+        {
+            JsonSerializer.Serialize(writer, value.RegistrationOptions, LspJsonContext.Default.SemanticTokensRegistrationOptions);
+            return;
+        }
+
+        throw new JsonException("exactly one element of SemanticTokensOptionsOrRegistrationOptions should be set");
     }
 }
 
@@ -2310,6 +2411,186 @@ public sealed class SelectionRangesOrNullConverter : JsonConverter<SelectionRang
     }
 }
 
+public sealed class CallHierarchyItemsOrNullConverter : JsonConverter<CallHierarchyItemsOrNull>
+{
+    public override CallHierarchyItemsOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new CallHierarchyItemsOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new CallHierarchyItemsOrNull { CallHierarchyItems = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CallHierarchyItemArray) };
+            default:
+                throw new JsonException("invalid CallHierarchyItemsOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, CallHierarchyItemsOrNull value, JsonSerializerOptions options)
+    {
+        if (value.CallHierarchyItems is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CallHierarchyItems, LspJsonContext.Default.CallHierarchyItemArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of CallHierarchyItemsOrNull should be set");
+    }
+}
+
+public sealed class CallHierarchyIncomingCallsOrNullConverter : JsonConverter<CallHierarchyIncomingCallsOrNull>
+{
+    public override CallHierarchyIncomingCallsOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new CallHierarchyIncomingCallsOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new CallHierarchyIncomingCallsOrNull { CallHierarchyIncomingCalls = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CallHierarchyIncomingCallArray) };
+            default:
+                throw new JsonException("invalid CallHierarchyIncomingCallsOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, CallHierarchyIncomingCallsOrNull value, JsonSerializerOptions options)
+    {
+        if (value.CallHierarchyIncomingCalls is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CallHierarchyIncomingCalls, LspJsonContext.Default.CallHierarchyIncomingCallArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of CallHierarchyIncomingCallsOrNull should be set");
+    }
+}
+
+public sealed class CallHierarchyOutgoingCallsOrNullConverter : JsonConverter<CallHierarchyOutgoingCallsOrNull>
+{
+    public override CallHierarchyOutgoingCallsOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new CallHierarchyOutgoingCallsOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new CallHierarchyOutgoingCallsOrNull { CallHierarchyOutgoingCalls = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CallHierarchyOutgoingCallArray) };
+            default:
+                throw new JsonException("invalid CallHierarchyOutgoingCallsOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, CallHierarchyOutgoingCallsOrNull value, JsonSerializerOptions options)
+    {
+        if (value.CallHierarchyOutgoingCalls is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CallHierarchyOutgoingCalls, LspJsonContext.Default.CallHierarchyOutgoingCallArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of CallHierarchyOutgoingCallsOrNull should be set");
+    }
+}
+
+public sealed class SemanticTokensOrNullConverter : JsonConverter<SemanticTokensOrNull>
+{
+    public override SemanticTokensOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new SemanticTokensOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartObject:
+                return new SemanticTokensOrNull { SemanticTokens = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.SemanticTokens) };
+            default:
+                throw new JsonException("invalid SemanticTokensOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, SemanticTokensOrNull value, JsonSerializerOptions options)
+    {
+        if (value.SemanticTokens is not null)
+        {
+            JsonSerializer.Serialize(writer, value.SemanticTokens, LspJsonContext.Default.SemanticTokens);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of SemanticTokensOrNull should be set");
+    }
+}
+
+public sealed class SemanticTokensOrSemanticTokensDeltaOrNullConverter : JsonConverter<SemanticTokensOrSemanticTokensDeltaOrNull>
+{
+    public override SemanticTokensOrSemanticTokensDeltaOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new SemanticTokensOrSemanticTokensDeltaOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartObject:
+            {
+                using var document = JsonDocument.ParseValue(ref reader);
+                var root = document.RootElement;
+                // Presence dispatch (generate.mts findPresenceDiscriminator).
+                switch (UnionSerialization.JsonObjectHasKey(root, "data", "edits"))
+                {
+                    case 0: // data
+                        return new SemanticTokensOrSemanticTokensDeltaOrNull { SemanticTokens = root.Deserialize(LspJsonContext.Default.SemanticTokens) };
+                    case 1: // edits
+                        return new SemanticTokensOrSemanticTokensDeltaOrNull { SemanticTokensDelta = root.Deserialize(LspJsonContext.Default.SemanticTokensDelta) };
+                    default:
+                        break;
+                }
+                throw new JsonException("invalid SemanticTokensOrSemanticTokensDeltaOrNull: " + root.GetRawText());
+            }
+            default:
+                throw new JsonException("invalid SemanticTokensOrSemanticTokensDeltaOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, SemanticTokensOrSemanticTokensDeltaOrNull value, JsonSerializerOptions options)
+    {
+        if (value.SemanticTokens is not null)
+        {
+            JsonSerializer.Serialize(writer, value.SemanticTokens, LspJsonContext.Default.SemanticTokens);
+            return;
+        }
+
+        if (value.SemanticTokensDelta is not null)
+        {
+            JsonSerializer.Serialize(writer, value.SemanticTokensDelta, LspJsonContext.Default.SemanticTokensDelta);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of SemanticTokensOrSemanticTokensDeltaOrNull should be set");
+    }
+}
+
 public sealed class LinkedEditingRangesOrNullConverter : JsonConverter<LinkedEditingRangesOrNull>
 {
     public override LinkedEditingRangesOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -2470,6 +2751,38 @@ public sealed class InlineValuesOrNullConverter : JsonConverter<InlineValuesOrNu
     }
 }
 
+public sealed class InlayHintsOrNullConverter : JsonConverter<InlayHintsOrNull>
+{
+    public override InlayHintsOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new InlayHintsOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new InlayHintsOrNull { InlayHints = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.InlayHintArray) };
+            default:
+                throw new JsonException("invalid InlayHintsOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, InlayHintsOrNull value, JsonSerializerOptions options)
+    {
+        if (value.InlayHints is not null)
+        {
+            JsonSerializer.Serialize(writer, value.InlayHints, LspJsonContext.Default.InlayHintArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of InlayHintsOrNull should be set");
+    }
+}
+
 public sealed class RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReportConverter : JsonConverter<RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport>
 {
     public override RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -2504,6 +2817,46 @@ public sealed class RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagno
         }
 
         throw new JsonException("exactly one element of RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport should be set");
+    }
+}
+
+public sealed class InlineCompletionListOrItemsOrNullConverter : JsonConverter<InlineCompletionListOrItemsOrNull>
+{
+    public override InlineCompletionListOrItemsOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new InlineCompletionListOrItemsOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartObject:
+                return new InlineCompletionListOrItemsOrNull { List = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.InlineCompletionList) };
+            case JsonTokenType.StartArray:
+                return new InlineCompletionListOrItemsOrNull { Items = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.InlineCompletionItemArray) };
+            default:
+                throw new JsonException("invalid InlineCompletionListOrItemsOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, InlineCompletionListOrItemsOrNull value, JsonSerializerOptions options)
+    {
+        if (value.List is not null)
+        {
+            JsonSerializer.Serialize(writer, value.List, LspJsonContext.Default.InlineCompletionList);
+            return;
+        }
+
+        if (value.Items is not null)
+        {
+            JsonSerializer.Serialize(writer, value.Items, LspJsonContext.Default.InlineCompletionItemArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of InlineCompletionListOrItemsOrNull should be set");
     }
 }
 
@@ -2568,6 +2921,46 @@ public sealed class TextEditsOrNullConverter : JsonConverter<TextEditsOrNull>
         writer.WriteNullValue();
         return;
         throw new JsonException("exactly one element of TextEditsOrNull should be set");
+    }
+}
+
+public sealed class CompletionItemsOrListOrNullConverter : JsonConverter<CompletionItemsOrListOrNull>
+{
+    public override CompletionItemsOrListOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new CompletionItemsOrListOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new CompletionItemsOrListOrNull { Items = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CompletionItemArray) };
+            case JsonTokenType.StartObject:
+                return new CompletionItemsOrListOrNull { List = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CompletionList) };
+            default:
+                throw new JsonException("invalid CompletionItemsOrListOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, CompletionItemsOrListOrNull value, JsonSerializerOptions options)
+    {
+        if (value.Items is not null)
+        {
+            JsonSerializer.Serialize(writer, value.Items, LspJsonContext.Default.CompletionItemArray);
+            return;
+        }
+
+        if (value.List is not null)
+        {
+            JsonSerializer.Serialize(writer, value.List, LspJsonContext.Default.CompletionList);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of CompletionItemsOrListOrNull should be set");
     }
 }
 
@@ -2756,6 +3149,80 @@ public sealed class SymbolInformationsOrDocumentSymbolsOrNullConverter : JsonCon
     }
 }
 
+public sealed class CommandOrCodeActionConverter : JsonConverter<CommandOrCodeAction>
+{
+    public override CommandOrCodeAction? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        // Try-each fallback (generate.mts:2052-2059); order is required-count descending.
+        try
+        {
+            return new CommandOrCodeAction { Command = root.Deserialize(LspJsonContext.Default.Command) };
+        }
+        catch (JsonException)
+        {
+        }
+        try
+        {
+            return new CommandOrCodeAction { CodeAction = root.Deserialize(LspJsonContext.Default.CodeAction) };
+        }
+        catch (JsonException)
+        {
+        }
+        throw new JsonException("invalid CommandOrCodeAction: " + root.GetRawText());
+    }
+
+    public override void Write(Utf8JsonWriter writer, CommandOrCodeAction value, JsonSerializerOptions options)
+    {
+        if (value.Command is not null)
+        {
+            JsonSerializer.Serialize(writer, value.Command, LspJsonContext.Default.Command);
+            return;
+        }
+
+        if (value.CodeAction is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CodeAction, LspJsonContext.Default.CodeAction);
+            return;
+        }
+
+        throw new JsonException("exactly one element of CommandOrCodeAction should be set");
+    }
+}
+
+public sealed class CommandOrCodeActionArrayOrNullConverter : JsonConverter<CommandOrCodeActionArrayOrNull>
+{
+    public override CommandOrCodeActionArrayOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new CommandOrCodeActionArrayOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new CommandOrCodeActionArrayOrNull { CommandOrCodeActionArray = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CommandOrCodeActionArray) };
+            default:
+                throw new JsonException("invalid CommandOrCodeActionArrayOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, CommandOrCodeActionArrayOrNull value, JsonSerializerOptions options)
+    {
+        if (value.CommandOrCodeActionArray is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CommandOrCodeActionArray, LspJsonContext.Default.CommandOrCodeActionArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of CommandOrCodeActionArrayOrNull should be set");
+    }
+}
+
 public sealed class SymbolInformationsOrWorkspaceSymbolsOrNullConverter : JsonConverter<SymbolInformationsOrWorkspaceSymbolsOrNull>
 {
     public override SymbolInformationsOrWorkspaceSymbolsOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -2810,6 +3277,38 @@ public sealed class SymbolInformationsOrWorkspaceSymbolsOrNullConverter : JsonCo
         writer.WriteNullValue();
         return;
         throw new JsonException("exactly one element of SymbolInformationsOrWorkspaceSymbolsOrNull should be set");
+    }
+}
+
+public sealed class CodeLensesOrNullConverter : JsonConverter<CodeLensesOrNull>
+{
+    public override CodeLensesOrNull? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return new CodeLensesOrNull();
+        }
+
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new CodeLensesOrNull { CodeLenses = JsonSerializer.Deserialize(ref reader, LspJsonContext.Default.CodeLensArray) };
+            default:
+                throw new JsonException("invalid CodeLensesOrNull: got " + reader.TokenType.ToString());
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, CodeLensesOrNull value, JsonSerializerOptions options)
+    {
+        if (value.CodeLenses is not null)
+        {
+            JsonSerializer.Serialize(writer, value.CodeLenses, LspJsonContext.Default.CodeLensArray);
+            return;
+        }
+
+        writer.WriteNullValue();
+        return;
+        throw new JsonException("exactly one element of CodeLensesOrNull should be set");
     }
 }
 
@@ -3491,6 +3990,40 @@ public sealed class StringLiteralClassifiedTextElementJsonConverter : JsonConver
     }
 }
 
+public sealed class SemanticTokenTypeJsonConverter : JsonConverter<SemanticTokenType>
+{
+    public override SemanticTokenType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("SemanticTokenType must be a string");
+        }
+        return new SemanticTokenType(reader.GetString()); // A String token is never null unless its value is JSON null.
+    }
+
+    public override void Write(Utf8JsonWriter writer, SemanticTokenType value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.Value ?? "");
+    }
+}
+
+public sealed class SemanticTokenModifierJsonConverter : JsonConverter<SemanticTokenModifier>
+{
+    public override SemanticTokenModifier Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("SemanticTokenModifier must be a string");
+        }
+        return new SemanticTokenModifier(reader.GetString()); // A String token is never null unless its value is JSON null.
+    }
+
+    public override void Write(Utf8JsonWriter writer, SemanticTokenModifier value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.Value ?? "");
+    }
+}
+
 public sealed class DocumentDiagnosticReportKindJsonConverter : JsonConverter<DocumentDiagnosticReportKind>
 {
     public override DocumentDiagnosticReportKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -3554,6 +4087,23 @@ public sealed class MonikerKindJsonConverter : JsonConverter<MonikerKind>
     }
 
     public override void Write(Utf8JsonWriter writer, MonikerKind value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.Value ?? "");
+    }
+}
+
+public sealed class CodeActionKindJsonConverter : JsonConverter<CodeActionKind>
+{
+    public override CodeActionKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            throw new JsonException("CodeActionKind must be a string");
+        }
+        return new CodeActionKind(reader.GetString()); // A String token is never null unless its value is JSON null.
+    }
+
+    public override void Write(Utf8JsonWriter writer, CodeActionKind value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.Value ?? "");
     }
@@ -3921,6 +4471,12 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
             case "textDocument/selectionRange": // Methods.TextDocumentSelectionRange
                 result.RegisterOptions.TextDocumentSelectionRange = rawRegisterOptions.Deserialize(LspJsonContext.Default.SelectionRangeRegistrationOptions);
                 break;
+            case "textDocument/prepareCallHierarchy": // Methods.TextDocumentPrepareCallHierarchy
+                result.RegisterOptions.TextDocumentPrepareCallHierarchy = rawRegisterOptions.Deserialize(LspJsonContext.Default.CallHierarchyRegistrationOptions);
+                break;
+            case "textDocument/semanticTokens": // Methods.TextDocumentSemanticTokens
+                result.RegisterOptions.TextDocumentSemanticTokens = rawRegisterOptions.Deserialize(LspJsonContext.Default.SemanticTokensRegistrationOptions);
+                break;
             case "textDocument/linkedEditingRange": // Methods.TextDocumentLinkedEditingRange
                 result.RegisterOptions.TextDocumentLinkedEditingRange = rawRegisterOptions.Deserialize(LspJsonContext.Default.LinkedEditingRangeRegistrationOptions);
                 break;
@@ -3942,14 +4498,23 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
             case "textDocument/inlineValue": // Methods.TextDocumentInlineValue
                 result.RegisterOptions.TextDocumentInlineValue = rawRegisterOptions.Deserialize(LspJsonContext.Default.InlineValueRegistrationOptions);
                 break;
+            case "textDocument/inlayHint": // Methods.TextDocumentInlayHint
+                result.RegisterOptions.TextDocumentInlayHint = rawRegisterOptions.Deserialize(LspJsonContext.Default.InlayHintRegistrationOptions);
+                break;
             case "textDocument/diagnostic": // Methods.TextDocumentDiagnostic
                 result.RegisterOptions.TextDocumentDiagnostic = rawRegisterOptions.Deserialize(LspJsonContext.Default.DiagnosticRegistrationOptions);
+                break;
+            case "textDocument/inlineCompletion": // Methods.TextDocumentInlineCompletion
+                result.RegisterOptions.TextDocumentInlineCompletion = rawRegisterOptions.Deserialize(LspJsonContext.Default.InlineCompletionRegistrationOptions);
                 break;
             case "workspace/textDocumentContent": // Methods.WorkspaceTextDocumentContent
                 result.RegisterOptions.WorkspaceTextDocumentContent = rawRegisterOptions.Deserialize(LspJsonContext.Default.TextDocumentContentRegistrationOptions);
                 break;
             case "textDocument/willSaveWaitUntil": // Methods.TextDocumentWillSaveWaitUntil
                 result.RegisterOptions.TextDocumentWillSaveWaitUntil = rawRegisterOptions.Deserialize(LspJsonContext.Default.TextDocumentRegistrationOptions);
+                break;
+            case "textDocument/completion": // Methods.TextDocumentCompletion
+                result.RegisterOptions.TextDocumentCompletion = rawRegisterOptions.Deserialize(LspJsonContext.Default.CompletionRegistrationOptions);
                 break;
             case "textDocument/hover": // Methods.TextDocumentHover
                 result.RegisterOptions.TextDocumentHover = rawRegisterOptions.Deserialize(LspJsonContext.Default.HoverRegistrationOptions);
@@ -3969,8 +4534,14 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
             case "textDocument/documentSymbol": // Methods.TextDocumentDocumentSymbol
                 result.RegisterOptions.TextDocumentDocumentSymbol = rawRegisterOptions.Deserialize(LspJsonContext.Default.DocumentSymbolRegistrationOptions);
                 break;
+            case "textDocument/codeAction": // Methods.TextDocumentCodeAction
+                result.RegisterOptions.TextDocumentCodeAction = rawRegisterOptions.Deserialize(LspJsonContext.Default.CodeActionRegistrationOptions);
+                break;
             case "workspace/symbol": // Methods.WorkspaceSymbol
                 result.RegisterOptions.WorkspaceSymbol = rawRegisterOptions.Deserialize(LspJsonContext.Default.WorkspaceSymbolRegistrationOptions);
+                break;
+            case "textDocument/codeLens": // Methods.TextDocumentCodeLens
+                result.RegisterOptions.TextDocumentCodeLens = rawRegisterOptions.Deserialize(LspJsonContext.Default.CodeLensRegistrationOptions);
                 break;
             case "textDocument/documentLink": // Methods.TextDocumentDocumentLink
                 result.RegisterOptions.TextDocumentDocumentLink = rawRegisterOptions.Deserialize(LspJsonContext.Default.DocumentLinkRegistrationOptions);
@@ -4066,6 +4637,14 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             count++;
         }
+        if (value.RegisterOptions.TextDocumentPrepareCallHierarchy != null)
+        {
+            count++;
+        }
+        if (value.RegisterOptions.TextDocumentSemanticTokens != null)
+        {
+            count++;
+        }
         if (value.RegisterOptions.TextDocumentLinkedEditingRange != null)
         {
             count++;
@@ -4094,7 +4673,15 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             count++;
         }
+        if (value.RegisterOptions.TextDocumentInlayHint != null)
+        {
+            count++;
+        }
         if (value.RegisterOptions.TextDocumentDiagnostic != null)
+        {
+            count++;
+        }
+        if (value.RegisterOptions.TextDocumentInlineCompletion != null)
         {
             count++;
         }
@@ -4103,6 +4690,10 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
             count++;
         }
         if (value.RegisterOptions.TextDocumentWillSaveWaitUntil != null)
+        {
+            count++;
+        }
+        if (value.RegisterOptions.TextDocumentCompletion != null)
         {
             count++;
         }
@@ -4130,7 +4721,15 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             count++;
         }
+        if (value.RegisterOptions.TextDocumentCodeAction != null)
+        {
+            count++;
+        }
         if (value.RegisterOptions.WorkspaceSymbol != null)
+        {
+            count++;
+        }
+        if (value.RegisterOptions.TextDocumentCodeLens != null)
         {
             count++;
         }
@@ -4240,6 +4839,14 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             method = Methods.TextDocumentSelectionRange.Value;
         }
+        if (value.RegisterOptions.TextDocumentPrepareCallHierarchy != null)
+        {
+            method = Methods.TextDocumentPrepareCallHierarchy.Value;
+        }
+        if (value.RegisterOptions.TextDocumentSemanticTokens != null)
+        {
+            method = Methods.TextDocumentSemanticTokens.Value;
+        }
         if (value.RegisterOptions.TextDocumentLinkedEditingRange != null)
         {
             method = Methods.TextDocumentLinkedEditingRange.Value;
@@ -4268,9 +4875,17 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             method = Methods.TextDocumentInlineValue.Value;
         }
+        if (value.RegisterOptions.TextDocumentInlayHint != null)
+        {
+            method = Methods.TextDocumentInlayHint.Value;
+        }
         if (value.RegisterOptions.TextDocumentDiagnostic != null)
         {
             method = Methods.TextDocumentDiagnostic.Value;
+        }
+        if (value.RegisterOptions.TextDocumentInlineCompletion != null)
+        {
+            method = Methods.TextDocumentInlineCompletion.Value;
         }
         if (value.RegisterOptions.WorkspaceTextDocumentContent != null)
         {
@@ -4279,6 +4894,10 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         if (value.RegisterOptions.TextDocumentWillSaveWaitUntil != null)
         {
             method = Methods.TextDocumentWillSaveWaitUntil.Value;
+        }
+        if (value.RegisterOptions.TextDocumentCompletion != null)
+        {
+            method = Methods.TextDocumentCompletion.Value;
         }
         if (value.RegisterOptions.TextDocumentHover != null)
         {
@@ -4304,9 +4923,17 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             method = Methods.TextDocumentDocumentSymbol.Value;
         }
+        if (value.RegisterOptions.TextDocumentCodeAction != null)
+        {
+            method = Methods.TextDocumentCodeAction.Value;
+        }
         if (value.RegisterOptions.WorkspaceSymbol != null)
         {
             method = Methods.WorkspaceSymbol.Value;
+        }
+        if (value.RegisterOptions.TextDocumentCodeLens != null)
+        {
+            method = Methods.TextDocumentCodeLens.Value;
         }
         if (value.RegisterOptions.TextDocumentDocumentLink != null)
         {
@@ -4406,6 +5033,14 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentSelectionRange, LspJsonContext.Default.SelectionRangeRegistrationOptions);
         }
+        if (value.RegisterOptions.TextDocumentPrepareCallHierarchy != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentPrepareCallHierarchy, LspJsonContext.Default.CallHierarchyRegistrationOptions);
+        }
+        if (value.RegisterOptions.TextDocumentSemanticTokens != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentSemanticTokens, LspJsonContext.Default.SemanticTokensRegistrationOptions);
+        }
         if (value.RegisterOptions.TextDocumentLinkedEditingRange != null)
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentLinkedEditingRange, LspJsonContext.Default.LinkedEditingRangeRegistrationOptions);
@@ -4434,9 +5069,17 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentInlineValue, LspJsonContext.Default.InlineValueRegistrationOptions);
         }
+        if (value.RegisterOptions.TextDocumentInlayHint != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentInlayHint, LspJsonContext.Default.InlayHintRegistrationOptions);
+        }
         if (value.RegisterOptions.TextDocumentDiagnostic != null)
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentDiagnostic, LspJsonContext.Default.DiagnosticRegistrationOptions);
+        }
+        if (value.RegisterOptions.TextDocumentInlineCompletion != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentInlineCompletion, LspJsonContext.Default.InlineCompletionRegistrationOptions);
         }
         if (value.RegisterOptions.WorkspaceTextDocumentContent != null)
         {
@@ -4445,6 +5088,10 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         if (value.RegisterOptions.TextDocumentWillSaveWaitUntil != null)
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentWillSaveWaitUntil, LspJsonContext.Default.TextDocumentRegistrationOptions);
+        }
+        if (value.RegisterOptions.TextDocumentCompletion != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentCompletion, LspJsonContext.Default.CompletionRegistrationOptions);
         }
         if (value.RegisterOptions.TextDocumentHover != null)
         {
@@ -4470,9 +5117,17 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentDocumentSymbol, LspJsonContext.Default.DocumentSymbolRegistrationOptions);
         }
+        if (value.RegisterOptions.TextDocumentCodeAction != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentCodeAction, LspJsonContext.Default.CodeActionRegistrationOptions);
+        }
         if (value.RegisterOptions.WorkspaceSymbol != null)
         {
             JsonSerializer.Serialize(writer, value.RegisterOptions.WorkspaceSymbol, LspJsonContext.Default.WorkspaceSymbolRegistrationOptions);
+        }
+        if (value.RegisterOptions.TextDocumentCodeLens != null)
+        {
+            JsonSerializer.Serialize(writer, value.RegisterOptions.TextDocumentCodeLens, LspJsonContext.Default.CodeLensRegistrationOptions);
         }
         if (value.RegisterOptions.TextDocumentDocumentLink != null)
         {
@@ -4575,9 +5230,16 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(WorkDoneProgressCreateParams), TypeInfoPropertyName = "WorkDoneProgressCreateParams")]
 [JsonSerializable(typeof(WorkDoneProgressCancelParams), TypeInfoPropertyName = "WorkDoneProgressCancelParams")]
 [JsonSerializable(typeof(CallHierarchyPrepareParams), TypeInfoPropertyName = "CallHierarchyPrepareParams")]
+[JsonSerializable(typeof(CallHierarchyItem), TypeInfoPropertyName = "CallHierarchyItem")]
 [JsonSerializable(typeof(CallHierarchyRegistrationOptions), TypeInfoPropertyName = "CallHierarchyRegistrationOptions")]
+[JsonSerializable(typeof(CallHierarchyIncomingCallsParams), TypeInfoPropertyName = "CallHierarchyIncomingCallsParams")]
+[JsonSerializable(typeof(CallHierarchyIncomingCall), TypeInfoPropertyName = "CallHierarchyIncomingCall")]
+[JsonSerializable(typeof(CallHierarchyOutgoingCallsParams), TypeInfoPropertyName = "CallHierarchyOutgoingCallsParams")]
+[JsonSerializable(typeof(CallHierarchyOutgoingCall), TypeInfoPropertyName = "CallHierarchyOutgoingCall")]
 [JsonSerializable(typeof(SemanticTokensParams), TypeInfoPropertyName = "SemanticTokensParams")]
+[JsonSerializable(typeof(SemanticTokens), TypeInfoPropertyName = "SemanticTokens")]
 [JsonSerializable(typeof(SemanticTokensPartialResult), TypeInfoPropertyName = "SemanticTokensPartialResult")]
+[JsonSerializable(typeof(SemanticTokensRegistrationOptions), TypeInfoPropertyName = "SemanticTokensRegistrationOptions")]
 [JsonSerializable(typeof(SemanticTokensDeltaParams), TypeInfoPropertyName = "SemanticTokensDeltaParams")]
 [JsonSerializable(typeof(SemanticTokensDelta), TypeInfoPropertyName = "SemanticTokensDelta")]
 [JsonSerializable(typeof(SemanticTokensDeltaPartialResult), TypeInfoPropertyName = "SemanticTokensDeltaPartialResult")]
@@ -4603,6 +5265,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(InlineValueParams), TypeInfoPropertyName = "InlineValueParams")]
 [JsonSerializable(typeof(InlineValueRegistrationOptions), TypeInfoPropertyName = "InlineValueRegistrationOptions")]
 [JsonSerializable(typeof(InlayHintParams), TypeInfoPropertyName = "InlayHintParams")]
+[JsonSerializable(typeof(InlayHint), TypeInfoPropertyName = "InlayHint")]
 [JsonSerializable(typeof(InlayHintRegistrationOptions), TypeInfoPropertyName = "InlayHintRegistrationOptions")]
 [JsonSerializable(typeof(DocumentDiagnosticParams), TypeInfoPropertyName = "DocumentDiagnosticParams")]
 [JsonSerializable(typeof(DiagnosticServerCancellationData), TypeInfoPropertyName = "DiagnosticServerCancellationData")]
@@ -4611,6 +5274,8 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(WorkspaceDiagnosticReport), TypeInfoPropertyName = "WorkspaceDiagnosticReport")]
 [JsonSerializable(typeof(WorkspaceDiagnosticReportPartialResult), TypeInfoPropertyName = "WorkspaceDiagnosticReportPartialResult")]
 [JsonSerializable(typeof(InlineCompletionParams), TypeInfoPropertyName = "InlineCompletionParams")]
+[JsonSerializable(typeof(InlineCompletionList), TypeInfoPropertyName = "InlineCompletionList")]
+[JsonSerializable(typeof(InlineCompletionItem), TypeInfoPropertyName = "InlineCompletionItem")]
 [JsonSerializable(typeof(InlineCompletionRegistrationOptions), TypeInfoPropertyName = "InlineCompletionRegistrationOptions")]
 [JsonSerializable(typeof(TextDocumentContentParams), TypeInfoPropertyName = "TextDocumentContentParams")]
 [JsonSerializable(typeof(TextDocumentContentResult), TypeInfoPropertyName = "TextDocumentContentResult")]
@@ -4618,6 +5283,8 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(TextDocumentContentRefreshParams), TypeInfoPropertyName = "TextDocumentContentRefreshParams")]
 [JsonSerializable(typeof(RegistrationParams), TypeInfoPropertyName = "RegistrationParams")]
 [JsonSerializable(typeof(UnregistrationParams), TypeInfoPropertyName = "UnregistrationParams")]
+[JsonSerializable(typeof(InitializeParams), TypeInfoPropertyName = "InitializeParams")]
+[JsonSerializable(typeof(InitializeResult), TypeInfoPropertyName = "InitializeResult")]
 [JsonSerializable(typeof(InitializeError), TypeInfoPropertyName = "InitializeError")]
 [JsonSerializable(typeof(InitializedParams), TypeInfoPropertyName = "InitializedParams")]
 [JsonSerializable(typeof(DidChangeConfigurationParams), TypeInfoPropertyName = "DidChangeConfigurationParams")]
@@ -4638,6 +5305,8 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(DidChangeWatchedFilesRegistrationOptions), TypeInfoPropertyName = "DidChangeWatchedFilesRegistrationOptions")]
 [JsonSerializable(typeof(PublishDiagnosticsParams), TypeInfoPropertyName = "PublishDiagnosticsParams")]
 [JsonSerializable(typeof(CompletionParams), TypeInfoPropertyName = "CompletionParams")]
+[JsonSerializable(typeof(CompletionItem), TypeInfoPropertyName = "CompletionItem")]
+[JsonSerializable(typeof(CompletionList), TypeInfoPropertyName = "CompletionList")]
 [JsonSerializable(typeof(CompletionRegistrationOptions), TypeInfoPropertyName = "CompletionRegistrationOptions")]
 [JsonSerializable(typeof(HoverParams), TypeInfoPropertyName = "HoverParams")]
 [JsonSerializable(typeof(Hover), TypeInfoPropertyName = "Hover")]
@@ -4656,10 +5325,15 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(SymbolInformation), TypeInfoPropertyName = "SymbolInformation")]
 [JsonSerializable(typeof(DocumentSymbol), TypeInfoPropertyName = "DocumentSymbol")]
 [JsonSerializable(typeof(DocumentSymbolRegistrationOptions), TypeInfoPropertyName = "DocumentSymbolRegistrationOptions")]
+[JsonSerializable(typeof(CodeActionParams), TypeInfoPropertyName = "CodeActionParams")]
+[JsonSerializable(typeof(Command), TypeInfoPropertyName = "Command")]
+[JsonSerializable(typeof(CodeAction), TypeInfoPropertyName = "CodeAction")]
+[JsonSerializable(typeof(CodeActionRegistrationOptions), TypeInfoPropertyName = "CodeActionRegistrationOptions")]
 [JsonSerializable(typeof(WorkspaceSymbolParams), TypeInfoPropertyName = "WorkspaceSymbolParams")]
 [JsonSerializable(typeof(WorkspaceSymbol), TypeInfoPropertyName = "WorkspaceSymbol")]
 [JsonSerializable(typeof(WorkspaceSymbolRegistrationOptions), TypeInfoPropertyName = "WorkspaceSymbolRegistrationOptions")]
 [JsonSerializable(typeof(CodeLensParams), TypeInfoPropertyName = "CodeLensParams")]
+[JsonSerializable(typeof(CodeLens), TypeInfoPropertyName = "CodeLens")]
 [JsonSerializable(typeof(CodeLensRegistrationOptions), TypeInfoPropertyName = "CodeLensRegistrationOptions")]
 [JsonSerializable(typeof(DocumentLinkParams), TypeInfoPropertyName = "DocumentLinkParams")]
 [JsonSerializable(typeof(DocumentLink), TypeInfoPropertyName = "DocumentLink")]
@@ -4688,6 +5362,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(TextDocumentPositionParams), TypeInfoPropertyName = "TextDocumentPositionParams")]
 [JsonSerializable(typeof(WorkDoneProgressParams), TypeInfoPropertyName = "WorkDoneProgressParams")]
 [JsonSerializable(typeof(PartialResultParams), TypeInfoPropertyName = "PartialResultParams")]
+[JsonSerializable(typeof(LocationLink), TypeInfoPropertyName = "LocationLink")]
 [JsonSerializable(typeof(Range), TypeInfoPropertyName = "Range")]
 [JsonSerializable(typeof(ImplementationOptions), TypeInfoPropertyName = "ImplementationOptions")]
 [JsonSerializable(typeof(StaticRegistrationOptions), TypeInfoPropertyName = "StaticRegistrationOptions")]
@@ -4702,6 +5377,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(Position), TypeInfoPropertyName = "Position")]
 [JsonSerializable(typeof(SelectionRangeOptions), TypeInfoPropertyName = "SelectionRangeOptions")]
 [JsonSerializable(typeof(CallHierarchyOptions), TypeInfoPropertyName = "CallHierarchyOptions")]
+[JsonSerializable(typeof(SemanticTokensOptions), TypeInfoPropertyName = "SemanticTokensOptions")]
 [JsonSerializable(typeof(SemanticTokensEdit), TypeInfoPropertyName = "SemanticTokensEdit")]
 [JsonSerializable(typeof(LinkedEditingRangeOptions), TypeInfoPropertyName = "LinkedEditingRangeOptions")]
 [JsonSerializable(typeof(FileCreate), TypeInfoPropertyName = "FileCreate")]
@@ -4720,6 +5396,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(InlineValueVariableLookup), TypeInfoPropertyName = "InlineValueVariableLookup")]
 [JsonSerializable(typeof(InlineValueEvaluatableExpression), TypeInfoPropertyName = "InlineValueEvaluatableExpression")]
 [JsonSerializable(typeof(InlineValueOptions), TypeInfoPropertyName = "InlineValueOptions")]
+[JsonSerializable(typeof(InlayHintLabelPart), TypeInfoPropertyName = "InlayHintLabelPart")]
 [JsonSerializable(typeof(MarkupContent), TypeInfoPropertyName = "MarkupContent")]
 [JsonSerializable(typeof(InlayHintOptions), TypeInfoPropertyName = "InlayHintOptions")]
 [JsonSerializable(typeof(RelatedFullDocumentDiagnosticReport), TypeInfoPropertyName = "RelatedFullDocumentDiagnosticReport")]
@@ -4735,6 +5412,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(Registration), TypeInfoPropertyName = "Registration")]
 [JsonSerializable(typeof(Unregistration), TypeInfoPropertyName = "Unregistration")]
 [JsonSerializable(typeof(WorkspaceFoldersInitializeParams), TypeInfoPropertyName = "WorkspaceFoldersInitializeParams")]
+[JsonSerializable(typeof(ServerCapabilities), TypeInfoPropertyName = "ServerCapabilities")]
 [JsonSerializable(typeof(ServerInfo), TypeInfoPropertyName = "ServerInfo")]
 [JsonSerializable(typeof(VersionedTextDocumentIdentifier), TypeInfoPropertyName = "VersionedTextDocumentIdentifier")]
 [JsonSerializable(typeof(SaveOptions), TypeInfoPropertyName = "SaveOptions")]
@@ -4757,7 +5435,9 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(DocumentHighlightOptions), TypeInfoPropertyName = "DocumentHighlightOptions")]
 [JsonSerializable(typeof(BaseSymbolInformation), TypeInfoPropertyName = "BaseSymbolInformation")]
 [JsonSerializable(typeof(DocumentSymbolOptions), TypeInfoPropertyName = "DocumentSymbolOptions")]
+[JsonSerializable(typeof(CodeActionContext), TypeInfoPropertyName = "CodeActionContext")]
 [JsonSerializable(typeof(CodeActionDisabled), TypeInfoPropertyName = "CodeActionDisabled")]
+[JsonSerializable(typeof(CodeActionOptions), TypeInfoPropertyName = "CodeActionOptions")]
 [JsonSerializable(typeof(LocationUriOnly), TypeInfoPropertyName = "LocationUriOnly")]
 [JsonSerializable(typeof(WorkspaceSymbolOptions), TypeInfoPropertyName = "WorkspaceSymbolOptions")]
 [JsonSerializable(typeof(CodeLensOptions), TypeInfoPropertyName = "CodeLensOptions")]
@@ -4771,6 +5451,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(PrepareRenameDefaultBehavior), TypeInfoPropertyName = "PrepareRenameDefaultBehavior")]
 [JsonSerializable(typeof(ExecuteCommandOptions), TypeInfoPropertyName = "ExecuteCommandOptions")]
 [JsonSerializable(typeof(WorkspaceEditMetadata), TypeInfoPropertyName = "WorkspaceEditMetadata")]
+[JsonSerializable(typeof(SemanticTokensLegend), TypeInfoPropertyName = "SemanticTokensLegend")]
 [JsonSerializable(typeof(SemanticTokensFullDelta), TypeInfoPropertyName = "SemanticTokensFullDelta")]
 [JsonSerializable(typeof(OptionalVersionedTextDocumentIdentifier), TypeInfoPropertyName = "OptionalVersionedTextDocumentIdentifier")]
 [JsonSerializable(typeof(AnnotatedTextEdit), TypeInfoPropertyName = "AnnotatedTextEdit")]
@@ -4786,6 +5467,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(WorkspaceUnchangedDocumentDiagnosticReport), TypeInfoPropertyName = "WorkspaceUnchangedDocumentDiagnosticReport")]
 [JsonSerializable(typeof(SelectedCompletionInfo), TypeInfoPropertyName = "SelectedCompletionInfo")]
 [JsonSerializable(typeof(ClientInfo), TypeInfoPropertyName = "ClientInfo")]
+[JsonSerializable(typeof(ClientCapabilities), TypeInfoPropertyName = "ClientCapabilities")]
 [JsonSerializable(typeof(TextDocumentSyncOptions), TypeInfoPropertyName = "TextDocumentSyncOptions")]
 [JsonSerializable(typeof(WorkspaceOptions), TypeInfoPropertyName = "WorkspaceOptions")]
 [JsonSerializable(typeof(TextDocumentContentChangePartial), TypeInfoPropertyName = "TextDocumentContentChangePartial")]
@@ -4796,8 +5478,10 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(ServerCompletionItemOptions), TypeInfoPropertyName = "ServerCompletionItemOptions")]
 [JsonSerializable(typeof(MarkedStringWithLanguage), TypeInfoPropertyName = "MarkedStringWithLanguage")]
 [JsonSerializable(typeof(ParameterInformation), TypeInfoPropertyName = "ParameterInformation")]
+[JsonSerializable(typeof(CodeActionKindDocumentation), TypeInfoPropertyName = "CodeActionKindDocumentation")]
 [JsonSerializable(typeof(FileOperationPatternOptions), TypeInfoPropertyName = "FileOperationPatternOptions")]
 [JsonSerializable(typeof(WorkspaceClientCapabilities), TypeInfoPropertyName = "WorkspaceClientCapabilities")]
+[JsonSerializable(typeof(TextDocumentClientCapabilities), TypeInfoPropertyName = "TextDocumentClientCapabilities")]
 [JsonSerializable(typeof(WindowClientCapabilities), TypeInfoPropertyName = "WindowClientCapabilities")]
 [JsonSerializable(typeof(GeneralClientCapabilities), TypeInfoPropertyName = "GeneralClientCapabilities")]
 [JsonSerializable(typeof(WorkspaceFoldersServerCapabilities), TypeInfoPropertyName = "WorkspaceFoldersServerCapabilities")]
@@ -4831,6 +5515,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(ReferenceClientCapabilities), TypeInfoPropertyName = "ReferenceClientCapabilities")]
 [JsonSerializable(typeof(DocumentHighlightClientCapabilities), TypeInfoPropertyName = "DocumentHighlightClientCapabilities")]
 [JsonSerializable(typeof(DocumentSymbolClientCapabilities), TypeInfoPropertyName = "DocumentSymbolClientCapabilities")]
+[JsonSerializable(typeof(CodeActionClientCapabilities), TypeInfoPropertyName = "CodeActionClientCapabilities")]
 [JsonSerializable(typeof(CodeLensClientCapabilities), TypeInfoPropertyName = "CodeLensClientCapabilities")]
 [JsonSerializable(typeof(DocumentLinkClientCapabilities), TypeInfoPropertyName = "DocumentLinkClientCapabilities")]
 [JsonSerializable(typeof(DocumentColorClientCapabilities), TypeInfoPropertyName = "DocumentColorClientCapabilities")]
@@ -4863,6 +5548,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(ClientCompletionItemOptionsKind), TypeInfoPropertyName = "ClientCompletionItemOptionsKind")]
 [JsonSerializable(typeof(CompletionListCapabilities), TypeInfoPropertyName = "CompletionListCapabilities")]
 [JsonSerializable(typeof(ClientSignatureInformationOptions), TypeInfoPropertyName = "ClientSignatureInformationOptions")]
+[JsonSerializable(typeof(ClientCodeActionLiteralOptions), TypeInfoPropertyName = "ClientCodeActionLiteralOptions")]
 [JsonSerializable(typeof(ClientCodeActionResolveOptions), TypeInfoPropertyName = "ClientCodeActionResolveOptions")]
 [JsonSerializable(typeof(CodeActionTagOptions), TypeInfoPropertyName = "CodeActionTagOptions")]
 [JsonSerializable(typeof(ClientCodeLensResolveOptions), TypeInfoPropertyName = "ClientCodeLensResolveOptions")]
@@ -4876,6 +5562,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(ClientCompletionItemResolveOptions), TypeInfoPropertyName = "ClientCompletionItemResolveOptions")]
 [JsonSerializable(typeof(ClientCompletionItemInsertTextModeOptions), TypeInfoPropertyName = "ClientCompletionItemInsertTextModeOptions")]
 [JsonSerializable(typeof(ClientSignatureParameterInformationOptions), TypeInfoPropertyName = "ClientSignatureParameterInformationOptions")]
+[JsonSerializable(typeof(ClientCodeActionKindOptions), TypeInfoPropertyName = "ClientCodeActionKindOptions")]
 [JsonSerializable(typeof(ClientDiagnosticsTagOptions), TypeInfoPropertyName = "ClientDiagnosticsTagOptions")]
 [JsonSerializable(typeof(ClientSemanticTokensRequestFullDelta), TypeInfoPropertyName = "ClientSemanticTokensRequestFullDelta")]
 [JsonSerializable(typeof(InitializationOptions), TypeInfoPropertyName = "InitializationOptions")]
@@ -4914,6 +5601,8 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(DiagnosticData), TypeInfoPropertyName = "DiagnosticData")]
 [JsonSerializable(typeof(CompletionItemDefaultsData), TypeInfoPropertyName = "CompletionItemDefaultsData")]
 [JsonSerializable(typeof(ColorPresentationRegistrationOptions), TypeInfoPropertyName = "ColorPresentationRegistrationOptions")]
+[JsonSerializable(typeof(SemanticTokenType), TypeInfoPropertyName = "SemanticTokenType")]
+[JsonSerializable(typeof(SemanticTokenModifier), TypeInfoPropertyName = "SemanticTokenModifier")]
 [JsonSerializable(typeof(DocumentDiagnosticReportKind), TypeInfoPropertyName = "DocumentDiagnosticReportKind")]
 [JsonSerializable(typeof(ErrorCode), TypeInfoPropertyName = "ErrorCode")]
 [JsonSerializable(typeof(FoldingRangeKind), TypeInfoPropertyName = "FoldingRangeKind")]
@@ -4921,6 +5610,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(SymbolTag), TypeInfoPropertyName = "SymbolTag")]
 [JsonSerializable(typeof(UniquenessLevel), TypeInfoPropertyName = "UniquenessLevel")]
 [JsonSerializable(typeof(MonikerKind), TypeInfoPropertyName = "MonikerKind")]
+[JsonSerializable(typeof(InlayHintKind), TypeInfoPropertyName = "InlayHintKind")]
 [JsonSerializable(typeof(MessageType), TypeInfoPropertyName = "MessageType")]
 [JsonSerializable(typeof(TextDocumentSyncKind), TypeInfoPropertyName = "TextDocumentSyncKind")]
 [JsonSerializable(typeof(TextDocumentSaveReason), TypeInfoPropertyName = "TextDocumentSaveReason")]
@@ -4929,6 +5619,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(InsertTextFormat), TypeInfoPropertyName = "InsertTextFormat")]
 [JsonSerializable(typeof(InsertTextMode), TypeInfoPropertyName = "InsertTextMode")]
 [JsonSerializable(typeof(DocumentHighlightKind), TypeInfoPropertyName = "DocumentHighlightKind")]
+[JsonSerializable(typeof(CodeActionKind), TypeInfoPropertyName = "CodeActionKind")]
 [JsonSerializable(typeof(CodeActionTag), TypeInfoPropertyName = "CodeActionTag")]
 [JsonSerializable(typeof(TraceValue), TypeInfoPropertyName = "TraceValue")]
 [JsonSerializable(typeof(MarkupKind), TypeInfoPropertyName = "MarkupKind")]
@@ -4942,6 +5633,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(CompletionTriggerKind), TypeInfoPropertyName = "CompletionTriggerKind")]
 [JsonSerializable(typeof(ApplyKind), TypeInfoPropertyName = "ApplyKind")]
 [JsonSerializable(typeof(SignatureHelpTriggerKind), TypeInfoPropertyName = "SignatureHelpTriggerKind")]
+[JsonSerializable(typeof(CodeActionTriggerKind), TypeInfoPropertyName = "CodeActionTriggerKind")]
 [JsonSerializable(typeof(FileOperationPatternKind), TypeInfoPropertyName = "FileOperationPatternKind")]
 [JsonSerializable(typeof(ResourceOperationKind), TypeInfoPropertyName = "ResourceOperationKind")]
 [JsonSerializable(typeof(FailureHandlingKind), TypeInfoPropertyName = "FailureHandlingKind")]
@@ -4959,6 +5651,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(BooleanOrEmptyObject), TypeInfoPropertyName = "BooleanOrEmptyObject")]
 [JsonSerializable(typeof(BooleanOrSemanticTokensFullDelta), TypeInfoPropertyName = "BooleanOrSemanticTokensFullDelta")]
 [JsonSerializable(typeof(TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile), TypeInfoPropertyName = "TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile")]
+[JsonSerializable(typeof(StringOrInlayHintLabelParts), TypeInfoPropertyName = "StringOrInlayHintLabelParts")]
 [JsonSerializable(typeof(StringOrMarkupContent), TypeInfoPropertyName = "StringOrMarkupContent")]
 [JsonSerializable(typeof(WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport), TypeInfoPropertyName = "WorkspaceFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport")]
 [JsonSerializable(typeof(StringOrStringValue), TypeInfoPropertyName = "StringOrStringValue")]
@@ -4985,6 +5678,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(BooleanOrReferenceOptions), TypeInfoPropertyName = "BooleanOrReferenceOptions")]
 [JsonSerializable(typeof(BooleanOrDocumentHighlightOptions), TypeInfoPropertyName = "BooleanOrDocumentHighlightOptions")]
 [JsonSerializable(typeof(BooleanOrDocumentSymbolOptions), TypeInfoPropertyName = "BooleanOrDocumentSymbolOptions")]
+[JsonSerializable(typeof(BooleanOrCodeActionOptions), TypeInfoPropertyName = "BooleanOrCodeActionOptions")]
 [JsonSerializable(typeof(BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions), TypeInfoPropertyName = "BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions")]
 [JsonSerializable(typeof(BooleanOrWorkspaceSymbolOptions), TypeInfoPropertyName = "BooleanOrWorkspaceSymbolOptions")]
 [JsonSerializable(typeof(BooleanOrDocumentFormattingOptions), TypeInfoPropertyName = "BooleanOrDocumentFormattingOptions")]
@@ -4994,6 +5688,7 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(BooleanOrSelectionRangeOptionsOrSelectionRangeRegistrationOptions), TypeInfoPropertyName = "BooleanOrSelectionRangeOptionsOrSelectionRangeRegistrationOptions")]
 [JsonSerializable(typeof(BooleanOrCallHierarchyOptionsOrCallHierarchyRegistrationOptions), TypeInfoPropertyName = "BooleanOrCallHierarchyOptionsOrCallHierarchyRegistrationOptions")]
 [JsonSerializable(typeof(BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRangeRegistrationOptions), TypeInfoPropertyName = "BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRangeRegistrationOptions")]
+[JsonSerializable(typeof(SemanticTokensOptionsOrRegistrationOptions), TypeInfoPropertyName = "SemanticTokensOptionsOrRegistrationOptions")]
 [JsonSerializable(typeof(BooleanOrMonikerOptionsOrMonikerRegistrationOptions), TypeInfoPropertyName = "BooleanOrMonikerOptionsOrMonikerRegistrationOptions")]
 [JsonSerializable(typeof(BooleanOrTypeHierarchyOptionsOrTypeHierarchyRegistrationOptions), TypeInfoPropertyName = "BooleanOrTypeHierarchyOptionsOrTypeHierarchyRegistrationOptions")]
 [JsonSerializable(typeof(BooleanOrInlineValueOptionsOrInlineValueRegistrationOptions), TypeInfoPropertyName = "BooleanOrInlineValueOptionsOrInlineValueRegistrationOptions")]
@@ -5012,20 +5707,31 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(FoldingRangesOrNull), TypeInfoPropertyName = "FoldingRangesOrNull")]
 [JsonSerializable(typeof(LocationOrLocationsOrDeclarationLinksOrNull), TypeInfoPropertyName = "LocationOrLocationsOrDeclarationLinksOrNull")]
 [JsonSerializable(typeof(SelectionRangesOrNull), TypeInfoPropertyName = "SelectionRangesOrNull")]
+[JsonSerializable(typeof(CallHierarchyItemsOrNull), TypeInfoPropertyName = "CallHierarchyItemsOrNull")]
+[JsonSerializable(typeof(CallHierarchyIncomingCallsOrNull), TypeInfoPropertyName = "CallHierarchyIncomingCallsOrNull")]
+[JsonSerializable(typeof(CallHierarchyOutgoingCallsOrNull), TypeInfoPropertyName = "CallHierarchyOutgoingCallsOrNull")]
+[JsonSerializable(typeof(SemanticTokensOrNull), TypeInfoPropertyName = "SemanticTokensOrNull")]
+[JsonSerializable(typeof(SemanticTokensOrSemanticTokensDeltaOrNull), TypeInfoPropertyName = "SemanticTokensOrSemanticTokensDeltaOrNull")]
 [JsonSerializable(typeof(LinkedEditingRangesOrNull), TypeInfoPropertyName = "LinkedEditingRangesOrNull")]
 [JsonSerializable(typeof(WorkspaceEditOrNull), TypeInfoPropertyName = "WorkspaceEditOrNull")]
 [JsonSerializable(typeof(MonikersOrNull), TypeInfoPropertyName = "MonikersOrNull")]
 [JsonSerializable(typeof(TypeHierarchyItemsOrNull), TypeInfoPropertyName = "TypeHierarchyItemsOrNull")]
 [JsonSerializable(typeof(InlineValuesOrNull), TypeInfoPropertyName = "InlineValuesOrNull")]
+[JsonSerializable(typeof(InlayHintsOrNull), TypeInfoPropertyName = "InlayHintsOrNull")]
 [JsonSerializable(typeof(RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport), TypeInfoPropertyName = "RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport")]
+[JsonSerializable(typeof(InlineCompletionListOrItemsOrNull), TypeInfoPropertyName = "InlineCompletionListOrItemsOrNull")]
 [JsonSerializable(typeof(MessageActionItemOrNull), TypeInfoPropertyName = "MessageActionItemOrNull")]
 [JsonSerializable(typeof(TextEditsOrNull), TypeInfoPropertyName = "TextEditsOrNull")]
+[JsonSerializable(typeof(CompletionItemsOrListOrNull), TypeInfoPropertyName = "CompletionItemsOrListOrNull")]
 [JsonSerializable(typeof(HoverOrNull), TypeInfoPropertyName = "HoverOrNull")]
 [JsonSerializable(typeof(SignatureHelpOrNull), TypeInfoPropertyName = "SignatureHelpOrNull")]
 [JsonSerializable(typeof(LocationsOrNull), TypeInfoPropertyName = "LocationsOrNull")]
 [JsonSerializable(typeof(DocumentHighlightsOrNull), TypeInfoPropertyName = "DocumentHighlightsOrNull")]
 [JsonSerializable(typeof(SymbolInformationsOrDocumentSymbolsOrNull), TypeInfoPropertyName = "SymbolInformationsOrDocumentSymbolsOrNull")]
+[JsonSerializable(typeof(CommandOrCodeAction), TypeInfoPropertyName = "CommandOrCodeAction")]
+[JsonSerializable(typeof(CommandOrCodeActionArrayOrNull), TypeInfoPropertyName = "CommandOrCodeActionArrayOrNull")]
 [JsonSerializable(typeof(SymbolInformationsOrWorkspaceSymbolsOrNull), TypeInfoPropertyName = "SymbolInformationsOrWorkspaceSymbolsOrNull")]
+[JsonSerializable(typeof(CodeLensesOrNull), TypeInfoPropertyName = "CodeLensesOrNull")]
 [JsonSerializable(typeof(DocumentLinksOrNull), TypeInfoPropertyName = "DocumentLinksOrNull")]
 [JsonSerializable(typeof(RangeOrPrepareRenamePlaceholderOrPrepareRenameDefaultBehaviorOrNull), TypeInfoPropertyName = "RangeOrPrepareRenamePlaceholderOrPrepareRenameDefaultBehaviorOrNull")]
 [JsonSerializable(typeof(LSPAnyOrNull), TypeInfoPropertyName = "LSPAnyOrNull")]
@@ -5075,27 +5781,30 @@ public sealed class RegistrationConverter : JsonConverter<Registration>
 [JsonSerializable(typeof(ColorInformation[]), TypeInfoPropertyName = "ColorInformationArray")]
 [JsonSerializable(typeof(ColorPresentation[]), TypeInfoPropertyName = "ColorPresentationArray")]
 [JsonSerializable(typeof(TextDocumentFilterLanguageOrSchemeOrPattern[]), TypeInfoPropertyName = "TextDocumentFilterLanguageOrSchemeOrPatternArray")]
+[JsonSerializable(typeof(InlayHintLabelPart[]), TypeInfoPropertyName = "InlayHintLabelPartArray")]
 [JsonSerializable(typeof(WorkspaceFolder[]), TypeInfoPropertyName = "WorkspaceFolderArray")]
 [JsonSerializable(typeof(string[]), TypeInfoPropertyName = "StringArray")]
 [JsonSerializable(typeof(StringOrMarkedStringWithLanguage[]), TypeInfoPropertyName = "StringOrMarkedStringWithLanguageArray")]
 [JsonSerializable(typeof(LocationLink[]), TypeInfoPropertyName = "LocationLinkArray")]
 [JsonSerializable(typeof(FoldingRange[]), TypeInfoPropertyName = "FoldingRangeArray")]
 [JsonSerializable(typeof(SelectionRange[]), TypeInfoPropertyName = "SelectionRangeArray")]
+[JsonSerializable(typeof(CallHierarchyItem[]), TypeInfoPropertyName = "CallHierarchyItemArray")]
+[JsonSerializable(typeof(CallHierarchyIncomingCall[]), TypeInfoPropertyName = "CallHierarchyIncomingCallArray")]
+[JsonSerializable(typeof(CallHierarchyOutgoingCall[]), TypeInfoPropertyName = "CallHierarchyOutgoingCallArray")]
 [JsonSerializable(typeof(Moniker[]), TypeInfoPropertyName = "MonikerArray")]
 [JsonSerializable(typeof(TypeHierarchyItem[]), TypeInfoPropertyName = "TypeHierarchyItemArray")]
 [JsonSerializable(typeof(InlineValueTextOrVariableLookupOrEvaluatableExpression[]), TypeInfoPropertyName = "InlineValueTextOrVariableLookupOrEvaluatableExpressionArray")]
+[JsonSerializable(typeof(InlayHint[]), TypeInfoPropertyName = "InlayHintArray")]
+[JsonSerializable(typeof(InlineCompletionItem[]), TypeInfoPropertyName = "InlineCompletionItemArray")]
+[JsonSerializable(typeof(CompletionItem[]), TypeInfoPropertyName = "CompletionItemArray")]
 [JsonSerializable(typeof(DocumentHighlight[]), TypeInfoPropertyName = "DocumentHighlightArray")]
 [JsonSerializable(typeof(SymbolInformation[]), TypeInfoPropertyName = "SymbolInformationArray")]
+[JsonSerializable(typeof(CommandOrCodeAction[]), TypeInfoPropertyName = "CommandOrCodeActionArray")]
 [JsonSerializable(typeof(WorkspaceSymbol[]), TypeInfoPropertyName = "WorkspaceSymbolArray")]
+[JsonSerializable(typeof(CodeLens[]), TypeInfoPropertyName = "CodeLensArray")]
 [JsonSerializable(typeof(DocumentLink[]), TypeInfoPropertyName = "DocumentLinkArray")]
 [JsonSerializable(typeof(MultiDocumentHighlight[]), TypeInfoPropertyName = "MultiDocumentHighlightArray")]
 [JsonSerializable(typeof(VSReferenceItem[]), TypeInfoPropertyName = "VSReferenceItemArray")]
-[JsonSerializable(typeof(InitializeParams), TypeInfoPropertyName = "InitializeParams")]
-[JsonSerializable(typeof(InitializeResult), TypeInfoPropertyName = "InitializeResult")]
-[JsonSerializable(typeof(ClientCapabilities), TypeInfoPropertyName = "ClientCapabilities")]
-[JsonSerializable(typeof(ServerCapabilities), TypeInfoPropertyName = "ServerCapabilities")]
-[JsonSerializable(typeof(CompletionItem), TypeInfoPropertyName = "CompletionItem")]
-[JsonSerializable(typeof(CompletionList), TypeInfoPropertyName = "CompletionList")]
 public sealed partial class LspJsonContext : JsonSerializerContext
 {
 }

@@ -122,9 +122,8 @@ public sealed class Server
 
             // The generated Methods members are `static readonly Method` values, not
             // compile-time constants, so case labels cannot carry them; the dispatch is
-            // an ordinal compare chain instead of a switch. LsHostedMethods covers the
-            // two requests whose surface is still hand-hosted (see Protocol.cs).
-            if (string.Equals(method, global::Ts.LsProto.LsHostedMethods.Initialize.Value, StringComparison.Ordinal))
+            // an ordinal compare chain instead of a switch.
+            if (string.Equals(method, global::Ts.LsProto.Methods.Initialize.Value, StringComparison.Ordinal))
             {
                 HandleInitialize(root, id, hasId);
                 return false;
@@ -173,7 +172,7 @@ public sealed class Server
                 HandleDefinition(id, ParseDefinitionParams(GetParams(root)), cancellationToken);
                 return false;
             }
-            else if (string.Equals(method, global::Ts.LsProto.LsHostedMethods.TextDocumentCompletion.Value, StringComparison.Ordinal))
+            else if (string.Equals(method, global::Ts.LsProto.Methods.TextDocumentCompletion.Value, StringComparison.Ordinal))
             {
                 RequireRequest(hasId);
                 HandleCompletion(id, ParseCompletionParams(GetParams(root)), cancellationToken);
@@ -225,7 +224,7 @@ public sealed class Server
 
         var parameters = ParseInitializeParams(GetParams(root));
         initializeStarted = true;
-        if (parameters.RootUri is { } rootUri)
+        if (parameters.RootUri?.DocumentUri is { } rootUri)
         {
             var requestedDirectory = DocumentUriToFileName(rootUri);
             if (!string.IsNullOrEmpty(requestedDirectory))
@@ -235,7 +234,7 @@ public sealed class Server
         }
 
         // server.go:1061-1063
-        if (startWatchdog != null && parameters.ProcessId is { } processId)
+        if (startWatchdog != null && parameters.ProcessId?.Integer is { } processId)
         {
             startWatchdog(processId);
         }
@@ -513,35 +512,8 @@ public sealed class Server
 
     private static global::Ts.LsProto.InitializeParams ParseInitializeParams(JsonElement parameters)
     {
-        var processIdElement = GetRequiredProperty(parameters, "processId");
-        int? processId = processIdElement.ValueKind switch
-        {
-            JsonValueKind.Null => null,
-            JsonValueKind.Number when processIdElement.TryGetInt32(out var value) => value,
-            _ => throw new JsonException("processId must be an integer or null"),
-        };
-        var rootUriElement = GetRequiredProperty(parameters, "rootUri");
-        global::Ts.LsProto.DocumentUri? rootUri = rootUriElement.ValueKind switch
-        {
-            JsonValueKind.Null => (global::Ts.LsProto.DocumentUri?)null,
-            JsonValueKind.String => new global::Ts.LsProto.DocumentUri(rootUriElement.GetString()!),
-            _ => throw new JsonException("rootUri must be a string or null"),
-        };
-        var capabilities = GetRequiredProperty(parameters, "capabilities");
-        if (capabilities.ValueKind != JsonValueKind.Object)
-        {
-            throw new JsonException("capabilities must be an object");
-        }
-
-        return new global::Ts.LsProto.InitializeParams
-        {
-            ProcessId = processId,
-            RootUri = rootUri,
-            Capabilities = new global::Ts.LsProto.ClientCapabilities(),
-            Locale = GetOptionalString(parameters, "locale"),
-            RootPath = GetOptionalString(parameters, "rootPath"),
-            Trace = GetOptionalString(parameters, "trace"),
-        };
+        return parameters.Deserialize(global::Ts.LsProto.LspJsonContext.Default.InitializeParams)
+            ?? throw new JsonException("params must be an object");
     }
 
     private static global::Ts.LsProto.DidOpenTextDocumentParams ParseDidOpenParams(JsonElement parameters)

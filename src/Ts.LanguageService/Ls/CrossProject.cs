@@ -616,28 +616,3 @@ internal static class CrossProject
     }
 }
 } // namespace Ts.Ls
-
-namespace Ts.LsProto
-{
-    // lsp_generated.go:11402/11084 — RenameResponse = WorkspaceEditOrNull and
-    // CallHierarchyIncomingCallsResponse = CallHierarchyIncomingCallsOrNull arms are
-    // generated in Protocol.Unions.g.cs except this one (skipped wave); hosted here in
-    // the CallHierarchy.Support.cs style until the generated surface covers it.
-    public sealed partial class CallHierarchyIncomingCallsOrNull
-    {
-        public CallHierarchyIncomingCall[]? CallHierarchyIncomingCalls { get; set; }
-
-        public static CallHierarchyIncomingCallsOrNull FromCallHierarchyIncomingCalls(CallHierarchyIncomingCall[] value) => new() { CallHierarchyIncomingCalls = value };
-    }
-
-    // lsp_generated.go:3706-3710 — LocationLink.GetLocation.
-    public static class CrossProjectGetLocationExtensions
-    {
-        public static Location GetLocation(this LocationLink link) =>
-            new() { Uri = link.TargetUri, Range = link.TargetRange };
-
-        // lsp_generated.go:564-568 — CallHierarchyItem.GetLocation.
-        public static Location GetLocation(this CallHierarchyItem item) =>
-            new() { Uri = item.Uri, Range = item.Range };
-    }
-}

@@ -120,7 +120,7 @@ public sealed partial class LanguageService
         var types = new List<string>(tokenTypes.Length);
         foreach (var t in tokenTypes)
         {
-            if (Array.IndexOf(clientCapabilities.TokenTypes, t.Value) >= 0)
+            if (Array.IndexOf(clientCapabilities.TokenTypes ?? [], t.Value) >= 0)
             {
                 types.Add(t.Value!);
             }
@@ -128,7 +128,7 @@ public sealed partial class LanguageService
         var modifiers = new List<string>(tokenModifiers.Length);
         foreach (var m in tokenModifiers)
         {
-            if (Array.IndexOf(clientCapabilities.TokenModifiers, m.Value) >= 0)
+            if (Array.IndexOf(clientCapabilities.TokenModifiers ?? [], m.Value) >= 0)
             {
                 modifiers.Add(m.Value!);
             }
@@ -608,7 +608,7 @@ public sealed partial class LanguageService
         for (var i = 0; i < tokenTypes.Length; i++)
         {
             var serverType = tokenTypes[i];
-            if (Array.IndexOf(clientCapabilities.TokenTypes, serverType.Value) >= 0)
+            if (Array.IndexOf(clientCapabilities.TokenTypes ?? [], serverType.Value) >= 0)
             {
                 typeMapping[(TokenType)i] = clientIdx;
                 clientIdx++;
@@ -619,7 +619,7 @@ public sealed partial class LanguageService
         uint clientBit = 0;
         foreach (var serverModifier in tokenModifiers)
         {
-            if (Array.IndexOf(clientCapabilities.TokenModifiers, serverModifier.Value) >= 0)
+            if (Array.IndexOf(clientCapabilities.TokenModifiers ?? [], serverModifier.Value) >= 0)
             {
                 modifierMapping[serverModifier] = clientBit;
                 clientBit++;

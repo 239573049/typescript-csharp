@@ -14,37 +14,6 @@ using Ts.Ast; // instance-syntax resolution of the Ts.Ast.NodeAccessors extensio
 using Ts.Core; // Tristate extension methods (IsTrue/IsFalse)
 using Ts.Diagnostics; // Message.Localize extension
 
-namespace Ts.LsProto
-{
-    // lsp_generated.go:3087-3097 — CodeLens.
-    public sealed class CodeLens
-    {
-        // The range in which this code lens is valid. Should only span a single line.
-        [System.Text.Json.Serialization.JsonPropertyName("range")]
-        [System.Text.Json.Serialization.JsonRequired]
-        public Range Range { get; set; } = null!;
-
-        // The command this code lens represents.
-        [System.Text.Json.Serialization.JsonPropertyName("command")]
-        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-        public Command? Command { get; set; }
-
-        // A data entry field that is preserved on a code lens item between
-        // a CodeLensRequest and a CodeLensResolveRequest
-        [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-        public CodeLensData? Data { get; set; }
-    }
-
-    // lsp_generated.go:14241 — CodeLensesOrNull (CodeLensResponse = CodeLensesOrNull).
-    public sealed class CodeLensesOrNull
-    {
-        public CodeLens[]? CodeLenses { get; set; }
-
-        public static CodeLensesOrNull FromCodeLenses(CodeLens[] value) => new() { CodeLenses = value };
-    }
-}
-
 namespace Ts.Ls
 {
     public sealed partial class LanguageService
@@ -182,11 +151,13 @@ namespace Ts.Ls
             {
                 cmd.CommandName = showLocationsCommandName;
                 // locs is non-null here: the guard above requires a positive length.
+                // Go: []any{uri, codeLens.Range.Start, locs} — LSPAny elements are
+                // JsonElement in the source-generated surface.
                 cmd.Arguments =
                 [
-                    uri.Value,
-                    codeLens.Range.Start,
-                    locs!,
+                    System.Text.Json.JsonSerializer.SerializeToElement(uri, Ts.LsProto.LspJsonContext.Default.DocumentUri),
+                    System.Text.Json.JsonSerializer.SerializeToElement(codeLens.Range.Start, Ts.LsProto.LspJsonContext.Default.Position),
+                    System.Text.Json.JsonSerializer.SerializeToElement(locs!, Ts.LsProto.LspJsonContext.Default.LocationArray),
                 ];
             }
 

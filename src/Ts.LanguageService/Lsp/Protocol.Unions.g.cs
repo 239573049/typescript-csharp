@@ -81,7 +81,17 @@ public sealed partial class TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile
     public static TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile FromDeleteFile(DeleteFile value) => new() { DeleteFile = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): StringOrInlayHintLabelParts
+[JsonConverter(typeof(StringOrInlayHintLabelPartsConverter))]
+public sealed partial class StringOrInlayHintLabelParts
+{
+    public string? String { get; set; }
+
+    public InlayHintLabelPart[]? InlayHintLabelParts { get; set; }
+
+    public static StringOrInlayHintLabelParts FromString(string value) => new() { String = value };
+
+    public static StringOrInlayHintLabelParts FromInlayHintLabelParts(InlayHintLabelPart[] value) => new() { InlayHintLabelParts = value };
+}
 
 [JsonConverter(typeof(StringOrMarkupContentConverter))]
 public sealed partial class StringOrMarkupContent
@@ -399,7 +409,17 @@ public sealed partial class BooleanOrDocumentSymbolOptions
     public static BooleanOrDocumentSymbolOptions FromDocumentSymbolOptions(DocumentSymbolOptions value) => new() { DocumentSymbolOptions = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): BooleanOrCodeActionOptions
+[JsonConverter(typeof(BooleanOrCodeActionOptionsConverter))]
+public sealed partial class BooleanOrCodeActionOptions
+{
+    public bool? Boolean { get; set; }
+
+    public CodeActionOptions? CodeActionOptions { get; set; }
+
+    public static BooleanOrCodeActionOptions FromBoolean(bool value) => new() { Boolean = value };
+
+    public static BooleanOrCodeActionOptions FromCodeActionOptions(CodeActionOptions value) => new() { CodeActionOptions = value };
+}
 
 [JsonConverter(typeof(BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptionsConverter))]
 public sealed partial class BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions
@@ -529,7 +549,17 @@ public sealed partial class BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRan
     public static BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRangeRegistrationOptions FromLinkedEditingRangeRegistrationOptions(LinkedEditingRangeRegistrationOptions value) => new() { LinkedEditingRangeRegistrationOptions = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): SemanticTokensOptionsOrRegistrationOptions
+[JsonConverter(typeof(SemanticTokensOptionsOrRegistrationOptionsConverter))]
+public sealed partial class SemanticTokensOptionsOrRegistrationOptions
+{
+    public SemanticTokensOptions? Options { get; set; }
+
+    public SemanticTokensRegistrationOptions? RegistrationOptions { get; set; }
+
+    public static SemanticTokensOptionsOrRegistrationOptions FromOptions(SemanticTokensOptions value) => new() { Options = value };
+
+    public static SemanticTokensOptionsOrRegistrationOptions FromRegistrationOptions(SemanticTokensRegistrationOptions value) => new() { RegistrationOptions = value };
+}
 
 [JsonConverter(typeof(BooleanOrMonikerOptionsOrMonikerRegistrationOptionsConverter))]
 public sealed partial class BooleanOrMonikerOptionsOrMonikerRegistrationOptions
@@ -773,15 +803,49 @@ public sealed partial class SelectionRangesOrNull
     public static SelectionRangesOrNull FromSelectionRanges(SelectionRange[] value) => new() { SelectionRanges = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CallHierarchyItemsOrNull
+[JsonConverter(typeof(CallHierarchyItemsOrNullConverter))]
+public sealed partial class CallHierarchyItemsOrNull
+{
+    public CallHierarchyItem[]? CallHierarchyItems { get; set; }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CallHierarchyIncomingCallsOrNull
+    public static CallHierarchyItemsOrNull FromCallHierarchyItems(CallHierarchyItem[] value) => new() { CallHierarchyItems = value };
+}
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CallHierarchyOutgoingCallsOrNull
+[JsonConverter(typeof(CallHierarchyIncomingCallsOrNullConverter))]
+public sealed partial class CallHierarchyIncomingCallsOrNull
+{
+    public CallHierarchyIncomingCall[]? CallHierarchyIncomingCalls { get; set; }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): SemanticTokensOrNull
+    public static CallHierarchyIncomingCallsOrNull FromCallHierarchyIncomingCalls(CallHierarchyIncomingCall[] value) => new() { CallHierarchyIncomingCalls = value };
+}
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): SemanticTokensOrSemanticTokensDeltaOrNull
+[JsonConverter(typeof(CallHierarchyOutgoingCallsOrNullConverter))]
+public sealed partial class CallHierarchyOutgoingCallsOrNull
+{
+    public CallHierarchyOutgoingCall[]? CallHierarchyOutgoingCalls { get; set; }
+
+    public static CallHierarchyOutgoingCallsOrNull FromCallHierarchyOutgoingCalls(CallHierarchyOutgoingCall[] value) => new() { CallHierarchyOutgoingCalls = value };
+}
+
+[JsonConverter(typeof(SemanticTokensOrNullConverter))]
+public sealed partial class SemanticTokensOrNull
+{
+    public SemanticTokens? SemanticTokens { get; set; }
+
+    public static SemanticTokensOrNull FromSemanticTokens(SemanticTokens value) => new() { SemanticTokens = value };
+}
+
+[JsonConverter(typeof(SemanticTokensOrSemanticTokensDeltaOrNullConverter))]
+public sealed partial class SemanticTokensOrSemanticTokensDeltaOrNull
+{
+    public SemanticTokens? SemanticTokens { get; set; }
+
+    public SemanticTokensDelta? SemanticTokensDelta { get; set; }
+
+    public static SemanticTokensOrSemanticTokensDeltaOrNull FromSemanticTokens(SemanticTokens value) => new() { SemanticTokens = value };
+
+    public static SemanticTokensOrSemanticTokensDeltaOrNull FromSemanticTokensDelta(SemanticTokensDelta value) => new() { SemanticTokensDelta = value };
+}
 
 [JsonConverter(typeof(LinkedEditingRangesOrNullConverter))]
 public sealed partial class LinkedEditingRangesOrNull
@@ -823,7 +887,13 @@ public sealed partial class InlineValuesOrNull
     public static InlineValuesOrNull FromInlineValues(InlineValueTextOrVariableLookupOrEvaluatableExpression[] value) => new() { InlineValues = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): InlayHintsOrNull
+[JsonConverter(typeof(InlayHintsOrNullConverter))]
+public sealed partial class InlayHintsOrNull
+{
+    public InlayHint[]? InlayHints { get; set; }
+
+    public static InlayHintsOrNull FromInlayHints(InlayHint[] value) => new() { InlayHints = value };
+}
 
 [JsonConverter(typeof(RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReportConverter))]
 public sealed partial class RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport
@@ -837,7 +907,17 @@ public sealed partial class RelatedFullDocumentDiagnosticReportOrUnchangedDocume
     public static RelatedFullDocumentDiagnosticReportOrUnchangedDocumentDiagnosticReport FromUnchangedDocumentDiagnosticReport(RelatedUnchangedDocumentDiagnosticReport value) => new() { UnchangedDocumentDiagnosticReport = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): InlineCompletionListOrItemsOrNull
+[JsonConverter(typeof(InlineCompletionListOrItemsOrNullConverter))]
+public sealed partial class InlineCompletionListOrItemsOrNull
+{
+    public InlineCompletionList? List { get; set; }
+
+    public InlineCompletionItem[]? Items { get; set; }
+
+    public static InlineCompletionListOrItemsOrNull FromList(InlineCompletionList value) => new() { List = value };
+
+    public static InlineCompletionListOrItemsOrNull FromItems(InlineCompletionItem[] value) => new() { Items = value };
+}
 
 [JsonConverter(typeof(MessageActionItemOrNullConverter))]
 public sealed partial class MessageActionItemOrNull
@@ -855,7 +935,17 @@ public sealed partial class TextEditsOrNull
     public static TextEditsOrNull FromTextEdits(TextEdit[] value) => new() { TextEdits = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CompletionItemsOrListOrNull
+[JsonConverter(typeof(CompletionItemsOrListOrNullConverter))]
+public sealed partial class CompletionItemsOrListOrNull
+{
+    public CompletionItem[]? Items { get; set; }
+
+    public CompletionList? List { get; set; }
+
+    public static CompletionItemsOrListOrNull FromItems(CompletionItem[] value) => new() { Items = value };
+
+    public static CompletionItemsOrListOrNull FromList(CompletionList value) => new() { List = value };
+}
 
 [JsonConverter(typeof(HoverOrNullConverter))]
 public sealed partial class HoverOrNull
@@ -906,9 +996,25 @@ public sealed partial class SymbolInformationsOrDocumentSymbolsOrNull
     public static SymbolInformationsOrDocumentSymbolsOrNull FromDocumentSymbols(List<DocumentSymbol> value) => new() { DocumentSymbols = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CommandOrCodeAction
+[JsonConverter(typeof(CommandOrCodeActionConverter))]
+public sealed partial class CommandOrCodeAction
+{
+    public Command? Command { get; set; }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CommandOrCodeActionArrayOrNull
+    public CodeAction? CodeAction { get; set; }
+
+    public static CommandOrCodeAction FromCommand(Command value) => new() { Command = value };
+
+    public static CommandOrCodeAction FromCodeAction(CodeAction value) => new() { CodeAction = value };
+}
+
+[JsonConverter(typeof(CommandOrCodeActionArrayOrNullConverter))]
+public sealed partial class CommandOrCodeActionArrayOrNull
+{
+    public CommandOrCodeAction[]? CommandOrCodeActionArray { get; set; }
+
+    public static CommandOrCodeActionArrayOrNull FromCommandOrCodeActionArray(CommandOrCodeAction[] value) => new() { CommandOrCodeActionArray = value };
+}
 
 [JsonConverter(typeof(SymbolInformationsOrWorkspaceSymbolsOrNullConverter))]
 public sealed partial class SymbolInformationsOrWorkspaceSymbolsOrNull
@@ -922,7 +1028,13 @@ public sealed partial class SymbolInformationsOrWorkspaceSymbolsOrNull
     public static SymbolInformationsOrWorkspaceSymbolsOrNull FromWorkspaceSymbols(WorkspaceSymbol[] value) => new() { WorkspaceSymbols = value };
 }
 
-// skipped (references types temporarily hosted in Ts.Ls subsets): CodeLensesOrNull
+[JsonConverter(typeof(CodeLensesOrNullConverter))]
+public sealed partial class CodeLensesOrNull
+{
+    public CodeLens[]? CodeLenses { get; set; }
+
+    public static CodeLensesOrNull FromCodeLenses(CodeLens[] value) => new() { CodeLenses = value };
+}
 
 [JsonConverter(typeof(DocumentLinksOrNullConverter))]
 public sealed partial class DocumentLinksOrNull

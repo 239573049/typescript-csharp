@@ -14,6 +14,8 @@ using Ts.Core;
 using Ts.Project.Logging;
 using static global::Ts.Compiler.ProgramLsExports;
 
+using WatchKind = global::Ts.LsProto.WatchKind;
+
 namespace Ts.Project;
 
 public enum Kind

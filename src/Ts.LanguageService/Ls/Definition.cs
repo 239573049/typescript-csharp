@@ -31,7 +31,7 @@ public sealed record DefinitionLocation(string FileName, global::Ts.Core.TextRan
 public sealed partial class LanguageService
 {
     // definition.go:17-26 — ProvideDefinition.
-    public Ts.LsProto.DefinitionResponse? ProvideDefinition(
+    public Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull? ProvideDefinition(
         string fileName,
         int position,
         CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public sealed partial class LanguageService
     }
 
     // definition.go:28-98 — provideDefinitionWorker.
-    private Ts.LsProto.DefinitionResponse? ProvideDefinitionWorker(
+    private Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull? ProvideDefinitionWorker(
         CancellationToken ctx,
         Node node,
         SourceFile file,
@@ -56,7 +56,7 @@ public sealed partial class LanguageService
 
         if (node.Kind == SyntaxKind.SourceFile)
         {
-            return new Ts.LsProto.DefinitionResponse();
+            return new Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull();
         }
 
         var originSelectionRange = LsDeps.ToLspRange(file, GetRangeOfNode(node, file, null));
@@ -179,7 +179,7 @@ public sealed partial class LanguageService
     }
 
     // definition.go:100-135 — ProvideTypeDefinition.
-    public Ts.LsProto.DefinitionResponse? ProvideTypeDefinition(
+    public Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull? ProvideTypeDefinition(
         string fileName,
         int position,
         CancellationToken cancellationToken = default)
@@ -191,7 +191,7 @@ public sealed partial class LanguageService
         var node = global::Ts.AstNav.Tokens.GetTouchingPropertyName(file, position);
         if (node.Kind == SyntaxKind.SourceFile)
         {
-            return new Ts.LsProto.DefinitionResponse();
+            return new Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull();
         }
         var originSelectionRange = LsDeps.ToLspRange(file, GetRangeOfNode(node, file, null));
 
@@ -222,14 +222,14 @@ public sealed partial class LanguageService
             done();
         }
 
-        return new Ts.LsProto.DefinitionResponse();
+        return new Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull();
     }
 
     // definition.go:137-148 — getDeclarationNameForKeyword → SourceDefinitionDeps
     // (GetDeclarationNameForKeyword); re-exported here for the raw worker's call sites.
 
     // definition.go:155-211 — createDefinitionLocations.
-    private Ts.LsProto.DefinitionResponse CreateDefinitionLocations(
+    private Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull CreateDefinitionLocations(
         Ts.LsProto.Range originSelectionRange,
         bool clientSupportsLink,
         List<Node> declarations,
@@ -286,16 +286,16 @@ public sealed partial class LanguageService
 
         if (clientSupportsLink)
         {
-            return new Ts.LsProto.DefinitionResponse { DefinitionLinks = locations.ToArray() };
+            return new Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull { DefinitionLinks = locations.ToArray() };
         }
-        return new Ts.LsProto.DefinitionResponse { Locations = SourceDefinitionDeps.CreateLocationsFromLinks(locations.ToArray()) };
+        return new Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull { Locations = SourceDefinitionDeps.CreateLocationsFromLinks(locations.ToArray()) };
     }
 
     // definition.go:223-228 — createLocationFromFileAndRange.
-    private Ts.LsProto.DefinitionResponse CreateLocationFromFileAndRange(SourceFile file, global::Ts.Core.TextRange textRange)
+    private Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull CreateLocationFromFileAndRange(SourceFile file, global::Ts.Core.TextRange textRange)
     {
         var mappedLocation = GetMappedLocation(file.FileName(), textRange);
-        return new Ts.LsProto.DefinitionResponse { Location = mappedLocation };
+        return new Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull { Location = mappedLocation };
     }
 
     private static DefinitionLocation[] CreateDefinitionLocations(global::Ts.Ast.Node[] declarations)

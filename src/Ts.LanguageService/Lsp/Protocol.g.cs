@@ -12,12 +12,9 @@
 // - Go `type X = Y` response/telemetry aliases are inlined into the RequestInfo
 //   generics (C# has no type aliases).
 // - Position/Range/Location/… ship as classes, not readonly record structs
-//   (plan/04 §5.3) until the Ts.Ls subsets that consume them are absorbed.
-// - The Resolved*ClientCapabilities + resolve() family is not emitted yet;
-//   it collides with Ts.Ls/SemanticTokens.Support.cs.
-// - The following names are temporarily hosted as hand-written subsets in Ts.Ls
-//   (CodeActions.cs / *Support.cs) and are skipped here, together with every type
-//   that references them: CallHierarchyIncomingCall, CallHierarchyItem, CallHierarchyOutgoingCall, CodeAction, CodeActionContext, CodeActionKind, CodeActionParams, CodeActionTriggerKind, Command, CommandOrCodeAction, CommandOrCodeActionArrayOrNull, InlayHint, InlayHintKind, InlayHintLabelPart, LocationLink, SemanticTokenModifier, SemanticTokenType, SemanticTokens, SemanticTokensLegend
+//   (plan/04 §5.3).
+// - Go Resolved*ClientCapabilities are value structs; here they are classes whose
+//   nested Resolved* members are never null, and (*X).resolve() is an extension.
 
 using System;
 using System.Collections.Generic;
@@ -635,7 +632,60 @@ public sealed partial class CallHierarchyPrepareParams : IHasTextDocumentUri, IH
     public Position TextDocumentPosition() => Position;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CallHierarchyItem
+// Represents programming constructs like functions or constructors in the context
+// of call hierarchy.
+// 
+// Since: 3.16.0
+public sealed partial class CallHierarchyItem : IHasLocation
+{
+    // The name of this item.
+    [JsonPropertyName("name")]
+    [JsonRequired]
+    public string Name { get; set; } = "";
+
+    // The kind of this item.
+    [JsonPropertyName("kind")]
+    [JsonRequired]
+    public SymbolKind Kind { get; set; }
+
+    // Tags for this item.
+    [JsonPropertyName("tags")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SymbolTag[]? Tags { get; set; }
+
+    // More detail for this item, e.g. the signature of a function.
+    [JsonPropertyName("detail")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Detail { get; set; }
+
+    // The resource identifier of this item.
+    [JsonPropertyName("uri")]
+    [JsonRequired]
+    public DocumentUri Uri { get; set; }
+
+    // The range enclosing this symbol not including leading/trailing whitespace but everything else, e.g. comments and code.
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    // The range that should be selected and revealed when this symbol is being picked, e.g. the name of a function.
+    // Must be contained by the `range`.
+    [JsonPropertyName("selectionRange")]
+    [JsonRequired]
+    public Range SelectionRange { get; set; } = null!;
+
+    // A data entry field that is preserved between a call hierarchy prepare and
+    // incoming calls or outgoing calls requests.
+    [JsonPropertyName("data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CallHierarchyItemData? Data { get; set; }
+
+    public Location GetLocation() => new Location
+    {
+        Uri = Uri,
+        Range = Range,
+    };
+}
 
 // Call hierarchy options used during static or dynamic registration.
 // 
@@ -659,13 +709,82 @@ public sealed partial class CallHierarchyRegistrationOptions
     public string? Id { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CallHierarchyIncomingCallsParams
+// The parameter of a `callHierarchy/incomingCalls` request.
+// 
+// Since: 3.16.0
+public sealed partial class CallHierarchyIncomingCallsParams
+{
+    // An optional token that a server can use to report work done progress.
+    [JsonPropertyName("workDoneToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? WorkDoneToken { get; set; }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CallHierarchyIncomingCall
+    // An optional token that a server can use to report partial results (e.g. streaming) to
+    // the client.
+    [JsonPropertyName("partialResultToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? PartialResultToken { get; set; }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CallHierarchyOutgoingCallsParams
+    [JsonPropertyName("item")]
+    [JsonRequired]
+    public CallHierarchyItem Item { get; set; } = null!;
+}
 
-// skipped (temporarily hosted in Ts.Ls subsets): CallHierarchyOutgoingCall
+// Represents an incoming call, e.g. a caller of a method or constructor.
+// 
+// Since: 3.16.0
+public sealed partial class CallHierarchyIncomingCall
+{
+    // The item that makes the call.
+    [JsonPropertyName("from")]
+    [JsonRequired]
+    public CallHierarchyItem From { get; set; } = null!;
+
+    // The ranges at which the calls appear. This is relative to the caller
+    // denoted by `this.from`.
+    [JsonPropertyName("fromRanges")]
+    [JsonRequired]
+    public Range[] FromRanges { get; set; } = null!;
+}
+
+// The parameter of a `callHierarchy/outgoingCalls` request.
+// 
+// Since: 3.16.0
+public sealed partial class CallHierarchyOutgoingCallsParams
+{
+    // An optional token that a server can use to report work done progress.
+    [JsonPropertyName("workDoneToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? WorkDoneToken { get; set; }
+
+    // An optional token that a server can use to report partial results (e.g. streaming) to
+    // the client.
+    [JsonPropertyName("partialResultToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? PartialResultToken { get; set; }
+
+    [JsonPropertyName("item")]
+    [JsonRequired]
+    public CallHierarchyItem Item { get; set; } = null!;
+}
+
+// Represents an outgoing call, e.g. calling a getter from a method or a method from a constructor etc.
+// 
+// Since: 3.16.0
+public sealed partial class CallHierarchyOutgoingCall
+{
+    // The item that is called.
+    [JsonPropertyName("to")]
+    [JsonRequired]
+    public CallHierarchyItem To { get; set; } = null!;
+
+    // The range at which this item is called. This is the range relative to the caller, e.g the item
+    // passed to `provideCallHierarchyOutgoingCalls`
+    // and not `this.to`.
+    [JsonPropertyName("fromRanges")]
+    [JsonRequired]
+    public Range[] FromRanges { get; set; } = null!;
+}
 
 // Since: 3.16.0
 public sealed partial class SemanticTokensParams : IHasTextDocumentUri
@@ -689,7 +808,22 @@ public sealed partial class SemanticTokensParams : IHasTextDocumentUri
     public DocumentUri TextDocumentURI() => TextDocument.Uri;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): SemanticTokens
+// Since: 3.16.0
+public sealed partial class SemanticTokens
+{
+    // An optional result id. If provided and clients support delta updating
+    // the client will include the result id in the next semantic token request.
+    // A server can then instead of computing all semantic tokens again simply
+    // send a delta.
+    [JsonPropertyName("resultId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ResultId { get; set; }
+
+    // The actual tokens.
+    [JsonPropertyName("data")]
+    [JsonRequired]
+    public uint[] Data { get; set; } = null!;
+}
 
 // Since: 3.16.0
 public sealed partial class SemanticTokensPartialResult
@@ -699,7 +833,41 @@ public sealed partial class SemanticTokensPartialResult
     public uint[] Data { get; set; } = null!;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): SemanticTokensRegistrationOptions
+// Since: 3.16.0
+public sealed partial class SemanticTokensRegistrationOptions
+{
+    // A document selector to identify the scope of the registration. If set to null
+    // the document selector provided on the client side will be used.
+    [JsonPropertyName("documentSelector")]
+    [JsonRequired]
+    public DocumentSelectorOrNull? DocumentSelector { get; set; }
+
+    [JsonPropertyName("workDoneProgress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? WorkDoneProgress { get; set; }
+
+    // The legend used by the server
+    [JsonPropertyName("legend")]
+    [JsonRequired]
+    public SemanticTokensLegend Legend { get; set; } = null!;
+
+    // Server supports providing semantic tokens for a specific range
+    // of a document.
+    [JsonPropertyName("range")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrEmptyObject? Range { get; set; }
+
+    // Server supports providing semantic tokens for a full document.
+    [JsonPropertyName("full")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrSemanticTokensFullDelta? Full { get; set; }
+
+    // The id used to register the request. The id can be used to deregister
+    // the request again. See also Registration#id.
+    [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Id { get; set; }
+}
 
 // Since: 3.16.0
 public sealed partial class SemanticTokensDeltaParams : IHasTextDocumentUri
@@ -1261,7 +1429,71 @@ public sealed partial class InlayHintParams : IHasTextDocumentUri
     public DocumentUri TextDocumentURI() => TextDocument.Uri;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): InlayHint
+// Inlay hint information.
+// 
+// Since: 3.17.0
+public sealed partial class InlayHint
+{
+    // The position of this hint.
+    // 
+    // If multiple hints have the same position, they will be shown in the order
+    // they appear in the response.
+    [JsonPropertyName("position")]
+    [JsonRequired]
+    public Position Position { get; set; } = null!;
+
+    // The label of this hint. A human readable string or an array of
+    // InlayHintLabelPart label parts.
+    // 
+    // *Note* that neither the string nor the label part can be empty.
+    [JsonPropertyName("label")]
+    [JsonRequired]
+    public StringOrInlayHintLabelParts Label { get; set; } = null!;
+
+    // The kind of this hint. Can be omitted in which case the client
+    // should fall back to a reasonable default.
+    [JsonPropertyName("kind")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InlayHintKind? Kind { get; set; }
+
+    // Optional text edits that are performed when accepting this inlay hint.
+    // 
+    // *Note* that edits are expected to change the document so that the inlay
+    // hint (or its nearest variant) is now part of the document and the inlay
+    // hint itself is now obsolete.
+    [JsonPropertyName("textEdits")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextEdit[]? TextEdits { get; set; }
+
+    // The tooltip text when you hover over this item.
+    [JsonPropertyName("tooltip")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StringOrMarkupContent? Tooltip { get; set; }
+
+    // Render padding before the hint.
+    // 
+    // Note: Padding should use the editor's background color, not the
+    // background color of the hint itself. That means padding can be used
+    // to visually align/separate an inlay hint.
+    [JsonPropertyName("paddingLeft")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? PaddingLeft { get; set; }
+
+    // Render padding after the hint.
+    // 
+    // Note: Padding should use the editor's background color, not the
+    // background color of the hint itself. That means padding can be used
+    // to visually align/separate an inlay hint.
+    [JsonPropertyName("paddingRight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? PaddingRight { get; set; }
+
+    // A data entry field that is preserved on an inlay hint between
+    // a `textDocument/inlayHint` and a `inlayHint/resolve` request.
+    [JsonPropertyName("data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InlayHintData? Data { get; set; }
+}
 
 // Inlay hint options used during static or dynamic registration.
 // 
@@ -1455,9 +1687,42 @@ public sealed partial class InlineCompletionParams : IHasTextDocumentUri, IHasTe
     public Position TextDocumentPosition() => Position;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): InlineCompletionList
+// Represents a collection of items to be presented in the editor.
+// 
+// Since: 3.18.0
+public sealed partial class InlineCompletionList
+{
+    // The inline completion items
+    [JsonPropertyName("items")]
+    [JsonRequired]
+    public InlineCompletionItem[] Items { get; set; } = null!;
+}
 
-// skipped (temporarily hosted in Ts.Ls subsets): InlineCompletionItem
+// An inline completion item represents a text snippet that is proposed inline to complete text that is being typed.
+// 
+// Since: 3.18.0
+public sealed partial class InlineCompletionItem
+{
+    // The text to replace the range with. Must be set.
+    [JsonPropertyName("insertText")]
+    [JsonRequired]
+    public StringOrStringValue InsertText { get; set; } = null!;
+
+    // A text that is used to decide if this inline completion should be shown. When `falsy` the InlineCompletionItem.insertText is used.
+    [JsonPropertyName("filterText")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FilterText { get; set; }
+
+    // The range to replace. Must begin and end on the same line.
+    [JsonPropertyName("range")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Range? Range { get; set; }
+
+    // An optional Command that is executed *after* inserting this completion.
+    [JsonPropertyName("command")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Command? Command { get; set; }
+}
 
 // Inline completion options used during static or dynamic registration.
 // 
@@ -1548,9 +1813,100 @@ public sealed partial class UnregistrationParams
     public Unregistration[] Unregisterations { get; set; } = null!;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): InitializeParams
+public sealed partial class InitializeParams
+{
+    // An optional token that a server can use to report work done progress.
+    [JsonPropertyName("workDoneToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? WorkDoneToken { get; set; }
 
-// skipped (temporarily hosted in Ts.Ls subsets): InitializeResult
+    // The process Id of the parent process that started
+    // the server.
+    // 
+    // Is `null` if the process has not been started by another process.
+    // If the parent process is not alive then the server should exit.
+    [JsonPropertyName("processId")]
+    [JsonRequired]
+    public IntegerOrNull? ProcessId { get; set; }
+
+    // Information about the client
+    // 
+    // Since: 3.15.0
+    [JsonPropertyName("clientInfo")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ClientInfo? ClientInfo { get; set; }
+
+    // The locale the client is currently showing the user interface
+    // in. This must not necessarily be the locale of the operating
+    // system.
+    // 
+    // Uses IETF language tags as the value's syntax
+    // (See https://en.wikipedia.org/wiki/IETF_language_tag)
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("locale")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Locale { get; set; }
+
+    // The rootPath of the workspace. Is null
+    // if no folder is open.
+    // 
+    // Deprecated: in favour of rootUri.
+    [JsonPropertyName("rootPath")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StringOrNull? RootPath { get; set; }
+
+    // The rootUri of the workspace. Is null if no
+    // folder is open. If both `rootPath` and `rootUri` are set
+    // `rootUri` wins.
+    // 
+    // Deprecated: in favour of workspaceFolders.
+    [JsonPropertyName("rootUri")]
+    [JsonRequired]
+    public DocumentUriOrNull? RootUri { get; set; }
+
+    // The capabilities provided by the client (editor or tool)
+    [JsonPropertyName("capabilities")]
+    [JsonRequired]
+    public ClientCapabilities Capabilities { get; set; } = null!;
+
+    // User provided initialization options.
+    [JsonPropertyName("initializationOptions")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InitializationOptionsOrNull? InitializationOptions { get; set; }
+
+    // The initial trace setting. If omitted trace is disabled ('off').
+    [JsonPropertyName("trace")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TraceValue? Trace { get; set; }
+
+    // The workspace folders configured in the client when the server starts.
+    // 
+    // This property is only available if the client supports workspace folders.
+    // It can be `null` if the client supports workspace folders but none are
+    // configured.
+    // 
+    // Since: 3.6.0
+    [JsonPropertyName("workspaceFolders")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorkspaceFoldersOrNull? WorkspaceFolders { get; set; }
+}
+
+// The result returned from an initialize request.
+public sealed partial class InitializeResult
+{
+    // The capabilities the language server provides.
+    [JsonPropertyName("capabilities")]
+    [JsonRequired]
+    public ServerCapabilities Capabilities { get; set; } = null!;
+
+    // Information about the server.
+    // 
+    // Since: 3.15.0
+    [JsonPropertyName("serverInfo")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ServerInfo? ServerInfo { get; set; }
+}
 
 // The data type of the ResponseError if the
 // initialize request fails.
@@ -1852,9 +2208,243 @@ public sealed partial class CompletionParams : IHasTextDocumentUri, IHasTextDocu
     public Position TextDocumentPosition() => Position;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CompletionItem
+// A completion item represents a text snippet that is
+// proposed to complete text that is being typed.
+public sealed partial class CompletionItem
+{
+    // The label of this completion item.
+    // 
+    // The label property is also by default the text that
+    // is inserted when selecting this completion.
+    // 
+    // If label details are provided the label itself should
+    // be an unqualified name of the completion item.
+    [JsonPropertyName("label")]
+    [JsonRequired]
+    public string Label { get; set; } = "";
 
-// skipped (temporarily hosted in Ts.Ls subsets): CompletionList
+    // Additional details for the label
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("labelDetails")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionItemLabelDetails? LabelDetails { get; set; }
+
+    // The kind of this completion item. Based of the kind
+    // an icon is chosen by the editor.
+    [JsonPropertyName("kind")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionItemKind? Kind { get; set; }
+
+    // Tags for this completion item.
+    // 
+    // Since: 3.15.0
+    [JsonPropertyName("tags")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionItemTag[]? Tags { get; set; }
+
+    // A human-readable string with additional information
+    // about this item, like type or symbol information.
+    [JsonPropertyName("detail")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Detail { get; set; }
+
+    // A human-readable string that represents a doc-comment.
+    [JsonPropertyName("documentation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StringOrMarkupContent? Documentation { get; set; }
+
+    // Indicates if this item is deprecated.
+    // 
+    // Deprecated: Use `tags` instead.
+    [JsonPropertyName("deprecated")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Deprecated { get; set; }
+
+    // Select this item when showing.
+    // 
+    // *Note* that only one completion item can be selected and that the
+    // tool / client decides which item that is. The rule is that the *first*
+    // item of those that match best is selected.
+    [JsonPropertyName("preselect")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Preselect { get; set; }
+
+    // A string that should be used when comparing this item
+    // with other items. When `falsy` the label
+    // is used.
+    [JsonPropertyName("sortText")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SortText { get; set; }
+
+    // A string that should be used when filtering a set of
+    // completion items. When `falsy` the label
+    // is used.
+    [JsonPropertyName("filterText")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FilterText { get; set; }
+
+    // A string that should be inserted into a document when selecting
+    // this completion. When `falsy` the label
+    // is used.
+    // 
+    // The `insertText` is subject to interpretation by the client side.
+    // Some tools might not take the string literally. For example
+    // VS Code when code complete is requested in this example
+    // `con<cursor position>` and a completion item with an `insertText` of
+    // `console` is provided it will only insert `sole`. Therefore it is
+    // recommended to use `textEdit` instead since it avoids additional client
+    // side interpretation.
+    [JsonPropertyName("insertText")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? InsertText { get; set; }
+
+    // The format of the insert text. The format applies to both the
+    // `insertText` property and the `newText` property of a provided
+    // `textEdit`. If omitted defaults to `InsertTextFormat.PlainText`.
+    // 
+    // Please note that the insertTextFormat doesn't apply to
+    // `additionalTextEdits`.
+    [JsonPropertyName("insertTextFormat")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InsertTextFormat? InsertTextFormat { get; set; }
+
+    // How whitespace and indentation is handled during completion
+    // item insertion. If not provided the clients default value depends on
+    // the `textDocument.completion.insertTextMode` client capability.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("insertTextMode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InsertTextMode? InsertTextMode { get; set; }
+
+    // An edit which is applied to a document when selecting
+    // this completion. When an edit is provided the value of
+    // insertText is ignored.
+    // 
+    // Most editors support two different operations when accepting a completion
+    // item. One is to insert a completion text and the other is to replace an
+    // existing text with a completion text. Since this can usually not be
+    // predetermined by a server it can report both ranges. Clients need to
+    // signal support for `InsertReplaceEdits` via the
+    // `textDocument.completion.insertReplaceSupport` client capability
+    // property.
+    // 
+    // *Note 1:* The text edit's range as well as both ranges from an insert
+    // replace edit must be a [single line] and they must contain the position
+    // at which completion has been requested.
+    // *Note 2:* If an `InsertReplaceEdit` is returned the edit's insert range
+    // must be a prefix of the edit's replace range, that means it must be
+    // contained and starting at the same position.
+    // 
+    // Since: 3.16.0 additional type `InsertReplaceEdit`
+    [JsonPropertyName("textEdit")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextEditOrInsertReplaceEdit? TextEdit { get; set; }
+
+    // The edit text used if the completion item is part of a CompletionList and
+    // CompletionList defines an item default for the text edit range.
+    // 
+    // Clients will only honor this property if they opt into completion list
+    // item defaults using the capability `completionList.itemDefaults`.
+    // 
+    // If not provided and a list's default range is provided the label
+    // property is used as a text.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("textEditText")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TextEditText { get; set; }
+
+    // An optional array of additional edits that are applied when
+    // selecting this completion. Edits must not overlap (including the same insert position)
+    // with the main edit nor with themselves.
+    // 
+    // Additional text edits should be used to change text unrelated to the current cursor position
+    // (for example adding an import statement at the top of the file if the completion item will
+    // insert an unqualified type).
+    [JsonPropertyName("additionalTextEdits")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextEdit[]? AdditionalTextEdits { get; set; }
+
+    // An optional set of characters that when pressed while this completion is active will accept it first and
+    // then type that character. *Note* that all commit characters should have `length=1` and that superfluous
+    // characters will be ignored.
+    [JsonPropertyName("commitCharacters")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? CommitCharacters { get; set; }
+
+    // An optional command that is executed *after* inserting this completion. *Note* that
+    // additional modifications to the current document should be described with the
+    // additionalTextEdits-property.
+    [JsonPropertyName("command")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Command? Command { get; set; }
+
+    // A data entry field that is preserved on a completion item between a
+    // CompletionRequest and a CompletionResolveRequest.
+    [JsonPropertyName("data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionItemData? Data { get; set; }
+}
+
+// Represents a collection of items to be presented
+// in the editor.
+public sealed partial class CompletionList
+{
+    // This list it not complete. Further typing results in recomputing this list.
+    // 
+    // Recomputed lists have all their items replaced (not appended) in the
+    // incomplete completion sessions.
+    [JsonPropertyName("isIncomplete")]
+    [JsonRequired]
+    public bool IsIncomplete { get; set; }
+
+    // In many cases the items of an actual completion result share the same
+    // value for properties like `commitCharacters` or the range of a text
+    // edit. A completion list can therefore define item defaults which will
+    // be used if a completion item itself doesn't specify the value.
+    // 
+    // If a completion list specifies a default value and a completion item
+    // also specifies a corresponding value, the rules for combining these are
+    // defined by `applyKinds` (if the client supports it), defaulting to
+    // ApplyKind.Replace.
+    // 
+    // Servers are only allowed to return default values if the client
+    // signals support for this via the `completionList.itemDefaults`
+    // capability.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("itemDefaults")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionItemDefaults? ItemDefaults { get; set; }
+
+    // Specifies how fields from a completion item should be combined with those
+    // from `completionList.itemDefaults`.
+    // 
+    // If unspecified, all fields will be treated as ApplyKind.Replace.
+    // 
+    // If a field's value is ApplyKind.Replace, the value from a completion item
+    // (if provided and not `null`) will always be used instead of the value
+    // from `completionItem.itemDefaults`.
+    // 
+    // If a field's value is ApplyKind.Merge, the values will be merged using
+    // the rules defined against each field below.
+    // 
+    // Servers are only allowed to return `applyKind` if the client
+    // signals support for this via the `completionList.applyKindSupport`
+    // capability.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("applyKind")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionItemApplyKinds? ApplyKind { get; set; }
+
+    // The completion items.
+    [JsonPropertyName("items")]
+    [JsonRequired]
+    public CompletionItem[] Items { get; set; } = null!;
+}
 
 // Registration options for a CompletionRequest.
 public sealed partial class CompletionRegistrationOptions
@@ -2375,13 +2965,196 @@ public sealed partial class DocumentSymbolRegistrationOptions
     public string? Label { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionParams
+// The parameters of a CodeActionRequest.
+public sealed partial class CodeActionParams : IHasTextDocumentUri
+{
+    // An optional token that a server can use to report work done progress.
+    [JsonPropertyName("workDoneToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? WorkDoneToken { get; set; }
 
-// skipped (temporarily hosted in Ts.Ls subsets): Command
+    // An optional token that a server can use to report partial results (e.g. streaming) to
+    // the client.
+    [JsonPropertyName("partialResultToken")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IntegerOrString? PartialResultToken { get; set; }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeAction
+    // The document in which the command was invoked.
+    [JsonPropertyName("textDocument")]
+    [JsonRequired]
+    public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionRegistrationOptions
+    // The range for which the command was invoked.
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    // Context carrying additional information.
+    [JsonPropertyName("context")]
+    [JsonRequired]
+    public CodeActionContext Context { get; set; } = null!;
+
+    public DocumentUri TextDocumentURI() => TextDocument.Uri;
+}
+
+// Represents a reference to a command. Provides a title which
+// will be used to represent a command in the UI and, optionally,
+// an array of arguments which will be passed to the command handler
+// function when invoked.
+public sealed partial class Command
+{
+    // Title of the command, like `save`.
+    [JsonPropertyName("title")]
+    [JsonRequired]
+    public string Title { get; set; } = "";
+
+    // An optional tooltip.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("tooltip")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Tooltip { get; set; }
+
+    // The identifier of the actual command handler.
+    [JsonPropertyName("command")]
+    [JsonRequired]
+    public string CommandName { get; set; } = "";
+
+    // Arguments that the command handler should be
+    // invoked with.
+    [JsonPropertyName("arguments")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public JsonElement?[]? Arguments { get; set; }
+}
+
+// A code action represents a change that can be performed in code, e.g. to fix a problem or
+// to refactor code.
+// 
+// A CodeAction must set either `edit` and/or a `command`. If both are supplied, the `edit` is applied first, then the `command` is executed.
+public sealed partial class CodeAction
+{
+    // A short, human-readable, title for this code action.
+    [JsonPropertyName("title")]
+    [JsonRequired]
+    public string Title { get; set; } = "";
+
+    // The kind of the code action.
+    // 
+    // Used to filter code actions.
+    [JsonPropertyName("kind")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionKind? Kind { get; set; }
+
+    // The diagnostics that this code action resolves.
+    [JsonPropertyName("diagnostics")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Diagnostic[]? Diagnostics { get; set; }
+
+    // Marks this as a preferred action. Preferred actions are used by the `auto fix` command and can be targeted
+    // by keybindings.
+    // 
+    // A quick fix should be marked preferred if it properly addresses the underlying error.
+    // A refactoring should be marked preferred if it is the most reasonable choice of actions to take.
+    // 
+    // Since: 3.15.0
+    [JsonPropertyName("isPreferred")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsPreferred { get; set; }
+
+    // Marks that the code action cannot currently be applied.
+    // 
+    // Clients should follow the following guidelines regarding disabled code actions:
+    // 
+    //  - Disabled code actions are not shown in automatic [lightbulbs](https://code.visualstudio.com/docs/editor/editingevolved#_code-action)
+    //  code action menus.
+    // 
+    //  - Disabled actions are shown as faded out in the code action menu when the user requests a more specific type
+    //  of code action, such as refactorings.
+    // 
+    //  - If the user has a [keybinding](https://code.visualstudio.com/docs/editor/refactoring#_keybindings-for-code-actions)
+    //  that auto applies a code action and only disabled code actions are returned, the client should show the user an
+    //  error message with `reason` in the editor.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("disabled")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionDisabled? Disabled { get; set; }
+
+    // The workspace edit this code action performs.
+    [JsonPropertyName("edit")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorkspaceEdit? Edit { get; set; }
+
+    // A command this code action executes. If a code action
+    // provides an edit and a command, first the edit is
+    // executed and then the command.
+    [JsonPropertyName("command")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Command? Command { get; set; }
+
+    // A data entry field that is preserved on a code action between
+    // a `textDocument/codeAction` and a `codeAction/resolve` request.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionData? Data { get; set; }
+
+    // Tags for this code action.
+    // 
+    // Since: 3.18.0 - proposed
+    [JsonPropertyName("tags")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionTag[]? Tags { get; set; }
+}
+
+// Registration options for a CodeActionRequest.
+public sealed partial class CodeActionRegistrationOptions
+{
+    // A document selector to identify the scope of the registration. If set to null
+    // the document selector provided on the client side will be used.
+    [JsonPropertyName("documentSelector")]
+    [JsonRequired]
+    public DocumentSelectorOrNull? DocumentSelector { get; set; }
+
+    [JsonPropertyName("workDoneProgress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? WorkDoneProgress { get; set; }
+
+    // CodeActionKinds that this server may return.
+    // 
+    // The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
+    // may list out every specific kind they provide.
+    [JsonPropertyName("codeActionKinds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionKind[]? CodeActionKinds { get; set; }
+
+    // Static documentation for a class of code actions.
+    // 
+    // Documentation from the provider should be shown in the code actions menu if either:
+    // 
+    // - Code actions of `kind` are requested by the editor. In this case, the editor will show the documentation that
+    //  most closely matches the requested code action kind. For example, if a provider has documentation for
+    //  both `Refactor` and `RefactorExtract`, when the user requests code actions for `RefactorExtract`,
+    //  the editor will use the documentation for `RefactorExtract` instead of the documentation for `Refactor`.
+    // 
+    // - Any code actions of `kind` are returned by the provider.
+    // 
+    // At most one documentation entry should be shown per provider.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("documentation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionKindDocumentation[]? Documentation { get; set; }
+
+    // The server provides support to resolve additional
+    // information for a code action.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("resolveProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? ResolveProvider { get; set; }
+}
 
 // The parameters of a WorkspaceSymbolRequest.
 public sealed partial class WorkspaceSymbolParams
@@ -2496,7 +3269,29 @@ public sealed partial class CodeLensParams : IHasTextDocumentUri
     public DocumentUri TextDocumentURI() => TextDocument.Uri;
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeLens
+// A code lens represents a command that should be shown along with
+// source text, like the number of references, a way to run tests, etc.
+// 
+// A code lens is _unresolved_ when no command is associated to it. For performance
+// reasons the creation of a code lens and resolving should be done in two stages.
+public sealed partial class CodeLens
+{
+    // The range in which this code lens is valid. Should only span a single line.
+    [JsonPropertyName("range")]
+    [JsonRequired]
+    public Range Range { get; set; } = null!;
+
+    // The command this code lens represents.
+    [JsonPropertyName("command")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Command? Command { get; set; }
+
+    // A data entry field that is preserved on a code lens item between
+    // a CodeLensRequest and a CodeLensResolveRequest
+    [JsonPropertyName("data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeLensData? Data { get; set; }
+}
 
 // Registration options for a CodeLensRequest.
 public sealed partial class CodeLensRegistrationOptions
@@ -3069,7 +3864,42 @@ public sealed partial class PartialResultParams
     public IntegerOrString? PartialResultToken { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): LocationLink
+// Represents the connection of two locations. Provides additional metadata over normal locations,
+// including an origin range.
+public sealed partial class LocationLink : IHasLocation
+{
+    // Span of the origin of this link.
+    // 
+    // Used as the underlined span for mouse interaction. Defaults to the word range at
+    // the definition position.
+    [JsonPropertyName("originSelectionRange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Range? OriginSelectionRange { get; set; }
+
+    // The target resource identifier of this link.
+    [JsonPropertyName("targetUri")]
+    [JsonRequired]
+    public DocumentUri TargetUri { get; set; }
+
+    // The full target range of this link. If the target for example is a symbol then target range is the
+    // range enclosing this symbol not including leading/trailing whitespace but everything else
+    // like comments. This information is typically used to highlight the range in the editor.
+    [JsonPropertyName("targetRange")]
+    [JsonRequired]
+    public Range TargetRange { get; set; } = null!;
+
+    // The range that should be selected and revealed when this link is being followed, e.g the name of a function.
+    // Must be contained by the `targetRange`. See also `DocumentSymbol#range`
+    [JsonPropertyName("targetSelectionRange")]
+    [JsonRequired]
+    public Range TargetSelectionRange { get; set; } = null!;
+
+    public Location GetLocation() => new Location
+    {
+        Uri = TargetUri,
+        Range = TargetRange,
+    };
+}
 
 // A range in a text document expressed as (zero-based) start and end positions.
 // 
@@ -3289,7 +4119,29 @@ public sealed partial class CallHierarchyOptions
     public bool? WorkDoneProgress { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): SemanticTokensOptions
+// Since: 3.16.0
+public sealed partial class SemanticTokensOptions
+{
+    [JsonPropertyName("workDoneProgress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? WorkDoneProgress { get; set; }
+
+    // The legend used by the server
+    [JsonPropertyName("legend")]
+    [JsonRequired]
+    public SemanticTokensLegend Legend { get; set; } = null!;
+
+    // Server supports providing semantic tokens for a specific range
+    // of a document.
+    [JsonPropertyName("range")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrEmptyObject? Range { get; set; }
+
+    // Server supports providing semantic tokens for a full document.
+    [JsonPropertyName("full")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrSemanticTokensFullDelta? Full { get; set; }
+}
 
 // Since: 3.16.0
 public sealed partial class SemanticTokensEdit
@@ -3615,7 +4467,47 @@ public sealed partial class InlineValueOptions
     public bool? WorkDoneProgress { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): InlayHintLabelPart
+// An inlay hint label part allows for interactive and composite labels
+// of inlay hints.
+// 
+// Since: 3.17.0
+public sealed partial class InlayHintLabelPart
+{
+    // The value of this label part.
+    [JsonPropertyName("value")]
+    [JsonRequired]
+    public string Value { get; set; } = "";
+
+    // The tooltip text when you hover over this label part. Depending on
+    // the client capability `inlayHint.resolveSupport` clients might resolve
+    // this property late using the resolve request.
+    [JsonPropertyName("tooltip")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StringOrMarkupContent? Tooltip { get; set; }
+
+    // An optional source code location that represents this
+    // label part.
+    // 
+    // The editor will use this location for the hover and for code navigation
+    // features: This part will become a clickable link that resolves to the
+    // definition of the symbol at the given location (not necessarily the
+    // location itself), it shows the hover that shows at the given location,
+    // and it shows a context menu with further code navigation commands.
+    // 
+    // Depending on the client capability `inlayHint.resolveSupport` clients
+    // might resolve this property late using the resolve request.
+    [JsonPropertyName("location")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Location? Location { get; set; }
+
+    // An optional command for this label part.
+    // 
+    // Depending on the client capability `inlayHint.resolveSupport` clients
+    // might resolve this property late using the resolve request.
+    [JsonPropertyName("command")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Command? Command { get; set; }
+}
 
 // A `MarkupContent` literal represents a string value which content is interpreted base on its
 // kind flag. Currently the protocol supports `plaintext` and `markdown` as markup kinds.
@@ -3917,7 +4809,227 @@ public sealed partial class WorkspaceFoldersInitializeParams
     public WorkspaceFoldersOrNull? WorkspaceFolders { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): ServerCapabilities
+// Defines the capabilities provided by a language
+// server.
+public sealed partial class ServerCapabilities
+{
+    // The position encoding the server picked from the encodings offered
+    // by the client via the client capability `general.positionEncodings`.
+    // 
+    // If the client didn't provide any position encodings the only valid
+    // value that a server can return is 'utf-16'.
+    // 
+    // If omitted it defaults to 'utf-16'.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("positionEncoding")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public PositionEncodingKind? PositionEncoding { get; set; }
+
+    // Defines how text documents are synced. Is either a detailed structure
+    // defining each notification or for backwards compatibility the
+    // TextDocumentSyncKind number.
+    [JsonPropertyName("textDocumentSync")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentSyncOptionsOrKind? TextDocumentSync { get; set; }
+
+    // The server provides completion support.
+    [JsonPropertyName("completionProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionOptions? CompletionProvider { get; set; }
+
+    // The server provides hover support.
+    [JsonPropertyName("hoverProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrHoverOptions? HoverProvider { get; set; }
+
+    // The server provides signature help support.
+    [JsonPropertyName("signatureHelpProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SignatureHelpOptions? SignatureHelpProvider { get; set; }
+
+    // The server provides Goto Declaration support.
+    [JsonPropertyName("declarationProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDeclarationOptionsOrDeclarationRegistrationOptions? DeclarationProvider { get; set; }
+
+    // The server provides goto definition support.
+    [JsonPropertyName("definitionProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDefinitionOptions? DefinitionProvider { get; set; }
+
+    // The server provides Goto Type Definition support.
+    [JsonPropertyName("typeDefinitionProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrTypeDefinitionOptionsOrTypeDefinitionRegistrationOptions? TypeDefinitionProvider { get; set; }
+
+    // The server provides Goto Implementation support.
+    [JsonPropertyName("implementationProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrImplementationOptionsOrImplementationRegistrationOptions? ImplementationProvider { get; set; }
+
+    // The server provides find references support.
+    [JsonPropertyName("referencesProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrReferenceOptions? ReferencesProvider { get; set; }
+
+    // The server provides document highlight support.
+    [JsonPropertyName("documentHighlightProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDocumentHighlightOptions? DocumentHighlightProvider { get; set; }
+
+    // The server provides document symbol support.
+    [JsonPropertyName("documentSymbolProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDocumentSymbolOptions? DocumentSymbolProvider { get; set; }
+
+    // The server provides code actions. CodeActionOptions may only be
+    // specified if the client states that it supports
+    // `codeActionLiteralSupport` in its initial `initialize` request.
+    [JsonPropertyName("codeActionProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrCodeActionOptions? CodeActionProvider { get; set; }
+
+    // The server provides code lens.
+    [JsonPropertyName("codeLensProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeLensOptions? CodeLensProvider { get; set; }
+
+    // The server provides document link support.
+    [JsonPropertyName("documentLinkProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentLinkOptions? DocumentLinkProvider { get; set; }
+
+    // The server provides color provider support.
+    [JsonPropertyName("colorProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDocumentColorOptionsOrDocumentColorRegistrationOptions? ColorProvider { get; set; }
+
+    // The server provides workspace symbol support.
+    [JsonPropertyName("workspaceSymbolProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrWorkspaceSymbolOptions? WorkspaceSymbolProvider { get; set; }
+
+    // The server provides document formatting.
+    [JsonPropertyName("documentFormattingProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDocumentFormattingOptions? DocumentFormattingProvider { get; set; }
+
+    // The server provides document range formatting.
+    [JsonPropertyName("documentRangeFormattingProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrDocumentRangeFormattingOptions? DocumentRangeFormattingProvider { get; set; }
+
+    // The server provides document formatting on typing.
+    [JsonPropertyName("documentOnTypeFormattingProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentOnTypeFormattingOptions? DocumentOnTypeFormattingProvider { get; set; }
+
+    // The server provides rename support. RenameOptions may only be
+    // specified if the client states that it supports
+    // `prepareSupport` in its initial `initialize` request.
+    [JsonPropertyName("renameProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrRenameOptions? RenameProvider { get; set; }
+
+    // The server provides folding provider support.
+    [JsonPropertyName("foldingRangeProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrFoldingRangeOptionsOrFoldingRangeRegistrationOptions? FoldingRangeProvider { get; set; }
+
+    // The server provides selection range support.
+    [JsonPropertyName("selectionRangeProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrSelectionRangeOptionsOrSelectionRangeRegistrationOptions? SelectionRangeProvider { get; set; }
+
+    // The server provides execute command support.
+    [JsonPropertyName("executeCommandProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ExecuteCommandOptions? ExecuteCommandProvider { get; set; }
+
+    // The server provides call hierarchy support.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("callHierarchyProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrCallHierarchyOptionsOrCallHierarchyRegistrationOptions? CallHierarchyProvider { get; set; }
+
+    // The server provides linked editing range support.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("linkedEditingRangeProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrLinkedEditingRangeOptionsOrLinkedEditingRangeRegistrationOptions? LinkedEditingRangeProvider { get; set; }
+
+    // The server provides semantic tokens support.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("semanticTokensProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SemanticTokensOptionsOrRegistrationOptions? SemanticTokensProvider { get; set; }
+
+    // The server provides moniker support.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("monikerProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrMonikerOptionsOrMonikerRegistrationOptions? MonikerProvider { get; set; }
+
+    // The server provides type hierarchy support.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("typeHierarchyProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrTypeHierarchyOptionsOrTypeHierarchyRegistrationOptions? TypeHierarchyProvider { get; set; }
+
+    // The server provides inline values.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("inlineValueProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrInlineValueOptionsOrInlineValueRegistrationOptions? InlineValueProvider { get; set; }
+
+    // The server provides inlay hints.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("inlayHintProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrInlayHintOptionsOrInlayHintRegistrationOptions? InlayHintProvider { get; set; }
+
+    // The server has support for pull model diagnostics.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("diagnosticProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DiagnosticOptionsOrRegistrationOptions? DiagnosticProvider { get; set; }
+
+    // Inline completion options used during static registration.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("inlineCompletionProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BooleanOrInlineCompletionOptions? InlineCompletionProvider { get; set; }
+
+    // Workspace specific server capabilities.
+    [JsonPropertyName("workspace")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorkspaceOptions? Workspace { get; set; }
+
+    // Experimental server capabilities.
+    [JsonPropertyName("experimental")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ExperimentalServerCapabilities? Experimental { get; set; }
+
+    // Provider options for the VS auto-insert feature via textDocument/_vs_onAutoInsert.
+    [JsonPropertyName("_vs_onAutoInsertProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VSOnAutoInsertOptions? VSOnAutoInsertProvider { get; set; }
+
+    // The server provides VS-specific grouped references via textDocument/_vs_references.
+    [JsonPropertyName("_vs_referencesProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? VSReferencesProvider { get; set; }
+}
 
 // Information about the server
 // 
@@ -4462,7 +5574,34 @@ public sealed partial class DocumentSymbolOptions
     public string? Label { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionContext
+// Contains additional diagnostic information about the context in which
+// a action is run.
+public sealed partial class CodeActionContext
+{
+    // An array of diagnostics known on the client side overlapping the range provided to the
+    // `textDocument/codeAction` request. They are provided so that the server knows which
+    // errors are currently presented to the user for the given range. There is no guarantee
+    // that these accurately reflect the error state of the resource. The primary parameter
+    // to compute code actions is the provided range.
+    [JsonPropertyName("diagnostics")]
+    [JsonRequired]
+    public Diagnostic[] Diagnostics { get; set; } = null!;
+
+    // Requested kind of actions to return.
+    // 
+    // Actions not of this kind are filtered out by the client before being shown. So servers
+    // can omit computing them.
+    [JsonPropertyName("only")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionKind[]? Only { get; set; }
+
+    // The reason why code actions were requested.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("triggerKind")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionTriggerKind? TriggerKind { get; set; }
+}
 
 // Captures why the code action is currently disabled.
 // 
@@ -4477,7 +5616,47 @@ public sealed partial class CodeActionDisabled
     public string Reason { get; set; } = "";
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionOptions
+// Provider options for a CodeActionRequest.
+public sealed partial class CodeActionOptions
+{
+    [JsonPropertyName("workDoneProgress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? WorkDoneProgress { get; set; }
+
+    // CodeActionKinds that this server may return.
+    // 
+    // The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
+    // may list out every specific kind they provide.
+    [JsonPropertyName("codeActionKinds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionKind[]? CodeActionKinds { get; set; }
+
+    // Static documentation for a class of code actions.
+    // 
+    // Documentation from the provider should be shown in the code actions menu if either:
+    // 
+    // - Code actions of `kind` are requested by the editor. In this case, the editor will show the documentation that
+    //  most closely matches the requested code action kind. For example, if a provider has documentation for
+    //  both `Refactor` and `RefactorExtract`, when the user requests code actions for `RefactorExtract`,
+    //  the editor will use the documentation for `RefactorExtract` instead of the documentation for `Refactor`.
+    // 
+    // - Any code actions of `kind` are returned by the provider.
+    // 
+    // At most one documentation entry should be shown per provider.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("documentation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionKindDocumentation[]? Documentation { get; set; }
+
+    // The server provides support to resolve additional
+    // information for a code action.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("resolveProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? ResolveProvider { get; set; }
+}
 
 // Location with only uri and does not include range.
 // 
@@ -4662,7 +5841,19 @@ public sealed partial class WorkspaceEditMetadata
     public bool? IsRefactoring { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): SemanticTokensLegend
+// Since: 3.16.0
+public sealed partial class SemanticTokensLegend
+{
+    // The token types a server uses.
+    [JsonPropertyName("tokenTypes")]
+    [JsonRequired]
+    public string[] TokenTypes { get; set; } = null!;
+
+    // The token modifiers a server uses.
+    [JsonPropertyName("tokenModifiers")]
+    [JsonRequired]
+    public string[] TokenModifiers { get; set; } = null!;
+}
 
 // Semantic tokens options to support deltas for full documents
 // 
@@ -4968,7 +6159,61 @@ public sealed partial class ClientInfo
     public string? Version { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): ClientCapabilities
+// Defines the capabilities provided by the client.
+public sealed partial class ClientCapabilities
+{
+    // Workspace specific client capabilities.
+    [JsonPropertyName("workspace")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorkspaceClientCapabilities? Workspace { get; set; }
+
+    // Text document specific client capabilities.
+    [JsonPropertyName("textDocument")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentClientCapabilities? TextDocument { get; set; }
+
+    // Window specific client capabilities.
+    [JsonPropertyName("window")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WindowClientCapabilities? Window { get; set; }
+
+    // General client capabilities.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("general")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public GeneralClientCapabilities? General { get; set; }
+
+    // Experimental client capabilities.
+    [JsonPropertyName("experimental")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ExperimentalClientCapabilities? Experimental { get; set; }
+
+    // Whether the client supports Visual Studio extensions.
+    [JsonPropertyName("_vs_supportsVisualStudioExtensions")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? VSSupportsVisualStudioExtensions { get; set; }
+
+    // The snippet version supported by the client.
+    [JsonPropertyName("_vs_supportedSnippetVersion")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? VSSupportedSnippetVersion { get; set; }
+
+    // Whether the client supports not including text in textDocument/didOpen notifications.
+    [JsonPropertyName("_vs_supportsNotIncludingTextInTextDocumentDidOpen")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? VSSupportsNotIncludingTextInTextDocumentDidOpen { get; set; }
+
+    // Whether the client supports icon extensions.
+    [JsonPropertyName("_vs_supportsIconExtensions")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? VSSupportsIconExtensions { get; set; }
+
+    // Whether the client supports diagnostic requests.
+    [JsonPropertyName("_vs_supportsDiagnosticRequests")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? VSSupportsDiagnosticRequests { get; set; }
+}
 
 public sealed partial class TextDocumentSyncOptions
 {
@@ -5155,7 +6400,27 @@ public sealed partial class ParameterInformation
     public StringOrMarkupContent? Documentation { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionKindDocumentation
+// Documentation for a class of code actions.
+// 
+// Since: 3.18.0
+public sealed partial class CodeActionKindDocumentation
+{
+    // The kind of the code action being documented.
+    // 
+    // If the kind is generic, such as `CodeActionKind.Refactor`, the documentation will be shown whenever any
+    // refactorings are returned. If the kind if more specific, such as `CodeActionKind.RefactorExtract`, the
+    // documentation will only be shown when extract refactoring code actions are returned.
+    [JsonPropertyName("kind")]
+    [JsonRequired]
+    public CodeActionKind Kind { get; set; }
+
+    // Command that is ued to display the documentation to the user.
+    // 
+    // The title of this documentation code action is taken from Command.title
+    [JsonPropertyName("command")]
+    [JsonRequired]
+    public Command Command { get; set; } = null!;
+}
 
 // Matching options for the file operation pattern.
 // 
@@ -5279,7 +6544,202 @@ public sealed partial class WorkspaceClientCapabilities
     public TextDocumentContentClientCapabilities? TextDocumentContent { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): TextDocumentClientCapabilities
+// Text document specific client capabilities.
+public sealed partial class TextDocumentClientCapabilities
+{
+    // Defines which synchronization capabilities the client supports.
+    [JsonPropertyName("synchronization")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentSyncClientCapabilities? Synchronization { get; set; }
+
+    // Defines which filters the client supports.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("filters")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentFilterClientCapabilities? Filters { get; set; }
+
+    // Capabilities specific to the `textDocument/completion` request.
+    [JsonPropertyName("completion")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionClientCapabilities? Completion { get; set; }
+
+    // Capabilities specific to the `textDocument/hover` request.
+    [JsonPropertyName("hover")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public HoverClientCapabilities? Hover { get; set; }
+
+    // Capabilities specific to the `textDocument/signatureHelp` request.
+    [JsonPropertyName("signatureHelp")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SignatureHelpClientCapabilities? SignatureHelp { get; set; }
+
+    // Capabilities specific to the `textDocument/declaration` request.
+    // 
+    // Since: 3.14.0
+    [JsonPropertyName("declaration")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DeclarationClientCapabilities? Declaration { get; set; }
+
+    // Capabilities specific to the `textDocument/definition` request.
+    [JsonPropertyName("definition")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DefinitionClientCapabilities? Definition { get; set; }
+
+    // Capabilities specific to the `textDocument/typeDefinition` request.
+    // 
+    // Since: 3.6.0
+    [JsonPropertyName("typeDefinition")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TypeDefinitionClientCapabilities? TypeDefinition { get; set; }
+
+    // Capabilities specific to the `textDocument/implementation` request.
+    // 
+    // Since: 3.6.0
+    [JsonPropertyName("implementation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ImplementationClientCapabilities? Implementation { get; set; }
+
+    // Capabilities specific to the `textDocument/references` request.
+    [JsonPropertyName("references")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ReferenceClientCapabilities? References { get; set; }
+
+    // Capabilities specific to the `textDocument/documentHighlight` request.
+    [JsonPropertyName("documentHighlight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentHighlightClientCapabilities? DocumentHighlight { get; set; }
+
+    // Capabilities specific to the `textDocument/documentSymbol` request.
+    [JsonPropertyName("documentSymbol")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentSymbolClientCapabilities? DocumentSymbol { get; set; }
+
+    // Capabilities specific to the `textDocument/codeAction` request.
+    [JsonPropertyName("codeAction")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionClientCapabilities? CodeAction { get; set; }
+
+    // Capabilities specific to the `textDocument/codeLens` request.
+    [JsonPropertyName("codeLens")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeLensClientCapabilities? CodeLens { get; set; }
+
+    // Capabilities specific to the `textDocument/documentLink` request.
+    [JsonPropertyName("documentLink")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentLinkClientCapabilities? DocumentLink { get; set; }
+
+    // Capabilities specific to the `textDocument/documentColor` and the
+    // `textDocument/colorPresentation` request.
+    // 
+    // Since: 3.6.0
+    [JsonPropertyName("colorProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentColorClientCapabilities? ColorProvider { get; set; }
+
+    // Capabilities specific to the `textDocument/formatting` request.
+    [JsonPropertyName("formatting")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentFormattingClientCapabilities? Formatting { get; set; }
+
+    // Capabilities specific to the `textDocument/rangeFormatting` request.
+    [JsonPropertyName("rangeFormatting")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentRangeFormattingClientCapabilities? RangeFormatting { get; set; }
+
+    // Capabilities specific to the `textDocument/onTypeFormatting` request.
+    [JsonPropertyName("onTypeFormatting")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentOnTypeFormattingClientCapabilities? OnTypeFormatting { get; set; }
+
+    // Capabilities specific to the `textDocument/rename` request.
+    [JsonPropertyName("rename")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RenameClientCapabilities? Rename { get; set; }
+
+    // Capabilities specific to the `textDocument/foldingRange` request.
+    // 
+    // Since: 3.10.0
+    [JsonPropertyName("foldingRange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FoldingRangeClientCapabilities? FoldingRange { get; set; }
+
+    // Capabilities specific to the `textDocument/selectionRange` request.
+    // 
+    // Since: 3.15.0
+    [JsonPropertyName("selectionRange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SelectionRangeClientCapabilities? SelectionRange { get; set; }
+
+    // Capabilities specific to the `textDocument/publishDiagnostics` notification.
+    [JsonPropertyName("publishDiagnostics")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public PublishDiagnosticsClientCapabilities? PublishDiagnostics { get; set; }
+
+    // Capabilities specific to the various call hierarchy requests.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("callHierarchy")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CallHierarchyClientCapabilities? CallHierarchy { get; set; }
+
+    // Capabilities specific to the various semantic token request.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("semanticTokens")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SemanticTokensClientCapabilities? SemanticTokens { get; set; }
+
+    // Capabilities specific to the `textDocument/linkedEditingRange` request.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("linkedEditingRange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LinkedEditingRangeClientCapabilities? LinkedEditingRange { get; set; }
+
+    // Client capabilities specific to the `textDocument/moniker` request.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("moniker")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MonikerClientCapabilities? Moniker { get; set; }
+
+    // Capabilities specific to the various type hierarchy requests.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("typeHierarchy")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TypeHierarchyClientCapabilities? TypeHierarchy { get; set; }
+
+    // Capabilities specific to the `textDocument/inlineValue` request.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("inlineValue")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InlineValueClientCapabilities? InlineValue { get; set; }
+
+    // Capabilities specific to the `textDocument/inlayHint` request.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("inlayHint")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InlayHintClientCapabilities? InlayHint { get; set; }
+
+    // Capabilities specific to the diagnostic pull model.
+    // 
+    // Since: 3.17.0
+    [JsonPropertyName("diagnostic")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DiagnosticClientCapabilities? Diagnostic { get; set; }
+
+    // Client capabilities specific to inline completions.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("inlineCompletion")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InlineCompletionClientCapabilities? InlineCompletion { get; set; }
+}
 
 public sealed partial class WindowClientCapabilities
 {
@@ -6030,7 +7490,81 @@ public sealed partial class DocumentSymbolClientCapabilities
     public bool? LabelSupport { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionClientCapabilities
+// The Client Capabilities of a CodeActionRequest.
+public sealed partial class CodeActionClientCapabilities
+{
+    // Whether code action supports dynamic registration.
+    [JsonPropertyName("dynamicRegistration")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? DynamicRegistration { get; set; }
+
+    // The client support code action literals of type `CodeAction` as a valid
+    // response of the `textDocument/codeAction` request. If the property is not
+    // set the request can only return `Command` literals.
+    // 
+    // Since: 3.8.0
+    [JsonPropertyName("codeActionLiteralSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ClientCodeActionLiteralOptions? CodeActionLiteralSupport { get; set; }
+
+    // Whether code action supports the `isPreferred` property.
+    // 
+    // Since: 3.15.0
+    [JsonPropertyName("isPreferredSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsPreferredSupport { get; set; }
+
+    // Whether code action supports the `disabled` property.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("disabledSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? DisabledSupport { get; set; }
+
+    // Whether code action supports the `data` property which is
+    // preserved between a `textDocument/codeAction` and a
+    // `codeAction/resolve` request.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("dataSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? DataSupport { get; set; }
+
+    // Whether the client supports resolving additional code action
+    // properties via a separate `codeAction/resolve` request.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("resolveSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ClientCodeActionResolveOptions? ResolveSupport { get; set; }
+
+    // Whether the client honors the change annotations in
+    // text edits and resource operations returned via the
+    // `CodeAction#edit` property by for example presenting
+    // the workspace edit in the user interface and asking
+    // for confirmation.
+    // 
+    // Since: 3.16.0
+    [JsonPropertyName("honorsChangeAnnotations")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? HonorsChangeAnnotations { get; set; }
+
+    // Whether the client supports documentation for a class of
+    // code actions.
+    // 
+    // Since: 3.18.0
+    [JsonPropertyName("documentationSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? DocumentationSupport { get; set; }
+
+    // Client supports the tag property on a code action. Clients
+    // supporting tags have to handle unknown tags gracefully.
+    // 
+    // Since: 3.18.0 - proposed
+    [JsonPropertyName("tagSupport")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CodeActionTagOptions? TagSupport { get; set; }
+}
 
 // The client capabilities of a CodeLensRequest.
 public sealed partial class CodeLensClientCapabilities
@@ -6733,7 +8267,15 @@ public sealed partial class ClientSignatureInformationOptions
     public bool? NoActiveParameterSupport { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): ClientCodeActionLiteralOptions
+// Since: 3.18.0
+public sealed partial class ClientCodeActionLiteralOptions
+{
+    // The code action kind is support with the following value
+    // set.
+    [JsonPropertyName("codeActionKind")]
+    [JsonRequired]
+    public ClientCodeActionKindOptions CodeActionKind { get; set; } = null!;
+}
 
 // Since: 3.18.0
 public sealed partial class ClientCodeActionResolveOptions
@@ -6893,7 +8435,17 @@ public sealed partial class ClientSignatureParameterInformationOptions
     public bool? LabelOffsetSupport { get; set; }
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): ClientCodeActionKindOptions
+// Since: 3.18.0
+public sealed partial class ClientCodeActionKindOptions
+{
+    // The code action kind values the client supports. When this
+    // property exists the client also guarantees that it will
+    // handle values outside its set gracefully and falls back
+    // to a default value when unknown.
+    [JsonPropertyName("valueSet")]
+    [JsonRequired]
+    public CodeActionKind[] ValueSet { get; set; } = null!;
+}
 
 // Since: 3.18.0
 public sealed partial class ClientDiagnosticsTagOptions
@@ -7620,15 +9172,87 @@ public sealed partial class ColorPresentationRegistrationOptions
 
 // Enumerations
 
-// skipped (temporarily hosted in Ts.Ls subsets): SemanticTokenType
+// A set of predefined token types. This set is not fixed
+// an clients can specify additional token types via the
+// corresponding client capabilities.
+// 
+// Since: 3.16.0
+[JsonConverter(typeof(SemanticTokenTypeJsonConverter))]
+public readonly partial record struct SemanticTokenType
+{
+    public SemanticTokenType(string? value)
+    {
+        Value = value;
+    }
 
-// skipped (temporarily hosted in Ts.Ls subsets): SemanticTokenModifier
+    public string? Value { get; }
+
+    public static implicit operator SemanticTokenType(string? value) => new(value);
+
+    public static SemanticTokenType Namespace => new("namespace");
+    // Represents a generic type. Acts as a fallback for types which can't be mapped to
+    // a specific type like class or enum.
+    public static SemanticTokenType Type => new("type");
+    public static SemanticTokenType Class => new("class");
+    public static SemanticTokenType Enum => new("enum");
+    public static SemanticTokenType Interface => new("interface");
+    public static SemanticTokenType Struct => new("struct");
+    public static SemanticTokenType TypeParameter => new("typeParameter");
+    public static SemanticTokenType Parameter => new("parameter");
+    public static SemanticTokenType Variable => new("variable");
+    public static SemanticTokenType Property => new("property");
+    public static SemanticTokenType EnumMember => new("enumMember");
+    public static SemanticTokenType Event => new("event");
+    public static SemanticTokenType Function => new("function");
+    public static SemanticTokenType Method => new("method");
+    public static SemanticTokenType Macro => new("macro");
+    public static SemanticTokenType Keyword => new("keyword");
+    public static SemanticTokenType Modifier => new("modifier");
+    public static SemanticTokenType Comment => new("comment");
+    public static SemanticTokenType String => new("string");
+    public static SemanticTokenType Number => new("number");
+    public static SemanticTokenType Regexp => new("regexp");
+    public static SemanticTokenType Operator => new("operator");
+    // Since: 3.17.0
+    public static SemanticTokenType Decorator => new("decorator");
+    // Since: 3.18.0
+    public static SemanticTokenType Label => new("label");
+}
+
+// A set of predefined token modifiers. This set is not fixed
+// an clients can specify additional token types via the
+// corresponding client capabilities.
+// 
+// Since: 3.16.0
+[JsonConverter(typeof(SemanticTokenModifierJsonConverter))]
+public readonly partial record struct SemanticTokenModifier
+{
+    public SemanticTokenModifier(string? value)
+    {
+        Value = value;
+    }
+
+    public string? Value { get; }
+
+    public static implicit operator SemanticTokenModifier(string? value) => new(value);
+
+    public static SemanticTokenModifier Declaration => new("declaration");
+    public static SemanticTokenModifier Definition => new("definition");
+    public static SemanticTokenModifier Readonly => new("readonly");
+    public static SemanticTokenModifier Static => new("static");
+    public static SemanticTokenModifier Deprecated => new("deprecated");
+    public static SemanticTokenModifier Abstract => new("abstract");
+    public static SemanticTokenModifier Async => new("async");
+    public static SemanticTokenModifier Modification => new("modification");
+    public static SemanticTokenModifier Documentation => new("documentation");
+    public static SemanticTokenModifier DefaultLibrary => new("defaultLibrary");
+}
 
 // The document diagnostic report kinds.
 // 
 // Since: 3.17.0
 [JsonConverter(typeof(DocumentDiagnosticReportKindJsonConverter))]
-public readonly record struct DocumentDiagnosticReportKind
+public readonly partial record struct DocumentDiagnosticReportKind
 {
     public DocumentDiagnosticReportKind(string? value)
     {
@@ -7688,7 +9312,7 @@ public enum ErrorCode : int
 
 // A set of predefined range kinds.
 [JsonConverter(typeof(FoldingRangeKindJsonConverter))]
-public readonly record struct FoldingRangeKind
+public readonly partial record struct FoldingRangeKind
 {
     public FoldingRangeKind(string? value)
     {
@@ -7751,7 +9375,7 @@ public enum SymbolTag : uint
 // 
 // Since: 3.16.0
 [JsonConverter(typeof(UniquenessLevelJsonConverter))]
-public readonly record struct UniquenessLevel
+public readonly partial record struct UniquenessLevel
 {
     public UniquenessLevel(string? value)
     {
@@ -7778,7 +9402,7 @@ public readonly record struct UniquenessLevel
 // 
 // Since: 3.16.0
 [JsonConverter(typeof(MonikerKindJsonConverter))]
-public readonly record struct MonikerKind
+public readonly partial record struct MonikerKind
 {
     public MonikerKind(string? value)
     {
@@ -7798,7 +9422,16 @@ public readonly record struct MonikerKind
     public static MonikerKind Local => new("local");
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): InlayHintKind
+// Inlay hint kinds.
+// 
+// Since: 3.17.0
+public enum InlayHintKind : uint
+{
+    // An inlay hint that for a type annotation.
+    Type = 1,
+    // An inlay hint that is for a parameter.
+    Parameter = 2,
+}
 
 // The message type
 public enum MessageType : uint
@@ -7934,7 +9567,80 @@ public enum DocumentHighlightKind : uint
     Write = 3,
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionKind
+// A set of predefined code action kinds
+[JsonConverter(typeof(CodeActionKindJsonConverter))]
+public readonly partial record struct CodeActionKind
+{
+    public CodeActionKind(string? value)
+    {
+        Value = value;
+    }
+
+    public string? Value { get; }
+
+    public static implicit operator CodeActionKind(string? value) => new(value);
+
+    // Empty kind.
+    public static CodeActionKind Empty => new("");
+    // Base kind for quickfix actions: 'quickfix'
+    public static CodeActionKind QuickFix => new("quickfix");
+    // Base kind for refactoring actions: 'refactor'
+    public static CodeActionKind Refactor => new("refactor");
+    // Base kind for refactoring extraction actions: 'refactor.extract'
+    // 
+    // Example extract actions:
+    // 
+    // - Extract method
+    // - Extract function
+    // - Extract variable
+    // - Extract interface from class
+    // - ...
+    public static CodeActionKind RefactorExtract => new("refactor.extract");
+    // Base kind for refactoring inline actions: 'refactor.inline'
+    // 
+    // Example inline actions:
+    // 
+    // - Inline function
+    // - Inline variable
+    // - Inline constant
+    // - ...
+    public static CodeActionKind RefactorInline => new("refactor.inline");
+    // Base kind for refactoring move actions: `refactor.move`
+    // 
+    // Example move actions:
+    // 
+    // - Move a function to a new file
+    // - Move a property between classes
+    // - Move method to base class
+    // - ...
+    // 
+    // Since: 3.18.0
+    public static CodeActionKind RefactorMove => new("refactor.move");
+    // Base kind for refactoring rewrite actions: 'refactor.rewrite'
+    // 
+    // Example rewrite actions:
+    // 
+    // - Convert JavaScript function to class
+    // - Add or remove parameter
+    // - Encapsulate field
+    // - Make method static
+    // - Move method to base class
+    // - ...
+    public static CodeActionKind RefactorRewrite => new("refactor.rewrite");
+    // Base kind for source actions: `source`
+    // 
+    // Source code actions apply to the entire file.
+    public static CodeActionKind Source => new("source");
+    // Base kind for an organize imports source action: `source.organizeImports`
+    public static CodeActionKind SourceOrganizeImports => new("source.organizeImports");
+    // Base kind for auto-fix source actions: `source.fixAll`.
+    // 
+    // Fix all actions automatically fix errors that have a clear fix that do not require user input.
+    // They should not suppress errors or perform unsafe fixes such as generating new types or classes.
+    // 
+    // Since: 3.15.0
+    public static CodeActionKind SourceFixAll => new("source.fixAll");
+}
 
 // Code action tags are extra annotations that tweak the behavior of a code action.
 // 
@@ -7946,7 +9652,7 @@ public enum CodeActionTag : uint
 }
 
 [JsonConverter(typeof(TraceValueJsonConverter))]
-public readonly record struct TraceValue
+public readonly partial record struct TraceValue
 {
     public TraceValue(string? value)
     {
@@ -7971,7 +9677,7 @@ public readonly record struct TraceValue
 // Please note that `MarkupKinds` must not start with a `$`. This kinds
 // are reserved for internal usage.
 [JsonConverter(typeof(MarkupKindJsonConverter))]
-public readonly record struct MarkupKind
+public readonly partial record struct MarkupKind
 {
     public MarkupKind(string? value)
     {
@@ -7992,7 +9698,7 @@ public readonly record struct MarkupKind
 // 
 // Since: 3.18.0
 [JsonConverter(typeof(LanguageKindJsonConverter))]
-public readonly record struct LanguageKind
+public readonly partial record struct LanguageKind
 {
     public LanguageKind(string? value)
     {
@@ -8085,7 +9791,7 @@ public enum InlineCompletionTriggerKind : uint
 // 
 // Since: 3.17.0
 [JsonConverter(typeof(PositionEncodingKindJsonConverter))]
-public readonly record struct PositionEncodingKind
+public readonly partial record struct PositionEncodingKind
 {
     public PositionEncodingKind(string? value)
     {
@@ -8203,14 +9909,26 @@ public enum SignatureHelpTriggerKind : uint
     ContentChange = 3,
 }
 
-// skipped (temporarily hosted in Ts.Ls subsets): CodeActionTriggerKind
+// The reason why code actions were requested.
+// 
+// Since: 3.17.0
+public enum CodeActionTriggerKind : uint
+{
+    // Code actions were explicitly requested by the user or by an extension.
+    Invoked = 1,
+    // Code actions were requested automatically.
+    // 
+    // This typically happens when current selection in a file changes, but can
+    // also be triggered when file content changes.
+    Automatic = 2,
+}
 
 // A pattern kind describing if a glob pattern matches a file a folder or
 // both.
 // 
 // Since: 3.16.0
 [JsonConverter(typeof(FileOperationPatternKindJsonConverter))]
-public readonly record struct FileOperationPatternKind
+public readonly partial record struct FileOperationPatternKind
 {
     public FileOperationPatternKind(string? value)
     {
@@ -8228,7 +9946,7 @@ public readonly record struct FileOperationPatternKind
 }
 
 [JsonConverter(typeof(ResourceOperationKindJsonConverter))]
-public readonly record struct ResourceOperationKind
+public readonly partial record struct ResourceOperationKind
 {
     public ResourceOperationKind(string? value)
     {
@@ -8248,7 +9966,7 @@ public readonly record struct ResourceOperationKind
 }
 
 [JsonConverter(typeof(FailureHandlingKindJsonConverter))]
-public readonly record struct FailureHandlingKind
+public readonly partial record struct FailureHandlingKind
 {
     public FailureHandlingKind(string? value)
     {
@@ -8282,7 +10000,7 @@ public enum PrepareSupportDefaultBehavior : uint
 }
 
 [JsonConverter(typeof(TokenFormatJsonConverter))]
-public readonly record struct TokenFormat
+public readonly partial record struct TokenFormat
 {
     public TokenFormat(string? value)
     {
@@ -8336,7 +10054,7 @@ public enum VSReferenceKind : int
 }
 
 [JsonConverter(typeof(CodeLensKindJsonConverter))]
-public readonly record struct CodeLensKind
+public readonly partial record struct CodeLensKind
 {
     public CodeLensKind(string? value)
     {
@@ -8389,7 +10107,7 @@ public enum AddAsTypeOnly : int
 
 // Roslyn classification type names used by VS for syntax coloring in tooltips and other UI elements.
 [JsonConverter(typeof(ClassificationTypeNameJsonConverter))]
-public readonly record struct ClassificationTypeName
+public readonly partial record struct ClassificationTypeName
 {
     public ClassificationTypeName(string? value)
     {
@@ -8494,12 +10212,25 @@ public static class Methods
     // The `window/workDoneProgress/create` request is sent from the server to the client to initiate progress
     // reporting from the server.
     public static readonly Method WindowWorkDoneProgressCreate = new("window/workDoneProgress/create");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/prepareCallHierarchy
-    // skipped (references types temporarily hosted in Ts.Ls subsets): callHierarchy/incomingCalls
-    // skipped (references types temporarily hosted in Ts.Ls subsets): callHierarchy/outgoingCalls
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/semanticTokens/full
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/semanticTokens/full/delta
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/semanticTokens/range
+    // A request to result a `CallHierarchyItem` in a document at a given position.
+    // Can be used as an input to an incoming or outgoing call hierarchy.
+    // 
+    // Since: 3.16.0
+    public static readonly Method TextDocumentPrepareCallHierarchy = new("textDocument/prepareCallHierarchy");
+    // A request to resolve the incoming calls for a given `CallHierarchyItem`.
+    // 
+    // Since: 3.16.0
+    public static readonly Method CallHierarchyIncomingCalls = new("callHierarchy/incomingCalls");
+    // A request to resolve the outgoing calls for a given `CallHierarchyItem`.
+    // 
+    // Since: 3.16.0
+    public static readonly Method CallHierarchyOutgoingCalls = new("callHierarchy/outgoingCalls");
+    // Since: 3.16.0
+    public static readonly Method TextDocumentSemanticTokensFull = new("textDocument/semanticTokens/full");
+    // Since: 3.16.0
+    public static readonly Method TextDocumentSemanticTokensFullDelta = new("textDocument/semanticTokens/full/delta");
+    // Since: 3.16.0
+    public static readonly Method TextDocumentSemanticTokensRange = new("textDocument/semanticTokens/range");
     // Since: 3.16.0
     public static readonly Method WorkspaceSemanticTokensRefresh = new("workspace/semanticTokens/refresh");
     // A request to show a document. This request might open an
@@ -8557,8 +10288,18 @@ public static class Methods
     public static readonly Method TextDocumentInlineValue = new("textDocument/inlineValue");
     // Since: 3.17.0
     public static readonly Method WorkspaceInlineValueRefresh = new("workspace/inlineValue/refresh");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/inlayHint
-    // skipped (references types temporarily hosted in Ts.Ls subsets): inlayHint/resolve
+    // A request to provide inlay hints in a document. The request's parameter is of
+    // type InlayHintsParams, the response is of type
+    // InlayHint[] or a Thenable that resolves to such.
+    // 
+    // Since: 3.17.0
+    public static readonly Method TextDocumentInlayHint = new("textDocument/inlayHint");
+    // A request to resolve additional properties for an inlay hint.
+    // The request's parameter is of type InlayHint, the response is
+    // of type InlayHint or a Thenable that resolves to such.
+    // 
+    // Since: 3.17.0
+    public static readonly Method InlayHintResolve = new("inlayHint/resolve");
     // Since: 3.17.0
     public static readonly Method WorkspaceInlayHintRefresh = new("workspace/inlayHint/refresh");
     // The document diagnostic request definition.
@@ -8573,7 +10314,12 @@ public static class Methods
     // 
     // Since: 3.17.0
     public static readonly Method WorkspaceDiagnosticRefresh = new("workspace/diagnostic/refresh");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/inlineCompletion
+    // A request to provide inline completions in a document. The request's parameter is of
+    // type InlineCompletionParams, the response is of type
+    // InlineCompletion[] or a Thenable that resolves to such.
+    // 
+    // Since: 3.18.0
+    public static readonly Method TextDocumentInlineCompletion = new("textDocument/inlineCompletion");
     // The `workspace/textDocumentContent` request is sent from the client to the
     // server to request the content of a text document.
     // 
@@ -8590,7 +10336,12 @@ public static class Methods
     // The `client/unregisterCapability` request is sent from the server to the client to unregister a previously registered capability
     // handler on the client side.
     public static readonly Method ClientUnregisterCapability = new("client/unregisterCapability");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): initialize
+    // The initialize request is sent from the client to the server.
+    // It is sent once as the request after starting up the server.
+    // The requests parameter is of type InitializeParams
+    // the response if of type InitializeResult of a Thenable that
+    // resolves to such.
+    public static readonly Method Initialize = new("initialize");
     // A shutdown request is sent from the client to the server.
     // It is sent once when the client decides to shutdown the
     // server. The only notification that is sent after a shutdown request
@@ -8606,8 +10357,20 @@ public static class Methods
     // server constantly fails on this request. This is done to keep the save fast and
     // reliable.
     public static readonly Method TextDocumentWillSaveWaitUntil = new("textDocument/willSaveWaitUntil");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/completion
-    // skipped (references types temporarily hosted in Ts.Ls subsets): completionItem/resolve
+    // Request to request completion at a given text document position. The request's
+    // parameter is of type TextDocumentPosition the response
+    // is of type CompletionItem[] or CompletionList
+    // or a Thenable that resolves to such.
+    // 
+    // The request can delay the computation of the `detail`
+    // and `documentation` properties to the `completionItem/resolve`
+    // request. However, properties that are needed for the initial sorting and filtering, like `sortText`,
+    // `filterText`, `insertText`, and `textEdit`, must not be changed during resolve.
+    public static readonly Method TextDocumentCompletion = new("textDocument/completion");
+    // Request to resolve additional information for a given completion item.The request's
+    // parameter is of type CompletionItem the response
+    // is of type CompletionItem or a Thenable that resolves to such.
+    public static readonly Method CompletionItemResolve = new("completionItem/resolve");
     // Request to request hover information at a given text document position. The request's
     // parameter is of type TextDocumentPosition the response is of
     // type Hover or a Thenable that resolves to such.
@@ -8633,8 +10396,12 @@ public static class Methods
     // response is of type SymbolInformation[] or a Thenable
     // that resolves to such.
     public static readonly Method TextDocumentDocumentSymbol = new("textDocument/documentSymbol");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/codeAction
-    // skipped (references types temporarily hosted in Ts.Ls subsets): codeAction/resolve
+    // A request to provide commands for the given text document and range.
+    public static readonly Method TextDocumentCodeAction = new("textDocument/codeAction");
+    // Request to resolve additional information for a given code action.The request's
+    // parameter is of type CodeAction the response
+    // is of type CodeAction or a Thenable that resolves to such.
+    public static readonly Method CodeActionResolve = new("codeAction/resolve");
     // A request to list project-wide symbols matching the query string given
     // by the WorkspaceSymbolParams. The response is
     // of type SymbolInformation[] or a Thenable that
@@ -8649,8 +10416,10 @@ public static class Methods
     // 
     // Since: 3.17.0
     public static readonly Method WorkspaceSymbolResolve = new("workspaceSymbol/resolve");
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/codeLens
-    // skipped (references types temporarily hosted in Ts.Ls subsets): codeLens/resolve
+    // A request to provide code lens for the given text document.
+    public static readonly Method TextDocumentCodeLens = new("textDocument/codeLens");
+    // A request to resolve a command for a given code lens.
+    public static readonly Method CodeLensResolve = new("codeLens/resolve");
     // A request to refresh all code actions
     // 
     // Since: 3.16.0
@@ -8783,6 +10552,8 @@ public static class Methods
     public static readonly Method Progress = new("$/progress");
     // Notification to set the server's log verbosity level based on the output channel's log level.
     public static readonly Method CustomSetLogVerbosity = new("custom/setLogVerbosity");
+    // Registration-only method for textDocument/semanticTokens.
+    public static readonly Method TextDocumentSemanticTokens = new("textDocument/semanticTokens");
 }
 
 // Request response types and method info registry. Go emits `type XResponse = Y`
@@ -8835,6 +10606,30 @@ public static class Infos
     public static readonly RequestInfo<WorkDoneProgressCreateParams, Null> WindowWorkDoneProgressCreateInfo =
         new(Methods.WindowWorkDoneProgressCreate, LspJsonContext.Default.WorkDoneProgressCreateParams, LspJsonContext.Default.Null);
 
+    // Type mapping info for `textDocument/prepareCallHierarchy` (response alias: TextDocumentPrepareCallHierarchyResponse).
+    public static readonly RequestInfo<CallHierarchyPrepareParams, CallHierarchyItemsOrNull?> TextDocumentPrepareCallHierarchyInfo =
+        new(Methods.TextDocumentPrepareCallHierarchy, LspJsonContext.Default.CallHierarchyPrepareParams, LspJsonContext.Default.CallHierarchyItemsOrNull);
+
+    // Type mapping info for `callHierarchy/incomingCalls` (response alias: CallHierarchyIncomingCallsResponse).
+    public static readonly RequestInfo<CallHierarchyIncomingCallsParams, CallHierarchyIncomingCallsOrNull?> CallHierarchyIncomingCallsInfo =
+        new(Methods.CallHierarchyIncomingCalls, LspJsonContext.Default.CallHierarchyIncomingCallsParams, LspJsonContext.Default.CallHierarchyIncomingCallsOrNull);
+
+    // Type mapping info for `callHierarchy/outgoingCalls` (response alias: CallHierarchyOutgoingCallsResponse).
+    public static readonly RequestInfo<CallHierarchyOutgoingCallsParams, CallHierarchyOutgoingCallsOrNull?> CallHierarchyOutgoingCallsInfo =
+        new(Methods.CallHierarchyOutgoingCalls, LspJsonContext.Default.CallHierarchyOutgoingCallsParams, LspJsonContext.Default.CallHierarchyOutgoingCallsOrNull);
+
+    // Type mapping info for `textDocument/semanticTokens/full` (response alias: TextDocumentSemanticTokensFullResponse).
+    public static readonly RequestInfo<SemanticTokensParams, SemanticTokensOrNull?> TextDocumentSemanticTokensFullInfo =
+        new(Methods.TextDocumentSemanticTokensFull, LspJsonContext.Default.SemanticTokensParams, LspJsonContext.Default.SemanticTokensOrNull);
+
+    // Type mapping info for `textDocument/semanticTokens/full/delta` (response alias: TextDocumentSemanticTokensFullDeltaResponse).
+    public static readonly RequestInfo<SemanticTokensDeltaParams, SemanticTokensOrSemanticTokensDeltaOrNull?> TextDocumentSemanticTokensFullDeltaInfo =
+        new(Methods.TextDocumentSemanticTokensFullDelta, LspJsonContext.Default.SemanticTokensDeltaParams, LspJsonContext.Default.SemanticTokensOrSemanticTokensDeltaOrNull);
+
+    // Type mapping info for `textDocument/semanticTokens/range` (response alias: TextDocumentSemanticTokensRangeResponse).
+    public static readonly RequestInfo<SemanticTokensRangeParams, SemanticTokensOrNull?> TextDocumentSemanticTokensRangeInfo =
+        new(Methods.TextDocumentSemanticTokensRange, LspJsonContext.Default.SemanticTokensRangeParams, LspJsonContext.Default.SemanticTokensOrNull);
+
     // Type mapping info for `workspace/semanticTokens/refresh` (response alias: WorkspaceSemanticTokensRefreshResponse).
     public static readonly RequestInfo<NoParams, Null> WorkspaceSemanticTokensRefreshInfo =
         new(Methods.WorkspaceSemanticTokensRefresh, LspJsonContext.Default.NoParams, LspJsonContext.Default.Null);
@@ -8883,6 +10678,14 @@ public static class Infos
     public static readonly RequestInfo<NoParams, Null> WorkspaceInlineValueRefreshInfo =
         new(Methods.WorkspaceInlineValueRefresh, LspJsonContext.Default.NoParams, LspJsonContext.Default.Null);
 
+    // Type mapping info for `textDocument/inlayHint` (response alias: TextDocumentInlayHintResponse).
+    public static readonly RequestInfo<InlayHintParams, InlayHintsOrNull?> TextDocumentInlayHintInfo =
+        new(Methods.TextDocumentInlayHint, LspJsonContext.Default.InlayHintParams, LspJsonContext.Default.InlayHintsOrNull);
+
+    // Type mapping info for `inlayHint/resolve` (response alias: InlayHintResolveResponse).
+    public static readonly RequestInfo<InlayHint, InlayHint?> InlayHintResolveInfo =
+        new(Methods.InlayHintResolve, LspJsonContext.Default.InlayHint, LspJsonContext.Default.InlayHint);
+
     // Type mapping info for `workspace/inlayHint/refresh` (response alias: WorkspaceInlayHintRefreshResponse).
     public static readonly RequestInfo<NoParams, Null> WorkspaceInlayHintRefreshInfo =
         new(Methods.WorkspaceInlayHintRefresh, LspJsonContext.Default.NoParams, LspJsonContext.Default.Null);
@@ -8898,6 +10701,10 @@ public static class Infos
     // Type mapping info for `workspace/diagnostic/refresh` (response alias: WorkspaceDiagnosticRefreshResponse).
     public static readonly RequestInfo<NoParams, Null> WorkspaceDiagnosticRefreshInfo =
         new(Methods.WorkspaceDiagnosticRefresh, LspJsonContext.Default.NoParams, LspJsonContext.Default.Null);
+
+    // Type mapping info for `textDocument/inlineCompletion` (response alias: TextDocumentInlineCompletionResponse).
+    public static readonly RequestInfo<InlineCompletionParams, InlineCompletionListOrItemsOrNull?> TextDocumentInlineCompletionInfo =
+        new(Methods.TextDocumentInlineCompletion, LspJsonContext.Default.InlineCompletionParams, LspJsonContext.Default.InlineCompletionListOrItemsOrNull);
 
     // Type mapping info for `workspace/textDocumentContent` (response alias: WorkspaceTextDocumentContentResponse).
     public static readonly RequestInfo<TextDocumentContentParams, TextDocumentContentResult?> WorkspaceTextDocumentContentInfo =
@@ -8915,6 +10722,10 @@ public static class Infos
     public static readonly RequestInfo<UnregistrationParams, Null> ClientUnregisterCapabilityInfo =
         new(Methods.ClientUnregisterCapability, LspJsonContext.Default.UnregistrationParams, LspJsonContext.Default.Null);
 
+    // Type mapping info for `initialize` (response alias: InitializeResponse).
+    public static readonly RequestInfo<InitializeParams, InitializeResult?> InitializeInfo =
+        new(Methods.Initialize, LspJsonContext.Default.InitializeParams, LspJsonContext.Default.InitializeResult);
+
     // Type mapping info for `shutdown` (response alias: ShutdownResponse).
     public static readonly RequestInfo<NoParams, Null> ShutdownInfo =
         new(Methods.Shutdown, LspJsonContext.Default.NoParams, LspJsonContext.Default.Null);
@@ -8926,6 +10737,14 @@ public static class Infos
     // Type mapping info for `textDocument/willSaveWaitUntil` (response alias: TextDocumentWillSaveWaitUntilResponse).
     public static readonly RequestInfo<WillSaveTextDocumentParams, TextEditsOrNull?> TextDocumentWillSaveWaitUntilInfo =
         new(Methods.TextDocumentWillSaveWaitUntil, LspJsonContext.Default.WillSaveTextDocumentParams, LspJsonContext.Default.TextEditsOrNull);
+
+    // Type mapping info for `textDocument/completion` (response alias: TextDocumentCompletionResponse).
+    public static readonly RequestInfo<CompletionParams, CompletionItemsOrListOrNull?> TextDocumentCompletionInfo =
+        new(Methods.TextDocumentCompletion, LspJsonContext.Default.CompletionParams, LspJsonContext.Default.CompletionItemsOrListOrNull);
+
+    // Type mapping info for `completionItem/resolve` (response alias: CompletionItemResolveResponse).
+    public static readonly RequestInfo<CompletionItem, CompletionItem?> CompletionItemResolveInfo =
+        new(Methods.CompletionItemResolve, LspJsonContext.Default.CompletionItem, LspJsonContext.Default.CompletionItem);
 
     // Type mapping info for `textDocument/hover` (response alias: TextDocumentHoverResponse).
     public static readonly RequestInfo<HoverParams, HoverOrNull?> TextDocumentHoverInfo =
@@ -8951,6 +10770,14 @@ public static class Infos
     public static readonly RequestInfo<DocumentSymbolParams, SymbolInformationsOrDocumentSymbolsOrNull?> TextDocumentDocumentSymbolInfo =
         new(Methods.TextDocumentDocumentSymbol, LspJsonContext.Default.DocumentSymbolParams, LspJsonContext.Default.SymbolInformationsOrDocumentSymbolsOrNull);
 
+    // Type mapping info for `textDocument/codeAction` (response alias: TextDocumentCodeActionResponse).
+    public static readonly RequestInfo<CodeActionParams, CommandOrCodeActionArrayOrNull?> TextDocumentCodeActionInfo =
+        new(Methods.TextDocumentCodeAction, LspJsonContext.Default.CodeActionParams, LspJsonContext.Default.CommandOrCodeActionArrayOrNull);
+
+    // Type mapping info for `codeAction/resolve` (response alias: CodeActionResolveResponse).
+    public static readonly RequestInfo<CodeAction, CodeAction?> CodeActionResolveInfo =
+        new(Methods.CodeActionResolve, LspJsonContext.Default.CodeAction, LspJsonContext.Default.CodeAction);
+
     // Type mapping info for `workspace/symbol` (response alias: WorkspaceSymbolResponse).
     public static readonly RequestInfo<WorkspaceSymbolParams, SymbolInformationsOrWorkspaceSymbolsOrNull?> WorkspaceSymbolInfo =
         new(Methods.WorkspaceSymbol, LspJsonContext.Default.WorkspaceSymbolParams, LspJsonContext.Default.SymbolInformationsOrWorkspaceSymbolsOrNull);
@@ -8958,6 +10785,14 @@ public static class Infos
     // Type mapping info for `workspaceSymbol/resolve` (response alias: WorkspaceSymbolResolveResponse).
     public static readonly RequestInfo<WorkspaceSymbol, WorkspaceSymbol?> WorkspaceSymbolResolveInfo =
         new(Methods.WorkspaceSymbolResolve, LspJsonContext.Default.WorkspaceSymbol, LspJsonContext.Default.WorkspaceSymbol);
+
+    // Type mapping info for `textDocument/codeLens` (response alias: TextDocumentCodeLensResponse).
+    public static readonly RequestInfo<CodeLensParams, CodeLensesOrNull?> TextDocumentCodeLensInfo =
+        new(Methods.TextDocumentCodeLens, LspJsonContext.Default.CodeLensParams, LspJsonContext.Default.CodeLensesOrNull);
+
+    // Type mapping info for `codeLens/resolve` (response alias: CodeLensResolveResponse).
+    public static readonly RequestInfo<CodeLens, CodeLens?> CodeLensResolveInfo =
+        new(Methods.CodeLensResolve, LspJsonContext.Default.CodeLens, LspJsonContext.Default.CodeLens);
 
     // Type mapping info for `workspace/codeLens/refresh` (response alias: WorkspaceCodeLensRefreshResponse).
     public static readonly RequestInfo<NoParams, Null> WorkspaceCodeLensRefreshInfo =
@@ -9218,8 +11053,8 @@ public sealed class RegisterOptions
     public FoldingRangeRegistrationOptions? TextDocumentFoldingRange { get; set; }
     public DeclarationRegistrationOptions? TextDocumentDeclaration { get; set; }
     public SelectionRangeRegistrationOptions? TextDocumentSelectionRange { get; set; }
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/prepareCallHierarchy
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/semanticTokens
+    public CallHierarchyRegistrationOptions? TextDocumentPrepareCallHierarchy { get; set; }
+    public SemanticTokensRegistrationOptions? TextDocumentSemanticTokens { get; set; }
     public LinkedEditingRangeRegistrationOptions? TextDocumentLinkedEditingRange { get; set; }
     public FileOperationRegistrationOptions? WorkspaceWillCreateFiles { get; set; }
     public FileOperationRegistrationOptions? WorkspaceWillRenameFiles { get; set; }
@@ -9227,21 +11062,21 @@ public sealed class RegisterOptions
     public MonikerRegistrationOptions? TextDocumentMoniker { get; set; }
     public TypeHierarchyRegistrationOptions? TextDocumentPrepareTypeHierarchy { get; set; }
     public InlineValueRegistrationOptions? TextDocumentInlineValue { get; set; }
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/inlayHint
+    public InlayHintRegistrationOptions? TextDocumentInlayHint { get; set; }
     public DiagnosticRegistrationOptions? TextDocumentDiagnostic { get; set; }
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/inlineCompletion
+    public InlineCompletionRegistrationOptions? TextDocumentInlineCompletion { get; set; }
     public TextDocumentContentRegistrationOptions? WorkspaceTextDocumentContent { get; set; }
     public TextDocumentRegistrationOptions? TextDocumentWillSaveWaitUntil { get; set; }
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/completion
+    public CompletionRegistrationOptions? TextDocumentCompletion { get; set; }
     public HoverRegistrationOptions? TextDocumentHover { get; set; }
     public SignatureHelpRegistrationOptions? TextDocumentSignatureHelp { get; set; }
     public DefinitionRegistrationOptions? TextDocumentDefinition { get; set; }
     public ReferenceRegistrationOptions? TextDocumentReferences { get; set; }
     public DocumentHighlightRegistrationOptions? TextDocumentDocumentHighlight { get; set; }
     public DocumentSymbolRegistrationOptions? TextDocumentDocumentSymbol { get; set; }
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/codeAction
+    public CodeActionRegistrationOptions? TextDocumentCodeAction { get; set; }
     public WorkspaceSymbolRegistrationOptions? WorkspaceSymbol { get; set; }
-    // skipped (references types temporarily hosted in Ts.Ls subsets): textDocument/codeLens
+    public CodeLensRegistrationOptions? TextDocumentCodeLens { get; set; }
     public DocumentLinkRegistrationOptions? TextDocumentDocumentLink { get; set; }
     public DocumentFormattingRegistrationOptions? TextDocumentFormatting { get; set; }
     public DocumentRangeFormattingRegistrationOptions? TextDocumentRangeFormatting { get; set; }
@@ -9259,5 +11094,2781 @@ public sealed class RegisterOptions
     public TextDocumentSaveRegistrationOptions? TextDocumentDidSave { get; set; }
     public TextDocumentRegistrationOptions? TextDocumentWillSave { get; set; }
     public DidChangeWatchedFilesRegistrationOptions? WorkspaceDidChangeWatchedFiles { get; set; }
+}
+
+// ResolvedChangeAnnotationsSupportOptions is a resolved version of ChangeAnnotationsSupportOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedChangeAnnotationsSupportOptions
+{
+    // Whether the client groups edits with equal labels into tree nodes,
+    // for instance all edits labelled with "Changes in Strings" would
+    // be a tree node.
+    public bool GroupsOnLabel { get; set; }
+}
+
+// ResolvedWorkspaceEditClientCapabilities is a resolved version of WorkspaceEditClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedWorkspaceEditClientCapabilities
+{
+    // The client supports versioned document changes in `WorkspaceEdit`s
+    public bool DocumentChanges { get; set; }
+
+    // The resource operations the client supports. Clients should at least
+    // support 'create', 'rename' and 'delete' files and folders.
+    // 
+    // Since: 3.13.0
+    public ResourceOperationKind[]? ResourceOperations { get; set; }
+
+    // The failure handling strategy of a client if applying the workspace edit
+    // fails.
+    // 
+    // Since: 3.13.0
+    public FailureHandlingKind FailureHandling { get; set; }
+
+    // Whether the client normalizes line endings to the client specific
+    // setting.
+    // If set to `true` the client will normalize line ending characters
+    // in a workspace edit to the client-specified new line
+    // character.
+    // 
+    // Since: 3.16.0
+    public bool NormalizesLineEndings { get; set; }
+
+    // Whether the client in general supports change annotations on text edits,
+    // create file, rename file and delete file changes.
+    // 
+    // Since: 3.16.0
+    public ResolvedChangeAnnotationsSupportOptions ChangeAnnotationSupport { get; set; } = new();
+
+    // Whether the client supports `WorkspaceEditMetadata` in `WorkspaceEdit`s.
+    // 
+    // Since: 3.18.0
+    public bool MetadataSupport { get; set; }
+
+    // Whether the client supports snippets as text edits.
+    // 
+    // Since: 3.18.0
+    public bool SnippetEditSupport { get; set; }
+}
+
+// ResolvedDidChangeConfigurationClientCapabilities is a resolved version of DidChangeConfigurationClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedDidChangeConfigurationClientCapabilities
+{
+    // Did change configuration notification supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedDidChangeWatchedFilesClientCapabilities is a resolved version of DidChangeWatchedFilesClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedDidChangeWatchedFilesClientCapabilities
+{
+    // Did change watched files notification supports dynamic registration. Please note
+    // that the current protocol doesn't support static configuration for file changes
+    // from the server side.
+    public bool DynamicRegistration { get; set; }
+
+    // Whether the client has support for pattern
+    // or not.
+    // 
+    // Since: 3.17.0
+    public bool RelativePatternSupport { get; set; }
+}
+
+// ResolvedClientSymbolKindOptions is a resolved version of ClientSymbolKindOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientSymbolKindOptions
+{
+    // The symbol kind values the client supports. When this
+    // property exists the client also guarantees that it will
+    // handle values outside its set gracefully and falls back
+    // to a default value when unknown.
+    // 
+    // If this property is not present the client only supports
+    // the symbol kinds from `File` to `Array` as defined in
+    // the initial version of the protocol.
+    public SymbolKind[]? ValueSet { get; set; }
+}
+
+// ResolvedClientSymbolTagOptions is a resolved version of ClientSymbolTagOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientSymbolTagOptions
+{
+    // The tags supported by the client.
+    public SymbolTag[]? ValueSet { get; set; }
+}
+
+// ResolvedClientSymbolResolveOptions is a resolved version of ClientSymbolResolveOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientSymbolResolveOptions
+{
+    // The properties that a client can resolve lazily. Usually
+    // `location.range`
+    public string[]? Properties { get; set; }
+}
+
+// ResolvedWorkspaceSymbolClientCapabilities is a resolved version of WorkspaceSymbolClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities for a WorkspaceSymbolRequest.
+public sealed class ResolvedWorkspaceSymbolClientCapabilities
+{
+    // Symbol request supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
+    public ResolvedClientSymbolKindOptions SymbolKind { get; set; } = new();
+
+    // The client supports tags on `SymbolInformation`.
+    // Clients supporting tags have to handle unknown tags gracefully.
+    // 
+    // Since: 3.16.0
+    public ResolvedClientSymbolTagOptions TagSupport { get; set; } = new();
+
+    // The client support partial workspace symbols. The client will send the
+    // request `workspaceSymbol/resolve` to the server to resolve additional
+    // properties.
+    // 
+    // Since: 3.17.0
+    public ResolvedClientSymbolResolveOptions ResolveSupport { get; set; } = new();
+}
+
+// ResolvedExecuteCommandClientCapabilities is a resolved version of ExecuteCommandClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// The client capabilities of a ExecuteCommandRequest.
+public sealed class ResolvedExecuteCommandClientCapabilities
+{
+    // Execute command supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedSemanticTokensWorkspaceClientCapabilities is a resolved version of SemanticTokensWorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.16.0
+public sealed class ResolvedSemanticTokensWorkspaceClientCapabilities
+{
+    // Whether the client implementation supports a refresh request sent from
+    // the server to the client.
+    // 
+    // Note that this event is global and will force the client to refresh all
+    // semantic tokens currently shown. It should be used with absolute care
+    // and is useful for situation where a server for example detects a project
+    // wide change that requires such a calculation.
+    public bool RefreshSupport { get; set; }
+}
+
+// ResolvedCodeLensWorkspaceClientCapabilities is a resolved version of CodeLensWorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.16.0
+public sealed class ResolvedCodeLensWorkspaceClientCapabilities
+{
+    // Whether the client implementation supports a refresh request sent from the
+    // server to the client.
+    // 
+    // Note that this event is global and will force the client to refresh all
+    // code lenses currently shown. It should be used with absolute care and is
+    // useful for situation where a server for example detect a project wide
+    // change that requires such a calculation.
+    public bool RefreshSupport { get; set; }
+}
+
+// ResolvedFileOperationClientCapabilities is a resolved version of FileOperationClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Capabilities relating to events from file operations by the user in the client.
+// 
+// These events do not come from the file system, they come from user operations
+// like renaming a file in the UI.
+// 
+// Since: 3.16.0
+public sealed class ResolvedFileOperationClientCapabilities
+{
+    // Whether the client supports dynamic registration for file requests/notifications.
+    public bool DynamicRegistration { get; set; }
+
+    // The client has support for sending didCreateFiles notifications.
+    public bool DidCreate { get; set; }
+
+    // The client has support for sending willCreateFiles requests.
+    public bool WillCreate { get; set; }
+
+    // The client has support for sending didRenameFiles notifications.
+    public bool DidRename { get; set; }
+
+    // The client has support for sending willRenameFiles requests.
+    public bool WillRename { get; set; }
+
+    // The client has support for sending didDeleteFiles notifications.
+    public bool DidDelete { get; set; }
+
+    // The client has support for sending willDeleteFiles requests.
+    public bool WillDelete { get; set; }
+}
+
+// ResolvedInlineValueWorkspaceClientCapabilities is a resolved version of InlineValueWorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client workspace capabilities specific to inline values.
+// 
+// Since: 3.17.0
+public sealed class ResolvedInlineValueWorkspaceClientCapabilities
+{
+    // Whether the client implementation supports a refresh request sent from the
+    // server to the client.
+    // 
+    // Note that this event is global and will force the client to refresh all
+    // inline values currently shown. It should be used with absolute care and is
+    // useful for situation where a server for example detects a project wide
+    // change that requires such a calculation.
+    public bool RefreshSupport { get; set; }
+}
+
+// ResolvedInlayHintWorkspaceClientCapabilities is a resolved version of InlayHintWorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client workspace capabilities specific to inlay hints.
+// 
+// Since: 3.17.0
+public sealed class ResolvedInlayHintWorkspaceClientCapabilities
+{
+    // Whether the client implementation supports a refresh request sent from
+    // the server to the client.
+    // 
+    // Note that this event is global and will force the client to refresh all
+    // inlay hints currently shown. It should be used with absolute care and
+    // is useful for situation where a server for example detects a project wide
+    // change that requires such a calculation.
+    public bool RefreshSupport { get; set; }
+}
+
+// ResolvedDiagnosticWorkspaceClientCapabilities is a resolved version of DiagnosticWorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Workspace client capabilities specific to diagnostic pull requests.
+// 
+// Since: 3.17.0
+public sealed class ResolvedDiagnosticWorkspaceClientCapabilities
+{
+    // Whether the client implementation supports a refresh request sent from
+    // the server to the client.
+    // 
+    // Note that this event is global and will force the client to refresh all
+    // pulled diagnostics currently shown. It should be used with absolute care and
+    // is useful for situation where a server for example detects a project wide
+    // change that requires such a calculation.
+    public bool RefreshSupport { get; set; }
+}
+
+// ResolvedFoldingRangeWorkspaceClientCapabilities is a resolved version of FoldingRangeWorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client workspace capabilities specific to folding ranges
+// 
+// Since: 3.18.0
+public sealed class ResolvedFoldingRangeWorkspaceClientCapabilities
+{
+    // Whether the client implementation supports a refresh request sent from the
+    // server to the client.
+    // 
+    // Note that this event is global and will force the client to refresh all
+    // folding ranges currently shown. It should be used with absolute care and is
+    // useful for situation where a server for example detects a project wide
+    // change that requires such a calculation.
+    // 
+    // Since: 3.18.0
+    public bool RefreshSupport { get; set; }
+}
+
+// ResolvedTextDocumentContentClientCapabilities is a resolved version of TextDocumentContentClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities for a text document content provider.
+// 
+// Since: 3.18.0
+public sealed class ResolvedTextDocumentContentClientCapabilities
+{
+    // Text document content provider supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedWorkspaceClientCapabilities is a resolved version of WorkspaceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Workspace specific client capabilities.
+public sealed class ResolvedWorkspaceClientCapabilities
+{
+    // The client supports applying batch edits
+    // to the workspace by supporting the request
+    // 'workspace/applyEdit'
+    public bool ApplyEdit { get; set; }
+
+    // Capabilities specific to `WorkspaceEdit`s.
+    public ResolvedWorkspaceEditClientCapabilities WorkspaceEdit { get; set; } = new();
+
+    // Capabilities specific to the `workspace/didChangeConfiguration` notification.
+    public ResolvedDidChangeConfigurationClientCapabilities DidChangeConfiguration { get; set; } = new();
+
+    // Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
+    public ResolvedDidChangeWatchedFilesClientCapabilities DidChangeWatchedFiles { get; set; } = new();
+
+    // Capabilities specific to the `workspace/symbol` request.
+    public ResolvedWorkspaceSymbolClientCapabilities Symbol { get; set; } = new();
+
+    // Capabilities specific to the `workspace/executeCommand` request.
+    public ResolvedExecuteCommandClientCapabilities ExecuteCommand { get; set; } = new();
+
+    // The client has support for workspace folders.
+    // 
+    // Since: 3.6.0
+    public bool WorkspaceFolders { get; set; }
+
+    // The client supports `workspace/configuration` requests.
+    // 
+    // Since: 3.6.0
+    public bool Configuration { get; set; }
+
+    // Capabilities specific to the semantic token requests scoped to the
+    // workspace.
+    // 
+    // Since: 3.16.0.
+    public ResolvedSemanticTokensWorkspaceClientCapabilities SemanticTokens { get; set; } = new();
+
+    // Capabilities specific to the code lens requests scoped to the
+    // workspace.
+    // 
+    // Since: 3.16.0.
+    public ResolvedCodeLensWorkspaceClientCapabilities CodeLens { get; set; } = new();
+
+    // The client has support for file notifications/requests for user operations on files.
+    // 
+    // Since 3.16.0
+    public ResolvedFileOperationClientCapabilities FileOperations { get; set; } = new();
+
+    // Capabilities specific to the inline values requests scoped to the
+    // workspace.
+    // 
+    // Since: 3.17.0.
+    public ResolvedInlineValueWorkspaceClientCapabilities InlineValue { get; set; } = new();
+
+    // Capabilities specific to the inlay hint requests scoped to the
+    // workspace.
+    // 
+    // Since: 3.17.0.
+    public ResolvedInlayHintWorkspaceClientCapabilities InlayHint { get; set; } = new();
+
+    // Capabilities specific to the diagnostic requests scoped to the
+    // workspace.
+    // 
+    // Since: 3.17.0.
+    public ResolvedDiagnosticWorkspaceClientCapabilities Diagnostics { get; set; } = new();
+
+    // Capabilities specific to the folding range requests scoped to the workspace.
+    // 
+    // Since: 3.18.0
+    public ResolvedFoldingRangeWorkspaceClientCapabilities FoldingRange { get; set; } = new();
+
+    // Capabilities specific to the `workspace/textDocumentContent` request.
+    // 
+    // Since: 3.18.0
+    public ResolvedTextDocumentContentClientCapabilities TextDocumentContent { get; set; } = new();
+}
+
+// ResolvedTextDocumentSyncClientCapabilities is a resolved version of TextDocumentSyncClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedTextDocumentSyncClientCapabilities
+{
+    // Whether text document synchronization supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports sending will save notifications.
+    public bool WillSave { get; set; }
+
+    // The client supports sending a will save request and
+    // waits for a response providing text edits which will
+    // be applied to the document before it is saved.
+    public bool WillSaveWaitUntil { get; set; }
+
+    // The client supports did save notifications.
+    public bool DidSave { get; set; }
+}
+
+// ResolvedTextDocumentFilterClientCapabilities is a resolved version of TextDocumentFilterClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedTextDocumentFilterClientCapabilities
+{
+    // The client supports Relative Patterns.
+    // 
+    // Since: 3.18.0
+    public bool RelativePatternSupport { get; set; }
+}
+
+// ResolvedCompletionItemTagOptions is a resolved version of CompletionItemTagOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedCompletionItemTagOptions
+{
+    // The tags supported by the client.
+    public CompletionItemTag[]? ValueSet { get; set; }
+}
+
+// ResolvedClientCompletionItemResolveOptions is a resolved version of ClientCompletionItemResolveOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCompletionItemResolveOptions
+{
+    // The properties that a client can resolve lazily.
+    public string[]? Properties { get; set; }
+}
+
+// ResolvedClientCompletionItemInsertTextModeOptions is a resolved version of ClientCompletionItemInsertTextModeOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCompletionItemInsertTextModeOptions
+{
+    public InsertTextMode[]? ValueSet { get; set; }
+}
+
+// ResolvedClientCompletionItemOptions is a resolved version of ClientCompletionItemOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCompletionItemOptions
+{
+    // Client supports snippets as insert text.
+    // 
+    // A snippet can define tab stops and placeholders with `$1`, `$2`
+    // and `${3:foo}`. `$0` defines the final tab stop, it defaults to
+    // the end of the snippet. Placeholders with equal identifiers are linked,
+    // that is typing in one will update others too.
+    public bool SnippetSupport { get; set; }
+
+    // Client supports commit characters on a completion item.
+    public bool CommitCharactersSupport { get; set; }
+
+    // Client supports the following content formats for the documentation
+    // property. The order describes the preferred format of the client.
+    public MarkupKind[]? DocumentationFormat { get; set; }
+
+    // Client supports the deprecated property on a completion item.
+    public bool DeprecatedSupport { get; set; }
+
+    // Client supports the preselect property on a completion item.
+    public bool PreselectSupport { get; set; }
+
+    // Client supports the tag property on a completion item. Clients supporting
+    // tags have to handle unknown tags gracefully. Clients especially need to
+    // preserve unknown tags when sending a completion item back to the server in
+    // a resolve call.
+    // 
+    // Since: 3.15.0
+    public ResolvedCompletionItemTagOptions TagSupport { get; set; } = new();
+
+    // Client support insert replace edit to control different behavior if a
+    // completion item is inserted in the text or should replace text.
+    // 
+    // Since: 3.16.0
+    public bool InsertReplaceSupport { get; set; }
+
+    // Indicates which properties a client can resolve lazily on a completion
+    // item. Before version 3.16.0 only the predefined properties `documentation`
+    // and `details` could be resolved lazily.
+    // 
+    // Since: 3.16.0
+    public ResolvedClientCompletionItemResolveOptions ResolveSupport { get; set; } = new();
+
+    // The client supports the `insertTextMode` property on
+    // a completion item to override the whitespace handling mode
+    // as defined by the client (see `insertTextMode`).
+    // 
+    // Since: 3.16.0
+    public ResolvedClientCompletionItemInsertTextModeOptions InsertTextModeSupport { get; set; } = new();
+
+    // The client has support for completion item label
+    // details (see also `CompletionItemLabelDetails`).
+    // 
+    // Since: 3.17.0
+    public bool LabelDetailsSupport { get; set; }
+}
+
+// ResolvedClientCompletionItemOptionsKind is a resolved version of ClientCompletionItemOptionsKind with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCompletionItemOptionsKind
+{
+    // The completion item kind values the client supports. When this
+    // property exists the client also guarantees that it will
+    // handle values outside its set gracefully and falls back
+    // to a default value when unknown.
+    // 
+    // If this property is not present the client only supports
+    // the completion items kinds from `Text` to `Reference` as defined in
+    // the initial version of the protocol.
+    public CompletionItemKind[]? ValueSet { get; set; }
+}
+
+// ResolvedCompletionListCapabilities is a resolved version of CompletionListCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// The client supports the following `CompletionList` specific
+// capabilities.
+// 
+// Since: 3.17.0
+public sealed class ResolvedCompletionListCapabilities
+{
+    // The client supports the following itemDefaults on
+    // a completion list.
+    // 
+    // The value lists the supported property names of the
+    // `CompletionList.itemDefaults` object. If omitted
+    // no properties are supported.
+    // 
+    // Since: 3.17.0
+    public string[]? ItemDefaults { get; set; }
+
+    // Specifies whether the client supports `CompletionList.applyKind` to
+    // indicate how supported values from `completionList.itemDefaults`
+    // and `completion` will be combined.
+    // 
+    // If a client supports `applyKind` it must support it for all fields
+    // that it supports that are listed in `CompletionList.applyKind`. This
+    // means when clients add support for new/future fields in completion
+    // items the MUST also support merge for them if those fields are
+    // defined in `CompletionList.applyKind`.
+    // 
+    // Since: 3.18.0
+    public bool ApplyKindSupport { get; set; }
+}
+
+// ResolvedCompletionClientCapabilities is a resolved version of CompletionClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Completion client capabilities
+public sealed class ResolvedCompletionClientCapabilities
+{
+    // Whether completion supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports the following `CompletionItem` specific
+    // capabilities.
+    public ResolvedClientCompletionItemOptions CompletionItem { get; set; } = new();
+
+    // The client supports the following completion item kinds.
+    public ResolvedClientCompletionItemOptionsKind CompletionItemKind { get; set; } = new();
+
+    // Defines how the client handles whitespace and indentation
+    // when accepting a completion item that uses multi line
+    // text in either `insertText` or `textEdit`.
+    // 
+    // Since: 3.17.0
+    public InsertTextMode InsertTextMode { get; set; }
+
+    // The client supports to send additional context information for a
+    // `textDocument/completion` request.
+    public bool ContextSupport { get; set; }
+
+    // The client supports the following `CompletionList` specific
+    // capabilities.
+    // 
+    // Since: 3.17.0
+    public ResolvedCompletionListCapabilities CompletionList { get; set; } = new();
+}
+
+// ResolvedHoverClientCapabilities is a resolved version of HoverClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedHoverClientCapabilities
+{
+    // Whether hover supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Client supports the following content formats for the content
+    // property. The order describes the preferred format of the client.
+    public MarkupKind[]? ContentFormat { get; set; }
+}
+
+// ResolvedClientSignatureParameterInformationOptions is a resolved version of ClientSignatureParameterInformationOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientSignatureParameterInformationOptions
+{
+    // The client supports processing label offsets instead of a
+    // simple label string.
+    // 
+    // Since: 3.14.0
+    public bool LabelOffsetSupport { get; set; }
+}
+
+// ResolvedClientSignatureInformationOptions is a resolved version of ClientSignatureInformationOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientSignatureInformationOptions
+{
+    // Client supports the following content formats for the documentation
+    // property. The order describes the preferred format of the client.
+    public MarkupKind[]? DocumentationFormat { get; set; }
+
+    // Client capabilities specific to parameter information.
+    public ResolvedClientSignatureParameterInformationOptions ParameterInformation { get; set; } = new();
+
+    // The client supports the `activeParameter` property on `SignatureInformation`
+    // literal.
+    // 
+    // Since: 3.16.0
+    public bool ActiveParameterSupport { get; set; }
+
+    // The client supports the `activeParameter` property on
+    // `SignatureHelp`/`SignatureInformation` being set to `null` to
+    // indicate that no parameter should be active.
+    // 
+    // Since: 3.18.0
+    public bool NoActiveParameterSupport { get; set; }
+}
+
+// ResolvedSignatureHelpClientCapabilities is a resolved version of SignatureHelpClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client Capabilities for a SignatureHelpRequest.
+public sealed class ResolvedSignatureHelpClientCapabilities
+{
+    // Whether signature help supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports the following `SignatureInformation`
+    // specific properties.
+    public ResolvedClientSignatureInformationOptions SignatureInformation { get; set; } = new();
+
+    // The client supports to send additional context information for a
+    // `textDocument/signatureHelp` request. A client that opts into
+    // contextSupport will also support the `retriggerCharacters` on
+    // `SignatureHelpOptions`.
+    // 
+    // Since: 3.15.0
+    public bool ContextSupport { get; set; }
+}
+
+// ResolvedDeclarationClientCapabilities is a resolved version of DeclarationClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.14.0
+public sealed class ResolvedDeclarationClientCapabilities
+{
+    // Whether declaration supports dynamic registration. If this is set to `true`
+    // the client supports the new `DeclarationRegistrationOptions` return value
+    // for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports additional metadata in the form of declaration links.
+    public bool LinkSupport { get; set; }
+}
+
+// ResolvedDefinitionClientCapabilities is a resolved version of DefinitionClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client Capabilities for a DefinitionRequest.
+public sealed class ResolvedDefinitionClientCapabilities
+{
+    // Whether definition supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports additional metadata in the form of definition links.
+    // 
+    // Since: 3.14.0
+    public bool LinkSupport { get; set; }
+}
+
+// ResolvedTypeDefinitionClientCapabilities is a resolved version of TypeDefinitionClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since 3.6.0
+public sealed class ResolvedTypeDefinitionClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `TypeDefinitionRegistrationOptions` return value
+    // for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports additional metadata in the form of definition links.
+    // 
+    // Since 3.14.0
+    public bool LinkSupport { get; set; }
+}
+
+// ResolvedImplementationClientCapabilities is a resolved version of ImplementationClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.6.0
+public sealed class ResolvedImplementationClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `ImplementationRegistrationOptions` return value
+    // for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+
+    // The client supports additional metadata in the form of definition links.
+    // 
+    // Since: 3.14.0
+    public bool LinkSupport { get; set; }
+}
+
+// ResolvedReferenceClientCapabilities is a resolved version of ReferenceClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client Capabilities for a ReferencesRequest.
+public sealed class ResolvedReferenceClientCapabilities
+{
+    // Whether references supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedDocumentHighlightClientCapabilities is a resolved version of DocumentHighlightClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client Capabilities for a DocumentHighlightRequest.
+public sealed class ResolvedDocumentHighlightClientCapabilities
+{
+    // Whether document highlight supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedDocumentSymbolClientCapabilities is a resolved version of DocumentSymbolClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client Capabilities for a DocumentSymbolRequest.
+public sealed class ResolvedDocumentSymbolClientCapabilities
+{
+    // Whether document symbol supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Specific capabilities for the `SymbolKind` in the
+    // `textDocument/documentSymbol` request.
+    public ResolvedClientSymbolKindOptions SymbolKind { get; set; } = new();
+
+    // The client supports hierarchical document symbols.
+    public bool HierarchicalDocumentSymbolSupport { get; set; }
+
+    // The client supports tags on `SymbolInformation`. Tags are supported on
+    // `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
+    // Clients supporting tags have to handle unknown tags gracefully.
+    // 
+    // Since: 3.16.0
+    public ResolvedClientSymbolTagOptions TagSupport { get; set; } = new();
+
+    // The client supports an additional label presented in the UI when
+    // registering a document symbol provider.
+    // 
+    // Since: 3.16.0
+    public bool LabelSupport { get; set; }
+}
+
+// ResolvedClientCodeActionKindOptions is a resolved version of ClientCodeActionKindOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCodeActionKindOptions
+{
+    // The code action kind values the client supports. When this
+    // property exists the client also guarantees that it will
+    // handle values outside its set gracefully and falls back
+    // to a default value when unknown.
+    public CodeActionKind[]? ValueSet { get; set; }
+}
+
+// ResolvedClientCodeActionLiteralOptions is a resolved version of ClientCodeActionLiteralOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCodeActionLiteralOptions
+{
+    // The code action kind is support with the following value
+    // set.
+    public ResolvedClientCodeActionKindOptions CodeActionKind { get; set; } = new();
+}
+
+// ResolvedClientCodeActionResolveOptions is a resolved version of ClientCodeActionResolveOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCodeActionResolveOptions
+{
+    // The properties that a client can resolve lazily.
+    public string[]? Properties { get; set; }
+}
+
+// ResolvedCodeActionTagOptions is a resolved version of CodeActionTagOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0 - proposed
+public sealed class ResolvedCodeActionTagOptions
+{
+    // The tags supported by the client.
+    public CodeActionTag[]? ValueSet { get; set; }
+}
+
+// ResolvedCodeActionClientCapabilities is a resolved version of CodeActionClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// The Client Capabilities of a CodeActionRequest.
+public sealed class ResolvedCodeActionClientCapabilities
+{
+    // Whether code action supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // The client support code action literals of type `CodeAction` as a valid
+    // response of the `textDocument/codeAction` request. If the property is not
+    // set the request can only return `Command` literals.
+    // 
+    // Since: 3.8.0
+    public ResolvedClientCodeActionLiteralOptions CodeActionLiteralSupport { get; set; } = new();
+
+    // Whether code action supports the `isPreferred` property.
+    // 
+    // Since: 3.15.0
+    public bool IsPreferredSupport { get; set; }
+
+    // Whether code action supports the `disabled` property.
+    // 
+    // Since: 3.16.0
+    public bool DisabledSupport { get; set; }
+
+    // Whether code action supports the `data` property which is
+    // preserved between a `textDocument/codeAction` and a
+    // `codeAction/resolve` request.
+    // 
+    // Since: 3.16.0
+    public bool DataSupport { get; set; }
+
+    // Whether the client supports resolving additional code action
+    // properties via a separate `codeAction/resolve` request.
+    // 
+    // Since: 3.16.0
+    public ResolvedClientCodeActionResolveOptions ResolveSupport { get; set; } = new();
+
+    // Whether the client honors the change annotations in
+    // text edits and resource operations returned via the
+    // `CodeAction#edit` property by for example presenting
+    // the workspace edit in the user interface and asking
+    // for confirmation.
+    // 
+    // Since: 3.16.0
+    public bool HonorsChangeAnnotations { get; set; }
+
+    // Whether the client supports documentation for a class of
+    // code actions.
+    // 
+    // Since: 3.18.0
+    public bool DocumentationSupport { get; set; }
+
+    // Client supports the tag property on a code action. Clients
+    // supporting tags have to handle unknown tags gracefully.
+    // 
+    // Since: 3.18.0 - proposed
+    public ResolvedCodeActionTagOptions TagSupport { get; set; } = new();
+}
+
+// ResolvedClientCodeLensResolveOptions is a resolved version of ClientCodeLensResolveOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientCodeLensResolveOptions
+{
+    // The properties that a client can resolve lazily.
+    public string[]? Properties { get; set; }
+}
+
+// ResolvedCodeLensClientCapabilities is a resolved version of CodeLensClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// The client capabilities of a CodeLensRequest.
+public sealed class ResolvedCodeLensClientCapabilities
+{
+    // Whether code lens supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Whether the client supports resolving additional code lens
+    // properties via a separate `codeLens/resolve` request.
+    // 
+    // Since: 3.18.0
+    public ResolvedClientCodeLensResolveOptions ResolveSupport { get; set; } = new();
+}
+
+// ResolvedDocumentLinkClientCapabilities is a resolved version of DocumentLinkClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// The client capabilities of a DocumentLinkRequest.
+public sealed class ResolvedDocumentLinkClientCapabilities
+{
+    // Whether document link supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Whether the client supports the `tooltip` property on `DocumentLink`.
+    // 
+    // Since: 3.15.0
+    public bool TooltipSupport { get; set; }
+}
+
+// ResolvedDocumentColorClientCapabilities is a resolved version of DocumentColorClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedDocumentColorClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `DocumentColorRegistrationOptions` return value
+    // for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedDocumentFormattingClientCapabilities is a resolved version of DocumentFormattingClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities of a DocumentFormattingRequest.
+public sealed class ResolvedDocumentFormattingClientCapabilities
+{
+    // Whether formatting supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedDocumentRangeFormattingClientCapabilities is a resolved version of DocumentRangeFormattingClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities of a DocumentRangeFormattingRequest.
+public sealed class ResolvedDocumentRangeFormattingClientCapabilities
+{
+    // Whether range formatting supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Whether the client supports formatting multiple ranges at once.
+    // 
+    // Since: 3.18.0
+    public bool RangesSupport { get; set; }
+}
+
+// ResolvedDocumentOnTypeFormattingClientCapabilities is a resolved version of DocumentOnTypeFormattingClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities of a DocumentOnTypeFormattingRequest.
+public sealed class ResolvedDocumentOnTypeFormattingClientCapabilities
+{
+    // Whether on type formatting supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedRenameClientCapabilities is a resolved version of RenameClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedRenameClientCapabilities
+{
+    // Whether rename supports dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Client supports testing for validity of rename operations
+    // before execution.
+    // 
+    // Since: 3.12.0
+    public bool PrepareSupport { get; set; }
+
+    // Client supports the default behavior result.
+    // 
+    // The value indicates the default behavior used by the
+    // client.
+    // 
+    // Since: 3.16.0
+    public PrepareSupportDefaultBehavior PrepareSupportDefaultBehavior { get; set; }
+
+    // Whether the client honors the change annotations in
+    // text edits and resource operations returned via the
+    // rename request's workspace edit by for example presenting
+    // the workspace edit in the user interface and asking
+    // for confirmation.
+    // 
+    // Since: 3.16.0
+    public bool HonorsChangeAnnotations { get; set; }
+}
+
+// ResolvedClientFoldingRangeKindOptions is a resolved version of ClientFoldingRangeKindOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientFoldingRangeKindOptions
+{
+    // The folding range kind values the client supports. When this
+    // property exists the client also guarantees that it will
+    // handle values outside its set gracefully and falls back
+    // to a default value when unknown.
+    public FoldingRangeKind[]? ValueSet { get; set; }
+}
+
+// ResolvedClientFoldingRangeOptions is a resolved version of ClientFoldingRangeOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientFoldingRangeOptions
+{
+    // If set, the client signals that it supports setting collapsedText on
+    // folding ranges to display custom labels instead of the default text.
+    // 
+    // Since: 3.17.0
+    public bool CollapsedText { get; set; }
+}
+
+// ResolvedFoldingRangeClientCapabilities is a resolved version of FoldingRangeClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedFoldingRangeClientCapabilities
+{
+    // Whether implementation supports dynamic registration for folding range
+    // providers. If this is set to `true` the client supports the new
+    // `FoldingRangeRegistrationOptions` return value for the corresponding
+    // server capability as well.
+    public bool DynamicRegistration { get; set; }
+
+    // The maximum number of folding ranges that the client prefers to receive
+    // per document. The value serves as a hint, servers are free to follow the
+    // limit.
+    public uint RangeLimit { get; set; }
+
+    // If set, the client signals that it only supports folding complete lines.
+    // If set, client will ignore specified `startCharacter` and `endCharacter`
+    // properties in a FoldingRange.
+    public bool LineFoldingOnly { get; set; }
+
+    // Specific options for the folding range kind.
+    // 
+    // Since: 3.17.0
+    public ResolvedClientFoldingRangeKindOptions FoldingRangeKind { get; set; } = new();
+
+    // Specific options for the folding range.
+    // 
+    // Since: 3.17.0
+    public ResolvedClientFoldingRangeOptions FoldingRange { get; set; } = new();
+}
+
+// ResolvedSelectionRangeClientCapabilities is a resolved version of SelectionRangeClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedSelectionRangeClientCapabilities
+{
+    // Whether implementation supports dynamic registration for selection range providers. If this is set to `true`
+    // the client supports the new `SelectionRangeRegistrationOptions` return value for the corresponding server
+    // capability as well.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedClientDiagnosticsTagOptions is a resolved version of ClientDiagnosticsTagOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientDiagnosticsTagOptions
+{
+    // The tags supported by the client.
+    public DiagnosticTag[]? ValueSet { get; set; }
+}
+
+// ResolvedPublishDiagnosticsClientCapabilities is a resolved version of PublishDiagnosticsClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// The publish diagnostic client capabilities.
+public sealed class ResolvedPublishDiagnosticsClientCapabilities
+{
+    // Whether the clients accepts diagnostics with related information.
+    public bool RelatedInformation { get; set; }
+
+    // Client supports the tag property to provide meta data about a diagnostic.
+    // Clients supporting tags have to handle unknown tags gracefully.
+    // 
+    // Since: 3.15.0
+    public ResolvedClientDiagnosticsTagOptions TagSupport { get; set; } = new();
+
+    // Client supports a codeDescription property
+    // 
+    // Since: 3.16.0
+    public bool CodeDescriptionSupport { get; set; }
+
+    // Whether code action supports the `data` property which is
+    // preserved between a `textDocument/publishDiagnostics` and
+    // `textDocument/codeAction` request.
+    // 
+    // Since: 3.16.0
+    public bool DataSupport { get; set; }
+
+    // Whether the client interprets the version property of the
+    // `textDocument/publishDiagnostics` notification's parameter.
+    // 
+    // Since: 3.15.0
+    public bool VersionSupport { get; set; }
+}
+
+// ResolvedCallHierarchyClientCapabilities is a resolved version of CallHierarchyClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.16.0
+public sealed class ResolvedCallHierarchyClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+    // return value for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedClientSemanticTokensRequestOptions is a resolved version of ClientSemanticTokensRequestOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientSemanticTokensRequestOptions
+{
+    // The client will send the `textDocument/semanticTokens/range` request if
+    // the server provides a corresponding handler.
+    public BooleanOrEmptyObject? Range { get; set; }
+
+    // The client will send the `textDocument/semanticTokens/full` request if
+    // the server provides a corresponding handler.
+    public BooleanOrClientSemanticTokensRequestFullDelta? Full { get; set; }
+}
+
+// ResolvedSemanticTokensClientCapabilities is a resolved version of SemanticTokensClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.16.0
+public sealed class ResolvedSemanticTokensClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+    // return value for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+
+    // Which requests the client supports and might send to the server
+    // depending on the server's capability. Please note that clients might not
+    // show semantic tokens or degrade some of the user experience if a range
+    // or full request is advertised by the client but not provided by the
+    // server. If for example the client capability `requests.full` and
+    // `request.range` are both set to true but the server only provides a
+    // range provider the client might not render a minimap correctly or might
+    // even decide to not show any semantic tokens at all.
+    public ResolvedClientSemanticTokensRequestOptions Requests { get; set; } = new();
+
+    // The token types that the client supports.
+    public string[]? TokenTypes { get; set; }
+
+    // The token modifiers that the client supports.
+    public string[]? TokenModifiers { get; set; }
+
+    // The token formats the clients supports.
+    public TokenFormat[]? Formats { get; set; }
+
+    // Whether the client supports tokens that can overlap each other.
+    public bool OverlappingTokenSupport { get; set; }
+
+    // Whether the client supports tokens that can span multiple lines.
+    public bool MultilineTokenSupport { get; set; }
+
+    // Whether the client allows the server to actively cancel a
+    // semantic token request, e.g. supports returning
+    // LSPErrorCodes.ServerCancelled. If a server does the client
+    // needs to retrigger the request.
+    // 
+    // Since: 3.17.0
+    public bool ServerCancelSupport { get; set; }
+
+    // Whether the client uses semantic tokens to augment existing
+    // syntax tokens. If set to `true` client side created syntax
+    // tokens and semantic tokens are both used for colorization. If
+    // set to `false` the client only uses the returned semantic tokens
+    // for colorization.
+    // 
+    // If the value is `undefined` then the client behavior is not
+    // specified.
+    // 
+    // Since: 3.17.0
+    public bool AugmentsSyntaxTokens { get; set; }
+}
+
+// ResolvedLinkedEditingRangeClientCapabilities is a resolved version of LinkedEditingRangeClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities for the linked editing range request.
+// 
+// Since: 3.16.0
+public sealed class ResolvedLinkedEditingRangeClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+    // return value for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedMonikerClientCapabilities is a resolved version of MonikerClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities specific to the moniker request.
+// 
+// Since: 3.16.0
+public sealed class ResolvedMonikerClientCapabilities
+{
+    // Whether moniker supports dynamic registration. If this is set to `true`
+    // the client supports the new `MonikerRegistrationOptions` return value
+    // for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedTypeHierarchyClientCapabilities is a resolved version of TypeHierarchyClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.17.0
+public sealed class ResolvedTypeHierarchyClientCapabilities
+{
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+    // return value for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedInlineValueClientCapabilities is a resolved version of InlineValueClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities specific to inline values.
+// 
+// Since: 3.17.0
+public sealed class ResolvedInlineValueClientCapabilities
+{
+    // Whether implementation supports dynamic registration for inline value providers.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedClientInlayHintResolveOptions is a resolved version of ClientInlayHintResolveOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientInlayHintResolveOptions
+{
+    // The properties that a client can resolve lazily.
+    public string[]? Properties { get; set; }
+}
+
+// ResolvedInlayHintClientCapabilities is a resolved version of InlayHintClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Inlay hint client capabilities.
+// 
+// Since: 3.17.0
+public sealed class ResolvedInlayHintClientCapabilities
+{
+    // Whether inlay hints support dynamic registration.
+    public bool DynamicRegistration { get; set; }
+
+    // Indicates which properties a client can resolve lazily on an inlay
+    // hint.
+    public ResolvedClientInlayHintResolveOptions ResolveSupport { get; set; } = new();
+}
+
+// ResolvedDiagnosticClientCapabilities is a resolved version of DiagnosticClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities specific to diagnostic pull requests.
+// 
+// Since: 3.17.0
+public sealed class ResolvedDiagnosticClientCapabilities
+{
+    // Whether the clients accepts diagnostics with related information.
+    public bool RelatedInformation { get; set; }
+
+    // Client supports the tag property to provide meta data about a diagnostic.
+    // Clients supporting tags have to handle unknown tags gracefully.
+    // 
+    // Since: 3.15.0
+    public ResolvedClientDiagnosticsTagOptions TagSupport { get; set; } = new();
+
+    // Client supports a codeDescription property
+    // 
+    // Since: 3.16.0
+    public bool CodeDescriptionSupport { get; set; }
+
+    // Whether code action supports the `data` property which is
+    // preserved between a `textDocument/publishDiagnostics` and
+    // `textDocument/codeAction` request.
+    // 
+    // Since: 3.16.0
+    public bool DataSupport { get; set; }
+
+    // Whether implementation supports dynamic registration. If this is set to `true`
+    // the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+    // return value for the corresponding server capability as well.
+    public bool DynamicRegistration { get; set; }
+
+    // Whether the clients supports related documents for document diagnostic pulls.
+    public bool RelatedDocumentSupport { get; set; }
+
+    // Whether the client supports `MarkupContent` in diagnostic messages.
+    // 
+    // Since: 3.18.0
+    public bool MarkupMessageSupport { get; set; }
+}
+
+// ResolvedInlineCompletionClientCapabilities is a resolved version of InlineCompletionClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities specific to inline completions.
+// 
+// Since: 3.18.0
+public sealed class ResolvedInlineCompletionClientCapabilities
+{
+    // Whether implementation supports dynamic registration for inline completion providers.
+    public bool DynamicRegistration { get; set; }
+}
+
+// ResolvedTextDocumentClientCapabilities is a resolved version of TextDocumentClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Text document specific client capabilities.
+public sealed class ResolvedTextDocumentClientCapabilities
+{
+    // Defines which synchronization capabilities the client supports.
+    public ResolvedTextDocumentSyncClientCapabilities Synchronization { get; set; } = new();
+
+    // Defines which filters the client supports.
+    // 
+    // Since: 3.18.0
+    public ResolvedTextDocumentFilterClientCapabilities Filters { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/completion` request.
+    public ResolvedCompletionClientCapabilities Completion { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/hover` request.
+    public ResolvedHoverClientCapabilities Hover { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/signatureHelp` request.
+    public ResolvedSignatureHelpClientCapabilities SignatureHelp { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/declaration` request.
+    // 
+    // Since: 3.14.0
+    public ResolvedDeclarationClientCapabilities Declaration { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/definition` request.
+    public ResolvedDefinitionClientCapabilities Definition { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/typeDefinition` request.
+    // 
+    // Since: 3.6.0
+    public ResolvedTypeDefinitionClientCapabilities TypeDefinition { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/implementation` request.
+    // 
+    // Since: 3.6.0
+    public ResolvedImplementationClientCapabilities Implementation { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/references` request.
+    public ResolvedReferenceClientCapabilities References { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/documentHighlight` request.
+    public ResolvedDocumentHighlightClientCapabilities DocumentHighlight { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/documentSymbol` request.
+    public ResolvedDocumentSymbolClientCapabilities DocumentSymbol { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/codeAction` request.
+    public ResolvedCodeActionClientCapabilities CodeAction { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/codeLens` request.
+    public ResolvedCodeLensClientCapabilities CodeLens { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/documentLink` request.
+    public ResolvedDocumentLinkClientCapabilities DocumentLink { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/documentColor` and the
+    // `textDocument/colorPresentation` request.
+    // 
+    // Since: 3.6.0
+    public ResolvedDocumentColorClientCapabilities ColorProvider { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/formatting` request.
+    public ResolvedDocumentFormattingClientCapabilities Formatting { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/rangeFormatting` request.
+    public ResolvedDocumentRangeFormattingClientCapabilities RangeFormatting { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/onTypeFormatting` request.
+    public ResolvedDocumentOnTypeFormattingClientCapabilities OnTypeFormatting { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/rename` request.
+    public ResolvedRenameClientCapabilities Rename { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/foldingRange` request.
+    // 
+    // Since: 3.10.0
+    public ResolvedFoldingRangeClientCapabilities FoldingRange { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/selectionRange` request.
+    // 
+    // Since: 3.15.0
+    public ResolvedSelectionRangeClientCapabilities SelectionRange { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/publishDiagnostics` notification.
+    public ResolvedPublishDiagnosticsClientCapabilities PublishDiagnostics { get; set; } = new();
+
+    // Capabilities specific to the various call hierarchy requests.
+    // 
+    // Since: 3.16.0
+    public ResolvedCallHierarchyClientCapabilities CallHierarchy { get; set; } = new();
+
+    // Capabilities specific to the various semantic token request.
+    // 
+    // Since: 3.16.0
+    public ResolvedSemanticTokensClientCapabilities SemanticTokens { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/linkedEditingRange` request.
+    // 
+    // Since: 3.16.0
+    public ResolvedLinkedEditingRangeClientCapabilities LinkedEditingRange { get; set; } = new();
+
+    // Client capabilities specific to the `textDocument/moniker` request.
+    // 
+    // Since: 3.16.0
+    public ResolvedMonikerClientCapabilities Moniker { get; set; } = new();
+
+    // Capabilities specific to the various type hierarchy requests.
+    // 
+    // Since: 3.17.0
+    public ResolvedTypeHierarchyClientCapabilities TypeHierarchy { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/inlineValue` request.
+    // 
+    // Since: 3.17.0
+    public ResolvedInlineValueClientCapabilities InlineValue { get; set; } = new();
+
+    // Capabilities specific to the `textDocument/inlayHint` request.
+    // 
+    // Since: 3.17.0
+    public ResolvedInlayHintClientCapabilities InlayHint { get; set; } = new();
+
+    // Capabilities specific to the diagnostic pull model.
+    // 
+    // Since: 3.17.0
+    public ResolvedDiagnosticClientCapabilities Diagnostic { get; set; } = new();
+
+    // Client capabilities specific to inline completions.
+    // 
+    // Since: 3.18.0
+    public ResolvedInlineCompletionClientCapabilities InlineCompletion { get; set; } = new();
+}
+
+// ResolvedClientShowMessageActionItemOptions is a resolved version of ClientShowMessageActionItemOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedClientShowMessageActionItemOptions
+{
+    // Whether the client supports additional attributes which
+    // are preserved and send back to the server in the
+    // request's response.
+    public bool AdditionalPropertiesSupport { get; set; }
+}
+
+// ResolvedShowMessageRequestClientCapabilities is a resolved version of ShowMessageRequestClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Show message request client capabilities
+public sealed class ResolvedShowMessageRequestClientCapabilities
+{
+    // Capabilities specific to the `MessageActionItem` type.
+    public ResolvedClientShowMessageActionItemOptions MessageActionItem { get; set; } = new();
+}
+
+// ResolvedShowDocumentClientCapabilities is a resolved version of ShowDocumentClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities for the showDocument request.
+// 
+// Since: 3.16.0
+public sealed class ResolvedShowDocumentClientCapabilities
+{
+    // The client has support for the showDocument
+    // request.
+    public bool Support { get; set; }
+}
+
+// ResolvedWindowClientCapabilities is a resolved version of WindowClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+public sealed class ResolvedWindowClientCapabilities
+{
+    // It indicates whether the client supports server initiated
+    // progress using the `window/workDoneProgress/create` request.
+    // 
+    // The capability also controls Whether client supports handling
+    // of progress notifications. If set servers are allowed to report a
+    // `workDoneProgress` property in the request specific server
+    // capabilities.
+    // 
+    // Since: 3.15.0
+    public bool WorkDoneProgress { get; set; }
+
+    // Capabilities specific to the showMessage request.
+    // 
+    // Since: 3.16.0
+    public ResolvedShowMessageRequestClientCapabilities ShowMessage { get; set; } = new();
+
+    // Capabilities specific to the showDocument request.
+    // 
+    // Since: 3.16.0
+    public ResolvedShowDocumentClientCapabilities ShowDocument { get; set; } = new();
+}
+
+// ResolvedStaleRequestSupportOptions is a resolved version of StaleRequestSupportOptions with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Since: 3.18.0
+public sealed class ResolvedStaleRequestSupportOptions
+{
+    // The client will actively cancel the request.
+    public bool Cancel { get; set; }
+
+    // The list of requests for which the client
+    // will retry the request if it receives a
+    // response with error code `ContentModified`
+    public string[]? RetryOnContentModified { get; set; }
+}
+
+// ResolvedRegularExpressionsClientCapabilities is a resolved version of RegularExpressionsClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities specific to regular expressions.
+// 
+// Since: 3.16.0
+public sealed class ResolvedRegularExpressionsClientCapabilities
+{
+    // The engine's name.
+    public string Engine { get; set; } = "";
+
+    // The engine's version.
+    public string Version { get; set; } = "";
+}
+
+// ResolvedMarkdownClientCapabilities is a resolved version of MarkdownClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// Client capabilities specific to the used markdown parser.
+// 
+// Since: 3.16.0
+public sealed class ResolvedMarkdownClientCapabilities
+{
+    // The name of the parser.
+    public string Parser { get; set; } = "";
+
+    // The version of the parser.
+    public string Version { get; set; } = "";
+
+    // A list of HTML tags that the client allows / supports in
+    // Markdown.
+    // 
+    // Since: 3.17.0
+    public string[]? AllowedTags { get; set; }
+}
+
+// ResolvedGeneralClientCapabilities is a resolved version of GeneralClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// General client capabilities.
+// 
+// Since: 3.16.0
+public sealed class ResolvedGeneralClientCapabilities
+{
+    // Client capability that signals how the client
+    // handles stale requests (e.g. a request
+    // for which the client will not process the response
+    // anymore since the information is outdated).
+    // 
+    // Since: 3.17.0
+    public ResolvedStaleRequestSupportOptions StaleRequestSupport { get; set; } = new();
+
+    // Client capabilities specific to regular expressions.
+    // 
+    // Since: 3.16.0
+    public ResolvedRegularExpressionsClientCapabilities RegularExpressions { get; set; } = new();
+
+    // Client capabilities specific to the client's markdown parser.
+    // 
+    // Since: 3.16.0
+    public ResolvedMarkdownClientCapabilities Markdown { get; set; } = new();
+
+    // The position encodings supported by the client. Client and server
+    // have to agree on the same position encoding to ensure that offsets
+    // (e.g. character position in a line) are interpreted the same on both
+    // sides.
+    // 
+    // To keep the protocol backwards compatible the following applies: if
+    // the value 'utf-16' is missing from the array of position encodings
+    // servers can assume that the client supports UTF-16. UTF-16 is
+    // therefore a mandatory encoding.
+    // 
+    // If omitted it defaults to ['utf-16'].
+    // 
+    // Implementation considerations: since the conversion from one encoding
+    // into another requires the content of the file / line the conversion
+    // is best done where the file is read which is usually on the server
+    // side.
+    // 
+    // Since: 3.17.0
+    public PositionEncodingKind[]? PositionEncodings { get; set; }
+}
+
+// ResolvedExperimentalClientCapabilities is a resolved version of ExperimentalClientCapabilities with all optional fields
+// converted to non-pointer values for easier access.
+//
+// ExperimentalClientCapabilities contains experimental capabilities under development.
+public sealed class ResolvedExperimentalClientCapabilities
+{
+    // The client supports hover verbosityLevel requests and canIncreaseVerbosity responses.
+    public bool HoverVerbosityLevel { get; set; }
+}
+
+// ResolvedClientCapabilities is a version of ClientCapabilities where all nested
+// fields are values (not pointers), making it easier to access deeply nested capabilities.
+// Use ClientCapabilities.Resolve() to convert from ClientCapabilities.
+//
+// Defines the capabilities provided by the client.
+public sealed class ResolvedClientCapabilities
+{
+    // Workspace specific client capabilities.
+    public ResolvedWorkspaceClientCapabilities Workspace { get; set; } = new();
+
+    // Text document specific client capabilities.
+    public ResolvedTextDocumentClientCapabilities TextDocument { get; set; } = new();
+
+    // Window specific client capabilities.
+    public ResolvedWindowClientCapabilities Window { get; set; } = new();
+
+    // General client capabilities.
+    // 
+    // Since: 3.16.0
+    public ResolvedGeneralClientCapabilities General { get; set; } = new();
+
+    // Experimental client capabilities.
+    public ResolvedExperimentalClientCapabilities Experimental { get; set; } = new();
+
+    // Whether the client supports Visual Studio extensions.
+    public bool VSSupportsVisualStudioExtensions { get; set; }
+
+    // The snippet version supported by the client.
+    public int VSSupportedSnippetVersion { get; set; }
+
+    // Whether the client supports not including text in textDocument/didOpen notifications.
+    public bool VSSupportsNotIncludingTextInTextDocumentDidOpen { get; set; }
+
+    // Whether the client supports icon extensions.
+    public bool VSSupportsIconExtensions { get; set; }
+
+    // Whether the client supports diagnostic requests.
+    public bool VSSupportsDiagnosticRequests { get; set; }
+}
+
+public static class ResolvedClientCapabilitiesExtensions
+{
+    internal static ResolvedChangeAnnotationsSupportOptions ResolveInternal(this ChangeAnnotationsSupportOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedChangeAnnotationsSupportOptions();
+        }
+        return new ResolvedChangeAnnotationsSupportOptions
+        {
+            GroupsOnLabel = v.GroupsOnLabel ?? default,
+        };
+    }
+
+    internal static ResolvedWorkspaceEditClientCapabilities ResolveInternal(this WorkspaceEditClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedWorkspaceEditClientCapabilities();
+        }
+        return new ResolvedWorkspaceEditClientCapabilities
+        {
+            DocumentChanges = v.DocumentChanges ?? default,
+            ResourceOperations = v.ResourceOperations,
+            FailureHandling = v.FailureHandling ?? default,
+            NormalizesLineEndings = v.NormalizesLineEndings ?? default,
+            ChangeAnnotationSupport = v.ChangeAnnotationSupport.ResolveInternal(),
+            MetadataSupport = v.MetadataSupport ?? default,
+            SnippetEditSupport = v.SnippetEditSupport ?? default,
+        };
+    }
+
+    internal static ResolvedDidChangeConfigurationClientCapabilities ResolveInternal(this DidChangeConfigurationClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDidChangeConfigurationClientCapabilities();
+        }
+        return new ResolvedDidChangeConfigurationClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedDidChangeWatchedFilesClientCapabilities ResolveInternal(this DidChangeWatchedFilesClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDidChangeWatchedFilesClientCapabilities();
+        }
+        return new ResolvedDidChangeWatchedFilesClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            RelativePatternSupport = v.RelativePatternSupport ?? default,
+        };
+    }
+
+    internal static ResolvedClientSymbolKindOptions ResolveInternal(this ClientSymbolKindOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientSymbolKindOptions();
+        }
+        return new ResolvedClientSymbolKindOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedClientSymbolTagOptions ResolveInternal(this ClientSymbolTagOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientSymbolTagOptions();
+        }
+        return new ResolvedClientSymbolTagOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedClientSymbolResolveOptions ResolveInternal(this ClientSymbolResolveOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientSymbolResolveOptions();
+        }
+        return new ResolvedClientSymbolResolveOptions
+        {
+            Properties = v.Properties,
+        };
+    }
+
+    internal static ResolvedWorkspaceSymbolClientCapabilities ResolveInternal(this WorkspaceSymbolClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedWorkspaceSymbolClientCapabilities();
+        }
+        return new ResolvedWorkspaceSymbolClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            SymbolKind = v.SymbolKind.ResolveInternal(),
+            TagSupport = v.TagSupport.ResolveInternal(),
+            ResolveSupport = v.ResolveSupport.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedExecuteCommandClientCapabilities ResolveInternal(this ExecuteCommandClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedExecuteCommandClientCapabilities();
+        }
+        return new ResolvedExecuteCommandClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedSemanticTokensWorkspaceClientCapabilities ResolveInternal(this SemanticTokensWorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedSemanticTokensWorkspaceClientCapabilities();
+        }
+        return new ResolvedSemanticTokensWorkspaceClientCapabilities
+        {
+            RefreshSupport = v.RefreshSupport ?? default,
+        };
+    }
+
+    internal static ResolvedCodeLensWorkspaceClientCapabilities ResolveInternal(this CodeLensWorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCodeLensWorkspaceClientCapabilities();
+        }
+        return new ResolvedCodeLensWorkspaceClientCapabilities
+        {
+            RefreshSupport = v.RefreshSupport ?? default,
+        };
+    }
+
+    internal static ResolvedFileOperationClientCapabilities ResolveInternal(this FileOperationClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedFileOperationClientCapabilities();
+        }
+        return new ResolvedFileOperationClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            DidCreate = v.DidCreate ?? default,
+            WillCreate = v.WillCreate ?? default,
+            DidRename = v.DidRename ?? default,
+            WillRename = v.WillRename ?? default,
+            DidDelete = v.DidDelete ?? default,
+            WillDelete = v.WillDelete ?? default,
+        };
+    }
+
+    internal static ResolvedInlineValueWorkspaceClientCapabilities ResolveInternal(this InlineValueWorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedInlineValueWorkspaceClientCapabilities();
+        }
+        return new ResolvedInlineValueWorkspaceClientCapabilities
+        {
+            RefreshSupport = v.RefreshSupport ?? default,
+        };
+    }
+
+    internal static ResolvedInlayHintWorkspaceClientCapabilities ResolveInternal(this InlayHintWorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedInlayHintWorkspaceClientCapabilities();
+        }
+        return new ResolvedInlayHintWorkspaceClientCapabilities
+        {
+            RefreshSupport = v.RefreshSupport ?? default,
+        };
+    }
+
+    internal static ResolvedDiagnosticWorkspaceClientCapabilities ResolveInternal(this DiagnosticWorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDiagnosticWorkspaceClientCapabilities();
+        }
+        return new ResolvedDiagnosticWorkspaceClientCapabilities
+        {
+            RefreshSupport = v.RefreshSupport ?? default,
+        };
+    }
+
+    internal static ResolvedFoldingRangeWorkspaceClientCapabilities ResolveInternal(this FoldingRangeWorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedFoldingRangeWorkspaceClientCapabilities();
+        }
+        return new ResolvedFoldingRangeWorkspaceClientCapabilities
+        {
+            RefreshSupport = v.RefreshSupport ?? default,
+        };
+    }
+
+    internal static ResolvedTextDocumentContentClientCapabilities ResolveInternal(this TextDocumentContentClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedTextDocumentContentClientCapabilities();
+        }
+        return new ResolvedTextDocumentContentClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedWorkspaceClientCapabilities ResolveInternal(this WorkspaceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedWorkspaceClientCapabilities();
+        }
+        return new ResolvedWorkspaceClientCapabilities
+        {
+            ApplyEdit = v.ApplyEdit ?? default,
+            WorkspaceEdit = v.WorkspaceEdit.ResolveInternal(),
+            DidChangeConfiguration = v.DidChangeConfiguration.ResolveInternal(),
+            DidChangeWatchedFiles = v.DidChangeWatchedFiles.ResolveInternal(),
+            Symbol = v.Symbol.ResolveInternal(),
+            ExecuteCommand = v.ExecuteCommand.ResolveInternal(),
+            WorkspaceFolders = v.WorkspaceFolders ?? default,
+            Configuration = v.Configuration ?? default,
+            SemanticTokens = v.SemanticTokens.ResolveInternal(),
+            CodeLens = v.CodeLens.ResolveInternal(),
+            FileOperations = v.FileOperations.ResolveInternal(),
+            InlineValue = v.InlineValue.ResolveInternal(),
+            InlayHint = v.InlayHint.ResolveInternal(),
+            Diagnostics = v.Diagnostics.ResolveInternal(),
+            FoldingRange = v.FoldingRange.ResolveInternal(),
+            TextDocumentContent = v.TextDocumentContent.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedTextDocumentSyncClientCapabilities ResolveInternal(this TextDocumentSyncClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedTextDocumentSyncClientCapabilities();
+        }
+        return new ResolvedTextDocumentSyncClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            WillSave = v.WillSave ?? default,
+            WillSaveWaitUntil = v.WillSaveWaitUntil ?? default,
+            DidSave = v.DidSave ?? default,
+        };
+    }
+
+    internal static ResolvedTextDocumentFilterClientCapabilities ResolveInternal(this TextDocumentFilterClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedTextDocumentFilterClientCapabilities();
+        }
+        return new ResolvedTextDocumentFilterClientCapabilities
+        {
+            RelativePatternSupport = v.RelativePatternSupport ?? default,
+        };
+    }
+
+    internal static ResolvedCompletionItemTagOptions ResolveInternal(this CompletionItemTagOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCompletionItemTagOptions();
+        }
+        return new ResolvedCompletionItemTagOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedClientCompletionItemResolveOptions ResolveInternal(this ClientCompletionItemResolveOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCompletionItemResolveOptions();
+        }
+        return new ResolvedClientCompletionItemResolveOptions
+        {
+            Properties = v.Properties,
+        };
+    }
+
+    internal static ResolvedClientCompletionItemInsertTextModeOptions ResolveInternal(this ClientCompletionItemInsertTextModeOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCompletionItemInsertTextModeOptions();
+        }
+        return new ResolvedClientCompletionItemInsertTextModeOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedClientCompletionItemOptions ResolveInternal(this ClientCompletionItemOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCompletionItemOptions();
+        }
+        return new ResolvedClientCompletionItemOptions
+        {
+            SnippetSupport = v.SnippetSupport ?? default,
+            CommitCharactersSupport = v.CommitCharactersSupport ?? default,
+            DocumentationFormat = v.DocumentationFormat,
+            DeprecatedSupport = v.DeprecatedSupport ?? default,
+            PreselectSupport = v.PreselectSupport ?? default,
+            TagSupport = v.TagSupport.ResolveInternal(),
+            InsertReplaceSupport = v.InsertReplaceSupport ?? default,
+            ResolveSupport = v.ResolveSupport.ResolveInternal(),
+            InsertTextModeSupport = v.InsertTextModeSupport.ResolveInternal(),
+            LabelDetailsSupport = v.LabelDetailsSupport ?? default,
+        };
+    }
+
+    internal static ResolvedClientCompletionItemOptionsKind ResolveInternal(this ClientCompletionItemOptionsKind? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCompletionItemOptionsKind();
+        }
+        return new ResolvedClientCompletionItemOptionsKind
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedCompletionListCapabilities ResolveInternal(this CompletionListCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCompletionListCapabilities();
+        }
+        return new ResolvedCompletionListCapabilities
+        {
+            ItemDefaults = v.ItemDefaults,
+            ApplyKindSupport = v.ApplyKindSupport ?? default,
+        };
+    }
+
+    internal static ResolvedCompletionClientCapabilities ResolveInternal(this CompletionClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCompletionClientCapabilities();
+        }
+        return new ResolvedCompletionClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            CompletionItem = v.CompletionItem.ResolveInternal(),
+            CompletionItemKind = v.CompletionItemKind.ResolveInternal(),
+            InsertTextMode = v.InsertTextMode ?? default,
+            ContextSupport = v.ContextSupport ?? default,
+            CompletionList = v.CompletionList.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedHoverClientCapabilities ResolveInternal(this HoverClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedHoverClientCapabilities();
+        }
+        return new ResolvedHoverClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            ContentFormat = v.ContentFormat,
+        };
+    }
+
+    internal static ResolvedClientSignatureParameterInformationOptions ResolveInternal(this ClientSignatureParameterInformationOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientSignatureParameterInformationOptions();
+        }
+        return new ResolvedClientSignatureParameterInformationOptions
+        {
+            LabelOffsetSupport = v.LabelOffsetSupport ?? default,
+        };
+    }
+
+    internal static ResolvedClientSignatureInformationOptions ResolveInternal(this ClientSignatureInformationOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientSignatureInformationOptions();
+        }
+        return new ResolvedClientSignatureInformationOptions
+        {
+            DocumentationFormat = v.DocumentationFormat,
+            ParameterInformation = v.ParameterInformation.ResolveInternal(),
+            ActiveParameterSupport = v.ActiveParameterSupport ?? default,
+            NoActiveParameterSupport = v.NoActiveParameterSupport ?? default,
+        };
+    }
+
+    internal static ResolvedSignatureHelpClientCapabilities ResolveInternal(this SignatureHelpClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedSignatureHelpClientCapabilities();
+        }
+        return new ResolvedSignatureHelpClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            SignatureInformation = v.SignatureInformation.ResolveInternal(),
+            ContextSupport = v.ContextSupport ?? default,
+        };
+    }
+
+    internal static ResolvedDeclarationClientCapabilities ResolveInternal(this DeclarationClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDeclarationClientCapabilities();
+        }
+        return new ResolvedDeclarationClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            LinkSupport = v.LinkSupport ?? default,
+        };
+    }
+
+    internal static ResolvedDefinitionClientCapabilities ResolveInternal(this DefinitionClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDefinitionClientCapabilities();
+        }
+        return new ResolvedDefinitionClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            LinkSupport = v.LinkSupport ?? default,
+        };
+    }
+
+    internal static ResolvedTypeDefinitionClientCapabilities ResolveInternal(this TypeDefinitionClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedTypeDefinitionClientCapabilities();
+        }
+        return new ResolvedTypeDefinitionClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            LinkSupport = v.LinkSupport ?? default,
+        };
+    }
+
+    internal static ResolvedImplementationClientCapabilities ResolveInternal(this ImplementationClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedImplementationClientCapabilities();
+        }
+        return new ResolvedImplementationClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            LinkSupport = v.LinkSupport ?? default,
+        };
+    }
+
+    internal static ResolvedReferenceClientCapabilities ResolveInternal(this ReferenceClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedReferenceClientCapabilities();
+        }
+        return new ResolvedReferenceClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedDocumentHighlightClientCapabilities ResolveInternal(this DocumentHighlightClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentHighlightClientCapabilities();
+        }
+        return new ResolvedDocumentHighlightClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedDocumentSymbolClientCapabilities ResolveInternal(this DocumentSymbolClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentSymbolClientCapabilities();
+        }
+        return new ResolvedDocumentSymbolClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            SymbolKind = v.SymbolKind.ResolveInternal(),
+            HierarchicalDocumentSymbolSupport = v.HierarchicalDocumentSymbolSupport ?? default,
+            TagSupport = v.TagSupport.ResolveInternal(),
+            LabelSupport = v.LabelSupport ?? default,
+        };
+    }
+
+    internal static ResolvedClientCodeActionKindOptions ResolveInternal(this ClientCodeActionKindOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCodeActionKindOptions();
+        }
+        return new ResolvedClientCodeActionKindOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedClientCodeActionLiteralOptions ResolveInternal(this ClientCodeActionLiteralOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCodeActionLiteralOptions();
+        }
+        return new ResolvedClientCodeActionLiteralOptions
+        {
+            CodeActionKind = v.CodeActionKind.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedClientCodeActionResolveOptions ResolveInternal(this ClientCodeActionResolveOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCodeActionResolveOptions();
+        }
+        return new ResolvedClientCodeActionResolveOptions
+        {
+            Properties = v.Properties,
+        };
+    }
+
+    internal static ResolvedCodeActionTagOptions ResolveInternal(this CodeActionTagOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCodeActionTagOptions();
+        }
+        return new ResolvedCodeActionTagOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedCodeActionClientCapabilities ResolveInternal(this CodeActionClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCodeActionClientCapabilities();
+        }
+        return new ResolvedCodeActionClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            CodeActionLiteralSupport = v.CodeActionLiteralSupport.ResolveInternal(),
+            IsPreferredSupport = v.IsPreferredSupport ?? default,
+            DisabledSupport = v.DisabledSupport ?? default,
+            DataSupport = v.DataSupport ?? default,
+            ResolveSupport = v.ResolveSupport.ResolveInternal(),
+            HonorsChangeAnnotations = v.HonorsChangeAnnotations ?? default,
+            DocumentationSupport = v.DocumentationSupport ?? default,
+            TagSupport = v.TagSupport.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedClientCodeLensResolveOptions ResolveInternal(this ClientCodeLensResolveOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCodeLensResolveOptions();
+        }
+        return new ResolvedClientCodeLensResolveOptions
+        {
+            Properties = v.Properties,
+        };
+    }
+
+    internal static ResolvedCodeLensClientCapabilities ResolveInternal(this CodeLensClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCodeLensClientCapabilities();
+        }
+        return new ResolvedCodeLensClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            ResolveSupport = v.ResolveSupport.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedDocumentLinkClientCapabilities ResolveInternal(this DocumentLinkClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentLinkClientCapabilities();
+        }
+        return new ResolvedDocumentLinkClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            TooltipSupport = v.TooltipSupport ?? default,
+        };
+    }
+
+    internal static ResolvedDocumentColorClientCapabilities ResolveInternal(this DocumentColorClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentColorClientCapabilities();
+        }
+        return new ResolvedDocumentColorClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedDocumentFormattingClientCapabilities ResolveInternal(this DocumentFormattingClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentFormattingClientCapabilities();
+        }
+        return new ResolvedDocumentFormattingClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedDocumentRangeFormattingClientCapabilities ResolveInternal(this DocumentRangeFormattingClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentRangeFormattingClientCapabilities();
+        }
+        return new ResolvedDocumentRangeFormattingClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            RangesSupport = v.RangesSupport ?? default,
+        };
+    }
+
+    internal static ResolvedDocumentOnTypeFormattingClientCapabilities ResolveInternal(this DocumentOnTypeFormattingClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDocumentOnTypeFormattingClientCapabilities();
+        }
+        return new ResolvedDocumentOnTypeFormattingClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedRenameClientCapabilities ResolveInternal(this RenameClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedRenameClientCapabilities();
+        }
+        return new ResolvedRenameClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            PrepareSupport = v.PrepareSupport ?? default,
+            PrepareSupportDefaultBehavior = v.PrepareSupportDefaultBehavior ?? default,
+            HonorsChangeAnnotations = v.HonorsChangeAnnotations ?? default,
+        };
+    }
+
+    internal static ResolvedClientFoldingRangeKindOptions ResolveInternal(this ClientFoldingRangeKindOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientFoldingRangeKindOptions();
+        }
+        return new ResolvedClientFoldingRangeKindOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedClientFoldingRangeOptions ResolveInternal(this ClientFoldingRangeOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientFoldingRangeOptions();
+        }
+        return new ResolvedClientFoldingRangeOptions
+        {
+            CollapsedText = v.CollapsedText ?? default,
+        };
+    }
+
+    internal static ResolvedFoldingRangeClientCapabilities ResolveInternal(this FoldingRangeClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedFoldingRangeClientCapabilities();
+        }
+        return new ResolvedFoldingRangeClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            RangeLimit = v.RangeLimit ?? default,
+            LineFoldingOnly = v.LineFoldingOnly ?? default,
+            FoldingRangeKind = v.FoldingRangeKind.ResolveInternal(),
+            FoldingRange = v.FoldingRange.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedSelectionRangeClientCapabilities ResolveInternal(this SelectionRangeClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedSelectionRangeClientCapabilities();
+        }
+        return new ResolvedSelectionRangeClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedClientDiagnosticsTagOptions ResolveInternal(this ClientDiagnosticsTagOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientDiagnosticsTagOptions();
+        }
+        return new ResolvedClientDiagnosticsTagOptions
+        {
+            ValueSet = v.ValueSet,
+        };
+    }
+
+    internal static ResolvedPublishDiagnosticsClientCapabilities ResolveInternal(this PublishDiagnosticsClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedPublishDiagnosticsClientCapabilities();
+        }
+        return new ResolvedPublishDiagnosticsClientCapabilities
+        {
+            RelatedInformation = v.RelatedInformation ?? default,
+            TagSupport = v.TagSupport.ResolveInternal(),
+            CodeDescriptionSupport = v.CodeDescriptionSupport ?? default,
+            DataSupport = v.DataSupport ?? default,
+            VersionSupport = v.VersionSupport ?? default,
+        };
+    }
+
+    internal static ResolvedCallHierarchyClientCapabilities ResolveInternal(this CallHierarchyClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedCallHierarchyClientCapabilities();
+        }
+        return new ResolvedCallHierarchyClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedClientSemanticTokensRequestOptions ResolveInternal(this ClientSemanticTokensRequestOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientSemanticTokensRequestOptions();
+        }
+        return new ResolvedClientSemanticTokensRequestOptions
+        {
+            Range = v.Range,
+            Full = v.Full,
+        };
+    }
+
+    internal static ResolvedSemanticTokensClientCapabilities ResolveInternal(this SemanticTokensClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedSemanticTokensClientCapabilities();
+        }
+        return new ResolvedSemanticTokensClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            Requests = v.Requests.ResolveInternal(),
+            TokenTypes = v.TokenTypes,
+            TokenModifiers = v.TokenModifiers,
+            Formats = v.Formats,
+            OverlappingTokenSupport = v.OverlappingTokenSupport ?? default,
+            MultilineTokenSupport = v.MultilineTokenSupport ?? default,
+            ServerCancelSupport = v.ServerCancelSupport ?? default,
+            AugmentsSyntaxTokens = v.AugmentsSyntaxTokens ?? default,
+        };
+    }
+
+    internal static ResolvedLinkedEditingRangeClientCapabilities ResolveInternal(this LinkedEditingRangeClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedLinkedEditingRangeClientCapabilities();
+        }
+        return new ResolvedLinkedEditingRangeClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedMonikerClientCapabilities ResolveInternal(this MonikerClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedMonikerClientCapabilities();
+        }
+        return new ResolvedMonikerClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedTypeHierarchyClientCapabilities ResolveInternal(this TypeHierarchyClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedTypeHierarchyClientCapabilities();
+        }
+        return new ResolvedTypeHierarchyClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedInlineValueClientCapabilities ResolveInternal(this InlineValueClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedInlineValueClientCapabilities();
+        }
+        return new ResolvedInlineValueClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedClientInlayHintResolveOptions ResolveInternal(this ClientInlayHintResolveOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientInlayHintResolveOptions();
+        }
+        return new ResolvedClientInlayHintResolveOptions
+        {
+            Properties = v.Properties,
+        };
+    }
+
+    internal static ResolvedInlayHintClientCapabilities ResolveInternal(this InlayHintClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedInlayHintClientCapabilities();
+        }
+        return new ResolvedInlayHintClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            ResolveSupport = v.ResolveSupport.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedDiagnosticClientCapabilities ResolveInternal(this DiagnosticClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedDiagnosticClientCapabilities();
+        }
+        return new ResolvedDiagnosticClientCapabilities
+        {
+            RelatedInformation = v.RelatedInformation ?? default,
+            TagSupport = v.TagSupport.ResolveInternal(),
+            CodeDescriptionSupport = v.CodeDescriptionSupport ?? default,
+            DataSupport = v.DataSupport ?? default,
+            DynamicRegistration = v.DynamicRegistration ?? default,
+            RelatedDocumentSupport = v.RelatedDocumentSupport ?? default,
+            MarkupMessageSupport = v.MarkupMessageSupport ?? default,
+        };
+    }
+
+    internal static ResolvedInlineCompletionClientCapabilities ResolveInternal(this InlineCompletionClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedInlineCompletionClientCapabilities();
+        }
+        return new ResolvedInlineCompletionClientCapabilities
+        {
+            DynamicRegistration = v.DynamicRegistration ?? default,
+        };
+    }
+
+    internal static ResolvedTextDocumentClientCapabilities ResolveInternal(this TextDocumentClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedTextDocumentClientCapabilities();
+        }
+        return new ResolvedTextDocumentClientCapabilities
+        {
+            Synchronization = v.Synchronization.ResolveInternal(),
+            Filters = v.Filters.ResolveInternal(),
+            Completion = v.Completion.ResolveInternal(),
+            Hover = v.Hover.ResolveInternal(),
+            SignatureHelp = v.SignatureHelp.ResolveInternal(),
+            Declaration = v.Declaration.ResolveInternal(),
+            Definition = v.Definition.ResolveInternal(),
+            TypeDefinition = v.TypeDefinition.ResolveInternal(),
+            Implementation = v.Implementation.ResolveInternal(),
+            References = v.References.ResolveInternal(),
+            DocumentHighlight = v.DocumentHighlight.ResolveInternal(),
+            DocumentSymbol = v.DocumentSymbol.ResolveInternal(),
+            CodeAction = v.CodeAction.ResolveInternal(),
+            CodeLens = v.CodeLens.ResolveInternal(),
+            DocumentLink = v.DocumentLink.ResolveInternal(),
+            ColorProvider = v.ColorProvider.ResolveInternal(),
+            Formatting = v.Formatting.ResolveInternal(),
+            RangeFormatting = v.RangeFormatting.ResolveInternal(),
+            OnTypeFormatting = v.OnTypeFormatting.ResolveInternal(),
+            Rename = v.Rename.ResolveInternal(),
+            FoldingRange = v.FoldingRange.ResolveInternal(),
+            SelectionRange = v.SelectionRange.ResolveInternal(),
+            PublishDiagnostics = v.PublishDiagnostics.ResolveInternal(),
+            CallHierarchy = v.CallHierarchy.ResolveInternal(),
+            SemanticTokens = v.SemanticTokens.ResolveInternal(),
+            LinkedEditingRange = v.LinkedEditingRange.ResolveInternal(),
+            Moniker = v.Moniker.ResolveInternal(),
+            TypeHierarchy = v.TypeHierarchy.ResolveInternal(),
+            InlineValue = v.InlineValue.ResolveInternal(),
+            InlayHint = v.InlayHint.ResolveInternal(),
+            Diagnostic = v.Diagnostic.ResolveInternal(),
+            InlineCompletion = v.InlineCompletion.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedClientShowMessageActionItemOptions ResolveInternal(this ClientShowMessageActionItemOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientShowMessageActionItemOptions();
+        }
+        return new ResolvedClientShowMessageActionItemOptions
+        {
+            AdditionalPropertiesSupport = v.AdditionalPropertiesSupport ?? default,
+        };
+    }
+
+    internal static ResolvedShowMessageRequestClientCapabilities ResolveInternal(this ShowMessageRequestClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedShowMessageRequestClientCapabilities();
+        }
+        return new ResolvedShowMessageRequestClientCapabilities
+        {
+            MessageActionItem = v.MessageActionItem.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedShowDocumentClientCapabilities ResolveInternal(this ShowDocumentClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedShowDocumentClientCapabilities();
+        }
+        return new ResolvedShowDocumentClientCapabilities
+        {
+            Support = v.Support,
+        };
+    }
+
+    internal static ResolvedWindowClientCapabilities ResolveInternal(this WindowClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedWindowClientCapabilities();
+        }
+        return new ResolvedWindowClientCapabilities
+        {
+            WorkDoneProgress = v.WorkDoneProgress ?? default,
+            ShowMessage = v.ShowMessage.ResolveInternal(),
+            ShowDocument = v.ShowDocument.ResolveInternal(),
+        };
+    }
+
+    internal static ResolvedStaleRequestSupportOptions ResolveInternal(this StaleRequestSupportOptions? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedStaleRequestSupportOptions();
+        }
+        return new ResolvedStaleRequestSupportOptions
+        {
+            Cancel = v.Cancel,
+            RetryOnContentModified = v.RetryOnContentModified,
+        };
+    }
+
+    internal static ResolvedRegularExpressionsClientCapabilities ResolveInternal(this RegularExpressionsClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedRegularExpressionsClientCapabilities();
+        }
+        return new ResolvedRegularExpressionsClientCapabilities
+        {
+            Engine = v.Engine,
+            Version = v.Version ?? "",
+        };
+    }
+
+    internal static ResolvedMarkdownClientCapabilities ResolveInternal(this MarkdownClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedMarkdownClientCapabilities();
+        }
+        return new ResolvedMarkdownClientCapabilities
+        {
+            Parser = v.Parser,
+            Version = v.Version ?? "",
+            AllowedTags = v.AllowedTags,
+        };
+    }
+
+    internal static ResolvedGeneralClientCapabilities ResolveInternal(this GeneralClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedGeneralClientCapabilities();
+        }
+        return new ResolvedGeneralClientCapabilities
+        {
+            StaleRequestSupport = v.StaleRequestSupport.ResolveInternal(),
+            RegularExpressions = v.RegularExpressions.ResolveInternal(),
+            Markdown = v.Markdown.ResolveInternal(),
+            PositionEncodings = v.PositionEncodings,
+        };
+    }
+
+    internal static ResolvedExperimentalClientCapabilities ResolveInternal(this ExperimentalClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedExperimentalClientCapabilities();
+        }
+        return new ResolvedExperimentalClientCapabilities
+        {
+            HoverVerbosityLevel = v.HoverVerbosityLevel ?? default,
+        };
+    }
+
+    public static ResolvedClientCapabilities Resolve(this ClientCapabilities? v)
+    {
+        if (v is null)
+        {
+            return new ResolvedClientCapabilities();
+        }
+        return new ResolvedClientCapabilities
+        {
+            Workspace = v.Workspace.ResolveInternal(),
+            TextDocument = v.TextDocument.ResolveInternal(),
+            Window = v.Window.ResolveInternal(),
+            General = v.General.ResolveInternal(),
+            Experimental = v.Experimental.ResolveInternal(),
+            VSSupportsVisualStudioExtensions = v.VSSupportsVisualStudioExtensions ?? default,
+            VSSupportedSnippetVersion = v.VSSupportedSnippetVersion ?? default,
+            VSSupportsNotIncludingTextInTextDocumentDidOpen = v.VSSupportsNotIncludingTextInTextDocumentDidOpen ?? default,
+            VSSupportsIconExtensions = v.VSSupportsIconExtensions ?? default,
+            VSSupportsDiagnosticRequests = v.VSSupportsDiagnosticRequests ?? default,
+        };
+    }
 }
 
