@@ -40,7 +40,7 @@ exports.dedupeLines = data => {
 export default 0;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportNodeNextJSRequire", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/main.js")
+    f.GoToFile("/main.js");
 
     f.VerifyImportFixAtPosition([
     """
@@ -50,6 +50,6 @@ export default 0;
       variants
     }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

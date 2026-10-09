@@ -35,6 +35,6 @@ declare function /*1*/foo(): void;
 declare function /*2*/foo(x: number): void
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTagsFunctionOverload05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

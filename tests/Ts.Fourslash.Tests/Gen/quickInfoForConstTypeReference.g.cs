@@ -29,6 +29,6 @@ public class QuickInfoForConstTypeReferenceTests
 "" as /**/const;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForConstTypeReference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
     }
 }

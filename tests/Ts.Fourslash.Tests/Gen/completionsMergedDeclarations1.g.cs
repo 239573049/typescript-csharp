@@ -60,7 +60,7 @@ var b = point./*3*/equals(p1, p2);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "3", }, new CompletionsExpectedList
     {
@@ -79,6 +79,6 @@ var b = point./*3*/equals(p1, p2);
     ]),
         },
         
-    })
+    });
     }
 }

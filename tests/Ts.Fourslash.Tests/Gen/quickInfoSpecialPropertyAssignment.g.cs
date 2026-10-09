@@ -37,8 +37,8 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSpecialPropertyAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("write", "(property) C.x: any", "Doc")
+    f.VerifyQuickInfoAt("write", "(property) C.x: any", "Doc");
 
-    f.VerifyQuickInfoAt("read", "(property) C.x: number", "Doc")
+    f.VerifyQuickInfoAt("read", "(property) C.x: number", "Doc");
     }
 }

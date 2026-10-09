@@ -36,7 +36,7 @@ import type { A } from './a';
 const b: B/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_typeOnly", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -47,6 +47,6 @@ const b: B/**/
     import type { A, B } from './a';
     const b: B
     """,
-    })
+    });
     }
 }

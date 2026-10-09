@@ -30,8 +30,8 @@ public class FormatTsxTests
 <div><p>'</p><p>{function(){return 1;}]}</p></div>
 """;
         using var f = FourslashTest.New(content, fileName: "formatTsx", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentFileContent("<div><p>'</p><p>{function() { return 1; }]}</p></div>")
+    f.VerifyCurrentFileContent("<div><p>'</p><p>{function() { return 1; }]}</p></div>");
     }
 }

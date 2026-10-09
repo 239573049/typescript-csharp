@@ -31,8 +31,8 @@ public class TypeAboveNumberLiteralExpressionStatementTests
 1;
 """;
         using var f = FourslashTest.New(content, fileName: "typeAboveNumberLiteralExpressionStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.Insert("var x;\n")
+    f.Insert("var x;\n");
     }
 }

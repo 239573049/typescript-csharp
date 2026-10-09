@@ -48,6 +48,6 @@ class A2 {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

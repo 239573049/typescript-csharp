@@ -44,11 +44,11 @@ export * from "./utils";
 add/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportSpecifierExcludeRegexes3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"pkg", "pkg/utils"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"pkg", "pkg/utils"}, null /*preferences*/);
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"pkg/utils"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["^pkg$"],
-    })
+    });
     }
 }

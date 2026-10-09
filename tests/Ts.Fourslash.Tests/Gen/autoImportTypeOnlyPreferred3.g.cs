@@ -46,7 +46,7 @@ export * as default from "./a";
 let x: /*e*/ns.A;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportTypeOnlyPreferred3", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("b")
+    f.GoToMarker("b");
 
     f.VerifyImportFixAtPosition([
     """
@@ -57,9 +57,9 @@ let x: /*e*/ns.A;
     ], new LsUtil.UserPreferences
     {
     PreferTypeOnlyAutoImports = Core.TSTrue,
-    })
+    });
 
-    f.GoToMarker("c")
+    f.GoToMarker("c");
 
     f.VerifyImportFixAtPosition([
     """
@@ -70,9 +70,9 @@ let x: /*e*/ns.A;
     ], new LsUtil.UserPreferences
     {
     PreferTypeOnlyAutoImports = Core.TSTrue,
-    })
+    });
 
-    f.GoToFile("/d.ts")
+    f.GoToFile("/d.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -83,9 +83,9 @@ let x: /*e*/ns.A;
     new A();
     let x: B;
     """,
-    })
+    });
 
-    f.GoToMarker("e")
+    f.GoToMarker("e");
 
     f.VerifyImportFixAtPosition([
     """
@@ -96,6 +96,6 @@ let x: /*e*/ns.A;
     ], new LsUtil.UserPreferences
     {
     PreferTypeOnlyAutoImports = Core.TSTrue,
-    })
+    });
     }
 }

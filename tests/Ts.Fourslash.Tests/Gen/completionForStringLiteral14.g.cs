@@ -84,6 +84,6 @@ type Bar = Record<keyof Foo, any>["[|/**/|]"];
     ],
         },
         
-    })
+    });
     }
 }

@@ -57,6 +57,6 @@ interface EndOfFile { f; /*e*/
     ],
         },
         
-    })
+    });
     }
 }

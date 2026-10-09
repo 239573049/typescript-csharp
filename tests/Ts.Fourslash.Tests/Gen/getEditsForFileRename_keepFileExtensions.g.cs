@@ -42,6 +42,6 @@ import {name} from "./person.js";
     f.VerifyWillRenameFilesEdits("/src/person.ts", "/src/vip.ts", new Dictionary<string, string>
     {
     ["/src/index.ts"] = "import {name} from \"./vip.js\";",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

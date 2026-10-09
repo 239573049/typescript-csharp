@@ -81,7 +81,7 @@ i[|./**/|];
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -92,6 +92,6 @@ i[|./**/|];
     import { i, publicSym } from "./a";
     i.;
     """,
-    })
+    });
     }
 }

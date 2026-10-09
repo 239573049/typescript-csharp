@@ -95,7 +95,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("person", new CompletionsExpectedList
     {
@@ -113,7 +113,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("personName", new CompletionsExpectedList
     {
@@ -130,7 +130,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("personAge", new CompletionsExpectedList
     {
@@ -147,7 +147,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("animal", new CompletionsExpectedList
     {
@@ -165,7 +165,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("animalName", new CompletionsExpectedList
     {
@@ -182,7 +182,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("animalAge", new CompletionsExpectedList
     {
@@ -199,7 +199,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("dog", new CompletionsExpectedList
     {
@@ -217,7 +217,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("dogName", new CompletionsExpectedList
     {
@@ -234,7 +234,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("dogAge", new CompletionsExpectedList
     {
@@ -251,7 +251,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("cat", new CompletionsExpectedList
     {
@@ -269,7 +269,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("catName", new CompletionsExpectedList
     {
@@ -286,7 +286,7 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("catAge", new CompletionsExpectedList
     {
@@ -303,8 +303,8 @@ d.dogAge./*dogAge*/;
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("AnimalType", "type Animal = {\n    animalName: string;\n    animalAge: number;\n}", "- think Giraffes")
+    f.VerifyQuickInfoAt("AnimalType", "type Animal = {\n    animalName: string;\n    animalAge: number;\n}", "- think Giraffes");
     }
 }

@@ -45,6 +45,6 @@ function bar()[| { }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansForRegionsNoSingleLineFolds", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

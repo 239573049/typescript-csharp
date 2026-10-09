@@ -35,6 +35,6 @@ var foo = /*1*/function /*2*/foo(a = /*3*/foo(), b = () => /*4*/foo) {
 foo();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForFunctionExpression01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7");
     }
 }

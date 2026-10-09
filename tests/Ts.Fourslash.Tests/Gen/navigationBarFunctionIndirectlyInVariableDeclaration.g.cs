@@ -40,6 +40,6 @@ b = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarFunctionIndirectlyInVariableDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -50,6 +50,6 @@ class Y implements X {
     ],
         },
         
-    })
+    });
     }
 }

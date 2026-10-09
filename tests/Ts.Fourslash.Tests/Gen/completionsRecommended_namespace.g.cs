@@ -65,7 +65,7 @@ alpha.f(new /*c1*/);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"b0", "b1", }, new CompletionsExpectedList
     {
@@ -97,7 +97,7 @@ alpha.f(new /*c1*/);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"c0", "c1", }, new CompletionsExpectedList
     {
@@ -120,6 +120,6 @@ alpha.f(new /*c1*/);
     ],
         },
         
-    })
+    });
     }
 }

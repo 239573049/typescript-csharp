@@ -49,6 +49,6 @@ class A {
             new SemanticToken { Type = "method.declaration.static", Text = "t" },
             new SemanticToken { Type = "class", Text = "A" },
             new SemanticToken { Type = "property", Text = "f" },
-        })
+        });
     }
 }

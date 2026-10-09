@@ -52,9 +52,9 @@ r./*2*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("y;")
+    f.Insert("y;");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -75,6 +75,6 @@ r./*2*/
     ],
         },
         
-    })
+    });
     }
 }

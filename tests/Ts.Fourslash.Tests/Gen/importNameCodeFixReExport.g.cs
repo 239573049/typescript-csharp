@@ -33,13 +33,13 @@ export const x = 0";
 x;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixReExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyRangeAfterCodeFix("""
     import { x } from "./a";
 
     export { x } from "./a";
     x;
-    """, true, 0, 0)
+    """, true, 0, 0);
     }
 }

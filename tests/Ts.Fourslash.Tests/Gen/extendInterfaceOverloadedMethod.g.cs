@@ -39,8 +39,8 @@ var b: B<number>;
 var /**/x = b.foo2().foo(5).foo(); // 'x' is of type 'void'
 """;
         using var f = FourslashTest.New(content, fileName: "extendInterfaceOverloadedMethod", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var x: void", "")
+    f.VerifyQuickInfoAt("", "var x: void", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

@@ -64,7 +64,7 @@ const g = ((class G {
      * @param x
      * @returns
      */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("b", 7, """
     /**
@@ -74,7 +74,7 @@ const g = ((class G {
      * @param z
      * @returns
      */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("c", 7, """
     /**
@@ -82,9 +82,9 @@ const g = ((class G {
      * @param x
      * @returns
      */
-    """, null)
+    """, null);
 
-    f.VerifyJSDocCompletion("d", 3, "/** */", null)
+    f.VerifyJSDocCompletion("d", 3, "/** */", null);
 
     f.VerifyJSDocCompletion("e", 7, """
     /**
@@ -92,15 +92,15 @@ const g = ((class G {
      * @param param0
      * @returns
      */
-    """, null)
+    """, null);
 
-    f.VerifyJSDocCompletion("f", 3, "/** */", null)
+    f.VerifyJSDocCompletion("f", 3, "/** */", null);
 
     f.VerifyJSDocCompletion("g", 7, """
     /**
      * 
      * @param x
      */
-    """, null)
+    """, null);
     }
 }

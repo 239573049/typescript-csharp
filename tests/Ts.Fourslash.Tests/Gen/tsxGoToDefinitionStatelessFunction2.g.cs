@@ -56,6 +56,6 @@ let opt = <[|Main/*fifthTarget*/Button|] goTo="goTo" />;
 let opt = <[|Main/*sixthTarget*/Button|] wrong />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionStatelessFunction2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "firstTarget", "secondTarget", "thirdTarget", "fourthTarget", "fifthTarget", "sixthTarget")
+    f.VerifyBaselineGoToDefinition(true, "firstTarget", "secondTarget", "thirdTarget", "fourthTarget", "fifthTarget", "sixthTarget");
     }
 }

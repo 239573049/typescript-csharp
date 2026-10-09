@@ -35,6 +35,6 @@ public class GetOccurrencesAsyncAwait2Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesAsyncAwait2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

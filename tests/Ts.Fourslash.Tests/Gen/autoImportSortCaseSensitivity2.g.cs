@@ -65,7 +65,7 @@ f/**/;
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -76,6 +76,6 @@ f/**/;
     import { __String, foo, HasBar, hasBar } from "./a";
     f;
     """,
-    })
+    });
     }
 }

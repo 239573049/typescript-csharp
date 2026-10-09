@@ -35,6 +35,6 @@ function /*functionOverloadDefinition*/functionOverload() {}
 [|/*brokenOverload*/functionOverload|]({});
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionFunctionOverloads", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "functionOverloadReference1", "functionOverloadReference2", "brokenOverload", "functionOverload1")
+    f.VerifyBaselineGoToDefinition(true, "functionOverloadReference1", "functionOverloadReference2", "brokenOverload", "functionOverload1");
     }
 }

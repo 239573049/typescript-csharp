@@ -34,6 +34,6 @@ function f([|{[|{| "contextRangeIndex": 0 |}required|], optional = [|required|]}
 f({[|[|{| "contextRangeIndex": 6 |}required|]: 10|]});
 """;
         using var f = FourslashTest.New(content, fileName: "renameBindingElementInitializerProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[2], f.Ranges()[5], f.Ranges()[4], f.Ranges()[7])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[2], f.Ranges()[5], f.Ranges()[4], f.Ranges()[7]);
     }
 }

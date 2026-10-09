@@ -54,6 +54,6 @@ class Bar extends Foo {
     ],
         },
         
-    })
+    });
     }
 }

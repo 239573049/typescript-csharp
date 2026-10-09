@@ -43,7 +43,7 @@ C.prototype.method = /*next*/ function (p) {}
          * 
          * @param {any} p
          */
-        """, null)
+        """, null);
     }
     }
 }

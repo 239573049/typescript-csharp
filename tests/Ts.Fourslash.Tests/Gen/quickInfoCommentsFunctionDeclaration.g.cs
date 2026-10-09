@@ -45,6 +45,6 @@ declare function fn(a: string);
 fn("hello");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCommentsFunctionDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

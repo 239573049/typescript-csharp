@@ -29,10 +29,10 @@ public class FormattingRegexesTests
 removeAllButLast(sortedTypes, undefinedType, /keepNullableType**/ true)/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingRegexes", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("removeAllButLast(sortedTypes, undefinedType, /keepNullableType**/ true);")
+    f.VerifyCurrentLineContent("removeAllButLast(sortedTypes, undefinedType, /keepNullableType**/ true);");
     }
 }

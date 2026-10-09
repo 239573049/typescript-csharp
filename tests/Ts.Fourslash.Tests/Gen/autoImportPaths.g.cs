@@ -50,6 +50,6 @@ export const bar = 0;
     f.VerifyImportFixModuleSpecifiers("", new[]{"package2/file1"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("shortest"),
-    })
+    });
     }
 }

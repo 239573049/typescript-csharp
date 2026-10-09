@@ -32,8 +32,8 @@ class C {
 var o2 = { set Foo(val:number) { } };
 """;
         using var f = FourslashTest.New(content, fileName: "insertPublicBeforeSetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("public ")
+    f.Insert("public ");
     }
 }

@@ -50,6 +50,6 @@ declare module 'thing' {
     ],
         },
         
-    })
+    });
     }
 }

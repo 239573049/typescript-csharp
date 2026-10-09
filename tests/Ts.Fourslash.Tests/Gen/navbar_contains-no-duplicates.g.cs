@@ -55,6 +55,6 @@ namespace ABC {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navbar_contains-no-duplicates", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

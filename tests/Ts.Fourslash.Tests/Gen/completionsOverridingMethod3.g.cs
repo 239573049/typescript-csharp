@@ -58,6 +58,6 @@ declare class Poltergeist implements Ghost {
     ],
         },
         
-    })
+    });
     }
 }

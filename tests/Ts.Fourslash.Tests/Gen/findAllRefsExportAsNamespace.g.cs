@@ -35,8 +35,8 @@ import { /*1*/f } from "a";
 A./*2*/f();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsExportAsNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
     }
 }

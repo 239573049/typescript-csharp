@@ -32,6 +32,6 @@ class A {
 var x = new A(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnProtectedConstructorCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("1")
+    f.VerifyNoSignatureHelpForMarkers("1");
     }
 }

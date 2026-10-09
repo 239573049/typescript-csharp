@@ -40,7 +40,7 @@ class Foo {
 new Foo([|foo|]);
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion13", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("foo.ts")
+    f.GoToFile("foo.ts");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -50,6 +50,6 @@ new Foo([|foo|]);
     Tags = [LsProto.DiagnosticTag.Deprecated],
     Range = f.Ranges()[0].LSRange,
     },
-    ])
+    ]);
     }
 }

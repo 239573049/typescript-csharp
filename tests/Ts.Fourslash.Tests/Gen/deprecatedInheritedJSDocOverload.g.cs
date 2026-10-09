@@ -54,6 +54,6 @@ a.subscribe/**/(() => {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "deprecatedInheritedJSDocOverload", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

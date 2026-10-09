@@ -40,6 +40,6 @@ import [|/*3*/"./foo.txt"|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionScriptImportServer", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToDefinition(true, "1", "2", "3")
+    f.VerifyBaselineGoToDefinition(true, "1", "2", "3");
     }
 }

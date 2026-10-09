@@ -88,6 +88,6 @@ class SubClass extends BaseClass {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInheritDoc", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -47,9 +47,9 @@ var someObject = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures3", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -70,13 +70,13 @@ var someObject = {
     ],
         },
         
-    })
+    });
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -97,8 +97,8 @@ var someObject = {
     ],
         },
         
-    })
+    });
 
-    f.Backspace(1)
+    f.Backspace(1);
     }
 }

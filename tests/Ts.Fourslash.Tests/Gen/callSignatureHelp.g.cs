@@ -33,7 +33,7 @@ var c: C;
 c(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "callSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "c(): number" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "c(): number" });
     }
 }

@@ -32,6 +32,6 @@ declare const boxedUser: Box<User>
 /*reference*/boxedUser
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition_typeReference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

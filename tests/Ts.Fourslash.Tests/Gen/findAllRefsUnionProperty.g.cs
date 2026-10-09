@@ -41,6 +41,6 @@ if (t./*t3*/type === "a") {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsUnionProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("t0", "t1", "t3", "t4", "t5", "t2", "p0", "p1", "p2")
+    f.VerifyBaselineFindAllReferences("t0", "t1", "t3", "t4", "t5", "t2", "p0", "p1", "p2");
     }
 }

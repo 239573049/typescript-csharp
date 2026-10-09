@@ -100,7 +100,7 @@ export = Container;
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -123,6 +123,6 @@ export = Container;
 
     export = Container;
     """,
-    })
+    });
     }
 }

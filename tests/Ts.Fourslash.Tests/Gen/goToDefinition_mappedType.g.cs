@@ -31,6 +31,6 @@ declare const i: { [K in "m"]: I[K] };
 i.[|/*ref*/m|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinition_mappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "ref")
+    f.VerifyBaselineGoToDefinition(true, "ref");
     }
 }

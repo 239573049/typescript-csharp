@@ -36,7 +36,7 @@ export function Index() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_jsxOpeningTagImportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -68,7 +68,7 @@ export function Index() {
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -82,6 +82,6 @@ export function Index() {
         return <Component
     }
     """,
-    })
+    });
     }
 }

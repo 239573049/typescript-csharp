@@ -34,6 +34,6 @@ var x = new n.Foo();
 export var x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionExternalModuleName2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

@@ -49,39 +49,9 @@ class Something {
 let x = new Something(/*sig*/);
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptCompletions16", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("body")
+    f.GoToMarker("body");
 
-    f.Insert(".")
-
-    f.VerifyCompletions(null, new CompletionsExpectedList
-    {
-        IsIncomplete = false,
-        ItemDefaults = new CompletionsExpectedItemDefaults
-        {
-            CommitCharacters = DefaultCommitCharacters,
-            EditRange = Ignored,
-        },
-        Items = new CompletionsExpectedItems
-        {
-            Includes = [
-    new LsProto.CompletionItem
-    {
-    Label = "toFixed",
-    Kind = LsProto.CompletionItemKind.Method,
-    },
-    ],
-        },
-        
-    })
-
-    f.Backspace(1)
-
-    f.GoToMarker("sig")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Something(a: number, b: any): Something" })
-
-    f.GoToMarker("method")
-
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -102,6 +72,36 @@ let x = new Something(/*sig*/);
     ],
         },
         
-    })
+    });
+
+    f.Backspace(1);
+
+    f.GoToMarker("sig");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Something(a: number, b: any): Something" });
+
+    f.GoToMarker("method");
+
+    f.Insert(".");
+
+    f.VerifyCompletions(null, new CompletionsExpectedList
+    {
+        IsIncomplete = false,
+        ItemDefaults = new CompletionsExpectedItemDefaults
+        {
+            CommitCharacters = DefaultCommitCharacters,
+            EditRange = Ignored,
+        },
+        Items = new CompletionsExpectedItems
+        {
+            Includes = [
+    new LsProto.CompletionItem
+    {
+    Label = "toFixed",
+    Kind = LsProto.CompletionItemKind.Method,
+    },
+    ],
+        },
+        
+    });
     }
 }

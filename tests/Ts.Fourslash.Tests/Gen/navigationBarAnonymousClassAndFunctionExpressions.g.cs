@@ -55,6 +55,6 @@ global.cls = class { };
 })
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarAnonymousClassAndFunctionExpressions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

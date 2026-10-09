@@ -29,10 +29,10 @@ public class FormattingConditionalOperatorTests
 var x=true?1:2
 """;
         using var f = FourslashTest.New(content, fileName: "formattingConditionalOperator", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.VerifyCurrentLineContent("var x = true ? 1 : 2")
+    f.VerifyCurrentLineContent("var x = true ? 1 : 2");
     }
 }

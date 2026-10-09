@@ -46,6 +46,6 @@ type ManyFruits/*m*/ = (Orange | Apple)[];
 const mf/*mf*/: ManyFruits = [];
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityTuple", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["T"] = new[]{0, 1, 2}, ["f"] = new[]{0, 1, 2, 3}, ["f2"] = new[]{0, 1, 2}, ["m"] = new[]{0, 1, 2}, ["mf"] = new[]{0, 1, 2, 3}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["T"] = new[]{0, 1, 2}, ["f"] = new[]{0, 1, 2, 3}, ["f2"] = new[]{0, 1, 2}, ["m"] = new[]{0, 1, 2}, ["mf"] = new[]{0, 1, 2, 3}});
     }
 }

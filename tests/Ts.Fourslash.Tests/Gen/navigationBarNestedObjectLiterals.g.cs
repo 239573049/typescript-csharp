@@ -41,6 +41,6 @@ var a = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarNestedObjectLiterals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

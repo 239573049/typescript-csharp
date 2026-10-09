@@ -33,6 +33,6 @@ async function outerAsyncFun() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionAwait4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

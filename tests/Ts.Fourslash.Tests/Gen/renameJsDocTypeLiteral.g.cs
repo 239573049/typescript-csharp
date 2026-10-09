@@ -37,8 +37,8 @@ public class RenameJsDocTypeLiteralTests
 function foo(/**/options) {}
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsDocTypeLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.js")
+    f.GoToFile("/a.js");
 
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

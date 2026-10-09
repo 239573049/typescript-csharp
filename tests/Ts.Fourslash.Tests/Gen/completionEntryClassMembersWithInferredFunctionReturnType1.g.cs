@@ -60,6 +60,6 @@ export default abstract class ExpressionParser extends Tokenizer {
     ],
         },
         
-    })
+    });
     }
 }

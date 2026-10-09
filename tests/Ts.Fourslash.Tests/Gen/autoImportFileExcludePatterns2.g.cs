@@ -72,11 +72,11 @@ Button/**/
     {
     AutoImportFileExcludePatterns = ["/**/index.*"],
     },
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"./lib/main", "./lib/components/button/Button"}, new LsUtil.UserPreferences
     {
     AutoImportFileExcludePatterns = ["/**/index.*"],
-    })
+    });
     }
 }

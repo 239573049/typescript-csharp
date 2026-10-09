@@ -52,6 +52,6 @@ isBrowser/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_importsMap4", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyImportFixModuleSpecifiers("", new[]{"#is-browser"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"#is-browser"}, null /*preferences*/);
     }
 }

@@ -42,6 +42,6 @@ var /*def4*/x: number;
 [|/*use*/x|]++;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionAcrossMultipleProjects", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use")
+    f.VerifyBaselineGoToDefinition(true, "use");
     }
 }

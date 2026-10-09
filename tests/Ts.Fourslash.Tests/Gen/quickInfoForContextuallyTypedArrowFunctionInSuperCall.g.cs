@@ -37,10 +37,10 @@ class B extends A<number, string> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForContextuallyTypedArrowFunctionInSuperCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) value: number", "")
+    f.VerifyQuickInfoAt("1", "(parameter) value: number", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) value: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) value: number", "");
 
-    f.VerifyQuickInfoAt("3", "(method) Number.toExponential(fractionDigits?: number): string", "Returns a string containing a number represented in exponential notation.")
+    f.VerifyQuickInfoAt("3", "(method) Number.toExponential(fractionDigits?: number): string", "Returns a string containing a number represented in exponential notation.");
     }
 }

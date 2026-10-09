@@ -76,6 +76,6 @@ import("/*5*/./foo")
 var x = import("./foo")
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1, 2}, ["3"] = new[]{0, 1, 2}, ["4"] = new[]{0, 1}, ["5"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1, 2}, ["3"] = new[]{0, 1, 2}, ["4"] = new[]{0, 1}, ["5"] = new[]{0, 1}});
     }
 }

@@ -90,9 +90,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("__proto__: 10,")
+    f.Insert("__proto__: 10,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -113,7 +113,7 @@ var o6: {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -139,9 +139,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("\"__proto__\": 10,")
+    f.Insert("\"__proto__\": 10,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -162,7 +162,7 @@ var o6: {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -188,9 +188,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("__proto__: 10,")
+    f.Insert("__proto__: 10,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -211,7 +211,7 @@ var o6: {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -237,9 +237,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("\"__proto__\": 10,")
+    f.Insert("\"__proto__\": 10,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -260,7 +260,7 @@ var o6: {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -291,9 +291,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("__proto__: 10,")
+    f.Insert("__proto__: 10,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -319,9 +319,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("\"___proto__\": \"10\",")
+    f.Insert("\"___proto__\": \"10\",");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -342,7 +342,7 @@ var o6: {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -373,9 +373,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("___proto__: \"10\",")
+    f.Insert("___proto__: \"10\",");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -401,9 +401,9 @@ var o6: {
     ],
         },
         
-    })
+    });
 
-    f.Insert("\"__proto__\": 10,")
+    f.Insert("\"__proto__\": 10,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -424,6 +424,6 @@ var o6: {
     ],
         },
         
-    })
+    });
     }
 }

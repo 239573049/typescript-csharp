@@ -54,7 +54,7 @@ namespace M {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -71,6 +71,6 @@ namespace M {
     ],
         },
         
-    })
+    });
     }
 }

@@ -75,6 +75,6 @@ class B implements A<999, 'ASuperLongStringASuperLongStringThatWeOnlyWeOnlyUsedT
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

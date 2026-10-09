@@ -33,7 +33,7 @@ public class TripleSlashRefPathCompletionContextTests
 /// <reference path/*2*/=/*3*/"/*9*/"/*4*/ /*5*///*6*/>/*7*/
 """;
         using var f = FourslashTest.New(content, fileName: "tripleSlashRefPathCompletionContext", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"0", "1", "2", "3", "4", "5", "6", "7", }, null)
+    f.VerifyCompletions(new[]{"0", "1", "2", "3", "4", "5", "6", "7", }, null);
 
     f.VerifyCompletions(new[]{"8", "9", }, new CompletionsExpectedList
     {
@@ -50,6 +50,6 @@ public class TripleSlashRefPathCompletionContextTests
     ],
         },
         
-    })
+    });
     }
 }

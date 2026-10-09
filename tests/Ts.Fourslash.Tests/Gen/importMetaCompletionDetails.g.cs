@@ -51,8 +51,8 @@ let x = import.meta/**/;
     ],
         },
         
-    })
+    });
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

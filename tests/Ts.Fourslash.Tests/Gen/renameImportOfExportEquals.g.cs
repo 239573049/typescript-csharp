@@ -42,16 +42,16 @@ declare module "b" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameImportOfExportEquals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("N", "a", "b", "x")
+    f.VerifyBaselineFindAllReferences("N", "a", "b", "x");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[9])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[9]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[11], f.Ranges()[12])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[11], f.Ranges()[12]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3], f.Ranges()[13])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3], f.Ranges()[13]);
     }
 }

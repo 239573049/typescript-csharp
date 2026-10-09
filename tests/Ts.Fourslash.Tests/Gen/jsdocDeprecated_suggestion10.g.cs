@@ -36,7 +36,7 @@ foo.[|bar|];
 foo[[|"bar"|]];
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion10", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("foo.ts")
+    f.GoToFile("foo.ts");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -60,6 +60,6 @@ foo[[|"bar"|]];
     Tags = [LsProto.DiagnosticTag.Deprecated],
     Range = f.Ranges()[2].LSRange,
     },
-    ])
+    ]);
     }
 }

@@ -35,6 +35,6 @@ function symbolExample(e: SymbolExample) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("symbol", "any", "")
+    f.VerifyQuickInfoAt("symbol", "any", "");
     }
 }

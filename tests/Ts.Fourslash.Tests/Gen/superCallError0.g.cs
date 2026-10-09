@@ -36,8 +36,8 @@ class T6 extends T5<number>{
 }/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "superCallError0", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("/n")
+    f.Insert("/n");
     }
 }

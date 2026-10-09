@@ -32,6 +32,6 @@ public class QuickInfoLink10Tests
 const /**/a = () => 1;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoLink10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

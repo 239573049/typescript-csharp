@@ -41,7 +41,7 @@ const myNamespace  = {};
      * @param {any} a
      */
 
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("1", 7, """
     /**
@@ -49,6 +49,6 @@ const myNamespace  = {};
      * @param {any} x
      */
 
-    """, null)
+    """, null);
     }
 }

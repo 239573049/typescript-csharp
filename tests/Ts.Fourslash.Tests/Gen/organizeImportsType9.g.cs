@@ -40,10 +40,10 @@ console.log(a, b, A, B);
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo1\";")
+    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo1\";");
 
     f.VerifyOrganizeImports(
             """
@@ -55,10 +55,10 @@ console.log(a, b, A, B);
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo2\";")
+    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo2\";");
 
     f.VerifyOrganizeImports(
             """
@@ -70,10 +70,10 @@ console.log(a, b, A, B);
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo3\";")
+    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo3\";");
 
     f.VerifyOrganizeImports(
             """
@@ -84,10 +84,10 @@ console.log(a, b, A, B);
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo4\";")
+    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo4\";");
 
     f.VerifyOrganizeImports(
             """
@@ -98,10 +98,10 @@ console.log(a, b, A, B);
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSTrue,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo5\";")
+    f.ReplaceLine(0, "import { type a, type A, b, B } from \"foo5\";");
 
     f.VerifyOrganizeImports(
             """
@@ -112,7 +112,7 @@ console.log(a, b, A, B);
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSFalse,
-    },
-        )
+    }
+        );
     }
 }

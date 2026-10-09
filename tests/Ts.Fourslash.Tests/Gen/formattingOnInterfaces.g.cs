@@ -31,10 +31,10 @@ public class FormattingOnInterfacesTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnInterfaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("interface Blah {")
+    f.VerifyCurrentLineContent("interface Blah {");
     }
 }

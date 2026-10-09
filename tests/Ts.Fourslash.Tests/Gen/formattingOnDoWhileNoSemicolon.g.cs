@@ -32,26 +32,26 @@ public class FormattingOnDoWhileNoSemicolonTests
 /*5*/        }/*1*/while (1 !== 1)
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnDoWhileNoSemicolon", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.VerifyCurrentLineContent("while (1 !== 1)")
+    f.VerifyCurrentLineContent("while (1 !== 1)");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("do {")
+    f.VerifyCurrentLineContent("do {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    for (var i = 0; i < 10; i++)")
+    f.VerifyCurrentLineContent("    for (var i = 0; i < 10; i++)");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("        i -= 2")
+    f.VerifyCurrentLineContent("        i -= 2");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

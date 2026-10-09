@@ -56,7 +56,7 @@ function foo(strOrNum: string | number) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -77,7 +77,7 @@ function foo(strOrNum: string | number) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -98,6 +98,6 @@ function foo(strOrNum: string | number) {
     ],
         },
         
-    })
+    });
     }
 }

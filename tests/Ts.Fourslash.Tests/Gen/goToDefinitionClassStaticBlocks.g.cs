@@ -36,6 +36,6 @@ class ClassStaticBocks {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionClassStaticBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "classStaticBocks1", "classStaticBocks2", "classStaticBocks3")
+    f.VerifyBaselineGoToDefinition(true, "classStaticBocks1", "classStaticBocks2", "classStaticBocks3");
     }
 }

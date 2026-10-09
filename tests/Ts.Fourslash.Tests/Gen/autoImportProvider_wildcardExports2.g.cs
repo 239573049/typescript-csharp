@@ -85,6 +85,6 @@ export function test(): void;
     ],
         },
         
-    })
+    });
     }
 }

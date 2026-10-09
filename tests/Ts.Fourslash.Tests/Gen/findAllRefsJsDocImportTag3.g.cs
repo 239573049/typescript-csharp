@@ -54,6 +54,6 @@ import { Component } from './component.js';
 export class Player extends Component {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsDocImportTag3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

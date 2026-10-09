@@ -45,6 +45,6 @@ export { foo } from "bar";
 
     foo();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

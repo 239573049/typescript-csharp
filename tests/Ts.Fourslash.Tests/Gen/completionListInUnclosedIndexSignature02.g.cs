@@ -49,9 +49,9 @@ class C {
     ],
         },
         
-    })
+    });
 
-    f.Insert("typeof ")
+    f.Insert("typeof ");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ class C {
     ],
         },
         
-    })
+    });
     }
 }

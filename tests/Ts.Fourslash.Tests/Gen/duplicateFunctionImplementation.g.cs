@@ -33,8 +33,8 @@ function foo<string>(/**/): string { return null; }
 function foo<T>(x: T): T { return null; }
 """;
         using var f = FourslashTest.New(content, fileName: "duplicateFunctionImplementation", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("x: string")
+    f.Insert("x: string");
     }
 }

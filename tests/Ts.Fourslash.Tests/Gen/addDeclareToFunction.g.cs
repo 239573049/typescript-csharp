@@ -29,12 +29,12 @@ public class AddDeclareToFunctionTests
 /*1*/function parseInt(s/*2*/:string):number;
 """;
         using var f = FourslashTest.New(content, fileName: "addDeclareToFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.DeleteAtCaret(7)
+    f.DeleteAtCaret(7);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("declare ")
+    f.Insert("declare ");
     }
 }

@@ -29,22 +29,22 @@ public class TsxIncrementalTests
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "tsxIncremental", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("<")
+    f.Insert("<");
 
-    f.Insert("div")
+    f.Insert("div");
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.Insert(" id")
+    f.Insert(" id");
 
-    f.Insert("=")
+    f.Insert("=");
 
-    f.Insert("\"foo")
+    f.Insert("\"foo");
 
-    f.Insert("\"")
+    f.Insert("\"");
 
-    f.Insert(">")
+    f.Insert(">");
     }
 }

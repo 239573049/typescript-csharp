@@ -55,6 +55,6 @@ declare module "M2" {
     ],
         },
         
-    })
+    });
     }
 }

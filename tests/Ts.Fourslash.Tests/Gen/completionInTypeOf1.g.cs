@@ -32,6 +32,6 @@ namespace m1c {
 var x: typeof m1c./*1*/;
 """;
         using var f = FourslashTest.New(content, fileName: "completionInTypeOf1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("1", null)
+    f.VerifyCompletions("1", null);
     }
 }

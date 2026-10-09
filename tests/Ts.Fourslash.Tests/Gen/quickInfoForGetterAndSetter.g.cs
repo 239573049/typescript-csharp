@@ -43,12 +43,12 @@ class Test {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForGetterAndSetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("(getter) Test.value: any", "Getter text")
+    f.VerifyQuickInfoIs("(getter) Test.value: any", "Getter text");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoIs("(setter) Test.value: any", "Setter text")
+    f.VerifyQuickInfoIs("(setter) Test.value: any", "Setter text");
     }
 }

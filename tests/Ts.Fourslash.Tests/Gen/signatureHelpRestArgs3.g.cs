@@ -31,6 +31,6 @@ public class SignatureHelpRestArgs3Tests
 const layers = Object.assign({}, /*1*/...[]);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpRestArgs3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

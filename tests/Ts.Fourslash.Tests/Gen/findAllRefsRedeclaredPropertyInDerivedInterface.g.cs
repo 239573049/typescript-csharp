@@ -37,6 +37,6 @@ const a: A = { /*2*/x: 0 };
 const b: B = { /*3*/x: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsRedeclaredPropertyInDerivedInterface", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

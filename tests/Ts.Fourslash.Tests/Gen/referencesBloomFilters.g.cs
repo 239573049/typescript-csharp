@@ -36,6 +36,6 @@ function blah2() { container["searchProp"] };
 container = { "searchProp" : 18 };
 """;
         using var f = FourslashTest.New(content, fileName: "referencesBloomFilters", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

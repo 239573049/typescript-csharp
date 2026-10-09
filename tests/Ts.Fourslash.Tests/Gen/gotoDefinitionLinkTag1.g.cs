@@ -52,6 +52,6 @@ function foo(x) { }
 const f = ""
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionLinkTag1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "use1", "use2", "use3", "use4", "use5", "use6", "use7")
+    f.VerifyBaselineGoToDefinition(false, "use1", "use2", "use3", "use4", "use5", "use6", "use7");
     }
 }

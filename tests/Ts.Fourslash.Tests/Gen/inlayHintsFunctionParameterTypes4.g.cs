@@ -45,6 +45,6 @@ class Foo {
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

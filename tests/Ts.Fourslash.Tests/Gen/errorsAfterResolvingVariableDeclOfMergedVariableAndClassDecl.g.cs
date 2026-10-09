@@ -36,16 +36,16 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "errorsAfterResolvingVariableDeclOfMergedVariableAndClassDecl", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.VerifyQuickInfoIs("var M.C.C: typeof M.C", "")
+    f.VerifyQuickInfoIs("var M.C.C: typeof M.C", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

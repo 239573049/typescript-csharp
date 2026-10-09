@@ -37,6 +37,6 @@ function animate(o: AnimationOptions) { }
 animate({ deltaX: 100, deltaY: 100, easing: "[|ease-in-out|]" });
 """;
         using var f = FourslashTest.New(content, fileName: "renameStringLiteralTypes1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "ease-in-out")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "ease-in-out");
     }
 }

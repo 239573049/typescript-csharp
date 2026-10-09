@@ -36,6 +36,6 @@ interface I2 {
 class C implements I1,I2 {[| |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceDuplicateMember1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I1'", "Implement interface 'I2'"})
+    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I1'", "Implement interface 'I2'"});
     }
 }

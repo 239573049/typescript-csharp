@@ -41,11 +41,11 @@ function f(p1, p2, p3, p4, p5) {
 f/*1*/('literal', 'literal', "[|o/*2*/ther1|]", 12);
 """;
         using var f = FourslashTest.New(content, fileName: "completionForStringLiteral4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
 
-    f.VerifyQuickInfoIs("function f(p1: \"literal\", p2: \"literal\", p3: \"other1\" | \"other2\", p4: \"literal\" | number, p5: 12 | true): string", "I am documentation")
+    f.VerifyQuickInfoIs("function f(p1: \"literal\", p2: \"literal\", p3: \"other1\" | \"other2\", p4: \"literal\" | number, p5: 12 | true): string", "I am documentation");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -85,6 +85,6 @@ f/*1*/('literal', 'literal', "[|o/*2*/ther1|]", 12);
     ],
         },
         
-    })
+    });
     }
 }

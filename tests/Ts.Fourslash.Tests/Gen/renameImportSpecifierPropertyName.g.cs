@@ -32,6 +32,6 @@ export interface /**/Ginger {}
 import { Ginger as Ale } from './canada';
 """;
         using var f = FourslashTest.New(content, fileName: "renameImportSpecifierPropertyName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

@@ -37,6 +37,6 @@ enum E {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesFromLinkTagReference3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

@@ -31,6 +31,6 @@ async function fn(a: {}, b: number) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingAwait_notAvailableWithoutPromise", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("addMissingAwait")
+    f.VerifyCodeFixNotAvailable("addMissingAwait");
     }
 }

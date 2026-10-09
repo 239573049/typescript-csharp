@@ -32,6 +32,6 @@ foo({
 });
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTypeError", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(method) f(): void", "")
+    f.VerifyQuickInfoAt("", "(method) f(): void", "");
     }
 }

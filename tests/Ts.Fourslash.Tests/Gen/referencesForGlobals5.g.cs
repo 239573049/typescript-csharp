@@ -36,6 +36,6 @@ namespace globalModule {
 var m = /*3*/globalAlias;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForGlobals5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

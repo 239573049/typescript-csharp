@@ -31,10 +31,10 @@ var clear = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("    \"a\": 1")
+    f.VerifyCurrentLineContent("    \"a\": 1");
     }
 }

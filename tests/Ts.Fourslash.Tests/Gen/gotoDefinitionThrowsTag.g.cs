@@ -34,6 +34,6 @@ class [|/*def*/E|] extends Error {}
 function f() {}
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionThrowsTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "use")
+    f.VerifyBaselineGoToDefinition(false, "use");
     }
 }

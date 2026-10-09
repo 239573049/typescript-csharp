@@ -63,7 +63,7 @@ var x4 = <Exp.M.SFCComp /*4*/ ></Exp.M.SFCComp>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "4", }, new CompletionsExpectedList
     {
@@ -81,6 +81,6 @@ var x4 = <Exp.M.SFCComp /*4*/ ></Exp.M.SFCComp>;
     ],
         },
         
-    })
+    });
     }
 }

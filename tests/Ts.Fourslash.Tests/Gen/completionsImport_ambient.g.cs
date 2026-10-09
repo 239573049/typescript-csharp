@@ -89,7 +89,7 @@ Ba/**/
     ], false),
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -101,6 +101,6 @@ Ba/**/
 
     Ba
     """,
-    })
+    });
     }
 }

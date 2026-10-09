@@ -35,6 +35,6 @@ function stringClass(e: typeof StringClass) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("stringClass", "(index) StringClass[string]: any", "Something generic")
+    f.VerifyQuickInfoAt("stringClass", "(index) StringClass[string]: any", "Something generic");
     }
 }

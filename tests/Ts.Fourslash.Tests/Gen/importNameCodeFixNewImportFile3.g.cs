@@ -40,6 +40,6 @@ export namespace XXX {
 
     let t: XXX.I;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

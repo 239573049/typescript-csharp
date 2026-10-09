@@ -30,14 +30,14 @@ public class FormattingConditionalTypesTests
 /*L2*/type Diff2<T, U> = T    extends    U  ?    never   :     T;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingConditionalTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("L1")
+    f.GoToMarker("L1");
 
-    f.VerifyCurrentLineContent("type Diff1<T, U> = T extends U ? never : T;")
+    f.VerifyCurrentLineContent("type Diff1<T, U> = T extends U ? never : T;");
 
-    f.GoToMarker("L2")
+    f.GoToMarker("L2");
 
-    f.VerifyCurrentLineContent("type Diff2<T, U> = T extends U ? never : T;")
+    f.VerifyCurrentLineContent("type Diff2<T, U> = T extends U ? never : T;");
     }
 }

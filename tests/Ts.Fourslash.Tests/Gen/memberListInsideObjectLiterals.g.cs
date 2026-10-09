@@ -75,7 +75,7 @@ namespace ObjectLiterals {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -96,6 +96,6 @@ namespace ObjectLiterals {
     ],
         },
         
-    })
+    });
     }
 }

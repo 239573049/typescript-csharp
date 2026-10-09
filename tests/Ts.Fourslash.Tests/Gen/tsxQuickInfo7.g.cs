@@ -43,18 +43,18 @@ function Baz<T extends {b: number}, U extends {a: boolean, b:string}>(arg1: T, a
 }
 """;
         using var f = FourslashTest.New(content, fileName: "tsxQuickInfo7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function OverloadComponent<number>(attr: {\n    b: number;\n    a?: string;\n    \"ignore-prop\": boolean;\n}): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("1", "function OverloadComponent<number>(attr: {\n    b: number;\n    a?: string;\n    \"ignore-prop\": boolean;\n}): JSX.Element (+2 overloads)", "");
 
-    f.VerifyQuickInfoAt("2", "function OverloadComponent<boolean, string>(attr: {\n    b: string;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("2", "function OverloadComponent<boolean, string>(attr: {\n    b: string;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "");
 
-    f.VerifyQuickInfoAt("3", "function OverloadComponent<boolean, string>(attr: {\n    b: string;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("3", "function OverloadComponent<boolean, string>(attr: {\n    b: string;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "");
 
-    f.VerifyQuickInfoAt("4", "function OverloadComponent(): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("4", "function OverloadComponent(): JSX.Element (+2 overloads)", "");
 
-    f.VerifyQuickInfoAt("5", "function OverloadComponent(): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("5", "function OverloadComponent(): JSX.Element (+2 overloads)", "");
 
-    f.VerifyQuickInfoAt("6", "function OverloadComponent<boolean, never>(attr: {\n    b: never;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("6", "function OverloadComponent<boolean, never>(attr: {\n    b: never;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "");
 
-    f.VerifyQuickInfoAt("7", "function OverloadComponent<boolean, never>(attr: {\n    b: never;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "")
+    f.VerifyQuickInfoAt("7", "function OverloadComponent<boolean, never>(attr: {\n    b: never;\n    a: boolean;\n}): JSX.Element (+2 overloads)", "");
     }
 }

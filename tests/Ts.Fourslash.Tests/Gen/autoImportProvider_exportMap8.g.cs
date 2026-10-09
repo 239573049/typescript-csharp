@@ -65,7 +65,7 @@ fooFrom/*mts*/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_exportMap8", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("cts")
+    f.GoToMarker("cts");
 
     f.VerifyCompletions("cts", new CompletionsExpectedList
     {
@@ -97,9 +97,9 @@ fooFrom/*mts*/
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("mts")
+    f.GoToMarker("mts");
 
     f.VerifyCompletions("mts", new CompletionsExpectedList
     {
@@ -131,6 +131,6 @@ fooFrom/*mts*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -51,12 +51,12 @@ import './';
 import './';
 """;
         using var f = FourslashTest.New(content, fileName: "organizeImportsReactJsx", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("test.tsx")
+    f.GoToFile("test.tsx");
 
     f.VerifyOrganizeImports(
             "export default () => <div></div>",
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

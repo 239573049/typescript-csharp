@@ -41,6 +41,6 @@ public class GetEditsForFileRename_tsconfig_include_addTests
         "include": ["dir", "newDir/b.ts"],
     }
     """,
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

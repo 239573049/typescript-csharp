@@ -48,6 +48,6 @@ export interface B ex/**/
     ],
         },
         
-    })
+    });
     }
 }

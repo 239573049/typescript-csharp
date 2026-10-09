@@ -67,6 +67,6 @@ instance.[|/*1*/methodName|]({member: 12});
 """;
         using var f = FourslashTest.New(content, fileName: "declarationMapGoToDefinition", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

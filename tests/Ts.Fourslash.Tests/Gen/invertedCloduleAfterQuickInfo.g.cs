@@ -37,10 +37,10 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "invertedCloduleAfterQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

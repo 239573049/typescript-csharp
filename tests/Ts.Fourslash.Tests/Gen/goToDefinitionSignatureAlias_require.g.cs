@@ -37,6 +37,6 @@ import f = require("./a");
 [|/*useTs*/f|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSignatureAlias_require", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use", "useTs")
+    f.VerifyBaselineGoToDefinition(true, "use", "useTs");
     }
 }

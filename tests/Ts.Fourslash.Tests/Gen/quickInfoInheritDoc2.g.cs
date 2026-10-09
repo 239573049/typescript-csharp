@@ -45,6 +45,6 @@ class SubClass<T> extends Base<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInheritDoc2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

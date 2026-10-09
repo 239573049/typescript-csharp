@@ -41,7 +41,7 @@ const o: I = {
 1 * /*f*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsGeneratorFunctions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"a", "b", }, null)
+    f.VerifyCompletions(new[]{"a", "b", }, null);
 
     f.VerifyCompletions(new[]{"c", "d", }, new CompletionsExpectedList
     {
@@ -58,7 +58,7 @@ const o: I = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("e", new CompletionsExpectedList
     {
@@ -75,7 +75,7 @@ const o: I = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("f", new CompletionsExpectedList
     {
@@ -96,6 +96,6 @@ const o: I = {
     ],
         },
         
-    })
+    });
     }
 }

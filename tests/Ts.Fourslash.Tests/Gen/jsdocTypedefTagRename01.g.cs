@@ -40,6 +40,6 @@ var numberLike;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagRename01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]])
+    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]]);
     }
 }

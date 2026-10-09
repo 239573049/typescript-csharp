@@ -328,6 +328,6 @@ interface LargeInterface/*o1*/ {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityTruncation2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1}});
     }
 }

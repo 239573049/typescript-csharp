@@ -40,6 +40,6 @@ class C implements I<number> { }
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

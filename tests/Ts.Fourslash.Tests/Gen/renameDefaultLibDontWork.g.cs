@@ -31,6 +31,6 @@ public class RenameDefaultLibDontWorkTests
 console.log([|test|]);
 """;
         using var f = FourslashTest.New(content, fileName: "renameDefaultLibDontWork", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1]);
     }
 }

@@ -45,7 +45,7 @@ export default {
     };
     """,
         Index = 1,
-    })
+    });
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -57,6 +57,6 @@ export default {
     };
     """,
         Index = 2,
-    })
+    });
     }
 }

@@ -72,9 +72,9 @@ D./*2*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("foo()")
+    f.Insert("foo()");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -114,10 +114,10 @@ D./*2*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("bar()")
+    f.Insert("bar()");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

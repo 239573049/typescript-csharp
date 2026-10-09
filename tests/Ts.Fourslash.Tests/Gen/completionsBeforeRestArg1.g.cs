@@ -44,6 +44,6 @@ const layers = Object.assign({}, /*1*/...[]);
             Includes = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

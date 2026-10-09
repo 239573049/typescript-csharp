@@ -32,6 +32,6 @@ public class GetJavaScriptQuickInfo5Tests
 function /**/f(a) { }
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptQuickInfo5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "function f(a?: {\n    b: number;\n}): void", "")
+    f.VerifyQuickInfoAt("", "function f(a?: {\n    b: number;\n}): void", "");
     }
 }

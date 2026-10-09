@@ -38,14 +38,14 @@ declare module "c" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameImportOfReExport2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
 
-    f.VerifyBaselineRename(null /*preferences*/, [.. f.GetRangesByText()["C"]])
+    f.VerifyBaselineRename(null /*preferences*/, [.. f.GetRangesByText()["C"]]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.GetRangesByText()["D"][0])
+    f.VerifyBaselineRename(null /*preferences*/, f.GetRangesByText()["D"][0]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.GetRangesByText()["D"][1], f.GetRangesByText()["D"][2])
+    f.VerifyBaselineRename(null /*preferences*/, f.GetRangesByText()["D"][1], f.GetRangesByText()["D"][2]);
     }
 }

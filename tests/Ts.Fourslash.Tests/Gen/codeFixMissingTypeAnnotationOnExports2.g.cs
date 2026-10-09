@@ -33,7 +33,7 @@ const b = 43;
 export function foo() { return a + b; }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Add return type 'number'"})
+    f.VerifyCodeFixAvailable(new[]{"Add return type 'number'"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -44,6 +44,6 @@ export function foo() { return a + b; }
     export function foo(): number { return a + b; }
     """,
         Index = 0,
-    })
+    });
     }
 }

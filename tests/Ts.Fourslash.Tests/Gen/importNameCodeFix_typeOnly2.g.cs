@@ -33,7 +33,7 @@ export class A {}
 const a: A = new A();
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_typeOnly2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.ts")
+    f.GoToFile("index.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -43,6 +43,6 @@ const a: A = new A();
 
     const a: A = new A();
     """,
-    })
+    });
     }
 }

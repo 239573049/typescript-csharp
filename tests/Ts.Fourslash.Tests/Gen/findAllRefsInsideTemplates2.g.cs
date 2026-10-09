@@ -30,6 +30,6 @@ public class FindAllRefsInsideTemplates2Tests
 /*3*/f `${ /*4*/f } ${ /*5*/f }`
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsInsideTemplates2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5");
     }
 }

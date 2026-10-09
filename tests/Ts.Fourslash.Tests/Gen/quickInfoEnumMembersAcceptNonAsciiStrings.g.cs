@@ -34,12 +34,12 @@ enum Demo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoEnumMembersAcceptNonAsciiStrings", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("Emoji", "(enum member) Demo.Emoji = \"🍎\"", "")
+    f.VerifyQuickInfoAt("Emoji", "(enum member) Demo.Emoji = \"🍎\"", "");
 
-    f.VerifyQuickInfoAt("Hebrew", "(enum member) Demo.Hebrew = \"תפוח\"", "")
+    f.VerifyQuickInfoAt("Hebrew", "(enum member) Demo.Hebrew = \"תפוח\"", "");
 
-    f.VerifyQuickInfoAt("Chinese", "(enum member) Demo.Chinese = \"苹果\"", "")
+    f.VerifyQuickInfoAt("Chinese", "(enum member) Demo.Chinese = \"苹果\"", "");
 
-    f.VerifyQuickInfoAt("Japanese", "(enum member) Demo.Japanese = \"りんご\"", "")
+    f.VerifyQuickInfoAt("Japanese", "(enum member) Demo.Japanese = \"りんご\"", "");
     }
 }

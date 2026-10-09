@@ -37,6 +37,6 @@ interface Foo { }
 import a1 = /*3*/Foo;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForMergedDeclarations6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

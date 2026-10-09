@@ -37,6 +37,6 @@ function f<T extends Apple | Apple[]>(x: T1<T>): void {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityConditionalType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x"] = new[]{0, 1, 2}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x"] = new[]{0, 1, 2}});
     }
 }

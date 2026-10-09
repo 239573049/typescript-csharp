@@ -31,6 +31,6 @@ public class GetJavaScriptSyntacticDiagnostics5Tests
 class C implements D { }
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

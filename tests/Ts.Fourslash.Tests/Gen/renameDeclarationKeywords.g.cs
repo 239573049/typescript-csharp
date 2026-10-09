@@ -43,6 +43,6 @@ public class RenameDeclarationKeywordsTests
 [|{| "id": "constDecl" |}[|const|] [|{| "isWriteAccess": true, "isDefinition": true, "contextRangeId": "constDecl" |}z|] = 1;|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameDeclarationKeywords", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5], f.Ranges()[7], f.Ranges()[9], f.Ranges()[12], f.Ranges()[15], f.Ranges()[18], f.Ranges()[20], f.Ranges()[23], f.Ranges()[26], f.Ranges()[29], f.Ranges()[32], f.Ranges()[35], f.Ranges()[38], f.Ranges()[41], f.Ranges()[44])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5], f.Ranges()[7], f.Ranges()[9], f.Ranges()[12], f.Ranges()[15], f.Ranges()[18], f.Ranges()[20], f.Ranges()[23], f.Ranges()[26], f.Ranges()[29], f.Ranges()[32], f.Ranges()[35], f.Ranges()[38], f.Ranges()[41], f.Ranges()[44]);
     }
 }

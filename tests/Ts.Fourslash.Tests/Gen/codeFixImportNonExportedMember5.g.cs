@@ -34,8 +34,8 @@ function bar() {}
 import { bar } from "./foo";
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixImportNonExportedMember5", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
-    f.VerifyCodeFixNotAvailable("fixImportNonExportedMember")
+    f.VerifyCodeFixNotAvailable("fixImportNonExportedMember");
     }
 }

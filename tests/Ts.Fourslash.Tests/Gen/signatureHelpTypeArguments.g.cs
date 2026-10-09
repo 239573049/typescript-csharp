@@ -44,17 +44,17 @@ new C<number, /*C1*/;
 new C<number, string, /*C2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpTypeArguments", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("f0")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3 })
-    f.GoToMarker("f1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2 })
-    f.GoToMarker("f2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string" })
-    f.GoToMarker("C0")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3 })
-    f.GoToMarker("C1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2 })
-    f.GoToMarker("C2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string" })
+    f.GoToMarker("f0");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3 });
+    f.GoToMarker("f1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2 });
+    f.GoToMarker("f2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string" });
+    f.GoToMarker("C0");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3 });
+    f.GoToMarker("C1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2 });
+    f.GoToMarker("C2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string" });
     }
 }

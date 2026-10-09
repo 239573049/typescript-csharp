@@ -56,6 +56,6 @@ sw/*6*/itch (10) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesSwitchCaseDefaultBroken", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

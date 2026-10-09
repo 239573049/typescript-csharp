@@ -44,6 +44,6 @@ const x = foo(1)
     {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

@@ -53,7 +53,7 @@ anotherThing;
     anotherThing;
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

@@ -39,8 +39,8 @@ var b = val.p1;
 /*1*/b;
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalResolveAccessor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var b: string", "")
+    f.VerifyQuickInfoAt("1", "var b: string", "");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

@@ -37,8 +37,8 @@ interface C<T extends A> {
 var v2: C<B>; // should not work
 """;
         using var f = FourslashTest.New(content, fileName: "addInterfaceToNotSatisfyConstraint", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("interface B { b: string; }")
+    f.Insert("interface B { b: string; }");
     }
 }

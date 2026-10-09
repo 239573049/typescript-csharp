@@ -53,9 +53,9 @@ r2./*6*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("I;")
+    f.Insert("I;");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -72,12 +72,12 @@ r2./*6*/
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m3f(): m3f" })
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m3f(): m3f" });
 
-    f.VerifyQuickInfoAt("4", "var r: m3f", "")
+    f.VerifyQuickInfoAt("4", "var r: m3f", "");
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -94,9 +94,9 @@ r2./*6*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("foo(1)")
+    f.Insert("foo(1)");
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -113,10 +113,10 @@ r2./*6*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("foo(")
+    f.Insert("foo(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(): void" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(): void" });
     }
 }

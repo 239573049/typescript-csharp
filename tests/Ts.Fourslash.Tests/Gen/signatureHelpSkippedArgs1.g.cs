@@ -30,6 +30,6 @@ function fn(a: number, b: number, c: number) {}
 fn(/*1*/, /*2*/, /*3*/, /*4*/, /*5*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSkippedArgs1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

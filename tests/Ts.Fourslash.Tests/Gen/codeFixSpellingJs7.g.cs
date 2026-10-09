@@ -80,6 +80,6 @@ window.argle
 self.blargle
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingJs7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

@@ -38,6 +38,6 @@ import { default as bee } from "./b";
 [|export default [|{| "contextRangeIndex": 8 |}b|];|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameReExportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[5], f.Ranges()[7], f.Ranges()[9])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[5], f.Ranges()[7], f.Ranges()[9]);
     }
 }

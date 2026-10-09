@@ -31,6 +31,6 @@ public class FindAllRefsGlobalThisKeywordInModuleTests
 export const c = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsGlobalThisKeywordInModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

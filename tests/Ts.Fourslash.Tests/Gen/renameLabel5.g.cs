@@ -34,6 +34,6 @@ loop1: for (let i = 0; i <= 10; i++) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameLabel5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

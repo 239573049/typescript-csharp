@@ -75,7 +75,7 @@ class FullPiece extends Piece {
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -88,6 +88,6 @@ class FullPiece extends Piece {
       
     }
     """,
-    })
+    });
     }
 }

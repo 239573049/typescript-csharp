@@ -45,6 +45,6 @@ const DOOM = { e: 1, m: 1 }
 const kneeDeep = DOOM.e
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

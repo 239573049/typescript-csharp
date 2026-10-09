@@ -62,6 +62,6 @@ partialFoo({ a: true, b: true }, { /*1*/ });
     ],
         },
         
-    })
+    });
     }
 }

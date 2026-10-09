@@ -33,6 +33,6 @@ export class Bar {
 export var x: number;
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsItemsExternalModules2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

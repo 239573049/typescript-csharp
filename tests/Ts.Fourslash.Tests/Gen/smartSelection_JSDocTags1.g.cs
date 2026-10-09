@@ -32,6 +32,6 @@ public class SmartSelection_JSDocTags1Tests
 function foo() { return [] }
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_JSDocTags1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

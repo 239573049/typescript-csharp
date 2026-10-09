@@ -30,8 +30,8 @@ class S18<B, B, A, B> extends S18<A[], { S19: A; (): A }[]> { }
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "recursiveGenerics2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("(new S18()).S18 = 0;")
+    f.Insert("(new S18()).S18 = 0;");
     }
 }

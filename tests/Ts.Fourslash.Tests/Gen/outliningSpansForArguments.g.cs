@@ -42,6 +42,6 @@ console.log[|(
 )|]|];
 """;
         using var f = FourslashTest.New(content, fileName: "outliningSpansForArguments", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

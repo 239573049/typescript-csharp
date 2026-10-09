@@ -41,10 +41,10 @@ var a/*1*/ = SortFilter([0, 1, 2], q/*2*/ => q);
 var b/*3*/ = SortFilter([0, 1, 2], undefined);
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocGenerics2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var a: number[]", "")
+    f.VerifyQuickInfoAt("1", "var a: number[]", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) q: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) q: number", "");
 
-    f.VerifyQuickInfoAt("3", "var b: number[]", "")
+    f.VerifyQuickInfoAt("3", "var b: number[]", "");
     }
 }

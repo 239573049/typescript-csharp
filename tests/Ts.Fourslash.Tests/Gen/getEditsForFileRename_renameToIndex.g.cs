@@ -56,6 +56,6 @@ import old from "../old";
     import old from "..";
     """,
     ["/tsconfig.json"] = "{ \"files\": [\"a.ts\", \"src/a.ts\", \"src/foo/a.ts\", \"src/index.ts\"] }",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

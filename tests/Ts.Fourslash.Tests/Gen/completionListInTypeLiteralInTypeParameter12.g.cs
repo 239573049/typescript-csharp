@@ -60,7 +60,7 @@ b<{/*1*/}>('bar');
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -79,6 +79,6 @@ b<{/*1*/}>('bar');
     ],
         },
         
-    })
+    });
     }
 }

@@ -43,6 +43,6 @@ public class GetOccurrencesTryCatchFinallyTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesTryCatchFinally", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

@@ -42,8 +42,8 @@ var person;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagRename03", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("jsDocTypedef_form3.js")
+    f.GoToFile("jsDocTypedef_form3.js");
 
-    f.VerifyBaselineRename(null /*preferences*/, [.. f.GetRangesByText()["Person"]])
+    f.VerifyBaselineRename(null /*preferences*/, [.. f.GetRangesByText()["Person"]]);
     }
 }

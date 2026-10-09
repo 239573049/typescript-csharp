@@ -39,6 +39,6 @@ if (x instanceof Promise) {}
             new SemanticToken { Type = "class.defaultLibrary", Text = "Number" },
             new SemanticToken { Type = "property.readonly.defaultLibrary", Text = "MAX_VALUE" },
             new SemanticToken { Type = "variable.readonly", Text = "x" },
-        })
+        });
     }
 }

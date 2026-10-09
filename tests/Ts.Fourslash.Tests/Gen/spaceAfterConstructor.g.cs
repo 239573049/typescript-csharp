@@ -33,12 +33,12 @@ export class myController {
     }/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "spaceAfterConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    constructor(processId: number) {")
+    f.VerifyCurrentLineContent("    constructor(processId: number) {");
     }
 }

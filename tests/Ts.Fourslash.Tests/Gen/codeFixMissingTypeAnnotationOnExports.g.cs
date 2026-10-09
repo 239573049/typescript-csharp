@@ -40,6 +40,6 @@ export const g = foo();
     export const g: number = foo();
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -30,6 +30,6 @@ function foo4<T extends Date>(te/**/st: T): T;
 function foo4<T extends Date>(test: any): any { return null; }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForGenericConstraints1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) test: T extends Date", "")
+    f.VerifyQuickInfoAt("", "(parameter) test: T extends Date", "");
     }
 }

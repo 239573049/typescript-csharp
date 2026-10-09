@@ -31,6 +31,6 @@ const filtered: { [P in keyof typeof obj as P extends 'b' ? never : P]: 0; } = {
 filtered./*3*/a;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesFilteringMappedTypeProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -29,10 +29,10 @@ public class ChainedFatArrowFormattingTests
 var fn = () => () => null/**/
 """;
         using var f = FourslashTest.New(content, fileName: "chainedFatArrowFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("var fn = () => () => null;")
+    f.VerifyCurrentLineContent("var fn = () => () => null;");
     }
 }

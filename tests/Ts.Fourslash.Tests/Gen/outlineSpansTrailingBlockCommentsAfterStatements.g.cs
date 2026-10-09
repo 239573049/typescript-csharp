@@ -32,6 +32,6 @@ console.log(0);
   */|]
 """;
         using var f = FourslashTest.New(content, fileName: "outlineSpansTrailingBlockCommentsAfterStatements", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

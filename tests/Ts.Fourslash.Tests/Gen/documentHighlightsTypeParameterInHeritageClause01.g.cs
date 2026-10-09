@@ -32,6 +32,6 @@ interface I<[|T|]> extends I<[|T|]>, [|T|] {
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightsTypeParameterInHeritageClause01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

@@ -41,6 +41,6 @@ test((state) => {});
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

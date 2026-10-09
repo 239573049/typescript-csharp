@@ -33,14 +33,14 @@ type Method<AA> = { method(): A/*4*/A };
 type Construct<AA> = { new(): A/*5*/A };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForTypeParameterInTypeAlias1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(type parameter) AA in type Ctor<AA>", "")
+    f.VerifyQuickInfoAt("1", "(type parameter) AA in type Ctor<AA>", "");
 
-    f.VerifyQuickInfoAt("2", "(type parameter) AA in type MixinCtor<AA>", "")
+    f.VerifyQuickInfoAt("2", "(type parameter) AA in type MixinCtor<AA>", "");
 
-    f.VerifyQuickInfoAt("3", "(type parameter) AA in type NestedCtor<AA>", "")
+    f.VerifyQuickInfoAt("3", "(type parameter) AA in type NestedCtor<AA>", "");
 
-    f.VerifyQuickInfoAt("4", "(type parameter) AA in type Method<AA>", "")
+    f.VerifyQuickInfoAt("4", "(type parameter) AA in type Method<AA>", "");
 
-    f.VerifyQuickInfoAt("5", "(type parameter) AA in type Construct<AA>", "")
+    f.VerifyQuickInfoAt("5", "(type parameter) AA in type Construct<AA>", "");
     }
 }

@@ -54,6 +54,6 @@ declare module "yet-another-ambient-module" {
     import * as ns from "yet-another-ambient-module"
     var x = v1 + 5;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

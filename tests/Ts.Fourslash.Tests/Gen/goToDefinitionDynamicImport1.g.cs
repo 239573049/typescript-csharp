@@ -32,6 +32,6 @@ import([|"./f/*1*/oo"|])
 var x = import([|"./fo/*2*/o"|])
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDynamicImport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2")
+    f.VerifyBaselineGoToDefinition(true, "1", "2");
     }
 }

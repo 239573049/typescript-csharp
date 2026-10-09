@@ -59,6 +59,6 @@ function foo(props: { x: number; y: number }) {}
 export = foo({ x: 1, y: 1 });
 """;
         using var f = FourslashTest.New(content, fileName: "navigationItemsExportEqualsExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

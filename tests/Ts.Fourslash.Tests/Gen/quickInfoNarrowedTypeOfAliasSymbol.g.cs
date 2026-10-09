@@ -38,10 +38,10 @@ if (isString(someEnv)) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoNarrowedTypeOfAliasSymbol", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("app.ts")
+    f.GoToFile("app.ts");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("(alias) const someEnv: string\nimport someEnv", "")
+    f.VerifyQuickInfoIs("(alias) const someEnv: string\nimport someEnv", "");
     }
 }

@@ -43,6 +43,6 @@ public class CompletionAfterDotDotDotTests
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

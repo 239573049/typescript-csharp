@@ -45,6 +45,6 @@ var snapcrackle: SnapCrackle;
 var x = (snapcrackle || magnitude || art).[|/*usage*/pop|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionUnionTypeProperty4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "usage")
+    f.VerifyBaselineGoToDefinition(true, "usage");
     }
 }

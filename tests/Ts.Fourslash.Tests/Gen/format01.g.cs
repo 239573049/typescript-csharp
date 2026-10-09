@@ -31,10 +31,10 @@ public class Format01Tests
 """;
         using var f = FourslashTest.New(content, fileName: "format01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("namespace Default { var x = ({}); }")
+    f.VerifyCurrentLineContent("namespace Default { var x = ({}); }");
     }
 }

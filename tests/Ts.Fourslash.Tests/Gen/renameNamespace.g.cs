@@ -35,6 +35,6 @@ namespace /**/NS {
 const a: NS.E = NS.E.A;
 """;
         using var f = FourslashTest.New(content, fileName: "renameNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

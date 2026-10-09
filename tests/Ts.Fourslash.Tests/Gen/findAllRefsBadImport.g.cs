@@ -29,6 +29,6 @@ public class FindAllRefsBadImportTests
 import { /*0*/ab as /*1*/cd } from "doesNotExist";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsBadImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1")
+    f.VerifyBaselineFindAllReferences("0", "1");
     }
 }

@@ -58,7 +58,7 @@ import { E } from "./exports2";
 d/*2*//*2a*//*2b*//*2c*/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportTypeImport4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
     f.VerifyImportFixAtPosition([
     """
@@ -74,9 +74,9 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
-    f.GoToMarker("0a")
+    f.GoToMarker("0a");
 
     f.VerifyImportFixAtPosition([
     """
@@ -92,27 +92,9 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
-    f.GoToMarker("1")
-
-    f.VerifyImportFixAtPosition([
-    """
-    import { a, A, B, C, type Y, type Z } from "./exports1";
-    a;
-    b;
-    """,
-    """
-    import { A, b, B, C, type Y, type Z } from "./exports1";
-    a;
-    b;
-    """,
-    ], new LsUtil.UserPreferences
-    {
-    OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
-
-    f.GoToMarker("1a")
+    f.GoToMarker("1");
 
     f.VerifyImportFixAtPosition([
     """
@@ -128,9 +110,9 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
-    f.GoToMarker("1b")
+    f.GoToMarker("1a");
 
     f.VerifyImportFixAtPosition([
     """
@@ -145,10 +127,10 @@ d/*2*//*2a*//*2b*//*2c*/
     """,
     ], new LsUtil.UserPreferences
     {
-    OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    })
+    OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
+    });
 
-    f.GoToMarker("1c")
+    f.GoToMarker("1b");
 
     f.VerifyImportFixAtPosition([
     """
@@ -164,9 +146,27 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    })
+    });
 
-    f.GoToMarker("2")
+    f.GoToMarker("1c");
+
+    f.VerifyImportFixAtPosition([
+    """
+    import { a, A, B, C, type Y, type Z } from "./exports1";
+    a;
+    b;
+    """,
+    """
+    import { A, b, B, C, type Y, type Z } from "./exports1";
+    a;
+    b;
+    """,
+    ], new LsUtil.UserPreferences
+    {
+    OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
+    });
+
+    f.GoToMarker("2");
 
     f.VerifyImportFixAtPosition([
     """
@@ -177,9 +177,9 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
-    f.GoToMarker("2a")
+    f.GoToMarker("2a");
 
     f.VerifyImportFixAtPosition([
     """
@@ -190,9 +190,9 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
-    f.GoToMarker("2b")
+    f.GoToMarker("2b");
 
     f.VerifyImportFixAtPosition([
     """
@@ -203,9 +203,9 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
-    f.GoToMarker("2c")
+    f.GoToMarker("2c");
 
     f.VerifyImportFixAtPosition([
     """
@@ -216,6 +216,6 @@ d/*2*//*2a*//*2b*//*2c*/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
     }
 }

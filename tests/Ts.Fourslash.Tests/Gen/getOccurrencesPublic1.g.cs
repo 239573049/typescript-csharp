@@ -81,6 +81,6 @@ namespace m {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesPublic1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

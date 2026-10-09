@@ -70,7 +70,7 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -88,7 +88,7 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -108,7 +108,7 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -126,7 +126,7 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -144,7 +144,7 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -161,7 +161,7 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -179,6 +179,6 @@ d<Foo, { four: {/*5*/} }>();
     ],
         },
         
-    })
+    });
     }
 }

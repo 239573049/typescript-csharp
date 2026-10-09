@@ -36,6 +36,6 @@ namespace M {
 M.y./*3*/dx;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsWithShorthandPropertyAssignment2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

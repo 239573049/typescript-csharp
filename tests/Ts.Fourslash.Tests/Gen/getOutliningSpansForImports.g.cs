@@ -43,6 +43,6 @@ import { a, b, c } from "mod";
 import r = require("mod");|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansForImports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Imports)
+    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Imports);
     }
 }

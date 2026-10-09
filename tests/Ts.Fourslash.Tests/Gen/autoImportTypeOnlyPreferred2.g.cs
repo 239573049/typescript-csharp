@@ -46,7 +46,7 @@ import type { ComponentType } from "react";
 type _ = ComponentProps/*2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportTypeOnlyPreferred2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyImportFixAtPosition([
     """
@@ -58,9 +58,9 @@ type _ = ComponentProps/*2*/;
         useEffect(() => {}, []);
     }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
     f.VerifyImportFixAtPosition([
     """
@@ -69,6 +69,6 @@ type _ = ComponentProps/*2*/;
 
     type _ = ComponentProps;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

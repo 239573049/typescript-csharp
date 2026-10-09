@@ -40,7 +40,7 @@ class B3 extends B2 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpConstructorInheritance", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("indirectSuperCall")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(n: number): B2", ParameterCount = 1, ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 2 })
+    f.GoToMarker("indirectSuperCall");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(n: number): B2", ParameterCount = 1, ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 2 });
     }
 }

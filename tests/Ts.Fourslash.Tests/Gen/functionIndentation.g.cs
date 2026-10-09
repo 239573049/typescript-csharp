@@ -66,7 +66,7 @@ v;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "functionIndentation", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     namespace M {
@@ -179,6 +179,6 @@ v;
     """+"""
             v;
 
-    """+"}")
+    """+"}");
     }
 }

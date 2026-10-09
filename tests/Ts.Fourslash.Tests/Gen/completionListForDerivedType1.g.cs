@@ -57,7 +57,7 @@ f2./*2*/ // here bar has return type any, but bar2 is Foo2
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -83,6 +83,6 @@ f2./*2*/ // here bar has return type any, but bar2 is Foo2
     ],
         },
         
-    })
+    });
     }
 }

@@ -32,6 +32,6 @@ type Foo = { x: string };
 /*reference*/Foo;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

@@ -49,6 +49,6 @@ class C {
     {
     IncludeInlayPropertyDeclarationTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

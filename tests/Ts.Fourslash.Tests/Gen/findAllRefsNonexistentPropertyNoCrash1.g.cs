@@ -73,6 +73,6 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
 export default Parser;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsNonexistentPropertyNoCrash1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

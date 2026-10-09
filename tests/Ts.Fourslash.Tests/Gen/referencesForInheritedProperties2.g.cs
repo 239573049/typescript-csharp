@@ -51,6 +51,6 @@ var v: class2;
 v.doStuff();
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForInheritedProperties2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

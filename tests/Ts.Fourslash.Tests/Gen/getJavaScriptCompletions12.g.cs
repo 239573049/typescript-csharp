@@ -69,7 +69,7 @@ var test1 = function(x) { return x./*4*/ }, test2 = function(a) { return a./*5*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "3", "4", }, new CompletionsExpectedList
     {
@@ -90,7 +90,7 @@ var test1 = function(x) { return x./*4*/ }, test2 = function(a) { return a./*5*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -112,6 +112,6 @@ var test1 = function(x) { return x./*4*/ }, test2 = function(a) { return a./*5*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -32,6 +32,6 @@ async function fn(): Promise<number> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixRemoveUnnecessaryAwait_notAvailableOnReturn", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

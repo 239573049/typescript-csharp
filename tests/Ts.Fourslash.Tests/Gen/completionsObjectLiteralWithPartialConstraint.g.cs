@@ -102,7 +102,7 @@ f4({
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -132,7 +132,7 @@ f4({
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -151,7 +151,7 @@ f4({
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -174,7 +174,7 @@ f4({
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -197,7 +197,7 @@ f4({
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -214,6 +214,6 @@ f4({
     ],
         },
         
-    })
+    });
     }
 }

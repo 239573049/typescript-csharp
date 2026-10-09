@@ -32,6 +32,6 @@ function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnCatchVariable", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(local var) e: any", "")
+    f.VerifyQuickInfoAt("", "(local var) e: any", "");
     }
 }

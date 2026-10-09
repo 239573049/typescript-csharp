@@ -47,6 +47,6 @@ declare function assert(argument1: any): asserts a/**/
     ],
         },
         
-    })
+    });
     }
 }

@@ -31,8 +31,8 @@ var x/*1*/x = true ? [1] : [undefined];
 var y/*2*/y = true ? [1] : [];
 """;
         using var f = FourslashTest.New(content, fileName: "emptyArrayInference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var xx: number[]", "")
+    f.VerifyQuickInfoAt("1", "var xx: number[]", "");
 
-    f.VerifyQuickInfoAt("2", "var yy: number[]", "")
+    f.VerifyQuickInfoAt("2", "var yy: number[]", "");
     }
 }

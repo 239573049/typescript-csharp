@@ -34,7 +34,7 @@ export class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports18", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Add return type 'number'"})
+    f.VerifyCodeFixAvailable(new[]{"Add return type 'number'"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -46,6 +46,6 @@ export class A {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -54,6 +54,6 @@ import { [|/*start*/useState|] } from 'react';
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource7_conditionallyMinified", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
     }
 }

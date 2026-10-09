@@ -115,6 +115,6 @@ export const createStyling: CurriedFunction3<
 );
 """;
         using var f = FourslashTest.New(content, fileName: "completionDetailsOfContextSensitiveParameterNoCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

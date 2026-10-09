@@ -39,7 +39,7 @@ type _Reverse<Source extends any[], Result extends any[] = []> = {
 type Foo = Reverse<[0,/**/]>;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInRecursiveType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Reverse<List extends any[]>" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Reverse<List extends any[]>" });
     }
 }

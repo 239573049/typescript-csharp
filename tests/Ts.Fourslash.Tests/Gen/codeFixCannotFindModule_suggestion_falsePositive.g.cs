@@ -37,10 +37,10 @@ import abs = require([|"foo/bar.json"|]);
 abs;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixCannotFindModule_suggestion_falsePositive", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToFile("/a.ts")
+    f.GoToFile("/a.ts");
 
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

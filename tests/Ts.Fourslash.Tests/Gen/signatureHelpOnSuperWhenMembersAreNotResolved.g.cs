@@ -35,10 +35,10 @@ class C extends B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnSuperWhenMembersAreNotResolved", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("super(")
+    f.Insert("super(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(x: string): B" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(x: string): B" });
     }
 }

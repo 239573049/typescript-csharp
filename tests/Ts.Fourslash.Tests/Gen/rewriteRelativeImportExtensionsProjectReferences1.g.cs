@@ -72,8 +72,8 @@ import {} from "../../common/src/index.ts";
 """;
         using var f = FourslashTest.New(content, fileName: "rewriteRelativeImportExtensionsProjectReferences1", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/packages/main/src/index.ts")
+    f.GoToFile("/packages/main/src/index.ts");
 
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

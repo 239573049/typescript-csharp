@@ -41,6 +41,6 @@ function fn1<T extends T1>(obj: T, key: keyof T, k2: keyof T1) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityIndexType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x1"] = new[]{0, 1}, ["x2"] = new[]{0}, ["k2"] = new[]{0, 1}, ["key"] = new[]{0}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x1"] = new[]{0, 1}, ["x2"] = new[]{0}, ["k2"] = new[]{0, 1}, ["key"] = new[]{0}});
     }
 }

@@ -35,7 +35,7 @@ if (true) {
       }/*end*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionWithTrivia", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("begin", "end")
+    f.FormatSelection("begin", "end");
 
     f.VerifyCurrentFileContent("""
     if (true) {     
@@ -45,6 +45,6 @@ if (true) {
         ;
 
     }
-    """)
+    """);
     }
 }

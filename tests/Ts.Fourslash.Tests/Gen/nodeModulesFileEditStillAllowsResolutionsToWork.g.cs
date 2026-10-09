@@ -37,12 +37,12 @@ import * as mod from "#foo";
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "nodeModulesFileEditStillAllowsResolutionsToWork", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("mod.x")
+    f.Insert("mod.x");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

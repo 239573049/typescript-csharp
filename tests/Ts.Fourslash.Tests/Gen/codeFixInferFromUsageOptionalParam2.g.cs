@@ -32,6 +32,6 @@ function f([|a? |]){
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageOptionalParam2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("a?: number", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("a?: number", false, 0, 0);
     }
 }

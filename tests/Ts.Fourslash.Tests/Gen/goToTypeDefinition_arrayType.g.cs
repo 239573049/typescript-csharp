@@ -40,6 +40,6 @@ declare const users3: CustomArray<User>
 /*reference3*/users3
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition_arrayType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference", "reference2", "reference3")
+    f.VerifyBaselineGoToTypeDefinition("reference", "reference2", "reference3");
     }
 }

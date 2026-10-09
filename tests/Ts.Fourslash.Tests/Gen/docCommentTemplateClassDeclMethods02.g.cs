@@ -43,7 +43,7 @@ class C {
          * 
          * @returns
          */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("1", 11, """
     /**
@@ -52,6 +52,6 @@ class C {
          * @param y
          * @param z
          */
-    """, null)
+    """, null);
     }
 }

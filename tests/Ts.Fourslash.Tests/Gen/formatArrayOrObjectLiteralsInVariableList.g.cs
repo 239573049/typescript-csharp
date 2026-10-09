@@ -29,10 +29,10 @@ public class FormatArrayOrObjectLiteralsInVariableListTests
 var v30 = [1, 2], v31, v32, v33 = [0], v34 = {'a': true}, v35;/**/
 """;
         using var f = FourslashTest.New(content, fileName: "formatArrayOrObjectLiteralsInVariableList", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("var v30 = [1, 2], v31, v32, v33 = [0], v34 = { 'a': true }, v35;")
+    f.VerifyCurrentLineContent("var v30 = [1, 2], v31, v32, v33 = [0], v34 = { 'a': true }, v35;");
     }
 }

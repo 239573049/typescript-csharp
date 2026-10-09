@@ -31,6 +31,6 @@ function f([car, cdr]) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageBindingElement", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

@@ -35,6 +35,6 @@ var a: number[];
 var /**/b = _(a);  // WrappedArray<any>, should be WrappedArray<number>
 """;
         using var f = FourslashTest.New(content, fileName: "genericCallSignaturesInNonGenericTypes2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var b: WrappedArray<number>", "")
+    f.VerifyQuickInfoAt("", "var b: WrappedArray<number>", "");
     }
 }

@@ -31,6 +31,6 @@ public class GetJavaScriptSyntacticDiagnostics16Tests
 function F(p?) { }
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics16", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

@@ -33,6 +33,6 @@ var x: WrappedArray<string>;
 var /**/y = x.map(s => s.length);
 """;
         using var f = FourslashTest.New(content, fileName: "returnTypeOfGenericFunction1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var y: number[]", "")
+    f.VerifyQuickInfoAt("", "var y: number[]", "");
     }
 }

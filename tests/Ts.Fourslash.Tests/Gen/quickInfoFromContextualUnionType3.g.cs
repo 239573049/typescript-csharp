@@ -54,8 +54,8 @@ foo1({ bar: { /*1*/X: "test" } });
 foo2({ bar: { /*2*/X: "test" } });
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFromContextualUnionType3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) X: \"Error: bar should be boolean\"", "")
+    f.VerifyQuickInfoAt("1", "(property) X: \"Error: bar should be boolean\"", "");
 
-    f.VerifyQuickInfoAt("2", "(property) X: \"Error: bar should be boolean\"", "")
+    f.VerifyQuickInfoAt("2", "(property) X: \"Error: bar should be boolean\"", "");
     }
 }

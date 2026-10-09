@@ -32,6 +32,6 @@ hello();
 
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationLocal_04", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("local_var")
+    f.VerifyBaselineGoToImplementation("local_var");
     }
 }

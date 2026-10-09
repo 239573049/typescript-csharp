@@ -30,6 +30,6 @@ declare function f(x: number): any;
 f(foo);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingFunctionDeclaration19", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixMissingFunctionDeclaration")
+    f.VerifyCodeFixNotAvailable("fixMissingFunctionDeclaration");
     }
 }

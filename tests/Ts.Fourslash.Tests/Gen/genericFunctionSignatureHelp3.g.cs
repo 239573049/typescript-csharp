@@ -43,24 +43,24 @@ foo6(1, </*6*/           // signature help shows y as {}
 foo7(1, <string>(/*7*/   // signature help shows y as T
 """;
         using var f = FourslashTest.New(content, fileName: "genericFunctionSignatureHelp3", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo1(x: number, callback: (y1: unknown) => number): void" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo2(x: number, callback: (y2: unknown) => number): void" })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y3: unknown): number" })
-    f.GoToMarker("4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo4(x: number, callback: (y4: string) => number): void" })
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y5: string): number" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo1(x: number, callback: (y1: unknown) => number): void" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo2(x: number, callback: (y2: unknown) => number): void" });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y3: unknown): number" });
+    f.GoToMarker("4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo4(x: number, callback: (y4: string) => number): void" });
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y5: string): number" });
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo6(x: number, callback: (y6: unknown) => number): void" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo6(x: number, callback: (y6: unknown) => number): void" });
 
-    f.Insert("string>(null,null);")
+    f.Insert("string>(null,null);");
 
-    f.GoToMarker("7")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo7(x: number, callback: (y7: unknown) => number): void" })
+    f.GoToMarker("7");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo7(x: number, callback: (y7: unknown) => number): void" });
     }
 }

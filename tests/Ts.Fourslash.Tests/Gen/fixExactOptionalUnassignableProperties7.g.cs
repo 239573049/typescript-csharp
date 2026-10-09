@@ -37,6 +37,6 @@ class Feh {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "fixExactOptionalUnassignableProperties7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

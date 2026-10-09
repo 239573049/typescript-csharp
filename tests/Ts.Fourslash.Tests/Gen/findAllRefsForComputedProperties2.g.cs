@@ -39,6 +39,6 @@ var x: I = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForComputedProperties2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

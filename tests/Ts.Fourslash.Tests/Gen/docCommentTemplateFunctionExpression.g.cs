@@ -39,7 +39,7 @@ const x = /*next*/ function f(p) {}
          * 
          * @param p
          */
-        """, null)
+        """, null);
     }
     }
 }

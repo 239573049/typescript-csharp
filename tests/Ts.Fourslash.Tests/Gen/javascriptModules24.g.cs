@@ -38,13 +38,13 @@ foo/*1*/();
 foo.bar(/*2*/"test");
 """;
         using var f = FourslashTest.New(content, fileName: "javascriptModules24", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyErrorExistsBeforeMarker("1")
+    f.VerifyErrorExistsBeforeMarker("1");
 
-    f.VerifyQuickInfoIs("(alias) function foo(): number\n(alias) namespace foo\nimport foo", "")
+    f.VerifyQuickInfoIs("(alias) function foo(): number\n(alias) namespace foo\nimport foo", "");
 
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  })
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  });
     }
 }

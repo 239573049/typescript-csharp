@@ -40,6 +40,6 @@ class C<T> implements I<T> {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

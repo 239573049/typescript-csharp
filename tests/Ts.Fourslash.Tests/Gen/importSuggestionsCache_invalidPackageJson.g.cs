@@ -50,7 +50,7 @@ readF/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importSuggestionsCache_invalidPackageJson", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -79,6 +79,6 @@ readF/**/
     ],
         },
         
-    })
+    });
     }
 }

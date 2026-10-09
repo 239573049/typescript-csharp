@@ -29,8 +29,8 @@ public class FormatObjectBindingPattern_restElementWithPropertyNameTests
 const { ...a: b } = {};
 """;
         using var f = FourslashTest.New(content, fileName: "formatObjectBindingPattern_restElementWithPropertyName", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentFileContent("const { ...a: b } = {};")
+    f.VerifyCurrentFileContent("const { ...a: b } = {};");
     }
 }

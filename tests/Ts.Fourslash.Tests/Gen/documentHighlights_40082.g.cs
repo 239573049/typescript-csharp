@@ -33,6 +33,6 @@ export = (state, messages) => {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights_40082", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0]);
     }
 }

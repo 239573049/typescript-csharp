@@ -48,12 +48,12 @@ b./*quickInfoB*/x;
 c./*quickInfoC*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "functionProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("signatureA")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" })
-    f.GoToMarker("signatureB")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" })
-    f.GoToMarker("signatureC")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" })
+    f.GoToMarker("signatureA");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" });
+    f.GoToMarker("signatureB");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" });
+    f.GoToMarker("signatureC");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" });
 
     f.VerifyCompletions("completionA", new CompletionsExpectedList
     {
@@ -74,7 +74,7 @@ c./*quickInfoC*/x;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"completionB", "completionC", }, new CompletionsExpectedList
     {
@@ -95,12 +95,12 @@ c./*quickInfoC*/x;
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("quickInfoA", "(method) x(a: number): void", "")
+    f.VerifyQuickInfoAt("quickInfoA", "(method) x(a: number): void", "");
 
-    f.VerifyQuickInfoAt("quickInfoB", "(property) x: (a: number) => void", "")
+    f.VerifyQuickInfoAt("quickInfoB", "(property) x: (a: number) => void", "");
 
-    f.VerifyQuickInfoAt("quickInfoC", "(property) x: (a: number) => void", "")
+    f.VerifyQuickInfoAt("quickInfoC", "(property) x: (a: number) => void", "");
     }
 }

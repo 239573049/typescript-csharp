@@ -41,12 +41,12 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "enumUpdate1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("D = C << 1,")
+    f.Insert("D = C << 1,");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

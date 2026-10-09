@@ -29,12 +29,12 @@ public class FormatOnEnterFunctionDeclarationTests
 /*0*/function listAPIFiles(path: string): string[] {/*1*/ }
 """;
         using var f = FourslashTest.New(content, fileName: "formatOnEnterFunctionDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
-    f.VerifyCurrentLineContent("function listAPIFiles(path: string): string[] {")
+    f.VerifyCurrentLineContent("function listAPIFiles(path: string): string[] {");
     }
 }

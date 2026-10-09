@@ -54,6 +54,6 @@ var foobar: Bar<{ prop1: string } & {/**/
     ],
         },
         
-    })
+    });
     }
 }

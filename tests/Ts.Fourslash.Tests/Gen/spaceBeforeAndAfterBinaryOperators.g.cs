@@ -37,30 +37,30 @@ let s = 'foo';
 }
 """;
         using var f = FourslashTest.New(content, fileName: "spaceBeforeAndAfterBinaryOperators", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("(i++, i++);")
+    f.VerifyCurrentLineContent("(i++, i++);");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("(i++, ++i);")
+    f.VerifyCurrentLineContent("(i++, ++i);");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("(1, 2);")
+    f.VerifyCurrentLineContent("(1, 2);");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("(i++, 2);")
+    f.VerifyCurrentLineContent("(i++, 2);");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("(i++, i++, ++i, i--, 2);")
+    f.VerifyCurrentLineContent("(i++, i++, ++i, i--, 2);");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("for (var i = 0, ii = 2; i < s.length; ii++, i++) {")
+    f.VerifyCurrentLineContent("for (var i = 0, ii = 2; i < s.length; ii++, i++) {");
     }
 }

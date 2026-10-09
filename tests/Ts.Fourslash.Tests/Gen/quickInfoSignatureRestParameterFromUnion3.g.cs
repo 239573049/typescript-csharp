@@ -33,6 +33,6 @@ declare const fn:
 /**/fn();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSignatureRestParameterFromUnion3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "const fn: (a: {\n    x: number;\n} & {\n    y: number;\n}, b: {\n    x: number;\n} & {\n    y: number;\n}, ...args: {\n    y: number;\n}[]) => number", "")
+    f.VerifyQuickInfoAt("", "const fn: (a: {\n    x: number;\n} & {\n    y: number;\n}, b: {\n    x: number;\n} & {\n    y: number;\n}, ...args: {\n    y: number;\n}[]) => number", "");
     }
 }

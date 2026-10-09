@@ -38,7 +38,7 @@ const o: Obj = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForOptionalMethods", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "optionalMethod(current: any): any", ParameterName = "current", ParameterSpan = "current: any" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "optionalMethod(current: any): any", ParameterName = "current", ParameterSpan = "current: any" });
     }
 }

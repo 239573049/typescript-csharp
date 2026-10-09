@@ -36,6 +36,6 @@ class C extends Base{
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassSuperMustPrecedeThisAccess_callWithThisInside", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

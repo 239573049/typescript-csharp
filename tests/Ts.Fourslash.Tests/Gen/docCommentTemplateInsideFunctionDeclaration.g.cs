@@ -34,7 +34,7 @@ f/*0*/unction /*1*/foo/*2*/(/*3*/) /*4*/{ /*5*/}
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateInsideFunctionDeclaration", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var marker in f.Markers())
     {
-        f.VerifyNoJSDocCompletion(marker)
+        f.VerifyNoJSDocCompletion(marker);
     }
     }
 }

@@ -30,6 +30,6 @@ class A<T> { }
 var /**/foo = new A<number>();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoShowsGenericSpecialization", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var foo: A<number>", "")
+    f.VerifyQuickInfoAt("", "var foo: A<number>", "");
     }
 }

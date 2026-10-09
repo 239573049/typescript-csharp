@@ -33,12 +33,12 @@ import a = require("./AA/B/*1*/B");
 import b = require(`./AA/B/*2*/B`);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForRequire", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("module a", "")
+    f.VerifyQuickInfoIs("module a", "");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoIs("module a", "")
+    f.VerifyQuickInfoIs("module a", "");
     }
 }

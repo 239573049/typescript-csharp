@@ -50,6 +50,6 @@ function bar(a: myString) {
     ],
         },
         
-    })
+    });
     }
 }

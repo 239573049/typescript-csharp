@@ -65,6 +65,6 @@ class Dog/*8*/ {
 const d/*9*/ = new Dog();
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityClass2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1, 2}, ["2"] = new[]{0, 1, 2}, ["3"] = new[]{0, 1}, ["4"] = new[]{0}, ["5"] = new[]{0, 1, 2}, ["6"] = new[]{0}, ["7"] = new[]{0, 1}, ["8"] = new[]{0, 1}, ["9"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1, 2}, ["2"] = new[]{0, 1, 2}, ["3"] = new[]{0, 1}, ["4"] = new[]{0}, ["5"] = new[]{0, 1, 2}, ["6"] = new[]{0}, ["7"] = new[]{0, 1}, ["8"] = new[]{0, 1}, ["9"] = new[]{0, 1}});
     }
 }

@@ -32,6 +32,6 @@ public class FindAllRefsNoImportClauseTests
 import "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsNoImportClause", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

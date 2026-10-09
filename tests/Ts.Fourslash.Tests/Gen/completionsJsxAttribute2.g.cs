@@ -62,7 +62,7 @@ declare namespace JSX {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -80,7 +80,7 @@ declare namespace JSX {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -98,7 +98,7 @@ declare namespace JSX {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -116,6 +116,6 @@ declare namespace JSX {
     ],
         },
         
-    })
+    });
     }
 }

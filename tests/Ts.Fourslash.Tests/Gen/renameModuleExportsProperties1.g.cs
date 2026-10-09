@@ -33,6 +33,6 @@ module.exports = { [|A|] }
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    }, f.Ranges()[1], f.Ranges()[2])
+    }, f.Ranges()[1], f.Ranges()[2]);
     }
 }

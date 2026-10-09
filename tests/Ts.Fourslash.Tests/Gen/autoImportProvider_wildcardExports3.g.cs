@@ -61,7 +61,7 @@ export const Card = () => null;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_wildcardExports3", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -90,6 +90,6 @@ export const Card = () => null;
     ],
         },
         
-    })
+    });
     }
 }

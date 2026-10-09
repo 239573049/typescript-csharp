@@ -40,6 +40,6 @@ var M = { I: 10 };
             new SemanticToken { Type = "interface.declaration", Text = "I" },
             new SemanticToken { Type = "variable.declaration", Text = "M" },
             new SemanticToken { Type = "property.declaration", Text = "I" },
-        })
+        });
     }
 }

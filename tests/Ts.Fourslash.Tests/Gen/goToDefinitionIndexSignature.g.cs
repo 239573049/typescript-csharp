@@ -46,6 +46,6 @@ k.[|/*useb*/b|];
 k.[|/*useab*/ab|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionIndexSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "useI", "useIJ", "usea", "useb", "useab")
+    f.VerifyBaselineGoToDefinition(true, "useI", "useIJ", "usea", "useb", "useab");
     }
 }

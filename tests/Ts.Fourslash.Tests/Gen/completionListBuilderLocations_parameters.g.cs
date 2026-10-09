@@ -48,6 +48,6 @@ class bar7{ constructor(private a, /*6*/
             Exact = CompletionConstructorParameterKeywords,
         },
         
-    })
+    });
     }
 }

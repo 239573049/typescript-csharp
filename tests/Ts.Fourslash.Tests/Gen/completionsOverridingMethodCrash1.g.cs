@@ -58,6 +58,6 @@ class SubComponent extends Component<{}> {
     ],
         },
         
-    })
+    });
     }
 }

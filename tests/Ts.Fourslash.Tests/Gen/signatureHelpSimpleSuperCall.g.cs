@@ -37,7 +37,7 @@ class SuperCall extends SuperCallBase {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSimpleSuperCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("superCall")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperCallBase(b: boolean): SuperCallBase", ParameterName = "b", ParameterSpan = "b: boolean" })
+    f.GoToMarker("superCall");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperCallBase(b: boolean): SuperCallBase", ParameterName = "b", ParameterSpan = "b: boolean" });
     }
 }

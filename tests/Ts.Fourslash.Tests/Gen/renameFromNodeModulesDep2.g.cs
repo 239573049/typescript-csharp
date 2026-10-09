@@ -40,28 +40,28 @@ import { Foo } from "./index";
 declare type FooBar = Foo[/*ok3*/"[|bar|]"];
 """;
         using var f = FourslashTest.New(content, fileName: "renameFromNodeModulesDep2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("okWithAlias")
+    f.GoToMarker("okWithAlias");
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    })
+    });
 
     f.VerifyRenameFailed(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSFalse,
-    })
+    });
 
-    f.GoToMarker("notOk")
+    f.GoToMarker("notOk");
 
-    f.VerifyRenameFailed(null /*preferences*/)
+    f.VerifyRenameFailed(null /*preferences*/);
 
-    f.GoToMarker("ok2")
+    f.GoToMarker("ok2");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
 
-    f.GoToMarker("ok3")
+    f.GoToMarker("ok3");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

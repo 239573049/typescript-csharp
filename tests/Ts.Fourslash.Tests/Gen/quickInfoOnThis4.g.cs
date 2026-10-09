@@ -42,8 +42,8 @@ interface ContextualInterface2 {
 let contextualInterface2: ContextualInterface2 = function (th/*2*/is, n) { }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnThis4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "this: ContextualInterface", "")
+    f.VerifyQuickInfoAt("1", "this: ContextualInterface", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) this: void", "")
+    f.VerifyQuickInfoAt("2", "(parameter) this: void", "");
     }
 }

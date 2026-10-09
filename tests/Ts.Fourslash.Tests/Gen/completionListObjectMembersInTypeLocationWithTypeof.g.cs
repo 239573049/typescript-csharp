@@ -53,7 +53,7 @@ type B = Parameters<typeof obj./*2*/>
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -74,6 +74,6 @@ type B = Parameters<typeof obj./*2*/>
     ],
         },
         
-    })
+    });
     }
 }

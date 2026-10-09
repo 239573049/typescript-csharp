@@ -29,6 +29,6 @@ public class InvalidRestArgErrorTests
 function b(.../*1*/)/*2*/ {}  
 """;
         using var f = FourslashTest.New(content, fileName: "invalidRestArgError", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
     }
 }

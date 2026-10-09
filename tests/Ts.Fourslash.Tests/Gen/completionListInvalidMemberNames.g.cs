@@ -151,7 +151,7 @@ x["[|/*b*/|]"];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("a", new CompletionsExpectedList
     {
@@ -211,6 +211,6 @@ x["[|/*b*/|]"];
     ],
         },
         
-    })
+    });
     }
 }

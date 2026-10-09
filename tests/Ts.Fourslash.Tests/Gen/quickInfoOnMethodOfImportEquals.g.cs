@@ -37,6 +37,6 @@ declare var x: C<number>;
 x./**/m;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnMethodOfImportEquals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(method) C<number>.m(): void", "")
+    f.VerifyQuickInfoAt("", "(method) C<number>.m(): void", "");
     }
 }

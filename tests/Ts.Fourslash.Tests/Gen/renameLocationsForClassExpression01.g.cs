@@ -47,6 +47,6 @@ var y = class {
 var z = class Foo {}
 """;
         using var f = FourslashTest.New(content, fileName: "renameLocationsForClassExpression01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Foo")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Foo");
     }
 }

@@ -35,8 +35,8 @@ export * as /*leafDef*/Leaf from './leafModule';
  /*leafUse*/[|Leaf|]./*helloUse*/[|hello|]()
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExportStarAs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("helloDef", "helloUse", "leafDef", "leafImportDef", "leafUse")
+    f.VerifyBaselineFindAllReferences("helloDef", "helloUse", "leafDef", "leafImportDef", "leafUse");
     }
 }

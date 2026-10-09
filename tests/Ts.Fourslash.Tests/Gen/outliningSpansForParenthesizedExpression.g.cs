@@ -57,6 +57,6 @@ const c = [|(
 )|];
 """;
         using var f = FourslashTest.New(content, fileName: "outliningSpansForParenthesizedExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

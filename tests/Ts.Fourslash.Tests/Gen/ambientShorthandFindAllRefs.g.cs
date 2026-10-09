@@ -34,6 +34,6 @@ import {/*1*/x} from "jquery";
 import {/*2*/x} from "jquery";
 """;
         using var f = FourslashTest.New(content, fileName: "ambientShorthandFindAllRefs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

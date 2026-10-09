@@ -46,19 +46,19 @@ public class FormatSimulatingScriptBlocksTests
 /* END EXTERNAL SOURCE */
 """;
         using var f = FourslashTest.New(content, fileName: "formatSimulatingScriptBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { BaseIndentSize = 12 })
+    f.ConfigureFormat(new FormatCodeSettings { BaseIndentSize = 12 });
 
-    f.FormatSelection("begin1", "end1")
+    f.FormatSelection("begin1", "end1");
 
-    f.FormatSelection("begin2", "end2")
+    f.FormatSelection("begin2", "end2");
 
-    f.FormatSelection("begin3", "end3")
+    f.FormatSelection("begin3", "end3");
 
-    f.ConfigureFormat(new FormatCodeSettings { BaseIndentSize = 24 })
+    f.ConfigureFormat(new FormatCodeSettings { BaseIndentSize = 24 });
 
-    f.FormatSelection("begin4", "end4")
+    f.FormatSelection("begin4", "end4");
 
-    f.FormatSelection("begin5", "end5")
+    f.FormatSelection("begin5", "end5");
 
     f.VerifyCurrentFileContent("""
     /* BEGIN EXTERNAL SOURCE */
@@ -79,6 +79,6 @@ public class FormatSimulatingScriptBlocksTests
                 var f = 1;
 
     /* END EXTERNAL SOURCE */
-    """)
+    """);
     }
 }

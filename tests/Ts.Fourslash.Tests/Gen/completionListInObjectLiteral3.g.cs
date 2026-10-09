@@ -51,6 +51,6 @@ var ast2: IASTNode = {
     ],
         },
         
-    })
+    });
     }
 }

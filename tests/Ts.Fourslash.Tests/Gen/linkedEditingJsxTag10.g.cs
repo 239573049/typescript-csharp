@@ -60,6 +60,6 @@ const jsx = </*14*/> </*14a*/div> <//*14b*/> <//*14c*/div>;
 const jsx = </*15*/div> </*15a*/> <//*15b*/div> <//*15c*/>;
 """;
         using var f = FourslashTest.New(content, fileName: "linkedEditingJsxTag10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineLinkedEditing()
+    f.VerifyBaselineLinkedEditing();
     }
 }

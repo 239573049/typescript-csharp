@@ -77,7 +77,7 @@ if (crate.isSupplies()) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -94,7 +94,7 @@ if (crate.isSupplies()) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -111,6 +111,6 @@ if (crate.isSupplies()) {
     ],
         },
         
-    })
+    });
     }
 }

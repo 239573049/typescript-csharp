@@ -39,7 +39,7 @@ export const db = {};
 db/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_sortByDistance", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -62,6 +62,6 @@ db/**/
 
     db
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

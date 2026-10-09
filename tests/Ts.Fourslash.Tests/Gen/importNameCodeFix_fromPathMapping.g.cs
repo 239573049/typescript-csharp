@@ -41,7 +41,7 @@ foo;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_fromPathMapping", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/x/y.ts")
+    f.GoToFile("/x/y.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -49,6 +49,6 @@ foo;
 
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

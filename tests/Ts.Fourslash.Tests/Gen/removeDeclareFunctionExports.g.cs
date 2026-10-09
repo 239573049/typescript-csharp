@@ -32,8 +32,8 @@ declare namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "removeDeclareFunctionExports", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.DeleteAtCaret(8)
+    f.DeleteAtCaret(8);
     }
 }

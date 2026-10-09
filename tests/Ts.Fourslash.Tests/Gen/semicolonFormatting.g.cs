@@ -29,10 +29,10 @@ public class SemicolonFormattingTests
 /**/function of1 (b:{r:{c:number
 """;
         using var f = FourslashTest.New(content, fileName: "semicolonFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("function of1(b: { r: { c: number;")
+    f.VerifyCurrentLineContent("function of1(b: { r: { c: number;");
     }
 }

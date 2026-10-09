@@ -29,10 +29,10 @@ public class FormatEmptyParamListTests
 function f( f: function){/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatEmptyParamList", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.VerifyCurrentLineContent("function f(f: function) { }")
+    f.VerifyCurrentLineContent("function f(f: function) { }");
     }
 }

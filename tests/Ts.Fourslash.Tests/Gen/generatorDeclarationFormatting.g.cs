@@ -30,14 +30,14 @@ function    *g() { }/*1*/
 var v = function    *() { };/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "generatorDeclarationFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("function* g() { }")
+    f.VerifyCurrentLineContent("function* g() { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("var v = function*() { };")
+    f.VerifyCurrentLineContent("var v = function*() { };");
     }
 }

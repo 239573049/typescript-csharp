@@ -59,7 +59,7 @@ function foo() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -83,7 +83,7 @@ function foo() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"5", "6", }, new CompletionsExpectedList
     {
@@ -109,7 +109,7 @@ function foo() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -135,16 +135,16 @@ function foo() {
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("1", "const a: 10", "")
+    f.VerifyQuickInfoAt("1", "const a: 10", "");
 
-    f.VerifyQuickInfoAt("2", "const a: 10", "")
+    f.VerifyQuickInfoAt("2", "const a: 10", "");
 
-    f.VerifyQuickInfoAt("4", "const b: 20", "")
+    f.VerifyQuickInfoAt("4", "const b: 20", "");
 
-    f.VerifyQuickInfoAt("5", "const b: 20", "")
+    f.VerifyQuickInfoAt("5", "const b: 20", "");
 
-    f.VerifyQuickInfoAt("6", "const a: 10", "")
+    f.VerifyQuickInfoAt("6", "const a: 10", "");
     }
 }

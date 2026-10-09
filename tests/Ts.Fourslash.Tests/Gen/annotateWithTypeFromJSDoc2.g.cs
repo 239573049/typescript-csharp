@@ -31,6 +31,6 @@ public class AnnotateWithTypeFromJSDoc2Tests
 var [|x|]: string;
 """;
         using var f = FourslashTest.New(content, fileName: "annotateWithTypeFromJSDoc2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

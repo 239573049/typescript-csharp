@@ -39,6 +39,6 @@ require("./b");
 require("globals");
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesTripleSlash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

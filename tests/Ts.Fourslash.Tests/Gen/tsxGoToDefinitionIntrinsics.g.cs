@@ -42,6 +42,6 @@ var y = <[|s/*ss*/pan|] />;
 var z = <div [|na/*ps*/me|]='hello' />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionIntrinsics", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "ds", "ss", "ps")
+    f.VerifyBaselineGoToDefinition(true, "ds", "ss", "ps");
     }
 }

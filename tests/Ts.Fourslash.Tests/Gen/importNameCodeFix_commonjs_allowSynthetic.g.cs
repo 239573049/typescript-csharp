@@ -40,7 +40,7 @@ const newVar = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_commonjs_allowSynthetic", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -50,6 +50,6 @@ const newVar = {
       any: MY_EXPORTS,
     }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

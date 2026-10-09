@@ -29,6 +29,6 @@ public class Navbar_letTests
 let c = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "navbar_let", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -32,6 +32,6 @@ declare const o: (I | J) & { /*2*/x: string };
 o./*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsRootSymbols", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

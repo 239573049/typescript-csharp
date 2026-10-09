@@ -45,6 +45,6 @@ function h2() {
 
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageInaccessibleTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

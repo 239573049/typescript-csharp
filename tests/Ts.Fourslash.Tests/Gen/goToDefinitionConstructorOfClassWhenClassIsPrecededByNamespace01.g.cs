@@ -38,6 +38,6 @@ class Foo {
 var x = new [|/*usage*/Foo|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionConstructorOfClassWhenClassIsPrecededByNamespace01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "usage")
+    f.VerifyBaselineGoToDefinition(true, "usage");
     }
 }

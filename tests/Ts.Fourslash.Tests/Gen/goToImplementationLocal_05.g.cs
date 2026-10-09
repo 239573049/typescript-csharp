@@ -34,6 +34,6 @@ var [|someVar|] = new Bar();
 someVa/*reference*/r.hello();
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationLocal_05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

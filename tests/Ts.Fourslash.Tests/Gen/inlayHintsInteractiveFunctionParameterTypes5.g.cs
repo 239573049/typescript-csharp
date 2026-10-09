@@ -36,6 +36,6 @@ export function fn(b = foo) {}
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

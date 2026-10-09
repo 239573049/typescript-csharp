@@ -45,6 +45,6 @@ declare module "m" {
 
 
     """,
-    })
+    });
     }
 }

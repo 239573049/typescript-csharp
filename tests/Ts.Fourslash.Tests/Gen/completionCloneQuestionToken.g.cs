@@ -61,6 +61,6 @@ class Foo extends Bar<TwoKeys> {
     ],
         },
         
-    })
+    });
     }
 }

@@ -35,8 +35,8 @@ import type { ns } from './a';
 let x: /*1*/ns./*2*/Box<string>;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTypeOnlyNamespaceAndClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(alias) namespace ns\nimport ns", "")
+    f.VerifyQuickInfoAt("1", "(alias) namespace ns\nimport ns", "");
 
-    f.VerifyQuickInfoAt("2", "class ns.Box<T>", "")
+    f.VerifyQuickInfoAt("2", "class ns.Box<T>", "");
     }
 }

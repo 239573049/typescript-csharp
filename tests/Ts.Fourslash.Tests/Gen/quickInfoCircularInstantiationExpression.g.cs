@@ -30,6 +30,6 @@ declare function foo<T>(t: T): typeof foo<T>;
 /**/foo("");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCircularInstantiationExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -63,6 +63,6 @@ export import foo = N.foo;
     ], false),
         },
         
-    })
+    });
     }
 }

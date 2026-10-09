@@ -42,8 +42,8 @@ declare module "c" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForAmbients2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

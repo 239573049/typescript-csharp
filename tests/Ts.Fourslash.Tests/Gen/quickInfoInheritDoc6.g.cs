@@ -39,6 +39,6 @@ class B extends UNRESOLVED_VALUE_DEFINITELY_DOES_NOT_EXIST {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInheritDoc6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

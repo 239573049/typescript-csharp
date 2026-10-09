@@ -32,6 +32,6 @@ interface I<T1, T2> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatInTsxFiles", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
     }
 }

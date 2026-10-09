@@ -43,6 +43,6 @@ function whatever(x: Foo) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationShorthandPropertyAssignment_02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call")
+    f.VerifyBaselineGoToImplementation("function_call");
     }
 }

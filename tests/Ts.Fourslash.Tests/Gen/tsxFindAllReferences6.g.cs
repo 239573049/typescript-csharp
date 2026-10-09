@@ -44,6 +44,6 @@ declare function Opt(attributes: OptionPropBag): JSX.Element;
 let opt = <Opt /*1*/wrong />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferences6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

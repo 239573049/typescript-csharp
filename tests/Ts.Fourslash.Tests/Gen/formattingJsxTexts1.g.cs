@@ -84,7 +84,7 @@ public class FormattingJsxTexts1Tests
 </option>;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingJsxTexts1", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     <option>
@@ -142,6 +142,6 @@ public class FormattingJsxTexts1Tests
 
         (    homu   )    homu
     </option>;
-    """)
+    """);
     }
 }

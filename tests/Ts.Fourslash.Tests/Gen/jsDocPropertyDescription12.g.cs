@@ -35,6 +35,6 @@ function symbolAlias(e: SymbolAlias) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription12", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("symbolAlias", "any", "")
+    f.VerifyQuickInfoAt("symbolAlias", "any", "");
     }
 }

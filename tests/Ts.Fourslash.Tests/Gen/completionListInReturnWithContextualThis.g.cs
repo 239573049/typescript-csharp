@@ -61,7 +61,7 @@ wrap(function () {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("involvedInReturn", new CompletionsExpectedList
     {
@@ -78,6 +78,6 @@ wrap(function () {
     ],
         },
         
-    })
+    });
     }
 }

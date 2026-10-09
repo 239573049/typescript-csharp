@@ -111,6 +111,6 @@ declare namespace JSX {
     ],
         },
         
-    })
+    });
     }
 }

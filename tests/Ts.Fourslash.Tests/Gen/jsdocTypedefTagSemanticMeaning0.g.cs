@@ -34,6 +34,6 @@ public class JsdocTypedefTagSemanticMeaning0Tests
 const n = /*6*/T;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagSemanticMeaning0", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6");
     }
 }

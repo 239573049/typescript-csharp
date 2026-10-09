@@ -47,6 +47,6 @@ export class Point3D extends mixin(Point2D) {  z = 0; }
     export class Point3D extends Point3DBase {  z = 0; }
     """,
         Index = 0,
-    })
+    });
     }
 }

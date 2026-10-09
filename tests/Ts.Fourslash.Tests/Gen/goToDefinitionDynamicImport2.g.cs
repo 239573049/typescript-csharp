@@ -34,6 +34,6 @@ x.then(foo => {
 })
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDynamicImport2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

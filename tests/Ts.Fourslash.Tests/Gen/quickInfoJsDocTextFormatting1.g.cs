@@ -69,6 +69,6 @@ f4(/*4*/);
 f5(/*5*/);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTextFormatting1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

@@ -44,6 +44,6 @@ foo2((c: number) => c + 1);
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     },
-    })
+    });
     }
 }

@@ -41,6 +41,6 @@ import {} from "./b";
 c/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixInferEndingPreference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"./c"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"./c"}, null /*preferences*/);
     }
 }

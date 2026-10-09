@@ -33,6 +33,6 @@ function f(x: { [K in "m"]: number; }) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsMappedType_nonHomomorphic", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

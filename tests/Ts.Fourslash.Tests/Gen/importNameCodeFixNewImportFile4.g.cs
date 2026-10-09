@@ -41,6 +41,6 @@ export namespace A {
 
     let t: A.B.I;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

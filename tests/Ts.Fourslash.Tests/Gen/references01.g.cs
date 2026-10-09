@@ -37,6 +37,6 @@ var c = /*1*/globalClass();
 """;
         using var f = FourslashTest.New(content, fileName: "references01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

@@ -31,9 +31,9 @@ function parameterFunction(callback: (a: number, b: string) => void) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpFunctionParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("parameterFunction1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" })
-    f.GoToMarker("parameterFunction2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterName = "b", ParameterSpan = "b: string" })
+    f.GoToMarker("parameterFunction1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" });
+    f.GoToMarker("parameterFunction2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterName = "b", ParameterSpan = "b: string" });
     }
 }

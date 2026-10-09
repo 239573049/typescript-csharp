@@ -35,6 +35,6 @@ declare module "jquery" {
 /*4*/import /*5*/$ = require("jquery");
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForImports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5");
     }
 }

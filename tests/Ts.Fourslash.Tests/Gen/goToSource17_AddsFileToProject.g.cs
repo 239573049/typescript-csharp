@@ -58,6 +58,6 @@ command("foo", yargs => {
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource17_AddsFileToProject", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
     }
 }

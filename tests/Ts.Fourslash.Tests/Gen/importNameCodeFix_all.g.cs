@@ -62,7 +62,7 @@ e; e;
 class X extends Disposable { }
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_all", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/user.ts")
+    f.GoToFile("/user.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -82,6 +82,6 @@ class X extends Disposable { }
     e; e;
     class X extends Disposable { }
     """,
-    })
+    });
     }
 }

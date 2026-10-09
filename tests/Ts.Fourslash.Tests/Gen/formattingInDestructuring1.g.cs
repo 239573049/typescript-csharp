@@ -38,22 +38,22 @@ function foo() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInDestructuring1", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var x: let[];")
+    f.VerifyCurrentLineContent("var x: let[];");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    let [x] = [];")
+    f.VerifyCurrentLineContent("    let [x] = [];");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    const [x] = [];")
+    f.VerifyCurrentLineContent("    const [x] = [];");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    for (let [x] = []; x < 1;) {")
+    f.VerifyCurrentLineContent("    for (let [x] = []; x < 1;) {");
     }
 }

@@ -37,6 +37,6 @@ f.prototype.setX = function() {
 f.prototype.useX = function() { this./*5*/x; }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsConstructorFunctions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5");
     }
 }

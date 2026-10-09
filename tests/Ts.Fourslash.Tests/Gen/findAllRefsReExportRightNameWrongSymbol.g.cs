@@ -38,18 +38,18 @@ public class FindAllRefsReExportRightNameWrongSymbolTests
 [|import { /*d*/[|{| "isWriteAccess": true, "isDefinition": true, "contextRangeIndex": 9 |}x|] } from "./c";|]
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExportRightNameWrongSymbol", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("a", "b", "cFromB", "cFromA", "cUse", "d")
+    f.VerifyBaselineFindAllReferences("a", "b", "cFromB", "cFromA", "cUse", "d");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[10])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[10]);
     }
 }

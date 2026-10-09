@@ -36,8 +36,8 @@ var val = new c1("hello");
 /*1*/val;
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalResolveConstructorDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var val: c1", "")
+    f.VerifyQuickInfoAt("1", "var val: c1", "");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

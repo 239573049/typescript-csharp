@@ -31,6 +31,6 @@ declare var a: E;
 a.C;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingEnumMember13", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixMissingMember")
+    f.VerifyCodeFixNotAvailable("fixMissingMember");
     }
 }

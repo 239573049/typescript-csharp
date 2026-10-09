@@ -35,7 +35,7 @@ const foo = { '"a name\'s all good but it\'s better with more"': null };
 foo[|./**/|]
 """;
         using var f = FourslashTest.New(content, fileName: "completionForStringLiteral_quotePreference8", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -67,6 +67,6 @@ foo[|./**/|]
     {
     QuotePreference = "auto",
     },
-    })
+    });
     }
 }

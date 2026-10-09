@@ -42,9 +42,9 @@ const product = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocTagsWithHyphen", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) high-top: boolean", "some-comments")
+    f.VerifyQuickInfoAt("1", "(property) high-top: boolean", "some-comments");
 
-    f.VerifyQuickInfoAt("2", "type Product = {\n    title: string;\n    \"high-top\": boolean;\n}", "")
+    f.VerifyQuickInfoAt("2", "type Product = {\n    title: string;\n    \"high-top\": boolean;\n}", "");
 
     f.VerifyCompletions(new[]{"3", }, new CompletionsExpectedList
     {
@@ -61,6 +61,6 @@ const product = {
     ],
         },
         
-    })
+    });
     }
 }

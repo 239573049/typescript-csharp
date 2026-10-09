@@ -31,10 +31,10 @@ public class FormattingInDestructuring2Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInDestructuring2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("function drawText({ text = \"\", location: [x, y] = [0, 0], bold = false }) {")
+    f.VerifyCurrentLineContent("function drawText({ text = \"\", location: [x, y] = [0, 0], bold = false }) {");
     }
 }

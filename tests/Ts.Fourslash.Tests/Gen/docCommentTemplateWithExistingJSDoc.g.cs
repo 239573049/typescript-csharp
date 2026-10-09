@@ -39,6 +39,6 @@ function foo(a, b) {
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateWithExistingJSDoc", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoJSDocCompletion("")
+    f.VerifyNoJSDocCompletion("");
     }
 }

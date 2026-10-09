@@ -40,8 +40,8 @@ namespace Test {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoAssignToExistingClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

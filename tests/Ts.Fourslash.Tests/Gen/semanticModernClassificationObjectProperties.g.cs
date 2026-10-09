@@ -38,6 +38,6 @@ var a2 = { x };
             new SemanticToken { Type = "property.declaration", Text = "e" },
             new SemanticToken { Type = "variable.declaration", Text = "a2" },
             new SemanticToken { Type = "property.declaration", Text = "x" },
-        })
+        });
     }
 }

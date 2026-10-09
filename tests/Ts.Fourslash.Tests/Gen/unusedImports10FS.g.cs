@@ -38,6 +38,6 @@ namespace B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports10FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("", false, 0, 0);
     }
 }

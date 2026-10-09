@@ -33,12 +33,12 @@ function test() {
 function abc() { }
 """;
         using var f = FourslashTest.New(content, fileName: "unreachableStatementNodeReuse", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("a")
+    f.GoToMarker("a");
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

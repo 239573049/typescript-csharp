@@ -56,6 +56,6 @@ function fromBar() {}
     ],
         },
         
-    })
+    });
     }
 }

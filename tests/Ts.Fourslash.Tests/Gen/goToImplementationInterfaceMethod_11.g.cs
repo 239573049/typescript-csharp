@@ -34,6 +34,6 @@ var x = <Foo> { [|hello|]: () => {} };
 var y = <Foo> (((({ [|hello|]: () => {} }))));
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceMethod_11", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

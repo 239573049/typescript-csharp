@@ -35,7 +35,7 @@ export { x as y } from "./a";
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_reExport_wrongName", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -79,7 +79,7 @@ export { x as y } from "./a";
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -91,7 +91,7 @@ export { x as y } from "./a";
 
 
     """,
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -104,6 +104,6 @@ export { x as y } from "./a";
 
 
     """,
-    })
+    });
     }
 }

@@ -44,6 +44,6 @@ line`|]
 const i = ``
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansForTemplateLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

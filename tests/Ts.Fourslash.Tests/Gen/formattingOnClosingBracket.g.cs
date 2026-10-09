@@ -60,116 +60,116 @@ a++;/*19*/
 }/*27*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnClosingBracket", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterSemicolonInForStatements = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterSemicolonInForStatements = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("function f() {")
+    f.VerifyCurrentLineContent("function f() {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    var x = 3;")
+    f.VerifyCurrentLineContent("    var x = 3;");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    var z = 2;")
+    f.VerifyCurrentLineContent("    var z = 2;");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    a = z++ - 2 * x;")
+    f.VerifyCurrentLineContent("    a = z++ - 2 * x;");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    for (; ;) {")
+    f.VerifyCurrentLineContent("    for (; ;) {");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("        a += (g + g) * a % t;")
+    f.VerifyCurrentLineContent("        a += (g + g) * a % t;");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("        b--;")
+    f.VerifyCurrentLineContent("        b--;");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("    switch (a) {")
+    f.VerifyCurrentLineContent("    switch (a) {");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("        case 1: {")
+    f.VerifyCurrentLineContent("        case 1: {");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("            a++;")
+    f.VerifyCurrentLineContent("            a++;");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("            b--;")
+    f.VerifyCurrentLineContent("            b--;");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("            if (a === a)")
+    f.VerifyCurrentLineContent("            if (a === a)");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("                return;")
+    f.VerifyCurrentLineContent("                return;");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("            else {")
+    f.VerifyCurrentLineContent("            else {");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("                for (a in b)")
+    f.VerifyCurrentLineContent("                for (a in b)");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("                    if (a != a) {")
+    f.VerifyCurrentLineContent("                    if (a != a) {");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("                        for (a in b) {")
+    f.VerifyCurrentLineContent("                        for (a in b) {");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("                            a++;")
+    f.VerifyCurrentLineContent("                            a++;");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("                        }")
+    f.VerifyCurrentLineContent("                        }");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("                    }")
+    f.VerifyCurrentLineContent("                    }");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("            }")
+    f.VerifyCurrentLineContent("            }");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("        }")
+    f.VerifyCurrentLineContent("        }");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("        default:")
+    f.VerifyCurrentLineContent("        default:");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("            break;")
+    f.VerifyCurrentLineContent("            break;");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

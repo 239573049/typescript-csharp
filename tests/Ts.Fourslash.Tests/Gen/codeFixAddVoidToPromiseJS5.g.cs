@@ -36,6 +36,6 @@ public class CodeFixAddVoidToPromiseJS5Tests
 const p2 = new Promise(resolve => resolve());
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddVoidToPromiseJS5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("Add 'void' to Promise resolved without a value")
+    f.VerifyCodeFixNotAvailable("Add 'void' to Promise resolved without a value");
     }
 }

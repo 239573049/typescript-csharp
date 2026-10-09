@@ -33,6 +33,6 @@ import { /*def*/f } from "foo";
 [|/*use*/f|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinition_untypedModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use")
+    f.VerifyBaselineGoToDefinition(true, "use");
     }
 }

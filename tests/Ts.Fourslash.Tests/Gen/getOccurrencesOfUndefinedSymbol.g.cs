@@ -41,6 +41,6 @@ class cls3 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesOfUndefinedSymbol", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "");
     }
 }

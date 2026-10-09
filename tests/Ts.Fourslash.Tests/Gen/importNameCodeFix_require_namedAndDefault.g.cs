@@ -37,7 +37,7 @@ Named1 + Named2;
 new Blah;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_require_namedAndDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.js")
+    f.GoToFile("index.js");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -48,6 +48,6 @@ new Blah;
     Named1 + Named2;
     new Blah;
     """,
-    })
+    });
     }
 }

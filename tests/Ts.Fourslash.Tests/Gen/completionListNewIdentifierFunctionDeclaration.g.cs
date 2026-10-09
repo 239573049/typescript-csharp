@@ -43,6 +43,6 @@ function F(pref: (a/*1*/
             Exact = CompletionTypeKeywords,
         },
         
-    })
+    });
     }
 }

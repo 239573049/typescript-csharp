@@ -44,6 +44,6 @@ class C1 implements N.I {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

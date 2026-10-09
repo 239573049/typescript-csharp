@@ -31,21 +31,21 @@ var a = 0;
 function foo(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInFunctionDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
 
-    f.Insert("a")
+    f.Insert("a");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.Insert(" , ")
+    f.Insert(" , ");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.Insert("b")
+    f.Insert("b");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.Insert(":")
+    f.Insert(":");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -60,10 +60,10 @@ function foo(/**/
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
 
-    f.Insert("number, ")
+    f.Insert("number, ");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
     }
 }

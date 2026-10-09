@@ -48,6 +48,6 @@ export const exp = {
     };
     """,
         Index = 1,
-    })
+    });
     }
 }

@@ -56,6 +56,6 @@ export class TestBase<T extends TestBase<T>>
     ],
         },
         
-    })
+    });
     }
 }

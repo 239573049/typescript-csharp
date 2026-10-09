@@ -72,6 +72,6 @@ new C()./*8*/x = "1";
 new D()./*9*/x = "1";
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocGetterSetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

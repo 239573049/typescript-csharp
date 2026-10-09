@@ -40,7 +40,7 @@ export function wrapPerson() {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports56-toplevel-import", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/code.ts")
+    f.GoToFile("/code.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -54,6 +54,6 @@ export function wrapPerson() {
     };
     """,
         Index = 0,
-    })
+    });
     }
 }

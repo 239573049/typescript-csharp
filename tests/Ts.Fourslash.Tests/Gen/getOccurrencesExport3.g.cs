@@ -88,6 +88,6 @@ declare namespace dm { }
 [|export|] class EC { }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesExport3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

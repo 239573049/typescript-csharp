@@ -31,6 +31,6 @@ interface privateInterface {}
 export class Bar implements /*1*/privateInterface/*2*/{ }
 """;
         using var f = FourslashTest.New(content, fileName: "getSemanticDiagnosticForNoDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

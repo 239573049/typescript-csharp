@@ -32,10 +32,10 @@ Plugin.T1.t1_x();
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnOpenBraceOfFunctions", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("function T2_y() {")
+    f.VerifyCurrentLineContent("function T2_y() {");
     }
 }

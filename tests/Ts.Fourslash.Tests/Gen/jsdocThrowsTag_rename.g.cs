@@ -33,6 +33,6 @@ class /**/E extends Error {}
 function f() {}
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocThrowsTag_rename", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

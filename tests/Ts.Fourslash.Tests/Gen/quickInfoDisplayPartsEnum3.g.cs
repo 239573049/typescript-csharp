@@ -46,6 +46,6 @@ var /*20*/eInstance1: /*21*/constE;
 /*28*/eInstance1 = /*29*/constE[/*30*/'e3'];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsEnum3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

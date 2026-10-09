@@ -29,6 +29,6 @@ public class SmartSelection_functionParams1Tests
 function f(/*1*/p, /*2*/q?, /*3*/...r: any[] = []) {}
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_functionParams1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

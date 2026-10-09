@@ -33,14 +33,14 @@ function f1() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnCommaOperator", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var v1 = ((1, 2, 3), 4, 5, (6, 7));")
+    f.VerifyCurrentLineContent("var v1 = ((1, 2, 3), 4, 5, (6, 7));");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    return a, v1, a;")
+    f.VerifyCurrentLineContent("    return a, v1, a;");
     }
 }

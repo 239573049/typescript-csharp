@@ -41,6 +41,6 @@ var CircularList = (function () {
 })()
 """;
         using var f = FourslashTest.New(content, fileName: "jsObjectDefinePropertyRenameLocations", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, )
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/);
     }
 }

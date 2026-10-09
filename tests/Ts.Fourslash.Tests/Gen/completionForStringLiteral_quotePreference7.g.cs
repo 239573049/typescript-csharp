@@ -35,7 +35,7 @@ const foo = { '#': null };
 foo[|./**/|]
 """;
         using var f = FourslashTest.New(content, fileName: "completionForStringLiteral_quotePreference7", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -67,6 +67,6 @@ foo[|./**/|]
     {
     QuotePreference = "auto",
     },
-    })
+    });
     }
 }

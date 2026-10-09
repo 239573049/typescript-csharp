@@ -46,6 +46,6 @@ class MyClass {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsSymbols4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

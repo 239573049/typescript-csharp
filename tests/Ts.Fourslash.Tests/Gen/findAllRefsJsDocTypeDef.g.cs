@@ -30,6 +30,6 @@ public class FindAllRefsJsDocTypeDefTests
 function foo() {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsDocTypeDef", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0")
+    f.VerifyBaselineFindAllReferences("0");
     }
 }

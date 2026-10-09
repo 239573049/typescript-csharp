@@ -30,10 +30,10 @@ public class FormattingGlobalAugmentation1Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingGlobalAugmentation1", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("declare global {")
+    f.VerifyCurrentLineContent("declare global {");
     }
 }

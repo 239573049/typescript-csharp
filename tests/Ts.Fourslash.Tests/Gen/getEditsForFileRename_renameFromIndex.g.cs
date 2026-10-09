@@ -62,6 +62,6 @@ import old2 from "../index";
     import old2 from "../new";
     """,
     ["/tsconfig.json"] = "{ \"files\": [\"a.ts\", \"src/a.ts\", \"src/foo/a.ts\", \"src/new.ts\"] }",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

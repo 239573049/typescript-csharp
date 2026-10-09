@@ -33,6 +33,6 @@ export const /*0*/D = C;
 import { /*1*/D } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsExportConstEqualToClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1")
+    f.VerifyBaselineFindAllReferences("0", "1");
     }
 }

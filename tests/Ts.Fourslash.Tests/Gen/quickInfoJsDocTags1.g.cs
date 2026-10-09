@@ -42,6 +42,6 @@ public class QuickInfoJsDocTags1Tests
 function /**/foo(x) {}
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

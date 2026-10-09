@@ -58,6 +58,6 @@ var foo9 = require("fake-module/*require1*/
     ],
         },
         
-    })
+    });
     }
 }

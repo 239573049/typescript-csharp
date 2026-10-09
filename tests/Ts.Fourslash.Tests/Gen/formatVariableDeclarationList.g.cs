@@ -41,54 +41,54 @@ public class FormatVariableDeclarationListTests
 /*12*/}   (           fun1            )   )       ;
 """;
         using var f = FourslashTest.New(content, fileName: "formatVariableDeclarationList", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var fun1 = function() {")
+    f.VerifyCurrentLineContent("var fun1 = function() {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    var x = 'foo',")
+    f.VerifyCurrentLineContent("    var x = 'foo',");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("        z = 'bar';")
+    f.VerifyCurrentLineContent("        z = 'bar';");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    return x;")
+    f.VerifyCurrentLineContent("    return x;");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("},")
+    f.VerifyCurrentLineContent("},");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    fun2 = (function(f) {")
+    f.VerifyCurrentLineContent("    fun2 = (function(f) {");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("        var fun = function() {")
+    f.VerifyCurrentLineContent("        var fun = function() {");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("            console.log(f());")
+    f.VerifyCurrentLineContent("            console.log(f());");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("        },")
+    f.VerifyCurrentLineContent("        },");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("            x = 'Foo';")
+    f.VerifyCurrentLineContent("            x = 'Foo';");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("        return fun;")
+    f.VerifyCurrentLineContent("        return fun;");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("    }(fun1));")
+    f.VerifyCurrentLineContent("    }(fun1));");
     }
 }

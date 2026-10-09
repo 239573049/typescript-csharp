@@ -37,8 +37,8 @@ declare var v1: Int<string>;
 var /*1*/v2/*2*/: Int<number> = v1;
 """;
         using var f = FourslashTest.New(content, fileName: "genericAssignmentCompat", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

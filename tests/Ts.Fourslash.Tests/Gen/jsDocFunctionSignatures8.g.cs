@@ -42,8 +42,8 @@ function Person(name, age) {
 var p = new Pers/**/on();
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures8", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("constructor Person(name: string, age: number): Person", "Represents a person\na b multiline test")
+    f.VerifyQuickInfoIs("constructor Person(name: string, age: number): Person", "Represents a person\na b multiline test");
     }
 }

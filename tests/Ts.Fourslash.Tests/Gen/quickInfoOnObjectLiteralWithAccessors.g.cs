@@ -38,13 +38,13 @@ var /*2*/x = point.x;
 point./*3*/x = 30;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnObjectLiteralWithAccessors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function makePoint(x: number): {\n    b: number;\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("1", "function makePoint(x: number): {\n    b: number;\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("2", "var x: number", "")
+    f.VerifyQuickInfoAt("2", "var x: number", "");
 
-    f.VerifyQuickInfoAt("3", "(property) x: number", "")
+    f.VerifyQuickInfoAt("3", "(property) x: number", "");
 
-    f.VerifyQuickInfoAt("4", "var point: {\n    b: number;\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("4", "var point: {\n    b: number;\n    x: number;\n}", "");
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -70,6 +70,6 @@ point./*3*/x = 30;
     ],
         },
         
-    })
+    });
     }
 }

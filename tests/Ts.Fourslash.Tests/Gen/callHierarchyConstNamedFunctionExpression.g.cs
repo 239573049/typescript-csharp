@@ -38,8 +38,8 @@ function baz() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "callHierarchyConstNamedFunctionExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineCallHierarchy()
+    f.VerifyBaselineCallHierarchy();
     }
 }

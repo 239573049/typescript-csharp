@@ -38,6 +38,6 @@ import A, { B } from "./a";
 export default function /**/f() { }
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocLink6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

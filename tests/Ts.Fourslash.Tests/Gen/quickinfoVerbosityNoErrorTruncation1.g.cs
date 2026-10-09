@@ -49,6 +49,6 @@ type /*1*/T = [
 ];
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityNoErrorTruncation1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}});
     }
 }

@@ -48,7 +48,7 @@ public class FormatMultipleFunctionArgumentsTests
  );
 """;
         using var f = FourslashTest.New(content, fileName: "formatMultipleFunctionArguments", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -71,6 +71,6 @@ public class FormatMultipleFunctionArgumentsTests
             prop2: 6
         }
     );
-    """)
+    """);
     }
 }

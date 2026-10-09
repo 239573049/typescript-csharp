@@ -38,8 +38,8 @@ namespace A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "removeVarFromModuleWithReopenedEnums", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.DeleteAtCaret(6)
+    f.DeleteAtCaret(6);
     }
 }

@@ -66,7 +66,7 @@ if ("/*7*/" in c2) {}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -84,7 +84,7 @@ if ("/*7*/" in c2) {}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -101,7 +101,7 @@ if ("/*7*/" in c2) {}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -119,6 +119,6 @@ if ("/*7*/" in c2) {}
     ],
         },
         
-    })
+    });
     }
 }

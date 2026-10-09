@@ -33,6 +33,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAwaitInSyncFunction4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

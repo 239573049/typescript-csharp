@@ -41,7 +41,7 @@ import { x, y, await as await_, interface as interface_, /*5*/ } from "./file";
 import { x, y, await as await_, interface as interface_, unique, /*6*/ } from "./file";
 """;
         using var f = FourslashTest.New(content, fileName: "completionInNamedImportLocation", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("a.ts")
+    f.GoToFile("a.ts");
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -86,7 +86,7 @@ import { x, y, await as await_, interface as interface_, unique, /*6*/ } from ".
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -126,7 +126,7 @@ import { x, y, await as await_, interface as interface_, unique, /*6*/ } from ".
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -161,7 +161,7 @@ import { x, y, await as await_, interface as interface_, unique, /*6*/ } from ".
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -191,7 +191,7 @@ import { x, y, await as await_, interface as interface_, unique, /*6*/ } from ".
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -216,7 +216,7 @@ import { x, y, await as await_, interface as interface_, unique, /*6*/ } from ".
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -232,6 +232,6 @@ import { x, y, await as await_, interface as interface_, unique, /*6*/ } from ".
     ],
         },
         
-    })
+    });
     }
 }

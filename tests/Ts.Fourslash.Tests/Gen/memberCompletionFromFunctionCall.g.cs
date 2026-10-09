@@ -33,9 +33,9 @@ declare var foo: ifoo;
 foo.text(function() { })/**/
 """;
         using var f = FourslashTest.New(content, fileName: "memberCompletionFromFunctionCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ foo.text(function() { })/**/
     ],
         },
         
-    })
+    });
     }
 }

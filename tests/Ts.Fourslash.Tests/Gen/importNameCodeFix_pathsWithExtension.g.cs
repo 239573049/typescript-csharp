@@ -49,6 +49,6 @@ helloWorld/**/
     f.VerifyImportFixModuleSpecifiers("", new[]{"#internals/example"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierEnding = new ImportModuleSpecifierEndingPreference("js"),
-    })
+    });
     }
 }

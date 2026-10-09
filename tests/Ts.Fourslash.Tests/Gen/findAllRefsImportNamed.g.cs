@@ -35,8 +35,8 @@ import x = require("./f");
 x.foo(1, 2);
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsImportNamed", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("start")
+    f.VerifyBaselineFindAllReferences("start");
     }
 }

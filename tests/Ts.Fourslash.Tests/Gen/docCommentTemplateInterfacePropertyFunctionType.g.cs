@@ -41,7 +41,7 @@ interface I {
          * @param b
          * @returns
          */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("", 11, """
     /**
@@ -49,6 +49,6 @@ interface I {
          * @param a
          * @param b
          */
-    """, false)
+    """, false);
     }
 }

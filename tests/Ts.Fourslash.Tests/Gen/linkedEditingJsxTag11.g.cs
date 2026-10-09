@@ -41,6 +41,6 @@ const standardElement =
    </Link>;
 """;
         using var f = FourslashTest.New(content, fileName: "linkedEditingJsxTag11", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineLinkedEditing()
+    f.VerifyBaselineLinkedEditing();
     }
 }

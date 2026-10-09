@@ -44,6 +44,6 @@ public class QuickinfoVerbosityIntersection1Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityIntersection1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1}, ["o2"] = new[]{0}, ["o3"] = new[]{0}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1}, ["o2"] = new[]{0}, ["o3"] = new[]{0}});
     }
 }

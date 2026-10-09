@@ -39,6 +39,6 @@ export type Something = {};
 const s: Something/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportRootDirs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"./types"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"./types"}, null /*preferences*/);
     }
 }

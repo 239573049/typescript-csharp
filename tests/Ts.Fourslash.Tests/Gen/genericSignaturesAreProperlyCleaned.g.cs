@@ -33,12 +33,12 @@ declare var v1: Int<string>;
 var v2: Int<number> = v1/*1*/;
 """;
         using var f = FourslashTest.New(content, fileName: "genericSignaturesAreProperlyCleaned", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.DeleteAtCaret(1)
+    f.DeleteAtCaret(1);
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

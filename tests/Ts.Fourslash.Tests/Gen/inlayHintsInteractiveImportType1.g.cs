@@ -34,7 +34,7 @@ module.exports.a = 1
 const a = require('./a');
 """;
         using var f = FourslashTest.New(content, fileName: "inlayHintsInteractiveImportType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.js")
+    f.GoToFile("/b.js");
 
     f.VerifyBaselineInlayHints(null /*span*/, new LsUtil.UserPreferences
     {
@@ -42,6 +42,6 @@ const a = require('./a');
     {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

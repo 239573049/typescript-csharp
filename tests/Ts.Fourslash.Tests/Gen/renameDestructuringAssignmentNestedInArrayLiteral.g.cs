@@ -35,6 +35,6 @@ var elems: I[], p1: number, [|[|{| "contextRangeIndex": 2 |}property1|]: number|
 [|[{ [|{| "contextRangeIndex": 6 |}property1|] }] = elems;|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameDestructuringAssignmentNestedInArrayLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5], f.Ranges()[3], f.Ranges()[7])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5], f.Ranges()[3], f.Ranges()[7]);
     }
 }

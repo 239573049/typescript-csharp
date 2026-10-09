@@ -66,6 +66,6 @@ class Foo implements IFoo {
     ],
         },
         
-    })
+    });
     }
 }

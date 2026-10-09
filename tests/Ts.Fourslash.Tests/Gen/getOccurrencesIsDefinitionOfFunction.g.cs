@@ -31,6 +31,6 @@ public class GetOccurrencesIsDefinitionOfFunctionTests
 /*3*/func(x)
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -53,8 +53,8 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesReturnBroken", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

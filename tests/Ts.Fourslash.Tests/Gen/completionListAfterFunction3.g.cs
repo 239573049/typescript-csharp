@@ -47,7 +47,7 @@ var x2 = (b: number) => {/*2*/ };
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -64,6 +64,6 @@ var x2 = (b: number) => {/*2*/ };
     ],
         },
         
-    })
+    });
     }
 }

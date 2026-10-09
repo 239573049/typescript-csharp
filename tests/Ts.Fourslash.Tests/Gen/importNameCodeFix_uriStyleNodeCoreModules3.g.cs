@@ -59,16 +59,16 @@ import "node:test";
 writeFile/*test2*/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_uriStyleNodeCoreModules3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("noPrefix", new[]{"fs", "fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("noPrefix", new[]{"fs", "fs/promises"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("prefix", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("prefix", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("mixed1", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("mixed1", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("mixed2", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("mixed2", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("test1", new[]{"fs", "fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("test1", new[]{"fs", "fs/promises"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("test2", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("test2", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
     }
 }

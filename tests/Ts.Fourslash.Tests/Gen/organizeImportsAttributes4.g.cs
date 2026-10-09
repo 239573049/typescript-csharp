@@ -48,7 +48,7 @@ export type G = A | B | C | D | E | F | Y | Z;
     export type G = A | B | C | D | E | F | Y | Z;
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

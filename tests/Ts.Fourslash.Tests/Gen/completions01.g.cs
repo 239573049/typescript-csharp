@@ -33,32 +33,9 @@ x.forEach(y => y/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "completions01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(".")
-
-    f.VerifyCompletions(null, new CompletionsExpectedList
-    {
-        IsIncomplete = false,
-        ItemDefaults = new CompletionsExpectedItemDefaults
-        {
-            CommitCharacters = DefaultCommitCharacters,
-            EditRange = Ignored,
-        },
-        Items = new CompletionsExpectedItems
-        {
-            Includes = [
-    "trim",
-    ],
-        },
-        
-    })
-
-    f.Insert("});")
-
-    f.GoToMarker("2")
-
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -75,6 +52,29 @@ x.forEach(y => y/*2*/
     ],
         },
         
-    })
+    });
+
+    f.Insert("});");
+
+    f.GoToMarker("2");
+
+    f.Insert(".");
+
+    f.VerifyCompletions(null, new CompletionsExpectedList
+    {
+        IsIncomplete = false,
+        ItemDefaults = new CompletionsExpectedItemDefaults
+        {
+            CommitCharacters = DefaultCommitCharacters,
+            EditRange = Ignored,
+        },
+        Items = new CompletionsExpectedItems
+        {
+            Includes = [
+    "trim",
+    ],
+        },
+        
+    });
     }
 }

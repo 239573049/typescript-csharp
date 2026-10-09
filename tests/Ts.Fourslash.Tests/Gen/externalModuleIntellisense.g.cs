@@ -44,13 +44,13 @@ import express = require('./externalModuleIntellisense_file0');
 var x = express();/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "externalModuleIntellisense", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert("x.")
+    f.Insert("x.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -68,6 +68,6 @@ var x = express();/*1*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -33,6 +33,6 @@ class /*barDefinition*/Bar { }
 var x = new Fo/*fooReference*/o<Ba/*barReference*/r>();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionInTypeArgument", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "barReference", "fooReference")
+    f.VerifyBaselineGoToDefinition(false, "barReference", "fooReference");
     }
 }

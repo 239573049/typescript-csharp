@@ -34,6 +34,6 @@ Component./*PropertyResult*/displayName = 'Component'
 Component.[|/*PropertyClick*/displayName|]
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionPropertyAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "FunctionClick", "PropertyClick")
+    f.VerifyBaselineGoToDefinition(true, "FunctionClick", "PropertyClick");
     }
 }

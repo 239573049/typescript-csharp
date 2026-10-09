@@ -46,6 +46,6 @@ export function foo() {};
 foo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPackageRootPath", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"pkg"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"pkg"}, null /*preferences*/);
     }
 }

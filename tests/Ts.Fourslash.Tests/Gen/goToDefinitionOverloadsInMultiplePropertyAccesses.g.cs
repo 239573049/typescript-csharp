@@ -36,6 +36,6 @@ namespace A {
 A.B.[|/*2*/f|]("");
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionOverloadsInMultiplePropertyAccesses", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "2")
+    f.VerifyBaselineGoToDefinition(true, "2");
     }
 }

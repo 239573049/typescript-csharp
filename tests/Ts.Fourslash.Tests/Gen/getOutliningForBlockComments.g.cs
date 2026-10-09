@@ -359,6 +359,6 @@ interface I4[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningForBlockComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

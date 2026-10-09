@@ -43,6 +43,6 @@ export function *foo() {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

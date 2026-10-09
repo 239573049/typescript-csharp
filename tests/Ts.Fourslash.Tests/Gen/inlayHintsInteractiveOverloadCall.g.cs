@@ -55,6 +55,6 @@ new Class(1, 2)
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.Literals,
     },
-    })
+    });
     }
 }

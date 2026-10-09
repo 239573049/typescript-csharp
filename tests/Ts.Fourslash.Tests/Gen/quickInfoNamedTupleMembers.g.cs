@@ -29,6 +29,6 @@ public class QuickInfoNamedTupleMembersTests
 export type /*1*/Segment = [length: number, count: number];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoNamedTupleMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "type Segment = [length: number, count: number]", "")
+    f.VerifyQuickInfoAt("1", "type Segment = [length: number, count: number]", "");
     }
 }

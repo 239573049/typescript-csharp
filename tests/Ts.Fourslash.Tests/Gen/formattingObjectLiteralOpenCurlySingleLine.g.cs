@@ -36,7 +36,7 @@ let obj2 =
 
 """;
         using var f = FourslashTest.New(content, fileName: "formattingObjectLiteralOpenCurlySingleLine", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -47,6 +47,6 @@ let obj2 =
         // leading trivia
         { y: 10 };
 
-    """)
+    """);
     }
 }

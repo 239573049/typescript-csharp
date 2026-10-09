@@ -62,8 +62,8 @@ import {} from "../compiler/parser.ts";
 """;
         using var f = FourslashTest.New(content, fileName: "rewriteRelativeImportExtensionsProjectReferences3", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/src/services/services.ts")
+    f.GoToFile("/src/services/services.ts");
 
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

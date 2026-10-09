@@ -32,6 +32,6 @@ class Test {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsEmptyConstructors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

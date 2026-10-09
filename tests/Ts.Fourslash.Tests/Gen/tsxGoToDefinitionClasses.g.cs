@@ -42,6 +42,6 @@ var y = <MyClass [|f/*p*/oo|]= 'hello' />;
 var z = <[|MyCl/*w*/ass|] wrong= 'hello' />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionClasses", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "c", "p", "w")
+    f.VerifyBaselineGoToDefinition(true, "c", "p", "w");
     }
 }

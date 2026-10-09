@@ -34,6 +34,6 @@ im/*5*/port.m;
 class /*classDefinition*/c { constructor() { n/*6*/ew.[|t/*7*/arget|]; } }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionMetaProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4", "5", "6", "7")
+    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4", "5", "6", "7");
     }
 }

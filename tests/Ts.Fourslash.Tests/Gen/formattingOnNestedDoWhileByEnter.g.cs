@@ -34,34 +34,34 @@ public class FormattingOnNestedDoWhileByEnterTests
 /*7*/}while(a!==b)
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnNestedDoWhileByEnter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.VerifyCurrentLineContent("    {")
+    f.VerifyCurrentLineContent("    {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("do{")
+    f.VerifyCurrentLineContent("do{");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    do")
+    f.VerifyCurrentLineContent("    do");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("do{")
+    f.VerifyCurrentLineContent("do{");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("}while(a!==b)")
+    f.VerifyCurrentLineContent("}while(a!==b)");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("}while(a!==b)")
+    f.VerifyCurrentLineContent("}while(a!==b)");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("}while(a!==b)")
+    f.VerifyCurrentLineContent("}while(a!==b)");
     }
 }

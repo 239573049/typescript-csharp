@@ -56,7 +56,7 @@ foo()./*callOfEnumReturnType*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"variableOfEnumType", "callOfEnumReturnType", }, new CompletionsExpectedList
     {
@@ -78,6 +78,6 @@ foo()./*callOfEnumReturnType*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -30,6 +30,6 @@ import j = N./**/q;
 namespace N { export const q = 0; }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsImportEquals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

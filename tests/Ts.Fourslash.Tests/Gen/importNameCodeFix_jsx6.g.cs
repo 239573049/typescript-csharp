@@ -44,7 +44,7 @@ export class Text extends React.Component {};
 <[|Text|]></Text>;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsx6", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -55,7 +55,7 @@ export class Text extends React.Component {};
     <Text></Text>;
     """,
         Index = 0,
-    })
+    });
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -66,6 +66,6 @@ export class Text extends React.Component {};
     <Text></Text>;
     """,
         Index = 1,
-    })
+    });
     }
 }

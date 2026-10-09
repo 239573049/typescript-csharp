@@ -41,7 +41,7 @@ function f1(x: number, y: number) {
      * @param y
      * @returns
      */
-    """, true)
+    """, true);
 
     f.VerifyJSDocCompletion("0", 7, """
     /**
@@ -49,6 +49,6 @@ function f1(x: number, y: number) {
      * @param x
      * @param y
      */
-    """, false)
+    """, false);
     }
 }

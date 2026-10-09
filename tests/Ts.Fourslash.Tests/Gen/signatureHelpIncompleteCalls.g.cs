@@ -42,11 +42,11 @@ namespace IncompleteCalls {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpIncompleteCalls", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("incompleteCalls1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f1(): void", ParameterCount = 0 })
-    f.GoToMarker("incompleteCalls2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f2(n: number): number", ParameterCount = 1 })
-    f.GoToMarker("incompleteCalls3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f3(n: number, s: string): string", ParameterCount = 2, ParameterName = "s", ParameterSpan = "s: string" })
+    f.GoToMarker("incompleteCalls1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f1(): void", ParameterCount = 0 });
+    f.GoToMarker("incompleteCalls2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f2(n: number): number", ParameterCount = 1 });
+    f.GoToMarker("incompleteCalls3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f3(n: number, s: string): string", ParameterCount = 2, ParameterName = "s", ParameterSpan = "s: string" });
     }
 }

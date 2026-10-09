@@ -67,6 +67,6 @@ var dist = p.getDist();
 """;
         using var f = FourslashTest.New(content, fileName: "navbar01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

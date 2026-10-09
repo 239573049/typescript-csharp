@@ -38,7 +38,7 @@ import fs from 'fs';
 const fs = require('fs');
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsCJSvsESM2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -46,6 +46,6 @@ const fs = require('fs');
 
     Dep
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

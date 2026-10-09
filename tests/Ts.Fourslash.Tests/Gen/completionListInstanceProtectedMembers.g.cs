@@ -79,7 +79,7 @@ class C1 extends Base {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -102,6 +102,6 @@ class C1 extends Base {
     ],
         },
         
-    })
+    });
     }
 }

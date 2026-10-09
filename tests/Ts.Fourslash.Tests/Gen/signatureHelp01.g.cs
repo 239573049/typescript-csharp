@@ -36,7 +36,7 @@ function bar {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelp01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterCount = 1 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterCount = 1 });
     }
 }

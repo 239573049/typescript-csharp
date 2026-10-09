@@ -37,7 +37,7 @@ namespace Beta {
 var x = Alpha.[|{| "name" : "mem" |}x|]
 """;
         using var f = FourslashTest.New(content, fileName: "qualifiedName_import-declaration-with-variable-entity-names", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("import")
+    f.GoToMarker("import");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -58,10 +58,10 @@ var x = Alpha.[|{| "name" : "mem" |}x|]
     ],
         },
         
-    })
+    });
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "import")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "import");
 
-    f.VerifyBaselineGoToDefinition(false, "import")
+    f.VerifyBaselineGoToDefinition(false, "import");
     }
 }

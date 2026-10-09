@@ -40,6 +40,6 @@ exports.a = 10;
 c = 10;
 """;
         using var f = FourslashTest.New(content, fileName: "sideEffectImportsSuggestion1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

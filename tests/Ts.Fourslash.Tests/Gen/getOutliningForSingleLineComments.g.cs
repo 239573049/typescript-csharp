@@ -112,6 +112,6 @@ function Foo()[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningForSingleLineComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

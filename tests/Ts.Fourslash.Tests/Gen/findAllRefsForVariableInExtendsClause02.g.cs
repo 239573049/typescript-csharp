@@ -33,6 +33,6 @@ namespace n {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForVariableInExtendsClause02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

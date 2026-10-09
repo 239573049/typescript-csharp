@@ -55,6 +55,6 @@ namespace M {
             new SemanticToken { Type = "interface.declaration", Text = "I" },
             new SemanticToken { Type = "namespace.declaration", Text = "M1" },
             new SemanticToken { Type = "namespace.declaration", Text = "M2" },
-        })
+        });
     }
 }

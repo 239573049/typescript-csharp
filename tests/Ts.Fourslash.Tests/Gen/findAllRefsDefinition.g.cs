@@ -30,6 +30,6 @@ const /*1*/x = 0;
 /*2*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsDefinition", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

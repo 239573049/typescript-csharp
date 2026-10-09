@@ -38,34 +38,34 @@ z = [[
 /*7*/      ]  ];
 """;
         using var f = FourslashTest.New(content, fileName: "formattingArrayLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("x = [];")
+    f.VerifyCurrentLineContent("x = [];");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    1,")
+    f.VerifyCurrentLineContent("    1,");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    2")
+    f.VerifyCurrentLineContent("    2");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("];")
+    f.VerifyCurrentLineContent("];");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    1,")
+    f.VerifyCurrentLineContent("    1,");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    2")
+    f.VerifyCurrentLineContent("    2");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("]];")
+    f.VerifyCurrentLineContent("]];");
     }
 }

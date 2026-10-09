@@ -34,6 +34,6 @@ interface I {
 const i: I = { /**/x: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFromContextualType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) I.x: number", "Documentation")
+    f.VerifyQuickInfoAt("", "(property) I.x: number", "Documentation");
     }
 }

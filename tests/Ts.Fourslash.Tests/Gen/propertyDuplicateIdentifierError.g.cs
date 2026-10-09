@@ -32,8 +32,8 @@ export class C {
 }/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "propertyDuplicateIdentifierError", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("/n")
+    f.Insert("/n");
     }
 }

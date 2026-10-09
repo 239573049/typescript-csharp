@@ -42,6 +42,6 @@ something/**/
     f.VerifyImportFixModuleSpecifiers("", new[]{"./src/a/b/c/something"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("relative"),
-    })
+    });
     }
 }

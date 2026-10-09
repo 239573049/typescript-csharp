@@ -34,6 +34,6 @@ const a = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarAssignmentTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

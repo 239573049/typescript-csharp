@@ -65,7 +65,7 @@ export const sessionLoader = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports28-long-types", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Add return type 'Promise<{\n    PROP_1: {\n        name: boolean;\n    };\n    PROPERTY_2: {\n        name: number;\n    };\n    PROPERTY_3: {\n        name: number;\n    };\n    PROPE...'"})
+    f.VerifyCodeFixAvailable(new[]{"Add return type 'Promise<{\n    PROP_1: {\n        name: boolean;\n    };\n    PROPERTY_2: {\n        name: number;\n    };\n    PROPERTY_3: {\n        name: number;\n    };\n    PROPE...'"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -133,6 +133,6 @@ export const sessionLoader = {
     };
     """,
         Index = 0,
-    })
+    });
     }
 }

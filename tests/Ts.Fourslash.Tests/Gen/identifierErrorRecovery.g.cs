@@ -32,13 +32,13 @@ var /*3*/class/*4*/;
 var bar;
 """;
         using var f = FourslashTest.New(content, fileName: "identifierErrorRecovery", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyErrorExistsBetweenMarkers("3", "4")
+    f.VerifyErrorExistsBetweenMarkers("3", "4");
 
-    f.VerifyNumberOfErrorsInCurrentFile(3)
+    f.VerifyNumberOfErrorsInCurrentFile(3);
 
-    f.GoToEOF()
+    f.GoToEOF();
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -56,6 +56,6 @@ var bar;
     ],
         },
         
-    })
+    });
     }
 }

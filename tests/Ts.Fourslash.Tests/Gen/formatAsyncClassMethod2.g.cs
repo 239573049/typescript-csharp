@@ -31,12 +31,12 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatAsyncClassMethod2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     class Foo {
         private async foo() { }
     }
-    """)
+    """);
     }
 }

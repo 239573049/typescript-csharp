@@ -40,6 +40,6 @@ function fn3<K extends keyof T2>(obj: T2, key: K) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityIndexedAccessType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["v1"] = new[]{0, 1}, ["v2"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["v1"] = new[]{0, 1}, ["v2"] = new[]{0, 1}});
     }
 }

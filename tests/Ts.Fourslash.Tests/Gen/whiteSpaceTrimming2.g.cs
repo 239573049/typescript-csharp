@@ -32,21 +32,21 @@ let templateMiddle = `/*    ${1 + 2    /*3*/}`;
 let templateTail = `/*    ${1 + 2}    /*4*/`;
 """;
         using var f = FourslashTest.New(content, fileName: "whiteSpaceTrimming2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
     f.VerifyCurrentFileContent("""
     let noSubTemplate = `/*    
@@ -57,6 +57,6 @@ let templateTail = `/*    ${1 + 2}    /*4*/`;
         }`;
     let templateTail = `/*    ${1 + 2}    
     `;
-    """)
+    """);
     }
 }

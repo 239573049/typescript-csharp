@@ -30,6 +30,6 @@ declare function [|someFunction|](): () => void;
 someFun/*reference*/ction();
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationLocal_08", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

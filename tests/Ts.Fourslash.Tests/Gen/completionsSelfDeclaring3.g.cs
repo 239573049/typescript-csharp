@@ -45,7 +45,7 @@ f({ x/*x*/: 0, hello/*hello*/: "", goodbye/*goodbye*/: 0, abc/*abc*/: "" })
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("hello", new CompletionsExpectedList
     {
@@ -61,7 +61,7 @@ f({ x/*x*/: 0, hello/*hello*/: "", goodbye/*goodbye*/: 0, abc/*abc*/: "" })
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("goodbye", new CompletionsExpectedList
     {
@@ -78,7 +78,7 @@ f({ x/*x*/: 0, hello/*hello*/: "", goodbye/*goodbye*/: 0, abc/*abc*/: "" })
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("abc", new CompletionsExpectedList
     {
@@ -94,6 +94,6 @@ f({ x/*x*/: 0, hello/*hello*/: "", goodbye/*goodbye*/: 0, abc/*abc*/: "" })
     ],
         },
         
-    })
+    });
     }
 }

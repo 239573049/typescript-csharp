@@ -33,10 +33,10 @@ this/**/;
 const _ = { [|[|{| "contextRangeIndex": 2 |}this|]: 0|] }.[|this|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameFailed(null /*preferences*/)
+    f.VerifyRenameFailed(null /*preferences*/);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[0], f.Ranges()[1], f.Ranges()[3], f.Ranges()[4])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[0], f.Ranges()[1], f.Ranges()[3], f.Ranges()[4]);
     }
 }

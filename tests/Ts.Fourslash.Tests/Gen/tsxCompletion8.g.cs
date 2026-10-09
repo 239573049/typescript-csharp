@@ -52,6 +52,6 @@ var x = <div /*1*/ autoComplete /*2*/ />;
     ],
         },
         
-    })
+    });
     }
 }

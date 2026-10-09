@@ -41,6 +41,6 @@ export const exported = foo;
     export const exported: typeof foo = foo;
     """,
         Index = 1,
-    })
+    });
     }
 }

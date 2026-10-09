@@ -37,6 +37,6 @@ function createProps<T>(t: T) {
 createProps({})./**/createVariants();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnFunctionPropertyReturnedFromGenericFunction3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) getProps<{}>.createVariants: () => void", "")
+    f.VerifyQuickInfoAt("", "(property) getProps<{}>.createVariants: () => void", "");
     }
 }

@@ -42,6 +42,6 @@ function foo(bar) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTagsCallback", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

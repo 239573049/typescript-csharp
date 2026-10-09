@@ -47,20 +47,20 @@ var /*2*/r = m2g/*3*/;
     ],
         },
         
-    })
+    });
 
-    f.Insert("C.")
+    f.Insert("C.");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.VerifyQuickInfoAt("2", "var r: typeof m2g", "")
+    f.VerifyQuickInfoAt("2", "var r: typeof m2g", "");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.Insert("(")
+    f.Insert("(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2g(): void" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2g(): void" });
     }
 }

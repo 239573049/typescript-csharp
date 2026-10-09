@@ -29,6 +29,6 @@ public class MemberCompletionOnRightSideOfImportTests
 import x = M./**/
 """;
         using var f = FourslashTest.New(content, fileName: "memberCompletionOnRightSideOfImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

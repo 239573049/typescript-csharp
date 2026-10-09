@@ -39,6 +39,6 @@ function /*1*/f2(x) {
 /*2*/f2('');
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForArgumentsPropertyNameInJsMode1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

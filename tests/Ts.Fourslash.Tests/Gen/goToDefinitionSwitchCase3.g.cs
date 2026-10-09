@@ -35,6 +35,6 @@ switch (null) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSwitchCase3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start1", "start2")
+    f.VerifyBaselineGoToDefinition(true, "start1", "start2");
     }
 }

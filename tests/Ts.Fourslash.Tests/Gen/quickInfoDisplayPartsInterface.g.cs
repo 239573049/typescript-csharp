@@ -31,6 +31,6 @@ interface /*1*/i {
 var /*2*/iInstance: /*3*/i;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsInterface", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

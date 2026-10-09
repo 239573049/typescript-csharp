@@ -35,7 +35,7 @@ foo;
 import { bar } from "./b";
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_fileWithNoTrailingNewline", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -43,6 +43,6 @@ import { bar } from "./b";
     import { foo } from "./a";
     import { bar } from "./b";
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -52,6 +52,6 @@ module /*moduleDefinition2*/Module {
 [|Modul/*moduleReference*/e|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionMultipleDefinitions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "interfaceReference", "moduleReference")
+    f.VerifyBaselineGoToDefinition(true, "interfaceReference", "moduleReference");
     }
 }

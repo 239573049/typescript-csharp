@@ -44,7 +44,7 @@ function TestWidget() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionJsxWithBinaryExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("1", "2")
+    f.FormatSelection("1", "2");
 
     f.VerifyCurrentFileContent("""
     function TestWidget() {
@@ -62,6 +62,6 @@ function TestWidget() {
             </div>
         );
     }
-    """)
+    """);
     }
 }

@@ -44,6 +44,6 @@ var y = /*4*/[|f|]();
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameForDefaultExport03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, [.. Core.Filter(f.GetRangesByText()["f"], static (RangeMarker r) => r.Marker == null || !r.Marker.Data.ContainsKey("inComment"))])
+    f.VerifyBaselineRename(null /*preferences*/, [.. Core.Filter(f.GetRangesByText()["f"], static (RangeMarker r) => r.Marker == null || !r.Marker.Data.ContainsKey("inComment"))]);
     }
 }

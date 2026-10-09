@@ -31,6 +31,6 @@ export declare const despite: { the: any };
 [|dispite.the|]
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpelling4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("despite.the", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("despite.the", false, 0, 0);
     }
 }

@@ -37,8 +37,8 @@ import { f } from "foo";
 export const x = f();
 """;
         using var f = FourslashTest.New(content, fileName: "importTypesDeclarationDiagnosticsNoServerError", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFileNumber(1)
+    f.GoToFileNumber(1);
 
-    f.VerifyNonSuggestionDiagnostics([])
+    f.VerifyNonSuggestionDiagnostics([]);
     }
 }

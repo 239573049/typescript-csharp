@@ -46,6 +46,6 @@ export const { x: abcd, y: defg } = foo();
     export const defg: number = dest.y;
     """,
         Index = 0,
-    })
+    });
     }
 }

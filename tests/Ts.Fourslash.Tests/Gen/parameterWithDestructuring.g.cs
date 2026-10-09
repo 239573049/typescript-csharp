@@ -36,14 +36,14 @@ f1(([a, b]) => { /*3*/a.charAt(0); });
 function f2({/*4*/a }: { a: string; }, [/*5*/b]: [string]) {}
 """;
         using var f = FourslashTest.New(content, fileName: "parameterWithDestructuring", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("1", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("2", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("3", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("4", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) b: string", "")
+    f.VerifyQuickInfoAt("5", "(parameter) b: string", "");
     }
 }

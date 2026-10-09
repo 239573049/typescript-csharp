@@ -40,6 +40,6 @@ class C {
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "class.declaration", Text = "C" },
             new SemanticToken { Type = "property.declaration", Text = "v" },
-        })
+        });
     }
 }

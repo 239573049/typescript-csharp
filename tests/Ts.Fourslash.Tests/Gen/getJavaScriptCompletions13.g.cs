@@ -61,7 +61,7 @@ file2Identifier2./*2*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -91,6 +91,6 @@ file2Identifier2./*2*/
     ],
         },
         
-    })
+    });
     }
 }

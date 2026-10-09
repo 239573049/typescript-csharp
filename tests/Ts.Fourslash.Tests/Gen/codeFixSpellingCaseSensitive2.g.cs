@@ -31,6 +31,6 @@ export let Console = 1;
 [|conole|] = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingCaseSensitive2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("console", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("console", false, 0, 0);
     }
 }

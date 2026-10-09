@@ -48,7 +48,7 @@ public class FormattingChainingMethodsTests
         2);
 """;
         using var f = FourslashTest.New(content, fileName: "formattingChainingMethods", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     z$ = this.store.select(this.fake())
@@ -71,6 +71,6 @@ public class FormattingChainingMethodsTests
     1
         .toFixed(
             2);
-    """)
+    """);
     }
 }

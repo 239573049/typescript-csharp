@@ -29,6 +29,6 @@ public class GoToDefinitionPrimitivesTests
 var x: st/*primitive*/ring;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionPrimitives", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "primitive")
+    f.VerifyBaselineGoToDefinition(true, "primitive");
     }
 }

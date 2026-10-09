@@ -35,6 +35,6 @@ var y: Foo2;
 y[/*5*/42];
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForStringLiteralPropertyNames3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5");
     }
 }

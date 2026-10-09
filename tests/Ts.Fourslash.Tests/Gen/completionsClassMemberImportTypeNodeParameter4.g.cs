@@ -62,6 +62,6 @@ export declare class Derived extends Cls {
     ],
         },
         
-    })
+    });
     }
 }

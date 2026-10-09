@@ -39,6 +39,6 @@ o['[|prop|]'];
 o.[|prop|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameStringPropertyNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "prop")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "prop");
     }
 }

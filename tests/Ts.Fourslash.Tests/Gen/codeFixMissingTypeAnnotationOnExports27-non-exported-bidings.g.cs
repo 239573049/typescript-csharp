@@ -45,6 +45,6 @@ export const d = a + b + c;
     export { x, y }
     export const d: number = a + b + c;
     """,
-    })
+    });
     }
 }

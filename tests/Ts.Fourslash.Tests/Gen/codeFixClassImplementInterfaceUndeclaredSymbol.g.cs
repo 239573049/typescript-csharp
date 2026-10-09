@@ -33,6 +33,6 @@ interface I {
 class C implements I { }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceUndeclaredSymbol", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I'"})
+    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I'"});
     }
 }

@@ -63,7 +63,7 @@ f/**/;
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -74,6 +74,6 @@ f/**/;
     import foo, { x } from "./a";
     f;
     """,
-    })
+    });
     }
 }

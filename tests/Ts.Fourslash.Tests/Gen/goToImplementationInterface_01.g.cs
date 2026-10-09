@@ -48,6 +48,6 @@ var y: SuperBar = new SuperBar();
 var z: AbstractBar = new NotAbstractBar();
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("interface_definition")
+    f.VerifyBaselineGoToImplementation("interface_definition");
     }
 }

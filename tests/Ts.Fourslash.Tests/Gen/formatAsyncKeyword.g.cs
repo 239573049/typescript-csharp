@@ -31,18 +31,18 @@ public class FormatAsyncKeywordTests
 /*3*/let z = async    function   () { return 1; };
 """;
         using var f = FourslashTest.New(content, fileName: "formatAsyncKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("let x = async () => 1;")
+    f.VerifyCurrentLineContent("let x = async () => 1;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("let y = async () => 1;")
+    f.VerifyCurrentLineContent("let y = async () => 1;");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("let z = async function() { return 1; };")
+    f.VerifyCurrentLineContent("let z = async function() { return 1; };");
     }
 }

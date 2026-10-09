@@ -32,14 +32,14 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingReadonly", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    readonly property1: {};")
+    f.VerifyCurrentLineContent("    readonly property1: {};");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    public readonly property2: {};")
+    f.VerifyCurrentLineContent("    public readonly property2: {};");
     }
 }

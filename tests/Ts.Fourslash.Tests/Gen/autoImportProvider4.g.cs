@@ -42,14 +42,14 @@ export class Shape {}
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider4", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { Shape } from "b";
-    
+
     new Shape
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

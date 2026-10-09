@@ -29,6 +29,6 @@ public class NumericPropertyNamesTests
 var /**/t2 = { 0: 1, 1: "" };
 """;
         using var f = FourslashTest.New(content, fileName: "numericPropertyNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var t2: {\n    0: number;\n    1: string;\n}", "")
+    f.VerifyQuickInfoAt("", "var t2: {\n    0: number;\n    1: string;\n}", "");
     }
 }

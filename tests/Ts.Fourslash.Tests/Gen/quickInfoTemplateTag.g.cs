@@ -39,6 +39,6 @@ function /**/myMixin(cls) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTemplateTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "function myMixin<T extends new (...args: any[]) => any>(cls: T): {\n    new (...args: any[]): (Anonymous class);\n    prototype: myMixin<any>.(Anonymous class);\n} & T", "Doc")
+    f.VerifyQuickInfoAt("", "function myMixin<T extends new (...args: any[]) => any>(cls: T): {\n    new (...args: any[]): (Anonymous class);\n    prototype: myMixin<any>.(Anonymous class);\n} & T", "Doc");
     }
 }

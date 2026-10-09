@@ -51,8 +51,8 @@ import { Foo/*1*/ } from "a";
 """;
         using var f = FourslashTest.New(content, fileName: "declarationMapsOutOfDateMapping", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/home/src/workspaces/project/index.ts")
+    f.GoToFile("/home/src/workspaces/project/index.ts");
 
-    f.VerifyBaselineGoToDefinition(false, "1")
+    f.VerifyBaselineGoToDefinition(false, "1");
     }
 }

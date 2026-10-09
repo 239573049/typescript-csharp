@@ -35,6 +35,6 @@ var c: C;
 /*reference*/c = undefined;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

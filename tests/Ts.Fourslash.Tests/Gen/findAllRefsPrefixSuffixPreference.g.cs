@@ -41,28 +41,28 @@ declare function log(s: string | number): void;
 log(/*q3*/[|q|] + 1);
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsPrefixSuffixPreference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("q0", "q1", "q2", "q3", "z0", "z1", "z2")
-
-    f.VerifyBaselineRename(new LsUtil.UserPreferences
-    {
-    UseAliasesForRename = Core.TSTrue,
-    }, f.Ranges()[1], f.Ranges()[3], f.Ranges()[10], f.Ranges()[11])
-
-    f.VerifyBaselineRename(new LsUtil.UserPreferences
-    {
-    UseAliasesForRename = Core.TSFalse,
-    }, f.Ranges()[1], f.Ranges()[3], f.Ranges()[10], f.Ranges()[11])
+    f.VerifyBaselineFindAllReferences("q0", "q1", "q2", "q3", "z0", "z1", "z2");
 
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    }, f.Ranges()[5], f.Ranges()[7], f.Ranges()[8])
+    }, f.Ranges()[1], f.Ranges()[3], f.Ranges()[10], f.Ranges()[11]);
 
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSFalse,
-    }, f.Ranges()[5], f.Ranges()[7], f.Ranges()[8])
+    }, f.Ranges()[1], f.Ranges()[3], f.Ranges()[10], f.Ranges()[11]);
+
+    f.VerifyBaselineRename(new LsUtil.UserPreferences
+    {
+    UseAliasesForRename = Core.TSTrue,
+    }, f.Ranges()[5], f.Ranges()[7], f.Ranges()[8]);
+
+    f.VerifyBaselineRename(new LsUtil.UserPreferences
+    {
+    UseAliasesForRename = Core.TSFalse,
+    }, f.Ranges()[5], f.Ranges()[7], f.Ranges()[8]);
     }
 }

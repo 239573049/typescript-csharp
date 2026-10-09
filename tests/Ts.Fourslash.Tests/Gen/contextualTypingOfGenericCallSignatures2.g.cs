@@ -34,8 +34,8 @@ function f6(x: <T extends I>(p: T) => void) { }
 f6(/**/x => x<number>())
 """;
         using var f = FourslashTest.New(content, fileName: "contextualTypingOfGenericCallSignatures2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) x: T extends I", "")
+    f.VerifyQuickInfoAt("", "(parameter) x: T extends I", "");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

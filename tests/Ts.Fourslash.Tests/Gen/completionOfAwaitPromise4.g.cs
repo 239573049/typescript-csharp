@@ -49,6 +49,6 @@ function foo(x: Promise<string>) {
     ],
         },
         
-    })
+    });
     }
 }

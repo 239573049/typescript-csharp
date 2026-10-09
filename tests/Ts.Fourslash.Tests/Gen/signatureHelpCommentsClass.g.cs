@@ -85,6 +85,6 @@ namespace m {
 var myVar = new m.m2.c1();
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCommentsClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

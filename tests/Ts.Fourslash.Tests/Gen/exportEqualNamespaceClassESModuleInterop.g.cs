@@ -42,7 +42,7 @@ import Foo from "foo";
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "exportEqualNamespaceClassESModuleInterop", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/index.ts")
+    f.GoToFile("/index.ts");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -59,6 +59,6 @@ import Foo from "foo";
     ],
         },
         
-    })
+    });
     }
 }

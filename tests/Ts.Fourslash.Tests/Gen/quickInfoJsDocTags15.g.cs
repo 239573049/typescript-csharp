@@ -58,8 +58,8 @@ class C2 { }
 class C3 { }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags15", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.js")
+    f.GoToFile("/b.js");
 
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

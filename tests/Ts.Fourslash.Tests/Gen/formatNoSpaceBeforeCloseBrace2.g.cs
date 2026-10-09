@@ -29,8 +29,8 @@ public class FormatNoSpaceBeforeCloseBrace2Tests
 new Foo(1,     );
 """;
         using var f = FourslashTest.New(content, fileName: "formatNoSpaceBeforeCloseBrace2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentFileContent("new Foo(1,);")
+    f.VerifyCurrentFileContent("new Foo(1,);");
     }
 }

@@ -40,9 +40,9 @@ export default {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports31-inline-import-default", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/code.ts")
+    f.GoToFile("/code.ts");
 
-    f.VerifyCodeFixAvailable(new[]{"Extract default export to variable", "Add satisfies and an inline type assertion with 'Person'", "Extract to variable and replace with 'newLocal as typeof newLocal'"})
+    f.VerifyCodeFixAvailable(new[]{"Extract default export to variable", "Add satisfies and an inline type assertion with 'Person'", "Extract to variable and replace with 'newLocal as typeof newLocal'"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -54,6 +54,6 @@ export default {
     };
     """,
         Index = 1,
-    })
+    });
     }
 }

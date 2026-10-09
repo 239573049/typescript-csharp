@@ -37,6 +37,6 @@ var x = {};
 x["/*3*/toMyString"]();
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForIndexProperty3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

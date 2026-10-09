@@ -38,8 +38,8 @@ interface SomeProps {
 export const /*1*/SomeStatelessComponent = ({someProp: { someBoolean, someString}}: SomeProps) => (<div>{`${someBoolean}${someString}`});
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoWithNestedDestructuredParameterInLambda", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

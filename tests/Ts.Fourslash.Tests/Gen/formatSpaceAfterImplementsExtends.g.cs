@@ -39,7 +39,7 @@ class C4 extends Number{
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatSpaceAfterImplementsExtends", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     class C1 implements Array<string> {
@@ -53,6 +53,6 @@ class C4 extends Number{
 
     class C4 extends Number {
     }
-    """)
+    """);
     }
 }

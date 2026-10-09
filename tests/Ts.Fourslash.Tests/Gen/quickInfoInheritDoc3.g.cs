@@ -46,6 +46,6 @@ class SubClass extends getBaseClass() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInheritDoc3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

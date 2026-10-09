@@ -45,12 +45,12 @@ let y2 = <Opt {...ob/*3*/j1} />;
 let y2 = <Opt {...obj1} pr/*4*/opx />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxQuickInfo3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "class Opt", "")
+    f.VerifyQuickInfoAt("1", "class Opt", "");
 
-    f.VerifyQuickInfoAt("2", "(property) propx: number", "")
+    f.VerifyQuickInfoAt("2", "(property) propx: number", "");
 
-    f.VerifyQuickInfoAt("3", "const obj1: OptionProp", "")
+    f.VerifyQuickInfoAt("3", "const obj1: OptionProp", "");
 
-    f.VerifyQuickInfoAt("4", "(property) propx: true", "")
+    f.VerifyQuickInfoAt("4", "(property) propx: true", "");
     }
 }

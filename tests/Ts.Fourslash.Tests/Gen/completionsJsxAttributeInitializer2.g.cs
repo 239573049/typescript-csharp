@@ -68,7 +68,7 @@ const foo = 0;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"1", "2", }, new CompletionsExpectedList
     {
@@ -85,6 +85,6 @@ const foo = 0;
     ],
         },
         
-    })
+    });
     }
 }

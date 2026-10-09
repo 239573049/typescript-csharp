@@ -35,7 +35,7 @@ v = 2;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatConflictMarker1", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     class C {
@@ -45,6 +45,6 @@ v = 2;
     v = 2;
     >>>>>>> Branch - a
     }
-    """)
+    """);
     }
 }

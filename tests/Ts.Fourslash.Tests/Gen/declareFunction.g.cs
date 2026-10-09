@@ -36,6 +36,6 @@ declare function
             Pattern = "",
             Preferences = null,
             Exact = new[]{},
-        }})
+        }});
     }
 }

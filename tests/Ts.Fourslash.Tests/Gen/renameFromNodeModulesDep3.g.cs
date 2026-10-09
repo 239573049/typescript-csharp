@@ -38,24 +38,24 @@ export interface Foo {
 // @link: /packages/foo -> /packages/first/node_modules/foo
 """;
         using var f = FourslashTest.New(content, fileName: "renameFromNodeModulesDep3", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("ok")
+    f.GoToMarker("ok");
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    })
+    });
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSFalse,
-    })
+    });
 
-    f.GoToMarker("ok2")
+    f.GoToMarker("ok2");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
 
-    f.GoToMarker("ok3")
+    f.GoToMarker("ok3");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

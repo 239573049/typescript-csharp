@@ -48,6 +48,6 @@ export class C {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

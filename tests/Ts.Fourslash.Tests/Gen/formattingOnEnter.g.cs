@@ -31,15 +31,15 @@ class bar {/**/ }
 // new line here
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnEnter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
     f.VerifyCurrentFileContent("""
     class foo { }
     class bar {
     }
     // new line here
-    """)
+    """);
     }
 }

@@ -34,6 +34,6 @@ class C extends (foo()).[|B|] {}
 class C1 extends foo().[|B|] {}
 """;
         using var f = FourslashTest.New(content, fileName: "renamePropertyAccessExpressionHeritageClause", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "B")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "B");
     }
 }

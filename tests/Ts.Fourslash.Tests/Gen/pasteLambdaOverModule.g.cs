@@ -30,16 +30,16 @@ public class PasteLambdaOverModuleTests
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "pasteLambdaOverModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Paste("namespace B { }")
+    f.Paste("namespace B { }");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.DeleteAtCaret(15)
+    f.DeleteAtCaret(15);
 
-    f.Insert("var t = (public x) => { };")
+    f.Insert("var t = (public x) => { };");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

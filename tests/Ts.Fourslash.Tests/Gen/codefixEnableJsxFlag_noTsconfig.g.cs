@@ -30,8 +30,8 @@ public class CodefixEnableJsxFlag_noTsconfigTests
 export const Component = () => <></>
 """;
         using var f = FourslashTest.New(content, fileName: "codefixEnableJsxFlag_noTsconfig", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/dir/a.tsx")
+    f.GoToFile("/dir/a.tsx");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

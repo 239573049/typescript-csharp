@@ -29,10 +29,10 @@ public class FunctionTypePredicateFormattingTests
 /**/function bar(a: A):     a        is       B    {}
 """;
         using var f = FourslashTest.New(content, fileName: "functionTypePredicateFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentLineContent("function bar(a: A): a is B { }")
+    f.VerifyCurrentLineContent("function bar(a: A): a is B { }");
     }
 }

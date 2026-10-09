@@ -39,6 +39,6 @@ declare var j: J
 iany/**/ = j
 """;
         using var f = FourslashTest.New(content, fileName: "fixExactOptionalUnassignableProperties9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

@@ -38,8 +38,8 @@ export {
 } from './a';
 """;
         using var f = FourslashTest.New(content, fileName: "highlightsForExportFromUnfoundModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

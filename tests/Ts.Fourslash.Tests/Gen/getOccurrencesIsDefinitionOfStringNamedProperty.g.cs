@@ -30,6 +30,6 @@ let o = { /*1*/"/*2*/x": 12 };
 let y = o./*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfStringNamedProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

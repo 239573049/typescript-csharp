@@ -35,7 +35,7 @@ public class CompletionListInComments3Tests
 /* {| "name": "6" |}
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInComments3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"1", "2", "3", "6", }, null)
+    f.VerifyCompletions(new[]{"1", "2", "3", "6", }, null);
 
     f.VerifyCompletions(new[]{"4", "5", }, new CompletionsExpectedList
     {
@@ -50,6 +50,6 @@ public class CompletionListInComments3Tests
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

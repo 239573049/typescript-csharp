@@ -96,7 +96,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueImport1", new CompletionsExpectedList
     {
@@ -133,7 +133,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueImport2", new CompletionsExpectedList
     {
@@ -149,7 +149,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueImport3", new CompletionsExpectedList
     {
@@ -185,7 +185,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("namespaceImport1", new CompletionsExpectedList
     {
@@ -202,7 +202,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueExport0", new CompletionsExpectedList
     {
@@ -239,7 +239,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueExport1", new CompletionsExpectedList
     {
@@ -276,7 +276,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueExport2", new CompletionsExpectedList
     {
@@ -292,7 +292,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueExport3", new CompletionsExpectedList
     {
@@ -328,7 +328,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeImport0", new CompletionsExpectedList
     {
@@ -360,7 +360,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeImport1", new CompletionsExpectedList
     {
@@ -392,7 +392,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeImport2", new CompletionsExpectedList
     {
@@ -408,7 +408,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeImport3", new CompletionsExpectedList
     {
@@ -439,7 +439,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeExport0", new CompletionsExpectedList
     {
@@ -471,7 +471,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeExport1", new CompletionsExpectedList
     {
@@ -503,7 +503,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeExport2", new CompletionsExpectedList
     {
@@ -519,7 +519,7 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeExport3", new CompletionsExpectedList
     {
@@ -550,6 +550,6 @@ export { type foo, type /*typeExport3*/ } from "./exports";
     ],
         },
         
-    })
+    });
     }
 }

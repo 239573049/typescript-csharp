@@ -39,9 +39,9 @@ var f = new Foo();
 f/*c3*/;
 """;
         using var f = FourslashTest.New(content, fileName: "completionListCladule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("c1")
+    f.GoToMarker("c1");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -72,17 +72,17 @@ f/*c3*/;
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("c2")
+    f.GoToMarker("c2");
 
-    f.Insert(".")
+    f.Insert(".");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.GoToMarker("c3")
+    f.GoToMarker("c3");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -99,6 +99,6 @@ f/*c3*/;
     ],
         },
         
-    })
+    });
     }
 }

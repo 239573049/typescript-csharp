@@ -49,6 +49,6 @@ var k = /*4*/global;
 var m = /*5*/global;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForGlobals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5");
     }
 }

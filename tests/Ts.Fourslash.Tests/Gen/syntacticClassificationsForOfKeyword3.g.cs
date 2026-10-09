@@ -33,6 +33,6 @@ for (var of; of; of) { }
             new SemanticToken { Type = "variable.declaration", Text = "of" },
             new SemanticToken { Type = "variable", Text = "of" },
             new SemanticToken { Type = "variable", Text = "of" },
-        })
+        });
     }
 }

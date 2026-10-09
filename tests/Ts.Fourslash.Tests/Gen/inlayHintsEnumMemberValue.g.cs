@@ -41,6 +41,6 @@ enum E {
     {
     IncludeInlayEnumMemberValueHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

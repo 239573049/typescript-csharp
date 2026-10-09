@@ -46,16 +46,16 @@ declare const foo2: Foo2;
 if (foo2.b/*4*/ar?.b/*5*/az.q/*6*/we) {}
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInOptionalChain", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) A.arr: string[]", "")
+    f.VerifyQuickInfoAt("1", "(property) A.arr: string[]", "");
 
-    f.VerifyQuickInfoAt("2", "(property) Foo.bar: {\n    baz: string;\n}", "")
+    f.VerifyQuickInfoAt("2", "(property) Foo.bar: {\n    baz: string;\n}", "");
 
-    f.VerifyQuickInfoAt("3", "(property) baz: string | undefined", "")
+    f.VerifyQuickInfoAt("3", "(property) baz: string | undefined", "");
 
-    f.VerifyQuickInfoAt("4", "(property) Foo2.bar?: {\n    baz: {\n        qwe: string;\n    };\n} | undefined", "")
+    f.VerifyQuickInfoAt("4", "(property) Foo2.bar?: {\n    baz: {\n        qwe: string;\n    };\n} | undefined", "");
 
-    f.VerifyQuickInfoAt("5", "(property) baz: {\n    qwe: string;\n}", "")
+    f.VerifyQuickInfoAt("5", "(property) baz: {\n    qwe: string;\n}", "");
 
-    f.VerifyQuickInfoAt("6", "(property) qwe: string | undefined", "")
+    f.VerifyQuickInfoAt("6", "(property) qwe: string | undefined", "");
     }
 }

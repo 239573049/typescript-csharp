@@ -31,14 +31,14 @@ foo({
 });/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "consistenceOnIndentionsOfObjectsInAListAfterFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("}, {")
+    f.VerifyCurrentLineContent("}, {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("});")
+    f.VerifyCurrentLineContent("});");
     }
 }

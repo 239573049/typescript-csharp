@@ -34,11 +34,11 @@ var c: C<number>;
 c.map(/*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInFunctionTypeReference2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) k: string", "")
+    f.VerifyQuickInfoAt("1", "(parameter) k: string", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) value: T", "")
+    f.VerifyQuickInfoAt("2", "(parameter) value: T", "");
 
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "map(fn: (k: string, value: number, context: any) => void, context: any): void" })
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "map(fn: (k: string, value: number, context: any) => void, context: any): void" });
     }
 }

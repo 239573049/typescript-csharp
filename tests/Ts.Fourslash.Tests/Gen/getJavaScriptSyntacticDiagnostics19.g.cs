@@ -31,6 +31,6 @@ public class GetJavaScriptSyntacticDiagnostics19Tests
 enum E { }
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics19", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

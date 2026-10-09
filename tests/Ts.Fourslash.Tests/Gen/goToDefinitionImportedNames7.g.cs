@@ -35,6 +35,6 @@ class /*classDefinition*/Class {
 export default Class;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImportedNames7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "classAliasDefinition")
+    f.VerifyBaselineGoToDefinition(true, "classAliasDefinition");
     }
 }

@@ -59,6 +59,6 @@ function whatever(x: Bar) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceMethod_05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call")
+    f.VerifyBaselineGoToImplementation("function_call");
     }
 }

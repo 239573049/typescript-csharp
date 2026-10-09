@@ -33,12 +33,12 @@ var /*3*/c = { x: 0, y: null };	// var c: { x: number, y: any }
 var /*4*/d = [null, undefined];      // var d: any[]
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoWidenedTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var a: any", "")
+    f.VerifyQuickInfoAt("1", "var a: any", "");
 
-    f.VerifyQuickInfoAt("2", "var b: any", "")
+    f.VerifyQuickInfoAt("2", "var b: any", "");
 
-    f.VerifyQuickInfoAt("3", "var c: {\n    x: number;\n    y: any;\n}", "")
+    f.VerifyQuickInfoAt("3", "var c: {\n    x: number;\n    y: any;\n}", "");
 
-    f.VerifyQuickInfoAt("4", "var d: any[]", "")
+    f.VerifyQuickInfoAt("4", "var d: any[]", "");
     }
 }

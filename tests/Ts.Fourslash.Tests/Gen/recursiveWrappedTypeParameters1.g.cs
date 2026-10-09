@@ -41,18 +41,18 @@ var e/*6*/e = x.c.b;
 var f/*7*/f = x.c.c; 
 """;
         using var f = FourslashTest.New(content, fileName: "recursiveWrappedTypeParameters1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var yy: I<I<I<I<I<I<number>>>>>>", "")
+    f.VerifyQuickInfoAt("1", "var yy: I<I<I<I<I<I<number>>>>>>", "");
 
-    f.VerifyQuickInfoAt("2", "var aa: number", "")
+    f.VerifyQuickInfoAt("2", "var aa: number", "");
 
-    f.VerifyQuickInfoAt("3", "var bb: I<number>", "")
+    f.VerifyQuickInfoAt("3", "var bb: I<number>", "");
 
-    f.VerifyQuickInfoAt("4", "var cc: I<I<number>>", "")
+    f.VerifyQuickInfoAt("4", "var cc: I<I<number>>", "");
 
-    f.VerifyQuickInfoAt("5", "var dd: I<number>", "")
+    f.VerifyQuickInfoAt("5", "var dd: I<number>", "");
 
-    f.VerifyQuickInfoAt("6", "var ee: I<I<number>>", "")
+    f.VerifyQuickInfoAt("6", "var ee: I<I<number>>", "");
 
-    f.VerifyQuickInfoAt("7", "var ff: I<I<I<number>>>", "")
+    f.VerifyQuickInfoAt("7", "var ff: I<I<I<number>>>", "");
     }
 }

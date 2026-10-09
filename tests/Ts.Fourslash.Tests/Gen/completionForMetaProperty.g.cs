@@ -50,7 +50,7 @@ function test() { new./*3*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -66,7 +66,7 @@ function test() { new./*3*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -87,6 +87,6 @@ function test() { new./*3*/ }
     ],
         },
         
-    })
+    });
     }
 }

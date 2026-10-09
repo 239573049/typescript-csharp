@@ -40,6 +40,6 @@ export class MySqlVarBinary extends MySqlColumn {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionOverriddenMember17", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

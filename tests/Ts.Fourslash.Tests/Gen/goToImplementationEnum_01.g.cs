@@ -34,6 +34,6 @@ enum [|Foo|] {
 Fo/*reference*/o;
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationEnum_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

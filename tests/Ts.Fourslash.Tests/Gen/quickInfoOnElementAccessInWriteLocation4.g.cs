@@ -35,6 +35,6 @@ declare let box: Serializer;
 box['value'/*1*/] = true;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnElementAccessInWriteLocation4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) Serializer.value: string | number | boolean", "")
+    f.VerifyQuickInfoAt("1", "(property) Serializer.value: string | number | boolean", "");
     }
 }

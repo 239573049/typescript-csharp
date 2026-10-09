@@ -67,8 +67,8 @@ interface test4 implements Foo./*4*/ {}
     ]),
         },
         
-    })
+    });
 
-    f.VerifyCompletions(new[]{"2", "3", "4", }, null)
+    f.VerifyCompletions(new[]{"2", "3", "4", }, null);
     }
 }

@@ -54,23 +54,23 @@ else {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnNarrowedTypeInModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var nonExportedStrOrNum: string | number", "")
+    f.VerifyQuickInfoAt("1", "var nonExportedStrOrNum: string | number", "");
 
-    f.VerifyQuickInfoAt("2", "var nonExportedStrOrNum: number", "")
+    f.VerifyQuickInfoAt("2", "var nonExportedStrOrNum: number", "");
 
-    f.VerifyQuickInfoAt("3", "var nonExportedStrOrNum: string", "")
+    f.VerifyQuickInfoAt("3", "var nonExportedStrOrNum: string", "");
 
-    f.VerifyQuickInfoAt("4", "var m.exportedStrOrNum: string | number", "")
+    f.VerifyQuickInfoAt("4", "var m.exportedStrOrNum: string | number", "");
 
-    f.VerifyQuickInfoAt("5", "var m.exportedStrOrNum: number", "")
+    f.VerifyQuickInfoAt("5", "var m.exportedStrOrNum: number", "");
 
-    f.VerifyQuickInfoAt("6", "var m.exportedStrOrNum: string", "")
+    f.VerifyQuickInfoAt("6", "var m.exportedStrOrNum: string", "");
 
-    f.VerifyQuickInfoAt("7", "var m.exportedStrOrNum: string | number", "")
+    f.VerifyQuickInfoAt("7", "var m.exportedStrOrNum: string | number", "");
 
-    f.VerifyQuickInfoAt("8", "var m.exportedStrOrNum: number", "")
+    f.VerifyQuickInfoAt("8", "var m.exportedStrOrNum: number", "");
 
-    f.VerifyQuickInfoAt("9", "var m.exportedStrOrNum: string", "")
+    f.VerifyQuickInfoAt("9", "var m.exportedStrOrNum: string", "");
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -91,7 +91,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -112,7 +112,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -133,7 +133,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -154,7 +154,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -175,7 +175,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -196,7 +196,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -217,7 +217,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -238,7 +238,7 @@ else {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("9", new CompletionsExpectedList
     {
@@ -259,6 +259,6 @@ else {
     ],
         },
         
-    })
+    });
     }
 }

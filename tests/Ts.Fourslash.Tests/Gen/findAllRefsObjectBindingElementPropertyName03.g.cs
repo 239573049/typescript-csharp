@@ -35,6 +35,6 @@ var foo: I;
 var [ { property1: prop1 }, { /*2*/property1, property2 } ] = [foo, foo];
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsObjectBindingElementPropertyName03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

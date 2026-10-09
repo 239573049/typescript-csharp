@@ -46,6 +46,6 @@ function foo(x/*1*/) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesJsOverloadedFunctionParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

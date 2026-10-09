@@ -64,6 +64,6 @@ declare module "fake-module/other"
     ],
         },
         
-    })
+    });
     }
 }

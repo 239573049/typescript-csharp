@@ -34,8 +34,8 @@ class G<T> {               // Introduce type parameter T
 }
 """;
         using var f = FourslashTest.New(content, fileName: "instanceTypesForGenericType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) G<T>.self: G<T>", "")
+    f.VerifyQuickInfoAt("1", "(property) G<T>.self: G<T>", "");
 
-    f.VerifyQuickInfoAt("2", "this: this", "")
+    f.VerifyQuickInfoAt("2", "this: this", "");
     }
 }

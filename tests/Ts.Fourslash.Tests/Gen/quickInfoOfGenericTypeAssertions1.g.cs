@@ -33,10 +33,10 @@ var a;
 var /*3*/r3 = < <T>(x: <A>(y: A) => A) => T>a;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOfGenericTypeAssertions1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r: <T>(x: T) => T", "")
+    f.VerifyQuickInfoAt("1", "var r: <T>(x: T) => T", "");
 
-    f.VerifyQuickInfoAt("2", "var r2: <T>(x: T) => T", "")
+    f.VerifyQuickInfoAt("2", "var r2: <T>(x: T) => T", "");
 
-    f.VerifyQuickInfoAt("3", "var r3: <T>(x: <A>(y: A) => A) => T", "")
+    f.VerifyQuickInfoAt("3", "var r3: <T>(x: <A>(y: A) => A) => T", "");
     }
 }

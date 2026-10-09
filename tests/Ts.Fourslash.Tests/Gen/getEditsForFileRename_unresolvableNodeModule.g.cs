@@ -34,6 +34,6 @@ import "doesnt-exist";
 import "doesnt-exist"; 
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_unresolvableNodeModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyWillRenameFilesEdits("/modules/@app/something", "/modules/@app/something-2", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/modules/@app/something", "/modules/@app/something-2", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

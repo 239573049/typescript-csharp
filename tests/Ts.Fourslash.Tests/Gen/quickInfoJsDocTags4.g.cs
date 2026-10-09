@@ -49,6 +49,6 @@ class Bar extends Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

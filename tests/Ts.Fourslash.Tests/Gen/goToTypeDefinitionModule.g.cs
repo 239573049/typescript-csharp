@@ -36,6 +36,6 @@ var m: typeof M;
 /*reference2*/m;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinitionModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference1", "reference2")
+    f.VerifyBaselineGoToTypeDefinition("reference1", "reference2");
     }
 }

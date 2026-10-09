@@ -30,6 +30,6 @@ public class CodeFixAddOptionalParam18Tests
 f(1, 1, "");
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddOptionalParam18", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("addOptionalParam")
+    f.VerifyCodeFixNotAvailable("addOptionalParam");
     }
 }

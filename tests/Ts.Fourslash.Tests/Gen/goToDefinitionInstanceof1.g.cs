@@ -33,6 +33,6 @@ declare var obj: any;
 obj [|/*start*/instanceof|] C;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionInstanceof1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

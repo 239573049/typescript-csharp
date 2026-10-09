@@ -30,8 +30,8 @@ class foo{}
 function foo() { return null; }
 """;
         using var f = FourslashTest.New(content, fileName: "removeDuplicateIdentifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.DeleteAtCaret(11)
+    f.DeleteAtCaret(11);
     }
 }

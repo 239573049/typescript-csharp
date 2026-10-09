@@ -50,6 +50,6 @@ const obj: any = {
     ], false),
         },
         
-    })
+    });
     }
 }

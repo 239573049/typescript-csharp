@@ -132,6 +132,6 @@ new Drived4()./*23*/foo1;
 new Drived4()./*24*/foo2;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocInheritage", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

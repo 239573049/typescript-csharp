@@ -84,7 +84,7 @@ const x = Re/**/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -113,6 +113,6 @@ const x = Re/**/
     ],
         },
         
-    })
+    });
     }
 }

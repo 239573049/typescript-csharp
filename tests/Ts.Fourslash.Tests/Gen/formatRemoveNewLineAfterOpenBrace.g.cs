@@ -34,13 +34,13 @@ if (true)
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatRemoveNewLineAfterOpenBrace", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function foo() {
     }
     if (true) {
     }
-    """)
+    """);
     }
 }

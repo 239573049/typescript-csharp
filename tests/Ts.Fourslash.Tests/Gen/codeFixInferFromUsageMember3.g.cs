@@ -33,6 +33,6 @@ class C {
 new C("string");
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageMember3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("public p: string)", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("public p: string)", false, 0, 0);
     }
 }

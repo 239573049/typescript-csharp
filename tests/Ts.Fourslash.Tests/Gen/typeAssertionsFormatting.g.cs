@@ -30,14 +30,14 @@ public class TypeAssertionsFormattingTests
  <  any  >      3;/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "typeAssertionsFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("(<any>publisher);")
+    f.VerifyCurrentLineContent("(<any>publisher);");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("<any>3;")
+    f.VerifyCurrentLineContent("<any>3;");
     }
 }

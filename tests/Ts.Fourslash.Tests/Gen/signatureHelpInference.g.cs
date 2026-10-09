@@ -30,7 +30,7 @@ declare function f<T extends string>(a: T, b: T, c: T): void;
 f("x", /**/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInference", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: \"x\", b: \"x\", c: \"x\"): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: \"x\"" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: \"x\", b: \"x\", c: \"x\"): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: \"x\"" });
     }
 }

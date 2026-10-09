@@ -53,12 +53,12 @@ const u2: U = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoUnion_discriminated", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("uKind", "(property) A.kind: \"a\"", "Kind A")
+    f.VerifyQuickInfoAt("uKind", "(property) A.kind: \"a\"", "Kind A");
 
-    f.VerifyQuickInfoAt("uProp", "(property) A.prop: number", "Prop A")
+    f.VerifyQuickInfoAt("uProp", "(property) A.prop: number", "Prop A");
 
-    f.VerifyQuickInfoAt("u2Kind", "(property) kind: \"bogus\"", "")
+    f.VerifyQuickInfoAt("u2Kind", "(property) kind: \"bogus\"", "");
 
-    f.VerifyQuickInfoAt("u2Prop", "(property) prop: number", "")
+    f.VerifyQuickInfoAt("u2Prop", "(property) prop: number", "");
     }
 }

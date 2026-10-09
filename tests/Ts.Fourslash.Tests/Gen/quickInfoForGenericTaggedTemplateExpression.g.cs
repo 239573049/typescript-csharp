@@ -41,18 +41,18 @@ declare function foo<T>(strings: TemplateStringsArray, ...values: T[]): void;
 /*7*/foo``;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForGenericTaggedTemplateExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function foo<number>(strings: TemplateStringsArray, ...values: number[]): void", "")
+    f.VerifyQuickInfoAt("1", "function foo<number>(strings: TemplateStringsArray, ...values: number[]): void", "");
 
-    f.VerifyQuickInfoAt("2", "function foo<string | number>(strings: TemplateStringsArray, ...values: (string | number)[]): void", "")
+    f.VerifyQuickInfoAt("2", "function foo<string | number>(strings: TemplateStringsArray, ...values: (string | number)[]): void", "");
 
-    f.VerifyQuickInfoAt("3", "function foo<{\n    a: number;\n}>(strings: TemplateStringsArray, ...values: {\n    a: number;\n}[]): void", "")
+    f.VerifyQuickInfoAt("3", "function foo<{\n    a: number;\n}>(strings: TemplateStringsArray, ...values: {\n    a: number;\n}[]): void", "");
 
-    f.VerifyQuickInfoAt("4", "function foo<T1>(strings: TemplateStringsArray, ...values: T1[]): void", "")
+    f.VerifyQuickInfoAt("4", "function foo<T1>(strings: TemplateStringsArray, ...values: T1[]): void", "");
 
-    f.VerifyQuickInfoAt("5", "function foo<T2>(strings: TemplateStringsArray, ...values: T2[]): void", "")
+    f.VerifyQuickInfoAt("5", "function foo<T2>(strings: TemplateStringsArray, ...values: T2[]): void", "");
 
-    f.VerifyQuickInfoAt("6", "function foo<T3>(strings: TemplateStringsArray, ...values: T3[]): void", "")
+    f.VerifyQuickInfoAt("6", "function foo<T3>(strings: TemplateStringsArray, ...values: T3[]): void", "");
 
-    f.VerifyQuickInfoAt("7", "function foo<unknown>(strings: TemplateStringsArray, ...values: unknown[]): void", "")
+    f.VerifyQuickInfoAt("7", "function foo<unknown>(strings: TemplateStringsArray, ...values: unknown[]): void", "");
     }
 }

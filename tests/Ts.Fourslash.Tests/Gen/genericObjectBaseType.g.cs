@@ -38,8 +38,8 @@ var y: string = x.foo("hi");
 /*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "genericObjectBaseType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

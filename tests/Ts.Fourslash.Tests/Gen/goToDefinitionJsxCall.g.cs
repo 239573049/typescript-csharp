@@ -35,6 +35,6 @@ const Thing: FC = (props) => <div></div>;
 const HelloWorld = () => <[|/**/Thing|] />;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsxCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "")
+    f.VerifyBaselineGoToDefinition(true, "");
     }
 }

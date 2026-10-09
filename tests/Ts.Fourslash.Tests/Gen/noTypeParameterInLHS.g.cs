@@ -32,8 +32,8 @@ var /*1*/i: I<any>;
 var /*2*/c: C<I>;
 """;
         using var f = FourslashTest.New(content, fileName: "noTypeParameterInLHS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var i: I<any>", "")
+    f.VerifyQuickInfoAt("1", "var i: I<any>", "");
 
-    f.VerifyQuickInfoAt("2", "var c: C<any>", "")
+    f.VerifyQuickInfoAt("2", "var c: C<any>", "");
     }
 }

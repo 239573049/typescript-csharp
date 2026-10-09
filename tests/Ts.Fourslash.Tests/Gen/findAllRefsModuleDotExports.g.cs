@@ -33,6 +33,6 @@ public class FindAllRefsModuleDotExportsTests
 /*3*/module.exports = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsModuleDotExports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

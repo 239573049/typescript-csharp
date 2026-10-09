@@ -55,6 +55,6 @@ import * as /*6*/d from "./d"
 import /*7*/dDefault from "./d"
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport09", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3", "4", "5", "6", "7")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3", "4", "5", "6", "7");
     }
 }

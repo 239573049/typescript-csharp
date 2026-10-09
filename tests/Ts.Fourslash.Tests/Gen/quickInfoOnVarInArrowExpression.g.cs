@@ -39,6 +39,6 @@ each(categories, category => {
 function each<T>(items: T[], handler: (item: T) => void) { }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnVarInArrowExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local var) changes: string[]", "")
+    f.VerifyQuickInfoAt("1", "(local var) changes: string[]", "");
     }
 }

@@ -63,6 +63,6 @@ public class GetEditsForFileRename_tsconfigTests
         "exclude": ["new"],
     }
     """,
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

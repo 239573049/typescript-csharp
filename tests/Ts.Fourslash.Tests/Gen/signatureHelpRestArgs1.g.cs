@@ -37,6 +37,6 @@ fn(...b, /*3*/);
 fn(/*4*/, ...b, /*5*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpRestArgs1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

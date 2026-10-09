@@ -38,10 +38,10 @@ function [|foo|] () {
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights02", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("a.ts")
+    f.GoToFile("a.ts");
 
-    f.GoToFile("b.ts")
+    f.GoToFile("b.ts");
 
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, new[]{"a.ts", "b.ts"}, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, [.. f.Ranges()], new[]{"a.ts", "b.ts"}, [.. f.Ranges()]);
     }
 }

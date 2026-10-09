@@ -36,6 +36,6 @@ x = { "12": 0 };
 x = { 12: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForNumericLiteralPropertyNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

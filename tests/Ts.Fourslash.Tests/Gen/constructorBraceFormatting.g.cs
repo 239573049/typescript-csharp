@@ -31,12 +31,12 @@ class X {
  /**/
 """;
         using var f = FourslashTest.New(content, fileName: "constructorBraceFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.GoToMarker("target")
+    f.GoToMarker("target");
 
-    f.VerifyCurrentLineContent("    constructor() { }")
+    f.VerifyCurrentLineContent("    constructor() { }");
     }
 }

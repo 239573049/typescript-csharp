@@ -47,7 +47,7 @@ hi
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -62,7 +62,7 @@ hi
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -77,6 +77,6 @@ hi
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

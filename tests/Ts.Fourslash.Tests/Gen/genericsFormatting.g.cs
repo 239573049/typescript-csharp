@@ -49,42 +49,42 @@ foo()<number, string, T >();
 }
 """;
         using var f = FourslashTest.New(content, fileName: "genericsFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("inClassDeclaration")
+    f.GoToMarker("inClassDeclaration");
 
-    f.VerifyCurrentLineContent("class Foo<T1, T2> {")
+    f.VerifyCurrentLineContent("class Foo<T1, T2> {");
 
-    f.GoToMarker("inMethodDeclaration")
+    f.GoToMarker("inMethodDeclaration");
 
-    f.VerifyCurrentLineContent("    public method<T3, T4>(a: T1, b: Array<T4>): Map<T1, T2, Array<T3>> {")
+    f.VerifyCurrentLineContent("    public method<T3, T4>(a: T1, b: Array<T4>): Map<T1, T2, Array<T3>> {");
 
-    f.GoToMarker("typeArguments")
+    f.GoToMarker("typeArguments");
 
-    f.VerifyCurrentLineContent("var foo = new Foo<number, Array<number>>();")
+    f.VerifyCurrentLineContent("var foo = new Foo<number, Array<number>>();");
 
-    f.GoToMarker("typeArgumentsWithTypeLiterals")
+    f.GoToMarker("typeArgumentsWithTypeLiterals");
 
-    f.VerifyCurrentLineContent("foo = new Foo<{ bar: number }, Array<{ baz: string }>>();")
+    f.VerifyCurrentLineContent("foo = new Foo<{ bar: number }, Array<{ baz: string }>>();");
 
-    f.GoToMarker("inNewSignature")
+    f.GoToMarker("inNewSignature");
 
-    f.VerifyCurrentLineContent("    new <T>(a: T);")
+    f.VerifyCurrentLineContent("    new <T>(a: T);");
 
-    f.GoToMarker("inOptionalMethodSignature")
+    f.GoToMarker("inOptionalMethodSignature");
 
-    f.VerifyCurrentLineContent("    op?<T, M>(a: T, b: M);")
+    f.VerifyCurrentLineContent("    op?<T, M>(a: T, b: M);");
 
-    f.GoToMarker("inFunctionDeclaration")
+    f.GoToMarker("inFunctionDeclaration");
 
-    f.VerifyCurrentLineContent("function bar<T>() {")
+    f.VerifyCurrentLineContent("function bar<T>() {");
 
-    f.GoToMarker("inClassExpression")
+    f.GoToMarker("inClassExpression");
 
-    f.VerifyCurrentLineContent("    return class <T2> {")
+    f.VerifyCurrentLineContent("    return class <T2> {");
 
-    f.GoToMarker("expressionWithTypeArguments")
+    f.GoToMarker("expressionWithTypeArguments");
 
-    f.VerifyCurrentLineContent("class A<T> extends bar<T>()<T> {")
+    f.VerifyCurrentLineContent("class A<T> extends bar<T>()<T> {");
     }
 }

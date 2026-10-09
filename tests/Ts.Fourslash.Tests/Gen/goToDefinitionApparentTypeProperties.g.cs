@@ -35,6 +35,6 @@ o.[|/*reference1*/myObjectMethod|]();
 o[[|"/*reference2*/myObjectMethod"|]]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionApparentTypeProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "reference1", "reference2")
+    f.VerifyBaselineGoToDefinition(true, "reference1", "reference2");
     }
 }

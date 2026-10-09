@@ -32,14 +32,14 @@ interface A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingQMark", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    foo?();")
+    f.VerifyCurrentLineContent("    foo?();");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    foo?<T>();")
+    f.VerifyCurrentLineContent("    foo?<T>();");
     }
 }

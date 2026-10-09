@@ -38,7 +38,7 @@ var i: I;
 i.foo(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "classExtendsInterfaceSigHelp1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterSpan = "x: string", OverloadsCount = 2 })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterSpan = "x: string", OverloadsCount = 2 });
     }
 }

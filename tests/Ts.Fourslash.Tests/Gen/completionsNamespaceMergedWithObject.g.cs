@@ -49,7 +49,7 @@ N./*value*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("value", new CompletionsExpectedList
     {
@@ -66,6 +66,6 @@ N./*value*/;
     ],
         },
         
-    })
+    });
     }
 }

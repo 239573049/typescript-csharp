@@ -31,6 +31,6 @@ var /*bar*/bar = function () { };
 bar = bar + 1;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForIllegalAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "bar")
+    f.VerifyBaselineFindAllReferences("1", "2", "bar");
     }
 }

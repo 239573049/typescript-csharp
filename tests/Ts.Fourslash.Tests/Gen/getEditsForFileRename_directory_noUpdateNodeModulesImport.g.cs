@@ -32,6 +32,6 @@ import { foo } from "foo";
 export const foo = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_directory_noUpdateNodeModulesImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyWillRenameFilesEdits("/a/b", "/a/d", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/a/b", "/a/d", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

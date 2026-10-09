@@ -39,6 +39,6 @@ public class OutliningSpansForArrowFunctionBodyTests
     "baz"|];
 """;
         using var f = FourslashTest.New(content, fileName: "outliningSpansForArrowFunctionBody", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

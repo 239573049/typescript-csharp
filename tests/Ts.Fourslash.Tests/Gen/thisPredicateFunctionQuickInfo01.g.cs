@@ -67,20 +67,20 @@ if (obj.isNetworked/*8*/()) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "thisPredicateFunctionQuickInfo01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(method) FileSystemObject.isFile(): this is Item", "")
+    f.VerifyQuickInfoAt("1", "(method) FileSystemObject.isFile(): this is Item", "");
 
-    f.VerifyQuickInfoAt("2", "(method) FileSystemObject.isDirectory(): this is Directory", "")
+    f.VerifyQuickInfoAt("2", "(method) FileSystemObject.isDirectory(): this is Directory", "");
 
-    f.VerifyQuickInfoAt("3", "(method) FileSystemObject.isNetworked(): this is (Networked & this)", "")
+    f.VerifyQuickInfoAt("3", "(method) FileSystemObject.isNetworked(): this is (Networked & this)", "");
 
-    f.VerifyQuickInfoAt("4", "(method) FileSystemObject.isFile(): this is Item", "")
+    f.VerifyQuickInfoAt("4", "(method) FileSystemObject.isFile(): this is Item", "");
 
-    f.VerifyQuickInfoAt("5", "(method) FileSystemObject.isNetworked(): this is (Networked & Item)", "")
+    f.VerifyQuickInfoAt("5", "(method) FileSystemObject.isNetworked(): this is (Networked & Item)", "");
 
-    f.VerifyQuickInfoAt("6", "(method) FileSystemObject.isDirectory(): this is Directory", "")
+    f.VerifyQuickInfoAt("6", "(method) FileSystemObject.isDirectory(): this is Directory", "");
 
-    f.VerifyQuickInfoAt("7", "(method) FileSystemObject.isNetworked(): this is (Networked & Directory)", "")
+    f.VerifyQuickInfoAt("7", "(method) FileSystemObject.isNetworked(): this is (Networked & Directory)", "");
 
-    f.VerifyQuickInfoAt("8", "(method) FileSystemObject.isNetworked(): this is (Networked & FileSystemObject)", "")
+    f.VerifyQuickInfoAt("8", "(method) FileSystemObject.isNetworked(): this is (Networked & FileSystemObject)", "");
     }
 }

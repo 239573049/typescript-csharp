@@ -34,6 +34,6 @@ function [|f|](x: typeof [|f|]) {
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

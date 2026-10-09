@@ -50,6 +50,6 @@ public class CompletionListAtEndOfWordInArrowFunction02Tests
     ],
         },
         
-    })
+    });
     }
 }

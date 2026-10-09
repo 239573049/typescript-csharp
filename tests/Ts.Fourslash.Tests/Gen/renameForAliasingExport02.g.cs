@@ -32,8 +32,8 @@ let x = 1;
 export { x as /**/[|y|] };
 """;
         using var f = FourslashTest.New(content, fileName: "renameForAliasingExport02", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

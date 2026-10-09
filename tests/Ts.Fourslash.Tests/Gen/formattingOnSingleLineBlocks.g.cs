@@ -32,11 +32,11 @@ if (true)
 {}
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnSingleLineBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     class C { }
     if (true) { }
-    """)
+    """);
     }
 }

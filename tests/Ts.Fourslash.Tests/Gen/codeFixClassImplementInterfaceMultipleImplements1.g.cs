@@ -43,8 +43,8 @@ class C implements I1,I2 {[|
 
     x: number;
 
-    """, false, 0, 0)
+    """, false, 0, 0);
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

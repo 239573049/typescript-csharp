@@ -33,8 +33,8 @@ var x = new /*1*/C<any>();
 var y = C.proto/*2*/type;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForGenericPrototypeMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "constructor C<any>(): C<any>", "")
+    f.VerifyQuickInfoAt("1", "constructor C<any>(): C<any>", "");
 
-    f.VerifyQuickInfoAt("2", "(property) C<T>.prototype: C<any>", "")
+    f.VerifyQuickInfoAt("2", "(property) C<T>.prototype: C<any>", "");
     }
 }

@@ -48,6 +48,6 @@ for (const { /*c*/ } of points) {}
     ],
         },
         
-    })
+    });
     }
 }

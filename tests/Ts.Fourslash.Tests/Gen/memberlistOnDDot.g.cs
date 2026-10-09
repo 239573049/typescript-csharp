@@ -30,12 +30,12 @@ var q = '';
 q/**/
 """;
         using var f = FourslashTest.New(content, fileName: "memberlistOnDDot", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(".")
+    f.Insert(".");
 
-    f.Insert(".")
+    f.Insert(".");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
     }
 }

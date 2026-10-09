@@ -32,6 +32,6 @@ function f(/*parameterDeclaration*/parameter: any): [|/*parameterName*/parameter
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionTypePredicate", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "parameterName", "typeReference")
+    f.VerifyBaselineGoToDefinition(true, "parameterName", "typeReference");
     }
 }

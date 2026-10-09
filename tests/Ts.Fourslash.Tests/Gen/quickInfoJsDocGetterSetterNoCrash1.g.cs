@@ -39,8 +39,8 @@ const f = new B()
 f.x/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocGetterSetterNoCrash1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) A.x: string", "")
+    f.VerifyQuickInfoAt("1", "(property) A.x: string", "");
 
-    f.VerifyQuickInfoAt("2", "(property) B.x: string", "")
+    f.VerifyQuickInfoAt("2", "(property) B.x: string", "");
     }
 }

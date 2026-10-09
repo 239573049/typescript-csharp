@@ -35,8 +35,8 @@ function f ({ /*1*/next: { /*2*/next: x} }) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForObjectBindingElementPropertyName04", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) next: {\n    next: any;\n}", "")
+    f.VerifyQuickInfoAt("1", "(property) next: {\n    next: any;\n}", "");
 
-    f.VerifyQuickInfoAt("2", "(property) next: any", "")
+    f.VerifyQuickInfoAt("2", "(property) next: any", "");
     }
 }

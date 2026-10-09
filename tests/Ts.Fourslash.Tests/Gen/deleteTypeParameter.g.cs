@@ -37,8 +37,8 @@ var q2: Query2<number>;
 q1 = q2;
 """;
         using var f = FourslashTest.New(content, fileName: "deleteTypeParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.DeleteAtCaret(1)
+    f.DeleteAtCaret(1);
     }
 }

@@ -40,7 +40,7 @@ export const exp = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports30-inline-import", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/code.ts")
+    f.GoToFile("/code.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -52,6 +52,6 @@ export const exp = {
     };
     """,
         Index = 1,
-    })
+    });
     }
 }

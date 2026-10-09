@@ -31,6 +31,6 @@ var x2 = "hel/*1*/lo";
 /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInvalid", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("0", "1", "2")
+    f.VerifyBaselineGoToImplementation("0", "1", "2");
     }
 }

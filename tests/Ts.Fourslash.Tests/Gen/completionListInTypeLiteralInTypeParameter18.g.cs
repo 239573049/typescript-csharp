@@ -56,7 +56,7 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -74,7 +74,7 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -92,7 +92,7 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -110,7 +110,7 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -128,7 +128,7 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -146,7 +146,7 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -164,6 +164,6 @@ class { @decorator<{ x: '/*6*/' }>; method() {} }
     ],
         },
         
-    })
+    });
     }
 }

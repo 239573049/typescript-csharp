@@ -90,7 +90,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("instanceMembersInsideClassScope", new CompletionsExpectedList
     {
@@ -110,7 +110,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("staticsOutsideClassScope", new CompletionsExpectedList
     {
@@ -142,7 +142,7 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("instanceMembersOutsideClassScope", new CompletionsExpectedList
     {
@@ -160,6 +160,6 @@ c./*instanceMembersOutsideClassScope*/privateProperty;
     ],
         },
         
-    })
+    });
     }
 }

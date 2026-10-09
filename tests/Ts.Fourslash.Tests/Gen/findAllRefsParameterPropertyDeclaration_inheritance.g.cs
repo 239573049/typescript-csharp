@@ -38,6 +38,6 @@ class D extends C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsParameterPropertyDeclaration_inheritance", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

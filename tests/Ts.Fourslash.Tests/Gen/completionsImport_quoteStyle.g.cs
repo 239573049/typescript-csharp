@@ -33,7 +33,7 @@ export const foo = 0;
 fo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_quoteStyle", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -45,6 +45,6 @@ fo/**/
 
     fo
     """,
-    })
+    });
     }
 }

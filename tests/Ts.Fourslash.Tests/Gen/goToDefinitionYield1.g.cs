@@ -35,6 +35,6 @@ const /*end2*/genFunction = function*() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionYield1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start1", "start2")
+    f.VerifyBaselineGoToDefinition(true, "start1", "start2");
     }
 }

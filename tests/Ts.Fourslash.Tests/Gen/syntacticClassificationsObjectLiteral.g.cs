@@ -50,6 +50,6 @@ var x = {
             new SemanticToken { Type = "property.declaration", Text = "v" },
             new SemanticToken { Type = "variable", Text = "v" },
             new SemanticToken { Type = "variable", Text = "v" },
-        })
+        });
     }
 }

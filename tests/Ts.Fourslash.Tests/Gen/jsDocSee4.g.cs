@@ -44,6 +44,6 @@ const t2 = 1
 const t3 = 1
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocSee4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "use1", "use2", "use3")
+    f.VerifyBaselineGoToDefinition(false, "use1", "use2", "use3");
     }
 }

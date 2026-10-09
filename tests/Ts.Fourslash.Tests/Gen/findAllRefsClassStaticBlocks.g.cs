@@ -36,6 +36,6 @@ class ClassStaticBocks {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsClassStaticBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("classStaticBocks1", "classStaticBocks2", "classStaticBocks3")
+    f.VerifyBaselineFindAllReferences("classStaticBocks1", "classStaticBocks2", "classStaticBocks3");
     }
 }

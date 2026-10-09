@@ -40,7 +40,7 @@ var path = require('path')
 new Blah
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_require_addToExisting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.js")
+    f.GoToFile("index.js");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -53,6 +53,6 @@ new Blah
     new Blah
     """,
         Index = 0,
-    })
+    });
     }
 }

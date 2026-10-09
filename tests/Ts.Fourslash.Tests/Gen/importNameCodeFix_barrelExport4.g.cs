@@ -46,8 +46,8 @@ A/*parent*/
 export * from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_barrelExport4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("sibling", new[]{"./a", ".", ".."}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("sibling", new[]{"./a", ".", ".."}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("parent", new[]{"../foo", "../foo/a", ".."}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("parent", new[]{"../foo", "../foo/a", ".."}, null /*preferences*/);
     }
 }

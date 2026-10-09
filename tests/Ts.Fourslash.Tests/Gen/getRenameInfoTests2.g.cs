@@ -31,8 +31,8 @@ class C /**/extends null {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getRenameInfoTests2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameFailed(null /*preferences*/)
+    f.VerifyRenameFailed(null /*preferences*/);
     }
 }

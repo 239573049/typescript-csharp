@@ -30,6 +30,6 @@ class [|C|] {}
 [|export|] { [|C|] [|as|] [|D|] };
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightInExport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

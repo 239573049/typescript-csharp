@@ -40,6 +40,6 @@ switch (0) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesAbstract03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

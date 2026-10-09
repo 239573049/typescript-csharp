@@ -32,6 +32,6 @@ await p;
 export {};
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixTopLevelAwait_target_noTsConfig", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

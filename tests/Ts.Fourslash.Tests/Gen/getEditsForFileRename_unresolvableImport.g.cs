@@ -45,6 +45,6 @@ import "@local/some-other-import";
 import "@local/some-other-import";
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_unresolvableImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyWillRenameFilesEdits("/modules/@app/something", "/modules/@app/something-2", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/modules/@app/something", "/modules/@app/something-2", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

@@ -33,6 +33,6 @@ function MyFn() { return <MyInt>MyFn; }
 var My/**/Var = MyFn();
 """;
         using var f = FourslashTest.New(content, fileName: "returnRecursiveType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var MyVar: MyInt", "")
+    f.VerifyQuickInfoAt("", "var MyVar: MyInt", "");
     }
 }

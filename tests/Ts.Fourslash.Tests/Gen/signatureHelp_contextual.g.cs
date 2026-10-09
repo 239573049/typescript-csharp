@@ -50,29 +50,29 @@ const cb: Cb = (/*contextualTypeAlias*/)
 const cb2: () => void = (/*contextualFunctionType*/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelp_contextual", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("takesObj0")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" })
-    f.GoToMarker("takesObj1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" })
-    f.GoToMarker("takesObj2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" })
-    f.GoToMarker("takesObj3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2(): void", ParameterCount = 0 })
-    f.GoToMarker("contextualParameter1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number" })
-    f.GoToMarker("contextualParameter1b")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number" })
-    f.GoToMarker("contextualParameter2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string" })
-    f.GoToMarker("contextualParameter3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: boolean" })
-    f.GoToMarker("contextualParameter3_2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string" })
-    f.GoToMarker("contextualParameter4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3 })
-    f.GoToMarker("contextualTypeAlias")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Cb(): void", ParameterCount = 0 })
-    f.GoToMarker("contextualFunctionType")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb2(): void", ParameterCount = 0 })
+    f.GoToMarker("takesObj0");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" });
+    f.GoToMarker("takesObj1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" });
+    f.GoToMarker("takesObj2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" });
+    f.GoToMarker("takesObj3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2(): void", ParameterCount = 0 });
+    f.GoToMarker("contextualParameter1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number" });
+    f.GoToMarker("contextualParameter1b");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number" });
+    f.GoToMarker("contextualParameter2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string" });
+    f.GoToMarker("contextualParameter3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: boolean" });
+    f.GoToMarker("contextualParameter3_2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string" });
+    f.GoToMarker("contextualParameter4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3 });
+    f.GoToMarker("contextualTypeAlias");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Cb(): void", ParameterCount = 0 });
+    f.GoToMarker("contextualFunctionType");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb2(): void", ParameterCount = 0 });
     }
 }

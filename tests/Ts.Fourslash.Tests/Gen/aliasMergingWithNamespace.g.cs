@@ -30,6 +30,6 @@ namespace bar { }
 import bar = bar/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "aliasMergingWithNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "namespace bar\nimport bar = bar", "")
+    f.VerifyQuickInfoAt("", "namespace bar\nimport bar = bar", "");
     }
 }

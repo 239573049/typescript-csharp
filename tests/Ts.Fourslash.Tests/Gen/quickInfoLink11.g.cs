@@ -37,6 +37,6 @@ function f() {}
 /**/f();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoLink11", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

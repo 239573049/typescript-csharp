@@ -31,7 +31,7 @@ function foo<T>(x: number, callback: (x: T) => number) {
 foo(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInCompleteGenericsCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: number, callback: (x: unknown) => number): void" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: number, callback: (x: unknown) => number): void" });
     }
 }

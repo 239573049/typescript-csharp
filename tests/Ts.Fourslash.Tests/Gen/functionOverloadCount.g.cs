@@ -38,7 +38,7 @@ var i = new C1;
 i.attr(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "functionOverloadCount", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 3 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 3 });
     }
 }

@@ -34,7 +34,7 @@ declare function fn(x: string);
 fn(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInFunctionCallOnFunctionDeclarationInMultipleFiles", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
     }
 }

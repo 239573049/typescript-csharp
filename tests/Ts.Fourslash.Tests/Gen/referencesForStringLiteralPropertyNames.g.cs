@@ -37,6 +37,6 @@ x = { "ss": 0 };
 x = { ss: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForStringLiteralPropertyNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

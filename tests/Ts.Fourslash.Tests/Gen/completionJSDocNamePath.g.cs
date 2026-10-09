@@ -34,7 +34,7 @@ export function cargo() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionJSDocNamePath", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ export function cargo() {
     ],
         },
         
-    })
+    });
     }
 }

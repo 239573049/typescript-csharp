@@ -59,6 +59,6 @@ function createBarUsingClassDeclaration(): Bar {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationShorthandPropertyAssignment_00", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("classExpressionRef", "declaredClassRef")
+    f.VerifyBaselineGoToImplementation("classExpressionRef", "declaredClassRef");
     }
 }

@@ -37,6 +37,6 @@ let /*symbolDeclaration*/I2: {
 new [|/*invokeExpression2*/I2|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionNewExpressionTargetNotClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "invokeExpression1", "invokeExpression2")
+    f.VerifyBaselineGoToDefinition(true, "invokeExpression1", "invokeExpression2");
     }
 }

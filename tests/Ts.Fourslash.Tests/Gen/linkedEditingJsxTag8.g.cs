@@ -38,6 +38,6 @@ const jsx = (
     f.VerifyLinkedEditing(new Dictionary<string, LsProto.Range[]?>
     {
     ["8"] = null,
-    })
+    });
     }
 }

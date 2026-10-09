@@ -47,6 +47,6 @@ type ClickEventSupport = ListenActionable<{ Click: 'some-click-event-payload' }>
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

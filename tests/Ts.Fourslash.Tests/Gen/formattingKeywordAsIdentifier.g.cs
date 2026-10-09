@@ -29,10 +29,10 @@ public class FormattingKeywordAsIdentifierTests
 declare var module/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingKeywordAsIdentifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("declare var module;")
+    f.VerifyCurrentLineContent("declare var module;");
     }
 }

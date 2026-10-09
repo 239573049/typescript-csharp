@@ -34,12 +34,12 @@ public class FormattingAfterMultiLineIfConditionTests
  /**/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingAfterMultiLineIfCondition", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.GoToMarker("comment")
+    f.GoToMarker("comment");
 
-    f.VerifyCurrentLineContent("    // This is a comment")
+    f.VerifyCurrentLineContent("    // This is a comment");
     }
 }

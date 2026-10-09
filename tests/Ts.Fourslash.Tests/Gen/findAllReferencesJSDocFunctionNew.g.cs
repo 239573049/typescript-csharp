@@ -32,6 +32,6 @@ public class FindAllReferencesJSDocFunctionNewTests
 var f;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesJSDocFunctionNew", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

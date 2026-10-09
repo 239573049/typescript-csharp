@@ -32,6 +32,6 @@ function x(){
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarWithLocalVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

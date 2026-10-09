@@ -33,26 +33,26 @@ public class FormattingInDestructuring3Tests
 /*5*/const {a: c} = {a: 1, b: 2};
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInDestructuring3", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("const {")
+    f.VerifyCurrentLineContent("const {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    a,")
+    f.VerifyCurrentLineContent("    a,");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    b,")
+    f.VerifyCurrentLineContent("    b,");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("} = { a: 1, b: 2 };")
+    f.VerifyCurrentLineContent("} = { a: 1, b: 2 };");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("const { a: c } = { a: 1, b: 2 };")
+    f.VerifyCurrentLineContent("const { a: c } = { a: 1, b: 2 };");
     }
 }

@@ -88,7 +88,7 @@ p["[|/*3*/|]"];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -107,7 +107,7 @@ p["[|/*3*/|]"];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -135,6 +135,6 @@ p["[|/*3*/|]"];
     ],
         },
         
-    })
+    });
     }
 }

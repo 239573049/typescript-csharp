@@ -40,6 +40,6 @@ var start: Second.Test./*3*/start;
 var stop: Second.Test.stop;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOnDefinition2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

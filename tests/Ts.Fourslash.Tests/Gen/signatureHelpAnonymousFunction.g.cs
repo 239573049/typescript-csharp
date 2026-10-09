@@ -32,9 +32,9 @@ var anonymousFunctionTest = function(n: number, s: string): (a: number, b: strin
 anonymousFunctionTest(5, "")(/*anonymousFunction1*/1, /*anonymousFunction2*/"");
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpAnonymousFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("anonymousFunction1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" })
-    f.GoToMarker("anonymousFunction2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "b", ParameterSpan = "b: string" })
+    f.GoToMarker("anonymousFunction1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" });
+    f.GoToMarker("anonymousFunction2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "b", ParameterSpan = "b: string" });
     }
 }

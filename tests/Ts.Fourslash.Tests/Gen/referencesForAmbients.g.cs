@@ -41,6 +41,6 @@ declare module "baz" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForAmbients", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14");
     }
 }

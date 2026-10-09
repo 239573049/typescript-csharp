@@ -37,6 +37,6 @@ module.exports = {
 const { /*1*/foo: bar } = require('./foo');
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesJsRequireDestructuring", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

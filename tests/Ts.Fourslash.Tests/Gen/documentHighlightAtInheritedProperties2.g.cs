@@ -33,6 +33,6 @@ class class1 extends class1 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightAtInheritedProperties2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

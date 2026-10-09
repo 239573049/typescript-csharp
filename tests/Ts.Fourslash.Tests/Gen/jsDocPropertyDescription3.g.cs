@@ -37,6 +37,6 @@ function literalExample(e: LiteralExample) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("literal", "any", "")
+    f.VerifyQuickInfoAt("literal", "any", "");
     }
 }

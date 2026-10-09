@@ -31,9 +31,9 @@ new/*1*/ Foo
 new /*2*/Foo(/*3*/)
 """;
         using var f = FourslashTest.New(content, fileName: "noSignatureHelpOnNewKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("1", "2")
+    f.VerifyNoSignatureHelpForMarkers("1", "2");
 
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(): Foo" })
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(): Foo" });
     }
 }

@@ -34,7 +34,7 @@ f
 module.exports.f = function (x) { return x }
 """;
         using var f = FourslashTest.New(content, fileName: "suggestionNoDuplicates", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNonSuggestionDiagnostics([])
+    f.VerifyNonSuggestionDiagnostics([]);
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -42,6 +42,6 @@ module.exports.f = function (x) { return x }
     Code = LsProto.IntegerOrString.FromInteger(7016),
     Message = LsProto.StringOrMarkupContent.FromString("Could not find a declaration file for module 'm'. '/node_modules/m/index.js' implicitly has an 'any' type."),
     },
-    ])
+    ]);
     }
 }

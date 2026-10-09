@@ -41,7 +41,7 @@ import { A } from "./a";
 export class B implements A {}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceAutoImportsReExports", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("b.ts")
+    f.GoToFile("b.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -56,6 +56,6 @@ export class B implements A {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

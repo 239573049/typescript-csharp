@@ -33,6 +33,6 @@ class Bar {
 new Bar().hel/*reference*/lo;
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationClassMethod_00", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

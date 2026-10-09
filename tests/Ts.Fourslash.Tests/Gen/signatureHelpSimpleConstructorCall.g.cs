@@ -33,9 +33,9 @@ class ConstructorCall {
 var x = new ConstructorCall(/*constructorCall1*/1,/*constructorCall2*/2);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSimpleConstructorCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("constructorCall1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "str", ParameterSpan = "str: string" })
-    f.GoToMarker("constructorCall2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "num", ParameterSpan = "num: number" })
+    f.GoToMarker("constructorCall1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "str", ParameterSpan = "str: string" });
+    f.GoToMarker("constructorCall2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "num", ParameterSpan = "num: number" });
     }
 }

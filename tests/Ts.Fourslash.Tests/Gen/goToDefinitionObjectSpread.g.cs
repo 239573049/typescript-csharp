@@ -34,6 +34,6 @@ let a12 = { ...a1, ...a2 };
 a12.[|a/*3*/|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionObjectSpread", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "3")
+    f.VerifyBaselineGoToDefinition(true, "3");
     }
 }

@@ -49,6 +49,6 @@ function getAllFiles(rootFileNames: string[]) {
     ],
         },
         
-    })
+    });
     }
 }

@@ -36,8 +36,8 @@ public class ConvertFunctionToEs6Class_noQuickInfoForIIFETests
 })();
 """;
         using var f = FourslashTest.New(content, fileName: "convertFunctionToEs6Class_noQuickInfoForIIFE", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

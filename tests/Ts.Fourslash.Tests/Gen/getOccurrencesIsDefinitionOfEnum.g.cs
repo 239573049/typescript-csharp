@@ -33,6 +33,6 @@ public class GetOccurrencesIsDefinitionOfEnumTests
 let first = /*3*/E.First;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfEnum", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

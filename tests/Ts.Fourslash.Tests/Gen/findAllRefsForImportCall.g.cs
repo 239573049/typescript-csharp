@@ -40,6 +40,6 @@ async function main() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForImportCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

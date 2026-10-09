@@ -44,6 +44,6 @@ class Bar {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceProperty_00", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

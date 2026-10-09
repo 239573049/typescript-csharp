@@ -69,7 +69,7 @@ function fn3() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -90,7 +90,7 @@ function fn3() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -111,6 +111,6 @@ function fn3() {
     ],
         },
         
-    })
+    });
     }
 }

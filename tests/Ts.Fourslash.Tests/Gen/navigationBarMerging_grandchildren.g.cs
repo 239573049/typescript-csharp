@@ -37,6 +37,6 @@ const o = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarMerging_grandchildren", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

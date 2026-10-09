@@ -30,6 +30,6 @@ public class FindAllRefsEnumAsNamespaceTests
 let e: /*3*/E.A;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsEnumAsNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -46,6 +46,6 @@ public class CodeFixInferFromUsageVariable3JSTests
         return foo
     }
 
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

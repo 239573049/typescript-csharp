@@ -29,6 +29,6 @@ public class CompletionListInTypeParameterOfTypeAlias3Tests
 type constructorType<T1, T2> = new <T/*1*/, /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInTypeParameterOfTypeAlias3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

@@ -32,6 +32,6 @@ const { b/**/ } = new class {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInObjectBindingPattern14", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

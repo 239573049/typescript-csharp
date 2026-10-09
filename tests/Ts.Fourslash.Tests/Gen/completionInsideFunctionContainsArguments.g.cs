@@ -52,7 +52,7 @@ let g = () => /*5*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "5", }, new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ let g = () => /*5*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -29,8 +29,8 @@ public class AddSignaturePartialTests
 
 """;
         using var f = FourslashTest.New(content, fileName: "addSignaturePartial", cancellationToken: TestContext.Current.CancellationToken);
-    f.Insert("interface Number { toFixed")
+    f.Insert("interface Number { toFixed");
 
-    f.Insert("(")
+    f.Insert("(");
     }
 }

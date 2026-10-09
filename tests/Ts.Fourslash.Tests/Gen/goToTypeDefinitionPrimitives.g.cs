@@ -38,6 +38,6 @@ w./*reference1*/a;
 /*reference4*/y;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinitionPrimitives", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference1", "reference2", "reference3", "reference4")
+    f.VerifyBaselineGoToTypeDefinition("reference1", "reference2", "reference3", "reference4");
     }
 }

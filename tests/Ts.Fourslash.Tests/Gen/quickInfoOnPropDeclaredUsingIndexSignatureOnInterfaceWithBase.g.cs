@@ -34,6 +34,6 @@ declare const b: B;
 b.t/*1*/est = 10;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnPropDeclaredUsingIndexSignatureOnInterfaceWithBase", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(index) B[string]: number", "")
+    f.VerifyQuickInfoAt("1", "(index) B[string]: number", "");
     }
 }

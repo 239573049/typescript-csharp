@@ -30,6 +30,6 @@ export let ab = 1;
 abc;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingShortName2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

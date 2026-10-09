@@ -34,16 +34,16 @@ module /*check*/A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "addMemberToModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("check")
+    f.GoToMarker("check");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
 
-    f.GoToMarker("var")
+    f.GoToMarker("var");
 
-    f.Insert("var o;")
+    f.Insert("var o;");
 
-    f.GoToMarker("check")
+    f.GoToMarker("check");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

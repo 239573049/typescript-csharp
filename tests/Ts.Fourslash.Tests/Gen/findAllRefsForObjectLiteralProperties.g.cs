@@ -35,6 +35,6 @@ x./*2*/property;
 /*3*/let {/*4*/property: pVar} = x;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForObjectLiteralProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

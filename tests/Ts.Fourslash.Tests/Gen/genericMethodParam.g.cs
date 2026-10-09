@@ -32,26 +32,26 @@ class C<T> {
 /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "genericMethodParam", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("constructor(){}")
+    f.InsertLine("constructor(){}");
 
-    f.InsertLine("foo(a: T) {")
+    f.InsertLine("foo(a: T) {");
 
-    f.InsertLine("    return a;")
+    f.InsertLine("    return a;");
 
-    f.InsertLine("}")
+    f.InsertLine("}");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.InsertLine("var x = new C<number>();")
+    f.InsertLine("var x = new C<number>();");
 
-    f.InsertLine("var y: number = x.foo(5);")
+    f.InsertLine("var y: number = x.foo(5);");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

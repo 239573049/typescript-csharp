@@ -51,6 +51,6 @@ namespace Fixes {
     ],
         },
         
-    })
+    });
     }
 }

@@ -35,32 +35,32 @@ public class QuickInfoForContextuallyTypedIifeTests
 ((a/*9*/, b/*10*/, c/*11*/) => [a/*12*/,b/*13*/,c/*14*/])("foo", 101, false);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForContextuallyTypedIife", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) q: number", "")
+    f.VerifyQuickInfoAt("1", "(parameter) q: number", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) qq: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) qq: number", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("3", "(parameter) x: number", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) p: number", "")
+    f.VerifyQuickInfoAt("4", "(parameter) p: number", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) q: number", "")
+    f.VerifyQuickInfoAt("5", "(parameter) q: number", "");
 
-    f.VerifyQuickInfoAt("6", "(parameter) qq: number", "")
+    f.VerifyQuickInfoAt("6", "(parameter) qq: number", "");
 
-    f.VerifyQuickInfoAt("7", "(parameter) p: number", "")
+    f.VerifyQuickInfoAt("7", "(parameter) p: number", "");
 
-    f.VerifyQuickInfoAt("8", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("8", "(parameter) x: number", "");
 
-    f.VerifyQuickInfoAt("9", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("9", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("10", "(parameter) b: number", "")
+    f.VerifyQuickInfoAt("10", "(parameter) b: number", "");
 
-    f.VerifyQuickInfoAt("11", "(parameter) c: boolean", "")
+    f.VerifyQuickInfoAt("11", "(parameter) c: boolean", "");
 
-    f.VerifyQuickInfoAt("12", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("12", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("13", "(parameter) b: number", "")
+    f.VerifyQuickInfoAt("13", "(parameter) b: number", "");
 
-    f.VerifyQuickInfoAt("14", "(parameter) c: boolean", "")
+    f.VerifyQuickInfoAt("14", "(parameter) c: boolean", "");
     }
 }

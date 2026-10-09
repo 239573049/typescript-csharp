@@ -32,10 +32,10 @@ declare module "A" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingGlobalAugmentation2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    global {")
+    f.VerifyCurrentLineContent("    global {");
     }
 }

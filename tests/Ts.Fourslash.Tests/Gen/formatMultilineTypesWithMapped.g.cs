@@ -63,7 +63,7 @@ const f = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatMultilineTypesWithMapped", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     type Z = 'z'
@@ -101,6 +101,6 @@ const f = {
     } satisfies {
         [index: string]: string
     }
-    """)
+    """);
     }
 }

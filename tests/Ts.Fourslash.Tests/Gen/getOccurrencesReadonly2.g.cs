@@ -31,6 +31,6 @@ type T = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesReadonly2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

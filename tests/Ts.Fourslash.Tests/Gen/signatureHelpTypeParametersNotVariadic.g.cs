@@ -30,7 +30,7 @@ declare function f(a: any, ...b: any[]): any;
 f</*1*/>(1, 2);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpTypeParametersNotVariadic", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { IsVariadic = false, IsVariadicSet = true })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { IsVariadic = false, IsVariadicSet = true });
     }
 }

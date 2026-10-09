@@ -40,6 +40,6 @@ c. // test on c.
 //c. /**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAndMemberListOnCommentedWhiteSpace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

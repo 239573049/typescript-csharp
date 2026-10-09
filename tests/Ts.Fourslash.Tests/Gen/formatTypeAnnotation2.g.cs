@@ -33,7 +33,7 @@ interface Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatTypeAnnotation2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function foo(x: number, y?: string): number { }
@@ -41,6 +41,6 @@ interface Foo {
         x: number;
         y?: number;
     }
-    """)
+    """);
     }
 }

@@ -63,12 +63,12 @@ export function withInstall<C extends Component, T extends WithInstallPlugin>(
 }
 """;
         using var f = FourslashTest.New(content, fileName: "partialUnionPropertyCacheInconsistentErrors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("type C = Component['name']")
+    f.Insert("type C = Component['name']");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

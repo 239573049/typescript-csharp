@@ -33,6 +33,6 @@ let x = f();
 x/**/();
 """;
         using var f = FourslashTest.New(content, fileName: "getQuickInfoForIntersectionTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "let x: () => any", "")
+    f.VerifyQuickInfoAt("", "let x: () => any", "");
     }
 }

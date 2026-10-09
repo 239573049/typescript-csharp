@@ -31,7 +31,7 @@ declare const fnTest: undefined | ((str: string, num: number) => void);
 fnTest?.(/*1*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOptionalCall2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnTest(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnTest(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" });
     }
 }

@@ -63,24 +63,24 @@ export const dep2 = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportCrossProject_paths_stripSrc", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyImportFixAtPosition([
     """
     import { dep1 } from "dep";
-    
+
     dep1;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
     f.VerifyImportFixAtPosition([
     """
     import { dep2 } from "dep/sub/folder";
-    
+
     dep2;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

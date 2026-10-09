@@ -52,58 +52,9 @@ export { /**/ };
     ],
         },
         
-    })
+    });
 
-    f.Insert("a, ")
-
-    f.VerifyCompletions(null, new CompletionsExpectedList
-    {
-        IsIncomplete = false,
-        ItemDefaults = new CompletionsExpectedItemDefaults
-        {
-            CommitCharacters = DefaultCommitCharacters,
-            EditRange = Ignored,
-        },
-        Items = new CompletionsExpectedItems
-        {
-            Exact = [
-    "T",
-    new LsProto.CompletionItem
-    {
-    Label = "a?",
-    InsertText = "a",
-    FilterText = "a",
-    SortText = Ls.SortTextOptionalMember,
-    },
-    new LsProto.CompletionItem
-    {
-    Label = "type",
-    SortText = Ls.SortTextGlobalsOrKeywords,
-    },
-    ],
-        },
-        
-    })
-
-    f.Insert("T as ")
-
-    f.VerifyCompletions(null, new CompletionsExpectedList
-    {
-        IsIncomplete = false,
-        ItemDefaults = new CompletionsExpectedItemDefaults
-        {
-            CommitCharacters = DefaultCommitCharacters,
-            EditRange = Ignored,
-        },
-        Items = new CompletionsExpectedItems
-        {
-            Exact = [
-    ],
-        },
-        
-    })
-
-    f.Insert("U, ")
+    f.Insert("a, ");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -132,9 +83,58 @@ export { /**/ };
     ],
         },
         
-    })
+    });
 
-    f.Insert("T, ")
+    f.Insert("T as ");
+
+    f.VerifyCompletions(null, new CompletionsExpectedList
+    {
+        IsIncomplete = false,
+        ItemDefaults = new CompletionsExpectedItemDefaults
+        {
+            CommitCharacters = DefaultCommitCharacters,
+            EditRange = Ignored,
+        },
+        Items = new CompletionsExpectedItems
+        {
+            Exact = [
+    ],
+        },
+        
+    });
+
+    f.Insert("U, ");
+
+    f.VerifyCompletions(null, new CompletionsExpectedList
+    {
+        IsIncomplete = false,
+        ItemDefaults = new CompletionsExpectedItemDefaults
+        {
+            CommitCharacters = DefaultCommitCharacters,
+            EditRange = Ignored,
+        },
+        Items = new CompletionsExpectedItems
+        {
+            Exact = [
+    "T",
+    new LsProto.CompletionItem
+    {
+    Label = "a?",
+    InsertText = "a",
+    FilterText = "a",
+    SortText = Ls.SortTextOptionalMember,
+    },
+    new LsProto.CompletionItem
+    {
+    Label = "type",
+    SortText = Ls.SortTextGlobalsOrKeywords,
+    },
+    ],
+        },
+        
+    });
+
+    f.Insert("T, ");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -169,6 +169,6 @@ export { /**/ };
     ],
         },
         
-    })
+    });
     }
 }

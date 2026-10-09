@@ -30,10 +30,10 @@ interface A { }
 var f44: (x: A) => (y: A) => A = /*1*/x => /*2*/y => /*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "contextualTypingReturnExpressions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) x: A", "")
+    f.VerifyQuickInfoAt("1", "(parameter) x: A", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) y: A", "")
+    f.VerifyQuickInfoAt("2", "(parameter) y: A", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) x: A", "")
+    f.VerifyQuickInfoAt("3", "(parameter) x: A", "");
     }
 }

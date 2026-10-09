@@ -34,8 +34,8 @@ function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsPropertyAssignment4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.js")
+    f.GoToFile("/a.js");
 
-    f.VerifyBaselineRename(null /*preferences*/, "1", "2")
+    f.VerifyBaselineRename(null /*preferences*/, "1", "2");
     }
 }

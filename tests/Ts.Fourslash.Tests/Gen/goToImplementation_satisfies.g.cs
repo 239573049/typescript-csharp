@@ -36,6 +36,6 @@ function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementation_satisfies", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("def")
+    f.VerifyBaselineGoToImplementation("def");
     }
 }

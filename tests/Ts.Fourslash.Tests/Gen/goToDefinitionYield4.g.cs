@@ -31,6 +31,6 @@ function* gen() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionYield4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

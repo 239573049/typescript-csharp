@@ -73,6 +73,6 @@ f[keys]
     Range = f.Ranges()[2].LSRange,
     Tags = [LsProto.DiagnosticTag.Deprecated],
     },
-    ])
+    ]);
     }
 }

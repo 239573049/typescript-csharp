@@ -29,10 +29,10 @@ public class FormattingEqualsBeforeBracketInTypeAliasTests
 type X    =     [number]/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingEqualsBeforeBracketInTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("type X = [number];")
+    f.VerifyCurrentLineContent("type X = [number];");
     }
 }

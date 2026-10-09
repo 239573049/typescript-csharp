@@ -34,8 +34,8 @@ function test2(arg: { prop: "foo" } | undefined) {}
 test2({ /*2*/prop: "bar" });
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFromContextualUnionType2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) prop: \"foo\"", "")
+    f.VerifyQuickInfoAt("1", "(property) prop: \"foo\"", "");
 
-    f.VerifyQuickInfoAt("2", "(property) prop: \"foo\"", "")
+    f.VerifyQuickInfoAt("2", "(property) prop: \"foo\"", "");
     }
 }

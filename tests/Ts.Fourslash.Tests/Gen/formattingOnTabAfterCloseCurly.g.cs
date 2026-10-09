@@ -38,42 +38,42 @@ namespace Tools {/*1*/
 }/*9*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnTabAfterCloseCurly", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("namespace Tools {")
+    f.VerifyCurrentLineContent("namespace Tools {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    export enum NodeType {")
+    f.VerifyCurrentLineContent("    export enum NodeType {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("        Error,")
+    f.VerifyCurrentLineContent("        Error,");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("        Comment,")
+    f.VerifyCurrentLineContent("        Comment,");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    export enum foob {")
+    f.VerifyCurrentLineContent("    export enum foob {");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("        Blah = 1, Bleah = 2")
+    f.VerifyCurrentLineContent("        Blah = 1, Bleah = 2");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

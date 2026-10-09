@@ -31,6 +31,6 @@ let b: string;
 ({b = /**/a} = {b: 'b'});
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForDestructuringShorthandInitializer", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "let a: string", "")
+    f.VerifyQuickInfoAt("", "let a: string", "");
     }
 }

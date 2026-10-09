@@ -35,12 +35,12 @@ interface Comparer {
 var max2: Comparer = (x/*1*/x, y/*2*/y) => { return x/*3*/x.compareTo(y/*4*/y) };
 """;
         using var f = FourslashTest.New(content, fileName: "contextuallyTypedFunctionExpressionGeneric1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) xx: T extends Comparable<T>", "")
+    f.VerifyQuickInfoAt("1", "(parameter) xx: T extends Comparable<T>", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) yy: T extends Comparable<T>", "")
+    f.VerifyQuickInfoAt("2", "(parameter) yy: T extends Comparable<T>", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) xx: T extends Comparable<T>", "")
+    f.VerifyQuickInfoAt("3", "(parameter) xx: T extends Comparable<T>", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) yy: T extends Comparable<T>", "")
+    f.VerifyQuickInfoAt("4", "(parameter) yy: T extends Comparable<T>", "");
     }
 }

@@ -59,12 +59,12 @@ import {/*1*/} from './foo';
     ],
         },
         
-    })
+    });
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

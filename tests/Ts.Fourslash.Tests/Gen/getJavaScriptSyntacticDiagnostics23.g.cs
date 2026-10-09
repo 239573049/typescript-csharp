@@ -37,8 +37,8 @@ function Person(age) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics23", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNonSuggestionDiagnostics([])
+    f.VerifyNonSuggestionDiagnostics([]);
 
-    f.VerifyNonSuggestionDiagnostics([])
+    f.VerifyNonSuggestionDiagnostics([]);
     }
 }

@@ -32,6 +32,6 @@ public class SignatureHelpJSMissingPropertyAccessTests
 foo.filter(/**/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpJSMissingPropertyAccess", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

@@ -37,6 +37,6 @@ f(3, false, "s2");
 f(4, "s1", "s2", false, "s4");
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageRestParam2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("...rest: (string | boolean)[]", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("...rest: (string | boolean)[]", false, 0, 0);
     }
 }

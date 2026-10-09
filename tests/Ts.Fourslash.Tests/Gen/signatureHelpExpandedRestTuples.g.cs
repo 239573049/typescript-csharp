@@ -35,11 +35,11 @@ complex("ok", "ok", /*2*/);
 complex("ok", "ok", e => void e, {}, /*3*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpExpandedRestTuples", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "complex(item: string, another: string): void", ParameterCount = 2, ParameterName = "item", ParameterSpan = "item: string", OverloadsCount = 3, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "complex(item: string, another: string, settings: object, errorHandler: (err: Error) => void): void", ParameterCount = 4, ParameterName = "settings", ParameterSpan = "settings: object", OverloadsCount = 3, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "complex(item: string, another: string, errorHandler: (err: Error) => void, ...mixins: object[]): void", OverloadsCount = 3, IsVariadic = true, IsVariadicSet = true })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "complex(item: string, another: string): void", ParameterCount = 2, ParameterName = "item", ParameterSpan = "item: string", OverloadsCount = 3, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "complex(item: string, another: string, settings: object, errorHandler: (err: Error) => void): void", ParameterCount = 4, ParameterName = "settings", ParameterSpan = "settings: object", OverloadsCount = 3, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "complex(item: string, another: string, errorHandler: (err: Error) => void, ...mixins: object[]): void", OverloadsCount = 3, IsVariadic = true, IsVariadicSet = true });
     }
 }

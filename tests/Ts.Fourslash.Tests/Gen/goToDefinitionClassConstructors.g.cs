@@ -54,6 +54,6 @@ class HasConstructor extends Base {
 const hasConstructor = new [|/*HasConstructor*/HasConstructor|](cArg)
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionClassConstructors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "Derived", "SameFile", "HasConstructor", "Base")
+    f.VerifyBaselineGoToDefinition(true, "Derived", "SameFile", "HasConstructor", "Base");
     }
 }

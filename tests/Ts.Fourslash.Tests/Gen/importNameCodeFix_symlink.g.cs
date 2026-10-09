@@ -37,7 +37,7 @@ import { foo } from "link";
 [|foo;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_symlink", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -50,6 +50,6 @@ import { foo } from "link";
 
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

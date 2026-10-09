@@ -35,6 +35,6 @@ export type Foo<T> = {
 for (let a [|in|] {}) {}
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightInKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

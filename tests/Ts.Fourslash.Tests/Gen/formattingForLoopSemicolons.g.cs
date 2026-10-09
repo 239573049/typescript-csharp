@@ -31,34 +31,34 @@ public class FormattingForLoopSemicolonsTests
 /*3*/for (var x ;x<0 ;x++) { }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingForLoopSemicolons", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("for (; ;) { }")
+    f.VerifyCurrentLineContent("for (; ;) { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("for (var x; x < 0; x++) { }")
+    f.VerifyCurrentLineContent("for (var x; x < 0; x++) { }");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("for (var x; x < 0; x++) { }")
+    f.VerifyCurrentLineContent("for (var x; x < 0; x++) { }");
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterSemicolonInForStatements = Core.TSFalse })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterSemicolonInForStatements = Core.TSFalse });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("for (;;) { }")
+    f.VerifyCurrentLineContent("for (;;) { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("for (var x;x < 0;x++) { }")
+    f.VerifyCurrentLineContent("for (var x;x < 0;x++) { }");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("for (var x;x < 0;x++) { }")
+    f.VerifyCurrentLineContent("for (var x;x < 0;x++) { }");
     }
 }

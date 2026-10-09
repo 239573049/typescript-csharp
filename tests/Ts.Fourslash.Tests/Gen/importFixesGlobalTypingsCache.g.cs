@@ -40,7 +40,7 @@ export class BrowserRouter {}
 BrowserRouter/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importFixesGlobalTypingsCache", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/project/index.js")
+    f.GoToFile("/project/index.js");
 
     f.VerifyImportFixAtPosition([
     """
@@ -48,6 +48,6 @@ BrowserRouter/**/
 
     BrowserRouter
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

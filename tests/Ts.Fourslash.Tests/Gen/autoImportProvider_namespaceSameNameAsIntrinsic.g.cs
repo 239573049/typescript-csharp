@@ -42,7 +42,7 @@ type A = { name: string/**/ }
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_namespaceSameNameAsIntrinsic", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -76,6 +76,6 @@ type A = { name: string/**/ }
     ],
         },
         
-    })
+    });
     }
 }

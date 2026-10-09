@@ -31,8 +31,8 @@ var x = function /**/[|f|](g: any, h: any) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameInfoForFunctionExpression01", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

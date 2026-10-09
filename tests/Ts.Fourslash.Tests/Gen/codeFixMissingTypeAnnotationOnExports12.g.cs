@@ -46,6 +46,6 @@ export const { x, y } = foo();
     export const y: number = dest.y;
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -35,6 +35,6 @@ function symbolClass(e: typeof SymbolClass) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("symbolClass", "any", "")
+    f.VerifyQuickInfoAt("symbolClass", "any", "");
     }
 }

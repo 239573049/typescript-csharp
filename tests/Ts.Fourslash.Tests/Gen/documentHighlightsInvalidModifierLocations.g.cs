@@ -37,6 +37,6 @@ class D {
 function g([|public|] p) {}
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightsInvalidModifierLocations", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

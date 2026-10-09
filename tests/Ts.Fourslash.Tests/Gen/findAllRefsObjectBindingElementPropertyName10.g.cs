@@ -35,6 +35,6 @@ function f (/*2*/{ /*3*/next: { /*4*/next: x} }: Recursive) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsObjectBindingElementPropertyName10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

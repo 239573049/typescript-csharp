@@ -59,6 +59,6 @@ import { f } from "./a";
  namespace c5b/*5*/ { export var y = 2; }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosity3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1, 2}, ["3"] = new[]{0, 1}, ["4"] = new[]{0, 1, 2}, ["5"] = new[]{0, 1, 2}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1, 2}, ["3"] = new[]{0, 1}, ["4"] = new[]{0, 1, 2}, ["5"] = new[]{0, 1, 2}});
     }
 }

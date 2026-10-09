@@ -43,6 +43,6 @@ function a1(p) {
 x - /**/a1()
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptQuickInfo7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "function a1(p: any): number", "This is a very cool function that is very nice.")
+    f.VerifyQuickInfoAt("", "function a1(p: any): number", "This is a very cool function that is very nice.");
     }
 }

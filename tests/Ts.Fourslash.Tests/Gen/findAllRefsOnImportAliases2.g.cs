@@ -35,8 +35,8 @@ var c = new /*c2_1*/[|C2|]();
 [|export { /*class2*/[|{| "contextRangeIndex": 6 |}Class|] as /*c3*/[|{| "isWriteAccess": true, "isDefinition": true, "contextRangeIndex": 6 |}C3|] } from "./a";|]
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOnImportAliases2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("class0", "class1", "class2", "c2_0", "c2_1", "c3")
+    f.VerifyBaselineFindAllReferences("class0", "class1", "class2", "c2_0", "c2_1", "c3");
 
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Class", "C2", "C3")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Class", "C2", "C3");
     }
 }

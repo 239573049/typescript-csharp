@@ -35,8 +35,8 @@ var foo: I;
 var { /**/property1 } = foo;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForObjectBindingElementName01", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoAt("", "var property1: number", "")
+    f.VerifyQuickInfoAt("", "var property1: number", "");
     }
 }

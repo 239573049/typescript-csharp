@@ -37,6 +37,6 @@ public class CodeFixUnusedInterfaceInNamespace1Tests
 
     namespace greeter {
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

@@ -30,6 +30,6 @@ he/*function_call*/llo();
 function [|hello|]() {}
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationLocal_00", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call")
+    f.VerifyBaselineGoToImplementation("function_call");
     }
 }

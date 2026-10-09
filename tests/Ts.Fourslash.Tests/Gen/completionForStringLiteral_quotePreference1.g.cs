@@ -68,6 +68,6 @@ const b: B = {
     {
     QuotePreference = "double",
     },
-    })
+    });
     }
 }

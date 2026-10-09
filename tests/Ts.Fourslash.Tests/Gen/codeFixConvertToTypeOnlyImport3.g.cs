@@ -48,8 +48,8 @@ declare const o: typeof others;
 console.log(a, b, c, d, o);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixConvertToTypeOnlyImport3", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("imports.ts")
+    f.GoToFile("imports.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

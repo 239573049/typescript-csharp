@@ -31,6 +31,6 @@ export class Bar {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsItemsExternalModules", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

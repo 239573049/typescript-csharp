@@ -44,20 +44,20 @@ const f4 = { ...f2 };
 f4./*f4*/bar;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoMappedSpreadTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("f")
+    f.GoToMarker("f");
 
-    f.VerifyQuickInfoIs("(property) Foo.bar: number", "Doc")
+    f.VerifyQuickInfoIs("(property) Foo.bar: number", "Doc");
 
-    f.GoToMarker("f2")
+    f.GoToMarker("f2");
 
-    f.VerifyQuickInfoIs("(property) bar: string", "Doc")
+    f.VerifyQuickInfoIs("(property) bar: string", "Doc");
 
-    f.GoToMarker("f3")
+    f.GoToMarker("f3");
 
-    f.VerifyQuickInfoIs("(property) Foo.bar: number", "Doc")
+    f.VerifyQuickInfoIs("(property) Foo.bar: number", "Doc");
 
-    f.GoToMarker("f4")
+    f.GoToMarker("f4");
 
-    f.VerifyQuickInfoIs("(property) bar: string", "Doc")
+    f.VerifyQuickInfoIs("(property) bar: string", "Doc");
     }
 }

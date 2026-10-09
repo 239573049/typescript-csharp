@@ -34,8 +34,8 @@ class OverloadedMonster {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "insertArgumentBeforeOverloadedConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("'1', ")
+    f.Insert("'1', ");
     }
 }

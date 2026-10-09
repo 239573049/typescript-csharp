@@ -68,7 +68,7 @@ declare module "m" {
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -80,6 +80,6 @@ declare module "m" {
 
 
     """,
-    })
+    });
     }
 }

@@ -41,6 +41,6 @@ import [|/*importDefTs*/BlahModule|] = require("./foo.js");
 new [|/*importUsageTs*/BlahModule|].Blah()
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsModuleNameAtImportName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "importDef", "importUsage", "importDefTs", "importUsageTs")
+    f.VerifyBaselineGoToDefinition(true, "importDef", "importUsage", "importDefTs", "importUsageTs");
     }
 }

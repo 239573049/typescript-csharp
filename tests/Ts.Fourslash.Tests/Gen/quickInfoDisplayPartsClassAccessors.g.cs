@@ -63,6 +63,6 @@ y = /*11*/c./*12*/staticProperty;
 /*11s*/c./*12s*/staticProperty = y;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsClassAccessors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

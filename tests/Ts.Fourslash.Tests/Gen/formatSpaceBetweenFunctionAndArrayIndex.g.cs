@@ -37,7 +37,7 @@ test() [0]
 """;
         using var f = FourslashTest.New(content, fileName: "formatSpaceBetweenFunctionAndArrayIndex", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -47,6 +47,6 @@ test() [0]
 
     test()[0]
 
-    """)
+    """);
     }
 }

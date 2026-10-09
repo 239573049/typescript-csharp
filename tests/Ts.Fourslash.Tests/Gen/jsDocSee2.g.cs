@@ -42,6 +42,6 @@ const f = ""
 const g = ""
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocSee2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use1", "use2", "use3", "use4", "use5", "use6", "use7")
+    f.VerifyBaselineGoToDefinition(true, "use1", "use2", "use3", "use4", "use5", "use6", "use7");
     }
 }

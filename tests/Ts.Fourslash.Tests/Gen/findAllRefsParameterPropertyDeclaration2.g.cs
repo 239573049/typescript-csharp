@@ -34,6 +34,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsParameterPropertyDeclaration2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
     }
 }

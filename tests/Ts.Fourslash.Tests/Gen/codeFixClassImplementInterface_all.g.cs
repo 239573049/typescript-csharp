@@ -52,6 +52,6 @@ class D implements J {}
         }
     }
     """,
-    })
+    });
     }
 }

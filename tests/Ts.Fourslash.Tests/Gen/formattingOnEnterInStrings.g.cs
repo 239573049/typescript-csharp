@@ -29,14 +29,14 @@ public class FormattingOnEnterInStringsTests
 var x = /*1*/"unclosed string literal\/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnEnterInStrings", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var x = \"unclosed string literal\\")
+    f.VerifyCurrentLineContent("var x = \"unclosed string literal\\");
     }
 }

@@ -57,6 +57,6 @@ final/*10*/ly {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesTryCatchFinallyBroken", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

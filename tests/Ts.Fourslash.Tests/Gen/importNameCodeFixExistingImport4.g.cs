@@ -39,6 +39,6 @@ export default var d1 = 6;
     import d, { f1 } from "./module";
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

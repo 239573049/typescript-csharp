@@ -41,18 +41,18 @@ var p/*5*/3 = p2.then(function (x/*6*/x) {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "promiseTyping2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var p1: IPromise<number>", "")
+    f.VerifyQuickInfoAt("1", "var p1: IPromise<number>", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) xx: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) xx: number", "");
 
-    f.VerifyQuickInfoAt("3", "var p2: IPromise<string>", "")
+    f.VerifyQuickInfoAt("3", "var p2: IPromise<string>", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) xx: number", "")
+    f.VerifyQuickInfoAt("4", "(parameter) xx: number", "");
 
-    f.VerifyQuickInfoAt("5", "var p3: IPromise<string>", "")
+    f.VerifyQuickInfoAt("5", "var p3: IPromise<string>", "");
 
-    f.VerifyQuickInfoAt("6", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("6", "(parameter) xx: string", "");
 
-    f.VerifyQuickInfoAt("7", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("7", "(parameter) xx: string", "");
     }
 }

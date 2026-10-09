@@ -57,6 +57,6 @@ class C<U extends A, T extends A> {
     ],
         },
         
-    })
+    });
     }
 }

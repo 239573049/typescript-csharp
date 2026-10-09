@@ -32,10 +32,10 @@ declare namespace M {
 declare var x: number;
 """;
         using var f = FourslashTest.New(content, fileName: "ambientVariablesWithSameName", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

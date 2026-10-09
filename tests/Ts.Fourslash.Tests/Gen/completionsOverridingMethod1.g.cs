@@ -59,6 +59,6 @@ class HSub extends HBase {
     ],
         },
         
-    })
+    });
     }
 }

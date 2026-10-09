@@ -40,7 +40,7 @@ import "mobx";
 // @link: /node_modules/.pnpm/mobx@6.0.4/node_modules/mobx -> /node_modules/.pnpm/cool-mobx-dependent@1.2.3/node_modules/mobx
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPnpm", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -48,6 +48,6 @@ import "mobx";
 
     autorun
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

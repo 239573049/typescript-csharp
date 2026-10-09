@@ -35,6 +35,6 @@ declare namespace JSX {
 </**/a:b a="accepted" b="rejected" />;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnJsxNamespacedName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

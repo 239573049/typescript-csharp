@@ -41,6 +41,6 @@ for (obj/**/.prop of arr) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "processInvalidSyntax1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

@@ -50,9 +50,9 @@ const x: /**/
 
     const x: 
     """,
-    })
+    });
 
-    f.Insert("I = new C")
+    f.Insert("I = new C");
 
     f.VerifyApplyCodeActionFromCompletion(null, new ApplyCodeActionFromCompletionOptions
     {
@@ -68,6 +68,6 @@ const x: /**/
 
     const x: I = new C
     """,
-    })
+    });
     }
 }

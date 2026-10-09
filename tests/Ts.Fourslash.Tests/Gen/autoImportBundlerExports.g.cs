@@ -42,6 +42,6 @@ export const dep: number;
 dep/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportBundlerExports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"dep"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"dep"}, null /*preferences*/);
     }
 }

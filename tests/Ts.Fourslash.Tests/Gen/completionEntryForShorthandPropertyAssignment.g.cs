@@ -48,6 +48,6 @@ var person: {name:string; id:number} = {n/**/
     ],
         },
         
-    })
+    });
     }
 }

@@ -36,8 +36,8 @@ var i: I1;
 var n: number = i.p1;
 """;
         using var f = FourslashTest.New(content, fileName: "exportEqualsInterfaceA", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("import I1 = require(\"exportEqualsInterface_A\");")
+    f.Insert("import I1 = require(\"exportEqualsInterface_A\");");
     }
 }

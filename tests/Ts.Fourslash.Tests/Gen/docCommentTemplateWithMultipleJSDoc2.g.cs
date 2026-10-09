@@ -41,6 +41,6 @@ function foo(x, y, z) {}
      * @param y
      * @param z
      */
-    """, null)
+    """, null);
     }
 }

@@ -32,6 +32,6 @@ var /*A*/f: {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnErrorTypes1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("A", "var f: {\n    (): any;\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("A", "var f: {\n    (): any;\n    x: number;\n}", "");
     }
 }

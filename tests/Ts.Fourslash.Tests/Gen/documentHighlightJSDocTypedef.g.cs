@@ -43,6 +43,6 @@ const x = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightJSDocTypedef", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

@@ -33,13 +33,13 @@ export default function fooBar();
 foo/**/Bar|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixDefaultExport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
     import fooBar, * as fb from "./foo-bar";
     fooBar
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

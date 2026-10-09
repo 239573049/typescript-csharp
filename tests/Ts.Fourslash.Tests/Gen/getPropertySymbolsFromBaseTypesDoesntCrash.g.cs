@@ -32,6 +32,6 @@ class ClassA implements IInterface {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getPropertySymbolsFromBaseTypesDoesntCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

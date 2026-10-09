@@ -51,6 +51,6 @@ export type MyUnion = string | number;
     ],
         },
         
-    })
+    });
     }
 }

@@ -36,13 +36,13 @@ export {};
 const x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_importType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.js")
+    f.GoToFile("/b.js");
 
     f.VerifyImportFixAtPosition([
     """
     /** @type {import("./a").T} */
     const x = 0;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

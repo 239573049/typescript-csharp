@@ -74,6 +74,6 @@ BrowserRouter/**/
     ], false),
         },
         
-    })
+    });
     }
 }

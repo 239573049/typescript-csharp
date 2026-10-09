@@ -108,6 +108,6 @@ foo[|([|
 )|]
 """;
         using var f = FourslashTest.New(content, fileName: "outliningSpansForFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

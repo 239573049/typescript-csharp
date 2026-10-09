@@ -40,6 +40,6 @@ var /*12*/x = /*13*/m1./*14*/m2;
 var /*15*/y: typeof /*16*/m1./*17*/m2;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsModules", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

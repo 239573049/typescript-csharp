@@ -38,10 +38,10 @@ function literal1Example(e: Literal1Example) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("literal1", "(index) Literal1Example[`prefix${string}`]: string | number", "")
+    f.VerifyQuickInfoAt("literal1", "(index) Literal1Example[`prefix${string}`]: string | number", "");
 
-    f.VerifyQuickInfoAt("literal2", "any", "")
+    f.VerifyQuickInfoAt("literal2", "any", "");
 
-    f.VerifyQuickInfoAt("literal3", "(index) Literal1Example[`prefix${string}` | `prefix${number}`]: number", "Something else")
+    f.VerifyQuickInfoAt("literal3", "(index) Literal1Example[`prefix${string}` | `prefix${number}`]: number", "Something else");
     }
 }

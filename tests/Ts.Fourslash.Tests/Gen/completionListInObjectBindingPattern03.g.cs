@@ -35,6 +35,6 @@ var foo: I;
 var { property1: /**/ } = foo;
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInObjectBindingPattern03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

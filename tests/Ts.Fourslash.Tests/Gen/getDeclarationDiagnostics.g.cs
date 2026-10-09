@@ -41,12 +41,12 @@ namespace m {
 var x = "hello world"; /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "getDeclarationDiagnostics", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
     }
 }

@@ -54,6 +54,6 @@ const m/*m*/: TreeNode<number> = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityRecursiveType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["N"] = new[]{0}, ["n"] = new[]{0, 1}, ["t"] = new[]{0, 1}, ["m"] = new[]{0, 1, 2}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["N"] = new[]{0}, ["n"] = new[]{0, 1}, ["t"] = new[]{0, 1}, ["m"] = new[]{0, 1, 2}});
     }
 }

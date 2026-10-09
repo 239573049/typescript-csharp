@@ -35,11 +35,11 @@ var /*4*/point = makePoint(2);
 var /*2*/x = point./*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnObjectLiteralWithOnlyGetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function makePoint(x: number): {\n    readonly x: number;\n}", "")
+    f.VerifyQuickInfoAt("1", "function makePoint(x: number): {\n    readonly x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("2", "var x: number", "")
+    f.VerifyQuickInfoAt("2", "var x: number", "");
 
-    f.VerifyQuickInfoAt("4", "var point: {\n    readonly x: number;\n}", "")
+    f.VerifyQuickInfoAt("4", "var point: {\n    readonly x: number;\n}", "");
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -60,6 +60,6 @@ var /*2*/x = point./*3*/x;
     ],
         },
         
-    })
+    });
     }
 }

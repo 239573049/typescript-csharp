@@ -39,6 +39,6 @@ export {};
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixTopLevelForAwait_target_compatibleCompilerOptionsInTsConfig", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

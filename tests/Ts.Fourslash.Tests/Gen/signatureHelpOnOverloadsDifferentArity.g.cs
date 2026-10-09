@@ -34,11 +34,11 @@ declare function f(n: number, b: boolean);
 f(1/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnOverloadsDifferentArity", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number): any", ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 4 })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number): any", ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 4 });
 
-    f.Insert(", ")
+    f.Insert(", ");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number, b: boolean): any", ParameterName = "b", ParameterSpan = "b: boolean", OverloadsCount = 4 })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number, b: boolean): any", ParameterName = "b", ParameterSpan = "b: boolean", OverloadsCount = 4 });
     }
 }

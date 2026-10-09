@@ -33,8 +33,8 @@ var /*1*/x = new C<any>(); // Quick Info for x is C<any>
 var /*2*/y = C.prototype; // Quick Info for y is C<{}>
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTypedGenericPrototypeMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var x: C<any>", "")
+    f.VerifyQuickInfoAt("1", "var x: C<any>", "");
 
-    f.VerifyQuickInfoAt("2", "var y: C<any>", "")
+    f.VerifyQuickInfoAt("2", "var y: C<any>", "");
     }
 }

@@ -42,8 +42,8 @@ const o = { x: [[|.|][||]/**/
     Message = LsProto.StringOrMarkupContent.FromString("Identifier expected."),
     Range = f.Ranges()[1].LSRange,
     },
-    ])
+    ]);
 
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

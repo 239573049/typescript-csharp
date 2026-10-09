@@ -60,7 +60,7 @@ var y = 10; y=/*var12*/
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"var2", "var3", "var4", "var5", "var6", "var7", "var8", "var9", "var10", "var11", "var12", }, new CompletionsExpectedList
     {
@@ -80,6 +80,6 @@ var y = 10; y=/*var12*/
     ], false),
         },
         
-    })
+    });
     }
 }

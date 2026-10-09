@@ -30,6 +30,6 @@ namespace m { export enum Color { Red } }
 var /**/t = m.Color.Red + 1;
 """;
         using var f = FourslashTest.New(content, fileName: "enumAddition", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var t: number", "")
+    f.VerifyQuickInfoAt("", "var t: number", "");
     }
 }

@@ -52,7 +52,7 @@ import "react";
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_duplicatePackages_scopedTypesAndNotTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -95,6 +95,6 @@ import "react";
     ], false),
         },
         
-    })
+    });
     }
 }

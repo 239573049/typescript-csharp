@@ -33,7 +33,7 @@ export interface Foo {}
 [|import { type F/**/ }|]
 """;
         using var f = FourslashTest.New(content, fileName: "importTypeCompletions8", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/bar.ts")
+    f.GoToFile("/bar.ts");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ export interface Foo {}
     ],
         },
         
-    })
+    });
     }
 }

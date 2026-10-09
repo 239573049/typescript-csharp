@@ -48,6 +48,6 @@ test2({
 });
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionObjectLiteralProperties3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2")
+    f.VerifyBaselineGoToDefinition(true, "1", "2");
     }
 }

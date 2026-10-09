@@ -31,8 +31,8 @@ var x;
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "insertVarAfterEmptyTypeParamList", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("var y;\n")
+    f.Insert("var y;\n");
     }
 }

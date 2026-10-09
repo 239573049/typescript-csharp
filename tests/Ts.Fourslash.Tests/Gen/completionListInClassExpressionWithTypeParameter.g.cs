@@ -50,7 +50,7 @@ var x = class myClass <TypeParam> {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"0Type", "1", }, new CompletionsExpectedList
     {
@@ -72,6 +72,6 @@ var x = class myClass <TypeParam> {
     ],
         },
         
-    })
+    });
     }
 }

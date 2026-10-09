@@ -30,6 +30,6 @@ public class CodeFixAddParameterNames2Tests
 type Rest = ([|...number|]) => void;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddParameterNames2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("...arg0: number[]", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("...arg0: number[]", false, 0, 0);
     }
 }

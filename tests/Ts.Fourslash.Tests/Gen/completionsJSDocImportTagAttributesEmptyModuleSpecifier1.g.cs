@@ -52,6 +52,6 @@ interface ImportAttributes {
     ],
         },
         
-    })
+    });
     }
 }

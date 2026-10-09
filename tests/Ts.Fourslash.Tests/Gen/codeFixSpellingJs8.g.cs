@@ -34,6 +34,6 @@ var locals = {}
 Object.keys(locale)
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingJs8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

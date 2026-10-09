@@ -34,6 +34,6 @@ import /*3*/a from "./a";
 /*4*/a;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport04", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "2", "1", "3", "4")
+    f.VerifyBaselineFindAllReferences("0", "2", "1", "3", "4");
     }
 }

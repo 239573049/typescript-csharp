@@ -34,6 +34,6 @@ function greeter() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedLocalsInFunction3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("var x,z = 1;", false, 6133, 0)
+    f.VerifyRangeAfterCodeFix("var x,z = 1;", false, 6133, 0);
     }
 }

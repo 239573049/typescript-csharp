@@ -37,12 +37,12 @@ namespace Y {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameModuleToVar", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Backspace(6)
+    f.Backspace(6);
 
-    f.Insert("var")
+    f.Insert("var");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

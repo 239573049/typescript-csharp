@@ -57,6 +57,6 @@ class TwoStore implements Two {[| |]}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

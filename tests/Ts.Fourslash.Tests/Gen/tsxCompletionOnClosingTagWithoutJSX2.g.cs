@@ -47,7 +47,7 @@ var x1 = <div>
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -64,6 +64,6 @@ var x1 = <div>
     ],
         },
         
-    })
+    });
     }
 }

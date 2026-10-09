@@ -47,6 +47,6 @@ let opt2 = <[|Op/*three*/t|] propx={100} [|opt/*p2*/ional|] />;
 let opt3 = <[|Op/*four*/t|] wr/*p3*/ong />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionStatelessFunction1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "one", "two", "three", "four", "p1", "p2")
+    f.VerifyBaselineGoToDefinition(true, "one", "two", "three", "four", "p1", "p2");
     }
 }

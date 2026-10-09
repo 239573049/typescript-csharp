@@ -31,6 +31,6 @@ public class RenameLabel2Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameLabel2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

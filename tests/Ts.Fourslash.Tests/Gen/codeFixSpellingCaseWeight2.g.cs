@@ -31,6 +31,6 @@ let abcdefghij = 1;
 [|abcdefghi|]
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingCaseWeight2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("ABCDEFGHI", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("ABCDEFGHI", false, 0, 0);
     }
 }

@@ -101,7 +101,7 @@ writeFile/*test2*/
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions("prefix", new CompletionsExpectedList
     {
@@ -144,7 +144,7 @@ writeFile/*test2*/
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions("mixed1", new CompletionsExpectedList
     {
@@ -187,7 +187,7 @@ writeFile/*test2*/
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions("mixed2", new CompletionsExpectedList
     {
@@ -230,11 +230,11 @@ writeFile/*test2*/
     ], false),
         },
         
-    })
+    });
 
-    f.VerifyImportFixModuleSpecifiers("test1", new[]{"fs", "fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("test1", new[]{"fs", "fs/promises"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("test2", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("test2", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
 
     f.VerifyCompletions("test1", new CompletionsExpectedList
     {
@@ -277,7 +277,7 @@ writeFile/*test2*/
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions("test2", new CompletionsExpectedList
     {
@@ -320,6 +320,6 @@ writeFile/*test2*/
     ], false),
         },
         
-    })
+    });
     }
 }

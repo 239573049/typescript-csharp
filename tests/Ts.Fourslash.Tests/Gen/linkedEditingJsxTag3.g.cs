@@ -55,6 +55,6 @@ public class LinkedEditingJsxTag3Tests
     ["13"] = null,
     ["14"] = null,
     ["15"] = null,
-    })
+    });
     }
 }

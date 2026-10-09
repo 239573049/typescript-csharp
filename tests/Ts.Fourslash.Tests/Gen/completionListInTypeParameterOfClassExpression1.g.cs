@@ -34,7 +34,7 @@ var C3 = class D<T, /*3*/U>{}
 var C4 = class D<T extends /*4*/>{}
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInTypeParameterOfClassExpression1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"0", "1", "2", "3", }, null)
+    f.VerifyCompletions(new[]{"0", "1", "2", "3", }, null);
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ var C4 = class D<T extends /*4*/>{}
     ]),
         },
         
-    })
+    });
     }
 }

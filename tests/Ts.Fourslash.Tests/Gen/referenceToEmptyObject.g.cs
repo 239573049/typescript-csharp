@@ -31,6 +31,6 @@ const obj = {}/*1*/;
 """;
         using var f = FourslashTest.New(content, fileName: "referenceToEmptyObject", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

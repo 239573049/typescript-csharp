@@ -39,6 +39,6 @@ export interface Interface {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImportedNames6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "moduleAliasDefinition")
+    f.VerifyBaselineGoToDefinition(true, "moduleAliasDefinition");
     }
 }

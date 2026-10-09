@@ -31,6 +31,6 @@ let x = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionShorthandProperty02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

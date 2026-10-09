@@ -33,6 +33,6 @@ function /*end*/foo(a: any, b: any): any {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionReturn7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

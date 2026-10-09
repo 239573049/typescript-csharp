@@ -159,6 +159,6 @@ class cWithConstructorProperty {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCommentsClassMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

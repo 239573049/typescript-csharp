@@ -31,6 +31,6 @@ public class FindAllRefsWithLeadingUnderscoreNames9Tests
 })
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsWithLeadingUnderscoreNames9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

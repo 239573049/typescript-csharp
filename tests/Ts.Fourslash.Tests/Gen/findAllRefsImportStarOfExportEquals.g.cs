@@ -43,14 +43,14 @@ public class FindAllRefsImportStarOfExportEqualsTests
 /*c2*/[|a|].x;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsImportStarOfExportEquals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("a0", "a1", "a2", "b0", "b1", "c0", "c1", "c2")
+    f.VerifyBaselineFindAllReferences("a0", "a1", "a2", "b0", "b1", "c0", "c1", "c2");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[5])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[5]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8], f.Ranges()[9])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8], f.Ranges()[9]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[11], f.Ranges()[12], f.Ranges()[13])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[11], f.Ranges()[12], f.Ranges()[13]);
     }
 }

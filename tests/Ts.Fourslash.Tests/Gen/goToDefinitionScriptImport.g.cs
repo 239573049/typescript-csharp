@@ -37,6 +37,6 @@ import [|/*1*/"./scriptThing"|];
 import [|/*2*/"./stylez.css"|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionScriptImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2")
+    f.VerifyBaselineGoToDefinition(true, "1", "2");
     }
 }

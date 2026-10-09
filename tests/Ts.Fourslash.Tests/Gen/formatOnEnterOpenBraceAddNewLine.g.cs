@@ -31,11 +31,11 @@ if(false)/*1*/{
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatOnEnterOpenBraceAddNewLine", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue });
 
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
     f.VerifyCurrentFileContent("""
     if (true)
@@ -43,11 +43,11 @@ if(false)/*1*/{
     }
     if(false){
     }
-    """)
+    """);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
     f.VerifyCurrentFileContent("""
     if (true)
@@ -56,6 +56,6 @@ if(false)/*1*/{
     if (false)
     {
     }
-    """)
+    """);
     }
 }

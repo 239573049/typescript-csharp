@@ -34,6 +34,6 @@ var i: I;
 var /**/r = i[1];
 """;
         using var f = FourslashTest.New(content, fileName: "duplicateIndexers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var r: string", "")
+    f.VerifyQuickInfoAt("", "var r: string", "");
     }
 }

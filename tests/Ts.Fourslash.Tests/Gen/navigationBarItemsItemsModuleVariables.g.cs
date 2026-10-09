@@ -43,12 +43,12 @@ namespace Module1 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsItemsModuleVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("file1")
+    f.GoToMarker("file1");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToMarker("file2")
+    f.GoToMarker("file2");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

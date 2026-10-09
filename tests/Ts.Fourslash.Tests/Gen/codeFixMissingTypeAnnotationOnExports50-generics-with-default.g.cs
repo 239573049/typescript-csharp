@@ -41,6 +41,6 @@ export const y = x;
     export const y: Iterator<number> = x;
     """,
         Index = 0,
-    })
+    });
     }
 }

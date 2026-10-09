@@ -38,6 +38,6 @@ const client = getClient();
     IncludeInlayVariableTypeHints = Core.TSTrue,
     IncludeInlayVariableTypeHintsWhenTypeMatchesName = Core.TSFalse,
     },
-    })
+    });
     }
 }

@@ -46,6 +46,6 @@ class D {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinition_super", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "super", "superExpression", "superBroken")
+    f.VerifyBaselineGoToDefinition(true, "super", "superExpression", "superBroken");
     }
 }

@@ -34,6 +34,6 @@ class C extends (foo()).[|/*B*/B|] {}
 class C1 extends foo().[|/*B1*/B|] {}
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionPropertyAccessExpressionHeritageClause", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "B", "B1")
+    f.VerifyBaselineGoToDefinition(true, "B", "B1");
     }
 }

@@ -41,6 +41,6 @@ export interface A { }
 function f(a) {}
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsDocImportTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

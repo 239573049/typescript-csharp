@@ -55,6 +55,6 @@ add/*imports*/;
 external/*exports*/;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportAllowImportingTsExtensionsPackageJsonImports2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("imports", new[]{"#add.js"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("imports", new[]{"#add.js"}, null /*preferences*/);
     }
 }

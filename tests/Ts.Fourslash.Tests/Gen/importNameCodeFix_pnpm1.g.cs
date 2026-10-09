@@ -36,14 +36,14 @@ Component/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_pnpm1", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { Component } from "react";
-    
+
     Component
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

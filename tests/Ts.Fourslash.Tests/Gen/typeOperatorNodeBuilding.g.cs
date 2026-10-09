@@ -41,8 +41,8 @@ const /*2*/utilityFunctions = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "typeOperatorNodeBuilding", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const utilityFunctions: {\n    doSomethingWithKeys: <T>(...keys: (keyof T)[]) => void;\n}", "")
+    f.VerifyQuickInfoAt("1", "const utilityFunctions: {\n    doSomethingWithKeys: <T>(...keys: (keyof T)[]) => void;\n}", "");
 
-    f.VerifyQuickInfoAt("2", "const utilityFunctions: {\n    doSomethingWithTypes: (...statics: (typeof Foo)[]) => void;\n}", "")
+    f.VerifyQuickInfoAt("2", "const utilityFunctions: {\n    doSomethingWithTypes: (...statics: (typeof Foo)[]) => void;\n}", "");
     }
 }

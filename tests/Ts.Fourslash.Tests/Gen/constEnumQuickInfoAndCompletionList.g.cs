@@ -53,10 +53,10 @@ const enum /*1*/e {
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("1", "const enum e", "")
+    f.VerifyQuickInfoAt("1", "const enum e", "");
 
-    f.VerifyQuickInfoAt("2", "const enum e", "")
+    f.VerifyQuickInfoAt("2", "const enum e", "");
     }
 }

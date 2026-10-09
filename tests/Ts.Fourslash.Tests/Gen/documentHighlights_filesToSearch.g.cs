@@ -32,6 +32,6 @@ export const [|x|] = 0;
 import { [|x|] } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights_filesToSearch", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

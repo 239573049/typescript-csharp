@@ -36,6 +36,6 @@ foo;
 let asd: Props = { "foo"/**/: true }; // rename foo here
 """;
         using var f = FourslashTest.New(content, fileName: "renameStringPropertyNames2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

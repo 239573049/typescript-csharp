@@ -38,6 +38,6 @@ var a: /*3*/alias.Bar; // namespace
 /*4*/alias.call(this); // value
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForMergedDeclarations2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

@@ -45,22 +45,22 @@ var obj1: D;
 var obj2: ref2.E;
 """;
         using var f = FourslashTest.New(content, fileName: "getPreProcessedFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("main.ts")
+    f.GoToFile("main.ts");
 
-    f.VerifyNumberOfErrorsInCurrentFile(7)
+    f.VerifyNumberOfErrorsInCurrentFile(7);
 
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyErrorExistsBetweenMarkers("3", "4")
+    f.VerifyErrorExistsBetweenMarkers("3", "4");
 
-    f.VerifyErrorExistsBetweenMarkers("5", "6")
+    f.VerifyErrorExistsBetweenMarkers("5", "6");
 
-    f.VerifyErrorExistsBetweenMarkers("7", "8")
+    f.VerifyErrorExistsBetweenMarkers("7", "8");
 
-    f.VerifyErrorExistsBetweenMarkers("9", "10")
+    f.VerifyErrorExistsBetweenMarkers("9", "10");
 
-    f.VerifyErrorExistsBetweenMarkers("10", "10A")
+    f.VerifyErrorExistsBetweenMarkers("10", "10A");
 
-    f.VerifyErrorExistsBetweenMarkers("11", "12")
+    f.VerifyErrorExistsBetweenMarkers("11", "12");
     }
 }

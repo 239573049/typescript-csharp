@@ -34,8 +34,8 @@ var mod = require('./a');
 var t = mod./*1*/[|area|](10);
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsExports01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
 
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "area")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "area");
     }
 }

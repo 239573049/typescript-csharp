@@ -32,6 +32,6 @@ type Bar<T> = T extends { a: (x: infer /*1*/) => void; b: (x: infer U/*2*/) => v
    : never;
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtIdentifierDefinitionLocations_infers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

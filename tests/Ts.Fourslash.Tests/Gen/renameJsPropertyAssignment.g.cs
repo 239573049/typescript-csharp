@@ -34,6 +34,6 @@ function bar() {
 console.log(bar.[|foo|]);
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsPropertyAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "foo")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "foo");
     }
 }

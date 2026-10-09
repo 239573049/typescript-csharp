@@ -38,8 +38,8 @@ export class D extends C {
 new C().m/**/ // and here (with a different thing trying to access undefined)
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInheritedLinkTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

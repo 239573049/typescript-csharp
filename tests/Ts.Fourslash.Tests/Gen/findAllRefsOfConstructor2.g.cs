@@ -44,8 +44,8 @@ const c = new C();
 const d = new D();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOfConstructor2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("a", "b", "c")
+    f.VerifyBaselineFindAllReferences("a", "b", "c");
     }
 }

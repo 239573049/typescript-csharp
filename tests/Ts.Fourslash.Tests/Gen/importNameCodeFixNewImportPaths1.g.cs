@@ -46,6 +46,6 @@ export function foo() {};
 
     foo();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

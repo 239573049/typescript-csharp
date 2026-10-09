@@ -36,14 +36,14 @@ new ViewJayEss({
 });
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpFilteredTriggers03", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("(")
+    f.Insert("(");
 
-    f.VerifyNoSignatureHelpWithContext(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.TriggerCharacter, TriggerCharacter = "(", IsRetrigger = false })
+    f.VerifyNoSignatureHelpWithContext(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.TriggerCharacter, TriggerCharacter = "(", IsRetrigger = false });
 
-    f.Insert(") {},")
+    f.Insert(") {},");
 
-    f.VerifyNoSignatureHelpWithContext(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.TriggerCharacter, TriggerCharacter = ",", IsRetrigger = false })
+    f.VerifyNoSignatureHelpWithContext(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.TriggerCharacter, TriggerCharacter = ",", IsRetrigger = false });
     }
 }

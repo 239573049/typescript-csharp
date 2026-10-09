@@ -45,6 +45,6 @@ class MappedImpl implements MappedIndirect { }
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

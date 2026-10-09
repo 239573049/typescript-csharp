@@ -45,8 +45,8 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) y1: () => string", "")
+    f.VerifyQuickInfoAt("1", "(property) y1: () => string", "");
 
-    f.VerifyQuickInfoAt("2", "var value: number", "")
+    f.VerifyQuickInfoAt("2", "var value: number", "");
     }
 }

@@ -31,8 +31,8 @@ let x = <div>
     /*$*/</div >
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnClosingJsx", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("$")
+    f.GoToMarker("$");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
     }
 }

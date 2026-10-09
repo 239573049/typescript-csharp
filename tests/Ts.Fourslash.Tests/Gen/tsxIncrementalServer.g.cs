@@ -31,22 +31,22 @@ public class TsxIncrementalServerTests
 """;
         using var f = FourslashTest.New(content, fileName: "tsxIncrementalServer", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("<")
+    f.Insert("<");
 
-    f.Insert("div")
+    f.Insert("div");
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.Insert(" id")
+    f.Insert(" id");
 
-    f.Insert("=")
+    f.Insert("=");
 
-    f.Insert("\"foo")
+    f.Insert("\"foo");
 
-    f.Insert("\"")
+    f.Insert("\"");
 
-    f.Insert(">")
+    f.Insert(">");
     }
 }

@@ -53,7 +53,7 @@ function foo() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -79,7 +79,7 @@ function foo() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -105,16 +105,16 @@ function foo() {
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("1", "let a: number", "")
+    f.VerifyQuickInfoAt("1", "let a: number", "");
 
-    f.VerifyQuickInfoAt("2", "let a: number", "")
+    f.VerifyQuickInfoAt("2", "let a: number", "");
 
-    f.VerifyQuickInfoAt("3", "let b: number", "")
+    f.VerifyQuickInfoAt("3", "let b: number", "");
 
-    f.VerifyQuickInfoAt("4", "let b: number", "")
+    f.VerifyQuickInfoAt("4", "let b: number", "");
 
-    f.VerifyQuickInfoAt("5", "let a: number", "")
+    f.VerifyQuickInfoAt("5", "let a: number", "");
     }
 }

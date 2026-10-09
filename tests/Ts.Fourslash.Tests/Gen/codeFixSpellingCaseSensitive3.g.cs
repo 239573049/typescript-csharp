@@ -31,6 +31,6 @@ let node = new Node();
 [|nodes|]
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingCaseSensitive3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("node", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("node", false, 0, 0);
     }
 }

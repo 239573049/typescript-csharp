@@ -37,9 +37,9 @@ catch (e) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatIfTryCatchBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     try
@@ -55,6 +55,6 @@ catch (e) {
     catch (e)
     {
     }
-    """)
+    """);
     }
 }

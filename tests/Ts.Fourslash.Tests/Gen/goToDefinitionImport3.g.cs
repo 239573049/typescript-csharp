@@ -32,6 +32,6 @@ public class GoToDefinitionImport3Tests
 import { foo } [|from     /*1*/|] "./b";
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImport3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

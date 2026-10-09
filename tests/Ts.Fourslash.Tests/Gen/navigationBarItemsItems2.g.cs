@@ -29,12 +29,12 @@ public class NavigationBarItemsItems2Tests
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsItems2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.InsertLine("module A")
+    f.InsertLine("module A");
 
-    f.Insert("export class ")
+    f.Insert("export class ");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

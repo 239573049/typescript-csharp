@@ -34,6 +34,6 @@ public class RenameCrossJsTs01Tests
 var t = [|area|](10);
 """;
         using var f = FourslashTest.New(content, fileName: "renameCrossJsTs01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4]);
     }
 }

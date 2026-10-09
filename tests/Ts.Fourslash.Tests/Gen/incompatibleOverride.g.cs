@@ -37,12 +37,12 @@ class /*5*/Baf/*6*/ extends Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "incompatibleOverride", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyErrorExistsBetweenMarkers("3", "4")
+    f.VerifyErrorExistsBetweenMarkers("3", "4");
 
-    f.VerifyErrorExistsBetweenMarkers("5", "6")
+    f.VerifyErrorExistsBetweenMarkers("5", "6");
 
-    f.VerifyNumberOfErrorsInCurrentFile(3)
+    f.VerifyNumberOfErrorsInCurrentFile(3);
     }
 }

@@ -36,7 +36,7 @@ a(b, d);
     a(b, d);
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

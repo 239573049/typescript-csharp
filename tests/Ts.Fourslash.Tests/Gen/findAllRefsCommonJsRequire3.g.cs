@@ -35,6 +35,6 @@ const { f } = require('./a')
 /**/f
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsCommonJsRequire3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

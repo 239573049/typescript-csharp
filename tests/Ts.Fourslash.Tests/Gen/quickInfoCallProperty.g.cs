@@ -35,6 +35,6 @@ function f(x: I): void {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCallProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) I.m: () => void", "Doc")
+    f.VerifyQuickInfoAt("", "(property) I.m: () => void", "Doc");
     }
 }

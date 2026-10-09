@@ -36,13 +36,13 @@ import a from "./a";
 [|b|];
 """;
         using var f = FourslashTest.New(content, fileName: "importFixes_quotePreferenceDouble_importHelpers", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/test.ts")
+    f.GoToFile("/test.ts");
 
     f.VerifyImportFixAtPosition([
     """
     import b from "./b";
     b
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

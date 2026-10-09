@@ -33,10 +33,10 @@ public class FindAllRefsRenameImportWithSameNameTests
 /*3*/[|x|];
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsRenameImportWithSameName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4], f.Ranges()[5])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4], f.Ranges()[5]);
     }
 }

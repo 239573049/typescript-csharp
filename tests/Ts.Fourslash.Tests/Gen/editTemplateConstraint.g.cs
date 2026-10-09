@@ -32,10 +32,10 @@ public class EditTemplateConstraintTests
 function f() {}
 """;
         using var f = FourslashTest.New(content, fileName: "editTemplateConstraint", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("n")
+    f.Insert("n");
 
-    f.Insert("u")
+    f.Insert("u");
     }
 }

@@ -40,6 +40,6 @@ export const c = [...foo()];
     export const c: number[] = [...foo()];
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -33,6 +33,6 @@ const foo = `
 `
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightMultilineTemplateStrings", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0]);
     }
 }

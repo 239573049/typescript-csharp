@@ -33,6 +33,6 @@ function shadowVariableTestModule() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionShadowVariable", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "shadowVariableReference")
+    f.VerifyBaselineGoToDefinition(false, "shadowVariableReference");
     }
 }

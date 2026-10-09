@@ -38,7 +38,7 @@ class c {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "memberListInWithBlock", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("1", null)
+    f.VerifyCompletions("1", null);
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -60,6 +60,6 @@ class c {
     ],
         },
         
-    })
+    });
     }
 }

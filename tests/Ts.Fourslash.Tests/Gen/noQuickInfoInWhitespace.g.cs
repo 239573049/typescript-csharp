@@ -37,16 +37,16 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "noQuickInfoInWhitespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
     }
 }

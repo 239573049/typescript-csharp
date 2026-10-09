@@ -38,6 +38,6 @@ function f({ foo }: Options) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForObjectBindingElementName03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

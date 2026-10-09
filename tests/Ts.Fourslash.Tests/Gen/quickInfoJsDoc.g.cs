@@ -86,6 +86,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDoc", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -64,62 +64,62 @@ var x :/*12*/
 {};/*13*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOfMultilineBlockConstructs", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("namespace InternalModule {")
+    f.VerifyCurrentLineContent("namespace InternalModule {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("interface MyInterface {")
+    f.VerifyCurrentLineContent("interface MyInterface {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("enum E {")
+    f.VerifyCurrentLineContent("enum E {");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("class MyClass {")
+    f.VerifyCurrentLineContent("class MyClass {");
 
-    f.GoToMarker("cons")
+    f.GoToMarker("cons");
 
-    f.VerifyCurrentLineContent("    constructor() { }")
+    f.VerifyCurrentLineContent("    constructor() { }");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    public MyFunction() {")
+    f.VerifyCurrentLineContent("    public MyFunction() {");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    public get Getter() {")
+    f.VerifyCurrentLineContent("    public get Getter() {");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    public set Setter(x) {")
+    f.VerifyCurrentLineContent("    public set Setter(x) {");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("function foo() {")
+    f.VerifyCurrentLineContent("function foo() {");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("    { }")
+    f.VerifyCurrentLineContent("    { }");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("(function() {")
+    f.VerifyCurrentLineContent("(function() {");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("(() => {")
+    f.VerifyCurrentLineContent("(() => {");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("var x:")
+    f.VerifyCurrentLineContent("var x:");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("    {};")
+    f.VerifyCurrentLineContent("    {};");
     }
 }

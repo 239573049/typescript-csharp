@@ -44,6 +44,6 @@ interface MassMarksCustomData extends AMap.MassMarks./*1*/Data {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoForNamespaceMergeWithClassConstrainedToSelf", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "interface AMap.MassMarks<D extends AMap.MassMarks.Data = AMap.MassMarks.Data>.Data", "")
+    f.VerifyQuickInfoAt("1", "interface AMap.MassMarks<D extends AMap.MassMarks.Data = AMap.MassMarks.Data>.Data", "");
     }
 }

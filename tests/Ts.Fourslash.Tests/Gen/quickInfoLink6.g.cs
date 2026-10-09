@@ -33,6 +33,6 @@ const A = 123;
 const /**/B = 456;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoLink6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

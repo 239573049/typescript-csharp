@@ -57,6 +57,6 @@ const value = "test";
     ],
         },
         
-    })
+    });
     }
 }

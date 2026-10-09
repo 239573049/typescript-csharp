@@ -31,6 +31,6 @@ let p, b;
 p, [{ /*1*/a: p, b }] = [{ a: 10, b: true }];
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsObjectBindingElementPropertyName07", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

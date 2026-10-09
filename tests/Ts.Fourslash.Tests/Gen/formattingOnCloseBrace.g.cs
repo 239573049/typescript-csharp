@@ -30,12 +30,12 @@ class foo    {
     /**/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnCloseBrace", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.VerifyCurrentLineContent("class foo {")
+    f.VerifyCurrentLineContent("class foo {");
     }
 }

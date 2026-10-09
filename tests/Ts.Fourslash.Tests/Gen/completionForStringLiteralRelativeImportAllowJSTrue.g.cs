@@ -74,6 +74,6 @@ var foo6 = require("./f/*require1*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -36,6 +36,6 @@ var { x, ...rest } = t;
 rest.[|parent|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameRest", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "parent")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "parent");
     }
 }

@@ -41,6 +41,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDecoratorOverloads", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "useDecString", "useDecSymbol")
+    f.VerifyBaselineGoToDefinition(true, "useDecString", "useDecSymbol");
     }
 }

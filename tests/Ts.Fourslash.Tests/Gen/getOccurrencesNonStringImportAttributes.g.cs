@@ -31,6 +31,6 @@ import * as react from "react" with { cache: /**/0 };
 react.Children;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesNonStringImportAttributes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "");
     }
 }

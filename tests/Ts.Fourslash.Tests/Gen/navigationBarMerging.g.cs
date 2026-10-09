@@ -55,18 +55,18 @@ namespace A { export var x; }
 namespace A.B { export var y; }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarMerging", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("file2.ts")
+    f.GoToFile("file2.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("file3.ts")
+    f.GoToFile("file3.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("file4.ts")
+    f.GoToFile("file4.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

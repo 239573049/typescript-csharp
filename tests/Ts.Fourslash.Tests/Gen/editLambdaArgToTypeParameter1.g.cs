@@ -34,18 +34,18 @@ class C<T> {
 /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "editLambdaArgToTypeParameter1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Backspace(6)
+    f.Backspace(6);
 
-    f.Insert("T")
+    f.Insert("T");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

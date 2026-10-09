@@ -35,6 +35,6 @@ var foo: I;
 [|var { [|{| "contextRangeIndex": 2 |}property1|]: prop1 } = foo;|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameObjectBindingElementPropertyName01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "property1")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "property1");
     }
 }

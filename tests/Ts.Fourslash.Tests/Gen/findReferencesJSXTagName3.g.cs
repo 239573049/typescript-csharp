@@ -46,10 +46,10 @@ const x = [|<[|/*7*/Comp|]>
 </[|/*8*/Comp|]>|];
 """;
         using var f = FourslashTest.New(content, fileName: "findReferencesJSXTagName3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8");
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[1], f.Ranges()[5], f.Ranges()[7], f.Ranges()[8], f.Ranges()[9])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[1], f.Ranges()[5], f.Ranges()[7], f.Ranges()[8], f.Ranges()[9]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[3], f.Ranges()[11], f.Ranges()[12])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[3], f.Ranges()[11], f.Ranges()[12]);
     }
 }

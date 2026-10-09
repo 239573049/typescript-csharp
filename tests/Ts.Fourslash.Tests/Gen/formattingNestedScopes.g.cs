@@ -35,34 +35,34 @@ public class FormattingNestedScopesTests
 /*7*/      }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingNestedScopes", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("namespace My.App {")
+    f.VerifyCurrentLineContent("namespace My.App {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    export var appModule = angular.module(\"app\", [")
+    f.VerifyCurrentLineContent("    export var appModule = angular.module(\"app\", [");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    ]).config([() => {")
+    f.VerifyCurrentLineContent("    ]).config([() => {");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("        configureStates")
+    f.VerifyCurrentLineContent("        configureStates");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("            ($stateProvider);")
+    f.VerifyCurrentLineContent("            ($stateProvider);");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    }]).run(My.App.setup);")
+    f.VerifyCurrentLineContent("    }]).run(My.App.setup);");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

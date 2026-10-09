@@ -41,6 +41,6 @@ declare namespace debug {
 export const debug: typeof import('../bundles/utils/node_modules//*1*/@types/debug') = require('./utilsBundleImpl').debug;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesIsAvailableThroughGlobalNoCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

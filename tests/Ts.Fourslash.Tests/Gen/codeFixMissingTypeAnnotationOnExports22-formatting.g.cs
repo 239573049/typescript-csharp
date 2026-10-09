@@ -35,7 +35,7 @@ public class CodeFixMissingTypeAnnotationOnExports22_formattingTests
 export function foo(){}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports22-formatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Add return type 'void'"})
+    f.VerifyCodeFixAvailable(new[]{"Add return type 'void'"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -47,6 +47,6 @@ export function foo(){}
     export function foo(): void{}
     """,
         Index = 0,
-    })
+    });
     }
 }

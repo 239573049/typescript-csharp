@@ -31,6 +31,6 @@ function f2() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_function2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

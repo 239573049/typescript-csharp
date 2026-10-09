@@ -80,6 +80,6 @@ public class QuickinfoVerbosityClass1Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityClass1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["f1"] = new[]{0, 1}, ["f2"] = new[]{0, 1, 2}, ["f3"] = new[]{0, 1}, ["b1"] = new[]{0, 1}, ["f4"] = new[]{0, 1}, ["n1"] = new[]{0, 1}, ["k1"] = new[]{0, 1}, ["B"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["f1"] = new[]{0, 1}, ["f2"] = new[]{0, 1, 2}, ["f3"] = new[]{0, 1}, ["b1"] = new[]{0, 1}, ["f4"] = new[]{0, 1}, ["n1"] = new[]{0, 1}, ["k1"] = new[]{0, 1}, ["B"] = new[]{0, 1}});
     }
 }

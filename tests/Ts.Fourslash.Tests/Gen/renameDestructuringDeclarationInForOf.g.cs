@@ -39,6 +39,6 @@ for ([|let { [|{| "contextRangeIndex": 5 |}property1|]: p2 } of elems|]) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameDestructuringDeclarationInForOf", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[6], f.Ranges()[3], f.Ranges()[4])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[6], f.Ranges()[3], f.Ranges()[4]);
     }
 }

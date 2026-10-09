@@ -52,7 +52,7 @@ const e2: E | E2 = /*b*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("b", new CompletionsExpectedList
     {
@@ -77,6 +77,6 @@ const e2: E | E2 = /*b*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -62,7 +62,7 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -84,7 +84,7 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -101,7 +101,7 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -123,7 +123,7 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -140,7 +140,7 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -157,7 +157,7 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("js", new CompletionsExpectedList
     {
@@ -179,6 +179,6 @@ public class CompletionsAssertKeywordTests
     ],
         },
         
-    })
+    });
     }
 }

@@ -73,6 +73,6 @@ trace(``);
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.Literals,
     },
-    })
+    });
     }
 }

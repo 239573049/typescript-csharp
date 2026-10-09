@@ -38,8 +38,8 @@ class Cat {
 ne/*1*/w Ca/*2*/t();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnNewKeyword01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "constructor Cat(): Cat", "NOTE: this constructor is private! Please use the factory function")
+    f.VerifyQuickInfoAt("1", "constructor Cat(): Cat", "NOTE: this constructor is private! Please use the factory function");
 
-    f.VerifyQuickInfoAt("2", "constructor Cat(): Cat", "NOTE: this constructor is private! Please use the factory function")
+    f.VerifyQuickInfoAt("2", "constructor Cat(): Cat", "NOTE: this constructor is private! Please use the factory function");
     }
 }

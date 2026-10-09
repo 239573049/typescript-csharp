@@ -61,6 +61,6 @@ export var v1 = 5;
     }
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -57,6 +57,6 @@ public class CompletionListAfterRegularExpressionLiteral1Tests
     ],
         },
         
-    })
+    });
     }
 }

@@ -34,7 +34,7 @@ foo/**/;
 export const foo = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_preferBaseUrl", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/src/d0/d1/d2/file.ts")
+    f.GoToFile("/src/d0/d1/d2/file.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -42,6 +42,6 @@ export const foo = 0;
 
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

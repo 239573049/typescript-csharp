@@ -34,6 +34,6 @@ var x;
 ([|{ [|{| "contextRangeIndex": 2 |}x|]: x } = a|]);
 """;
         using var f = FourslashTest.New(content, fileName: "renameDestructuringAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "x")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "x");
     }
 }

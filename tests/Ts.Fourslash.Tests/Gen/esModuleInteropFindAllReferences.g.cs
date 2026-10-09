@@ -36,6 +36,6 @@ import a from "a";
 a./*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "esModuleInteropFindAllReferences", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

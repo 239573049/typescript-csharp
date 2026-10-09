@@ -42,20 +42,20 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "hoverOverPrivateName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) A.#foo: number", "")
+    f.VerifyQuickInfoAt("1", "(property) A.#foo: number", "");
 
-    f.VerifyQuickInfoAt("2", "(property) A.#bar: number", "")
+    f.VerifyQuickInfoAt("2", "(property) A.#bar: number", "");
 
-    f.VerifyQuickInfoAt("3", "(property) A.#baz: () => string", "")
+    f.VerifyQuickInfoAt("3", "(property) A.#baz: () => string", "");
 
-    f.VerifyQuickInfoAt("4", "(method) A.#qux(n: number): string", "")
+    f.VerifyQuickInfoAt("4", "(method) A.#qux(n: number): string", "");
 
-    f.VerifyQuickInfoAt("5", "(property) A.#staticFoo: number", "")
+    f.VerifyQuickInfoAt("5", "(property) A.#staticFoo: number", "");
 
-    f.VerifyQuickInfoAt("6", "(property) A.#staticBar: number", "")
+    f.VerifyQuickInfoAt("6", "(property) A.#staticBar: number", "");
 
-    f.VerifyQuickInfoAt("7", "(property) A.#staticBaz: () => string", "")
+    f.VerifyQuickInfoAt("7", "(property) A.#staticBaz: () => string", "");
 
-    f.VerifyQuickInfoAt("8", "(method) A.#staticQux(n: number): string", "")
+    f.VerifyQuickInfoAt("8", "(method) A.#staticQux(n: number): string", "");
     }
 }

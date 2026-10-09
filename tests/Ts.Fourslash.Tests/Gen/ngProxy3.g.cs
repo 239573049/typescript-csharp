@@ -43,8 +43,8 @@ x/**/
 """;
         using var f = FourslashTest.New(content, fileName: "ngProxy3", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("let x: number[]", "")
+    f.VerifyQuickInfoIs("let x: number[]", "");
     }
 }

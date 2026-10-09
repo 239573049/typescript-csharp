@@ -39,6 +39,6 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionPrivateName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "pnFieldUse", "pnMethodUse", "pnPropUse")
+    f.VerifyBaselineGoToDefinition(true, "pnFieldUse", "pnMethodUse", "pnPropUse");
     }
 }

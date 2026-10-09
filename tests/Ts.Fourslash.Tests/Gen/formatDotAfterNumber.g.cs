@@ -33,26 +33,26 @@ public class FormatDotAfterNumberTests
 1+ 2_000 .toString() +3/*5*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatDotAfterNumber", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("1 + 2 .toString() + 3")
+    f.VerifyCurrentLineContent("1 + 2 .toString() + 3");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("1 + 2..toString() + 3")
+    f.VerifyCurrentLineContent("1 + 2..toString() + 3");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("1 + 2.0.toString() + 3")
+    f.VerifyCurrentLineContent("1 + 2.0.toString() + 3");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("1 + (2).toString() + 3")
+    f.VerifyCurrentLineContent("1 + (2).toString() + 3");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("1 + 2_000 .toString() + 3")
+    f.VerifyCurrentLineContent("1 + 2_000 .toString() + 3");
     }
 }

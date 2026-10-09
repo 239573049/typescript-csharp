@@ -29,6 +29,6 @@ public class QuickInfoRecursiveObjectLiteralTests
 var a = { f: /**/a
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoRecursiveObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var a: any", "")
+    f.VerifyQuickInfoAt("", "var a: any", "");
     }
 }

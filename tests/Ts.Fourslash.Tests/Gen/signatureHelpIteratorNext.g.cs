@@ -48,6 +48,6 @@ asyncGenerator.next(/*7*/);
 asyncGenerator.next(/*8*/ 0);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpIteratorNext", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

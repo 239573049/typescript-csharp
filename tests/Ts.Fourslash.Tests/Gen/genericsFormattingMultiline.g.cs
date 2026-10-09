@@ -95,7 +95,7 @@ const t = s<
 
 """;
         using var f = FourslashTest.New(content, fileName: "genericsFormattingMultiline", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -165,6 +165,6 @@ const t = s<
         string[] & ArrayLike<any>
     >`abc${1}def`;
 
-    """)
+    """);
     }
 }

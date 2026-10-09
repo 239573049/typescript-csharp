@@ -41,7 +41,7 @@ import * as foo from './file1';
 export default foo.b;
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_default_reExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -85,6 +85,6 @@ export default foo.b;
     ], false),
         },
         
-    })
+    });
     }
 }

@@ -44,6 +44,6 @@ var /*pt1*/RCComp = RC1 || RC2;
 <[|RC/*one*/Comp|] />
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionUnionElementType2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "one")
+    f.VerifyBaselineGoToDefinition(true, "one");
     }
 }

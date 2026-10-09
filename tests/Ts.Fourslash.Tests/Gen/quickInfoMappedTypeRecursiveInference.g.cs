@@ -44,24 +44,24 @@ oub.b.b/*9*/
 oub.b.a.n.a.n.a/*10*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoMappedTypeRecursiveInference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const out: {\n    a: {\n        a: ...;\n    };\n}", "")
+    f.VerifyQuickInfoAt("1", "const out: {\n    a: {\n        a: ...;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("2", "function foo<{\n    a: {\n        a: ...;\n    };\n}>(deep: Deep<{\n    a: {\n        a: ...;\n    };\n}>): {\n    a: {\n        a: ...;\n    };\n}", "")
+    f.VerifyQuickInfoAt("2", "function foo<{\n    a: {\n        a: ...;\n    };\n}>(deep: Deep<{\n    a: {\n        a: ...;\n    };\n}>): {\n    a: {\n        a: ...;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("3", "(property) a: {\n    a: {\n        a: ...;\n    };\n}", "")
+    f.VerifyQuickInfoAt("3", "(property) a: {\n    a: {\n        a: ...;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("4", "(property) a: {\n    a: {\n        a: ...;\n    };\n}", "")
+    f.VerifyQuickInfoAt("4", "(property) a: {\n    a: {\n        a: ...;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("5", "(property) a: {\n    a: {\n        a: ...;\n    };\n}", "")
+    f.VerifyQuickInfoAt("5", "(property) a: {\n    a: {\n        a: ...;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("6", "const oub: {\n    [x: string]: ...;\n}", "")
+    f.VerifyQuickInfoAt("6", "const oub: {\n    [x: string]: ...;\n}", "");
 
-    f.VerifyQuickInfoAt("7", "function foo<{\n    [x: string]: ...;\n}>(deep: Deep<{\n    [x: string]: ...;\n}>): {\n    [x: string]: ...;\n}", "")
+    f.VerifyQuickInfoAt("7", "function foo<{\n    [x: string]: ...;\n}>(deep: Deep<{\n    [x: string]: ...;\n}>): {\n    [x: string]: ...;\n}", "");
 
-    f.VerifyQuickInfoAt("8", "{\n    [x: string]: ...;\n}", "")
+    f.VerifyQuickInfoAt("8", "{\n    [x: string]: ...;\n}", "");
 
-    f.VerifyQuickInfoAt("9", "{\n    [x: string]: ...;\n}", "")
+    f.VerifyQuickInfoAt("9", "{\n    [x: string]: ...;\n}", "");
 
-    f.VerifyQuickInfoAt("10", "{\n    [x: string]: ...;\n}", "")
+    f.VerifyQuickInfoAt("10", "{\n    [x: string]: ...;\n}", "");
     }
 }

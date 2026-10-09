@@ -50,7 +50,7 @@ declare module 'https' {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -68,6 +68,6 @@ declare module 'https' {
     ],
         },
         
-    })
+    });
     }
 }

@@ -41,12 +41,12 @@ var _: Combinators;
 var /*9*/r1a  = _.ma/*1c*/p(c2, (/*1a*/x,/*1b*/y) => { return x + "" });  // check quick info of map here
 """;
         using var f = FourslashTest.New(content, fileName: "genericCombinators3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1a", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("1a", "(parameter) x: number", "");
 
-    f.VerifyQuickInfoAt("1b", "(parameter) y: string", "")
+    f.VerifyQuickInfoAt("1b", "(parameter) y: string", "");
 
-    f.VerifyQuickInfoAt("1c", "(method) Combinators.map<number, string, string>(c: Collection<number, string>, f: (x: number, y: string) => string): Collection<number, string> (+1 overload)", "")
+    f.VerifyQuickInfoAt("1c", "(method) Combinators.map<number, string, string>(c: Collection<number, string>, f: (x: number, y: string) => string): Collection<number, string> (+1 overload)", "");
 
-    f.VerifyQuickInfoAt("9", "var r1a: Collection<number, string>", "")
+    f.VerifyQuickInfoAt("9", "var r1a: Collection<number, string>", "");
     }
 }

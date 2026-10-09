@@ -29,6 +29,6 @@ public class ContextualTypingFromTypeAssertion1Tests
 var f3 = <(x: string) => string> function (/**/x) { return x.toLowerCase(); };
 """;
         using var f = FourslashTest.New(content, fileName: "contextualTypingFromTypeAssertion1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) x: string", "")
+    f.VerifyQuickInfoAt("", "(parameter) x: string", "");
     }
 }

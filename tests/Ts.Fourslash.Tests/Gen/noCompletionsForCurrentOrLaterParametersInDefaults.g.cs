@@ -53,7 +53,7 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", }, new CompletionsExpectedList
     {
@@ -71,7 +71,7 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", }, new CompletionsExpectedList
     {
@@ -88,7 +88,7 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"5", }, new CompletionsExpectedList
     {
@@ -106,7 +106,7 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"6", }, new CompletionsExpectedList
     {
@@ -127,7 +127,7 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"7", }, new CompletionsExpectedList
     {
@@ -146,7 +146,7 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"T1", }, new CompletionsExpectedList
     {
@@ -164,6 +164,6 @@ type A1<K = /*T1*/, L> = K
     ],
         },
         
-    })
+    });
     }
 }

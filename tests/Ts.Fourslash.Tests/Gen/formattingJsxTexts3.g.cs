@@ -36,7 +36,7 @@ return (
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingJsxTexts3", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function foo() {
@@ -46,6 +46,6 @@ return (
             <div>"{bar}"</div>
         )
     }
-    """)
+    """);
     }
 }

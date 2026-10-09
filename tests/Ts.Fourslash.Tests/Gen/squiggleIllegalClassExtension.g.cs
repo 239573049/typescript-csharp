@@ -29,8 +29,8 @@ public class SquiggleIllegalClassExtensionTests
 class Foo extends /*1*/Bar/*2*/ { }
 """;
         using var f = FourslashTest.New(content, fileName: "squiggleIllegalClassExtension", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

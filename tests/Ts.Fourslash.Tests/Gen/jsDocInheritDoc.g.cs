@@ -84,16 +84,16 @@ const p1 = b.property1/*4*/;
 const p2 = b.property2/*5*/;
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocInheritDoc", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "constructor Bar(value: number): Bar", "")
+    f.VerifyQuickInfoAt("1", "constructor Bar(value: number): Bar", "");
 
-    f.VerifyQuickInfoAt("2", "(method) Bar.method2(): void", "Foo#method2 documentation")
+    f.VerifyQuickInfoAt("2", "(method) Bar.method2(): void", "Foo#method2 documentation");
 
-    f.VerifyQuickInfoAt("3", "(method) Bar.method1(): void", "Foo#method1 documentation")
+    f.VerifyQuickInfoAt("3", "(method) Bar.method1(): void", "Foo#method1 documentation");
 
-    f.VerifyQuickInfoAt("4", "(property) Bar.property1: string", "Foo#property1 documentation")
+    f.VerifyQuickInfoAt("4", "(property) Bar.property1: string", "Foo#property1 documentation");
 
-    f.VerifyQuickInfoAt("5", "(property) Bar.property2: object", "Baz#property2 documentation\nBar#property2")
+    f.VerifyQuickInfoAt("5", "(property) Bar.property2: object", "Baz#property2 documentation\nBar#property2");
 
-    f.VerifyQuickInfoAt("6", "(property) Bar.property3: string", "")
+    f.VerifyQuickInfoAt("6", "(property) Bar.property3: string", "");
     }
 }

@@ -35,6 +35,6 @@ var {e, x: [f, g]} = {a:1, x:[]};
 var { h: i = function j() {} } = obj;
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsBindingPatterns", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

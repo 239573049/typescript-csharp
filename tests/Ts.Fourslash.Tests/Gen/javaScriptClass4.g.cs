@@ -40,9 +40,9 @@ var x = new Foo();
 x/**/
 """;
         using var f = FourslashTest.New(content, fileName: "javaScriptClass4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(".baz.")
+    f.Insert(".baz.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -63,6 +63,6 @@ x/**/
     ],
         },
         
-    })
+    });
     }
 }

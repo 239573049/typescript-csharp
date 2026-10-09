@@ -50,6 +50,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesSetAndGet2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

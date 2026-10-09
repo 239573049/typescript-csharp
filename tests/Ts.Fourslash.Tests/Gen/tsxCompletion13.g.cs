@@ -88,7 +88,7 @@ let opt = <MainButton wrong /*6*/ />;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -114,7 +114,7 @@ let opt = <MainButton wrong /*6*/ />;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", "4", "5", }, new CompletionsExpectedList
     {
@@ -146,6 +146,6 @@ let opt = <MainButton wrong /*6*/ />;
     ],
         },
         
-    })
+    });
     }
 }

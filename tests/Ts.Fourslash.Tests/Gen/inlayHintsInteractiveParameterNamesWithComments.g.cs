@@ -65,6 +65,6 @@ foo(
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.Literals,
     },
-    })
+    });
     }
 }

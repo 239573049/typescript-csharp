@@ -29,10 +29,10 @@ public class FormatInsertSpaceAfterCloseBraceBeforeCloseBracketTests
 [{}]
 """;
         using var f = FourslashTest.New(content, fileName: "formatInsertSpaceAfterCloseBraceBeforeCloseBracket", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentFileContent("[ {} ]")
+    f.VerifyCurrentFileContent("[ {} ]");
     }
 }

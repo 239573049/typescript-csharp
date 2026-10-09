@@ -33,6 +33,6 @@ type /*0*/T = number;
 import /*3*/T = require("/*4*/./a");
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsExportEquals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3", "4");
     }
 }

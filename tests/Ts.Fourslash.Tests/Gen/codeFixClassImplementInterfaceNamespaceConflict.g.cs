@@ -50,6 +50,6 @@ class C1 implements N1.I1 {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

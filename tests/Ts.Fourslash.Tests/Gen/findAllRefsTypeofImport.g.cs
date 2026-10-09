@@ -32,6 +32,6 @@ declare const a: typeof import("./a");
 a./*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsTypeofImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

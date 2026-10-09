@@ -33,6 +33,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionReturn3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

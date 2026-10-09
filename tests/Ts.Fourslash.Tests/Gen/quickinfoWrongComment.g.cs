@@ -44,8 +44,8 @@ f.colour/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoWrongComment", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("(property) colour: \"green\" | \"red\" | \"yellow\"", "The colour")
+    f.VerifyQuickInfoIs("(property) colour: \"green\" | \"red\" | \"yellow\"", "The colour");
     }
 }

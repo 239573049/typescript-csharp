@@ -87,7 +87,7 @@ class C4 {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", "4", }, new CompletionsExpectedList
     {
@@ -108,6 +108,6 @@ class C4 {
     ],
         },
         
-    })
+    });
     }
 }

@@ -36,6 +36,6 @@ public class UnusedLocalsInFunction1Tests
 
     function greeter() {
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

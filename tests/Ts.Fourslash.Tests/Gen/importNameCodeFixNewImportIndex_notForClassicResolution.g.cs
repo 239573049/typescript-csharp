@@ -37,9 +37,9 @@ export const bar = 0;
 [|bar;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixNewImportIndex_notForClassicResolution", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a/index.ts")
+    f.GoToFile("/a/index.ts");
 
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -47,9 +47,9 @@ export const bar = 0;
 
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -57,6 +57,6 @@ export const bar = 0;
 
     bar;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

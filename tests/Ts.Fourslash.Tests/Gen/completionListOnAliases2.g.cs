@@ -82,7 +82,7 @@ var tmp2: a./*7Type*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"1Type", "7Type", }, new CompletionsExpectedList
     {
@@ -102,7 +102,7 @@ var tmp2: a./*7Type*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -129,7 +129,7 @@ var tmp2: a./*7Type*/;
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -146,7 +146,7 @@ var tmp2: a./*7Type*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -163,7 +163,7 @@ var tmp2: a./*7Type*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -180,7 +180,7 @@ var tmp2: a./*7Type*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -197,6 +197,6 @@ var tmp2: a./*7Type*/;
     ],
         },
         
-    })
+    });
     }
 }

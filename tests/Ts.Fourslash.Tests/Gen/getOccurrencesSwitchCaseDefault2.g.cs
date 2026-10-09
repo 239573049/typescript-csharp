@@ -45,6 +45,6 @@ switch (10) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesSwitchCaseDefault2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

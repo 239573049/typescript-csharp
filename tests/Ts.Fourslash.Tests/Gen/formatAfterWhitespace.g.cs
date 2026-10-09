@@ -33,9 +33,9 @@ function foo()
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatAfterWhitespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
     f.VerifyCurrentFileContent("""
     function foo()
@@ -44,6 +44,6 @@ function foo()
 
 
     }
-    """)
+    """);
     }
 }

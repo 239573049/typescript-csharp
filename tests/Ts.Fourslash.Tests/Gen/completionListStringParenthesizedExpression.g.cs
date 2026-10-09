@@ -62,7 +62,7 @@ const c = foo[(("[|/*3*/|]"))];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -90,7 +90,7 @@ const c = foo[(("[|/*3*/|]"))];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -118,6 +118,6 @@ const c = foo[(("[|/*3*/|]"))];
     ],
         },
         
-    })
+    });
     }
 }

@@ -32,6 +32,6 @@ export interface Foo {
 export const x: [|Foo.bar|] = ""
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixCorrectQualifiedNameToIndexedAccessType01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("Foo[\"bar\"]", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("Foo[\"bar\"]", false, 0, 0);
     }
 }

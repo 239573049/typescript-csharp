@@ -39,6 +39,6 @@ function foo([|{ a, ...[|{| "contextRangeIndex": 0 |}rest|] }: I|]) {
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    }, f.Ranges()[1])
+    }, f.Ranges()[1]);
     }
 }

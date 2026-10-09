@@ -38,6 +38,6 @@ public class QuickInfoJsDocTags11Tests
 const /**/foo = (a, b) => {};
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags11", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -65,7 +65,7 @@ x/**/
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -77,6 +77,6 @@ x/**/
 
     x
     """,
-    })
+    });
     }
 }

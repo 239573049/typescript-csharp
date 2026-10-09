@@ -57,7 +57,7 @@ const y2: 0 | "one" | 1n = 'one'/*2*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -91,7 +91,7 @@ const y2: 0 | "one" | 1n = 'one'/*2*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -108,6 +108,6 @@ const y2: 0 | "one" | 1n = 'one'/*2*/;
     ],
         },
         
-    })
+    });
     }
 }

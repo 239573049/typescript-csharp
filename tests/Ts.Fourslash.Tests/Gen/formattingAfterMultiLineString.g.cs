@@ -34,12 +34,12 @@ class foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingAfterMultiLineString", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("        var s = \"hello\\")
+    f.VerifyCurrentLineContent("        var s = \"hello\\");
     }
 }

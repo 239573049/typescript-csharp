@@ -61,6 +61,6 @@ command("foo", yargs => {
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource18_reusedFromDifferentFolder", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
     }
 }

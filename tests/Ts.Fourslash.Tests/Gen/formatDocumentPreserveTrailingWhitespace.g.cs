@@ -38,9 +38,9 @@ function b(){
 
 """;
         using var f = FourslashTest.New(content, fileName: "formatDocumentPreserveTrailingWhitespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core.TSFalse })
+    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core.TSFalse });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -53,6 +53,6 @@ function b(){
         }     
     }     
 
-    """)
+    """);
     }
 }

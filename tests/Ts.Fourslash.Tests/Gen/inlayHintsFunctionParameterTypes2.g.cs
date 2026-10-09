@@ -49,6 +49,6 @@ function f12(a = ((({ a: 1, b: 1 })))) {}
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

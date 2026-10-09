@@ -45,6 +45,6 @@ export const s = new Set([x]);
 
     """,
         Index = 0,
-    })
+    });
     }
 }

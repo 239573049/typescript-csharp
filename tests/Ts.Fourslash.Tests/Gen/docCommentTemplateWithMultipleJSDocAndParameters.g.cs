@@ -43,6 +43,6 @@ function foo(p) {}
      * 
      * @param p
      */
-    """, null)
+    """, null);
     }
 }

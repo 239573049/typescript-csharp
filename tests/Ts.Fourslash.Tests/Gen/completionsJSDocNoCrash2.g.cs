@@ -59,6 +59,6 @@ var ngShowDirective = ['$animate', function($animate) {}];
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

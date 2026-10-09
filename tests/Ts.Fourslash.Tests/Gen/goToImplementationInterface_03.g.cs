@@ -31,6 +31,6 @@ interface Fo/*interface_definition*/o { hello: () => void }
 var x = <Foo> [|{ hello: () => {} }|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("interface_definition")
+    f.VerifyBaselineGoToImplementation("interface_definition");
     }
 }

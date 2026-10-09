@@ -32,12 +32,12 @@ if (a === 1 ||
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingExpressionsInIfCondition", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
-    f.VerifyCurrentLineContent("    b === 2 ||")
+    f.VerifyCurrentLineContent("    b === 2 ||");
     }
 }

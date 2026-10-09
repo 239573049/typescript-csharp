@@ -37,18 +37,18 @@ public class FindAllRefsReExportLocalTests
 /*bx1*/[|x|]; /*by1*/[|y|];
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExportLocal", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("ax0", "ax1", "ax2", "bx0", "bx1", "ay", "by0", "by1")
+    f.VerifyBaselineFindAllReferences("ax0", "ax1", "ax2", "bx0", "bx1", "ay", "by0", "by1");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[8], f.Ranges()[10])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[8], f.Ranges()[10]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[6])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[6]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[9], f.Ranges()[11])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[9], f.Ranges()[11]);
     }
 }

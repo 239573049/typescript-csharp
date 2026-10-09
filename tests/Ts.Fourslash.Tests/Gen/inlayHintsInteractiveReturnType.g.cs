@@ -52,6 +52,6 @@ const d = b => 1
     {
     IncludeInlayFunctionLikeReturnTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

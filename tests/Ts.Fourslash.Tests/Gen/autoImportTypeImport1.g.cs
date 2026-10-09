@@ -39,7 +39,7 @@ const b: B/**/ | C;
 console.log(A, D);
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportTypeImport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -50,7 +50,7 @@ console.log(A, D);
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -61,7 +61,7 @@ console.log(A, D);
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -72,6 +72,6 @@ console.log(A, D);
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    })
+    });
     }
 }

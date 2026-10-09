@@ -63,6 +63,6 @@ class Foo implements I {}
     {
     QuotePreference = "double",
     },
-    })
+    });
     }
 }

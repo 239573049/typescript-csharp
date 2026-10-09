@@ -47,34 +47,34 @@ var z5 = {
 }; 
 """;
         using var f = FourslashTest.New(content, fileName: "formattingComma", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("x")
+    f.GoToMarker("x");
 
-    f.VerifyCurrentLineContent("var x = [1, 2];")
+    f.VerifyCurrentLineContent("var x = [1, 2];");
 
-    f.GoToMarker("y")
+    f.GoToMarker("y");
 
-    f.VerifyCurrentLineContent("var y = (1, 2);")
+    f.VerifyCurrentLineContent("var y = (1, 2);");
 
-    f.GoToMarker("z1")
+    f.GoToMarker("z1");
 
-    f.VerifyCurrentLineContent("var z1 = 1, zz = 2;")
+    f.VerifyCurrentLineContent("var z1 = 1, zz = 2;");
 
-    f.GoToMarker("z2")
+    f.GoToMarker("z2");
 
-    f.VerifyCurrentLineContent("    x: 1,")
+    f.VerifyCurrentLineContent("    x: 1,");
 
-    f.GoToMarker("z3")
+    f.GoToMarker("z3");
 
-    f.VerifyCurrentLineContent("    () => { },")
+    f.VerifyCurrentLineContent("    () => { },");
 
-    f.GoToMarker("z4")
+    f.GoToMarker("z4");
 
-    f.VerifyCurrentLineContent("    () => { },")
+    f.VerifyCurrentLineContent("    () => { },");
 
-    f.GoToMarker("z5")
+    f.GoToMarker("z5");
 
-    f.VerifyCurrentLineContent("    x: () => { },")
+    f.VerifyCurrentLineContent("    x: () => { },");
     }
 }

@@ -159,6 +159,6 @@ class cWithConstructorProperty {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCommentsClassMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -34,6 +34,6 @@ public class QuickInfoSatisfiesTagTests
 const /*1*/a = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSatisfiesTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

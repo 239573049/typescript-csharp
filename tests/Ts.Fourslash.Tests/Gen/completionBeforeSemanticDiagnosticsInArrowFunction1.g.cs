@@ -30,11 +30,11 @@ var f4 = <T>(x: T/**/ ) => {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionBeforeSemanticDiagnosticsInArrowFunction1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.Insert("A")
+    f.Insert("A");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -55,8 +55,8 @@ var f4 = <T>(x: T/**/ ) => {
     ],
         },
         
-    })
+    });
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

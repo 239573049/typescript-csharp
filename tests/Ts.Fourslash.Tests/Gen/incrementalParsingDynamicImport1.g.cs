@@ -37,12 +37,12 @@ x1.then(foo => {
 /*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalParsingDynamicImport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("  ")
+    f.Insert("  ");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

@@ -33,6 +33,6 @@ import { Interface } from "./def";
 const c: I/*ref*/nterface = [|{ P: 2 }|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_09", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("ref")
+    f.VerifyBaselineGoToImplementation("ref");
     }
 }

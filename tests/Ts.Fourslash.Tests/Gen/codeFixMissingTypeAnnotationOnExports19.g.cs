@@ -45,6 +45,6 @@ export const a = {
     } as const;
     """,
         Index = 0,
-    })
+    });
     }
 }

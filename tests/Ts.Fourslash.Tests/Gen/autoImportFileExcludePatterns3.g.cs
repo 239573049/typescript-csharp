@@ -84,7 +84,7 @@ declare module "foo" {
     {
     AutoImportFileExcludePatterns = ["/**/ambient1.d.ts"],
     },
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -102,6 +102,6 @@ declare module "foo" {
     {
     AutoImportFileExcludePatterns = ["/**/ambient*"],
     },
-    })
+    });
     }
 }

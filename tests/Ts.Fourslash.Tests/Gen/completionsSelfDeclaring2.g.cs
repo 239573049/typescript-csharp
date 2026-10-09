@@ -50,7 +50,7 @@ f2({ x/*2*/ });
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -67,6 +67,6 @@ f2({ x/*2*/ });
     ],
         },
         
-    })
+    });
     }
 }

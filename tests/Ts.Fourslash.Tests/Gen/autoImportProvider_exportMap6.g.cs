@@ -81,7 +81,7 @@ fooFrom/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_exportMap6", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -123,6 +123,6 @@ fooFrom/**/
     ],
         },
         
-    })
+    });
     }
 }

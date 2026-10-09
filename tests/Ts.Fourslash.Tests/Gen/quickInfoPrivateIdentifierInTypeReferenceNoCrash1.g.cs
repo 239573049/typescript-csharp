@@ -36,6 +36,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoPrivateIdentifierInTypeReferenceNoCrash1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "", "")
+    f.VerifyQuickInfoAt("1", "", "");
     }
 }

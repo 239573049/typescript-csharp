@@ -49,6 +49,6 @@ if/*12*/ (false) {
 else/*13*/ { }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIfElse5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

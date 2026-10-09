@@ -30,11 +30,11 @@ public class FormatSelectionWithTrivia6Tests
 /*end*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionWithTrivia6", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("begin", "end")
+    f.FormatSelection("begin", "end");
 
     f.VerifyCurrentFileContent("""
     // test comment
 
-    """)
+    """);
     }
 }

@@ -33,12 +33,12 @@ class foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "indentAfterFunctionClosingBraces", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
     }
 }

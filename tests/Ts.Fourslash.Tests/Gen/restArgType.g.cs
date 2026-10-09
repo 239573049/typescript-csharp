@@ -56,42 +56,42 @@ var t8: (...a1: string[]) => void = (/*t8*/f1: number[]) => { };
 var t9: (a1: string[], a2: string[]) => void = (/*t91*/f1 = 4, /*t92*/f2 = [false, true]) => { };
 """;
         using var f = FourslashTest.New(content, fileName: "restArgType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) restArgs: any[]", "")
+    f.VerifyQuickInfoAt("1", "(parameter) restArgs: any[]", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) restArgs: any[]", "")
+    f.VerifyQuickInfoAt("2", "(parameter) restArgs: any[]", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) y: string[]", "")
+    f.VerifyQuickInfoAt("3", "(parameter) y: string[]", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) y1: string[]", "")
+    f.VerifyQuickInfoAt("4", "(parameter) y1: string[]", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) y2: string", "")
+    f.VerifyQuickInfoAt("5", "(parameter) y2: string", "");
 
-    f.VerifyQuickInfoAt("t1", "(parameter) f1: [a1: string, a2: string]", "")
+    f.VerifyQuickInfoAt("t1", "(parameter) f1: [a1: string, a2: string]", "");
 
-    f.VerifyQuickInfoAt("t2", "(parameter) f1: [a1: string, ...a2: string[]]", "")
+    f.VerifyQuickInfoAt("t2", "(parameter) f1: [a1: string, ...a2: string[]]", "");
 
-    f.VerifyQuickInfoAt("t31", "(parameter) f1: number", "")
+    f.VerifyQuickInfoAt("t31", "(parameter) f1: number", "");
 
-    f.VerifyQuickInfoAt("t32", "(parameter) f2: [a2: boolean, ...c: string[]]", "")
+    f.VerifyQuickInfoAt("t32", "(parameter) f2: [a2: boolean, ...c: string[]]", "");
 
-    f.VerifyQuickInfoAt("t4", "(parameter) f1: string[]", "")
+    f.VerifyQuickInfoAt("t4", "(parameter) f1: string[]", "");
 
-    f.VerifyQuickInfoAt("t5", "(parameter) f1: string", "")
+    f.VerifyQuickInfoAt("t5", "(parameter) f1: string", "");
 
-    f.VerifyQuickInfoAt("t61", "(parameter) f1: string", "")
+    f.VerifyQuickInfoAt("t61", "(parameter) f1: string", "");
 
-    f.VerifyQuickInfoAt("t62", "(parameter) f2: string[]", "")
+    f.VerifyQuickInfoAt("t62", "(parameter) f2: string[]", "");
 
-    f.VerifyQuickInfoAt("t71", "(parameter) f1: string", "")
+    f.VerifyQuickInfoAt("t71", "(parameter) f1: string", "");
 
-    f.VerifyQuickInfoAt("t72", "(parameter) f2: string", "")
+    f.VerifyQuickInfoAt("t72", "(parameter) f2: string", "");
 
-    f.VerifyQuickInfoAt("t73", "(parameter) f3: string", "")
+    f.VerifyQuickInfoAt("t73", "(parameter) f3: string", "");
 
-    f.VerifyQuickInfoAt("t8", "(parameter) f1: number[]", "")
+    f.VerifyQuickInfoAt("t8", "(parameter) f1: number[]", "");
 
-    f.VerifyQuickInfoAt("t91", "(parameter) f1: string[]", "")
+    f.VerifyQuickInfoAt("t91", "(parameter) f1: string[]", "");
 
-    f.VerifyQuickInfoAt("t92", "(parameter) f2: string[]", "")
+    f.VerifyQuickInfoAt("t92", "(parameter) f2: string[]", "");
     }
 }

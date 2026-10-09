@@ -33,6 +33,6 @@ public class JsDocSee_rename1Tests
 declare const a: [|A|]
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocSee_rename1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]])
+    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]]);
     }
 }

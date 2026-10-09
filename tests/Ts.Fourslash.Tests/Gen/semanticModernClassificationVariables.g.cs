@@ -44,6 +44,6 @@ public class SemanticModernClassificationVariablesTests
             new SemanticToken { Type = "variable.readonly.local", Text = "s" },
             new SemanticToken { Type = "variable.declaration.local", Text = "e" },
             new SemanticToken { Type = "variable", Text = "y1" },
-        })
+        });
     }
 }

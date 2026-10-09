@@ -39,10 +39,10 @@ function literalClass(e: typeof LiteralClass) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("literal1Class", "(index) LiteralClass[`prefix${string}`]: any", "Something generic")
+    f.VerifyQuickInfoAt("literal1Class", "(index) LiteralClass[`prefix${string}`]: any", "Something generic");
 
-    f.VerifyQuickInfoAt("literal2Class", "any", "")
+    f.VerifyQuickInfoAt("literal2Class", "any", "");
 
-    f.VerifyQuickInfoAt("literal3Class", "(index) LiteralClass[`prefix${string}` | `prefix${number}`]: any", "Something generic\nSomething else")
+    f.VerifyQuickInfoAt("literal3Class", "(index) LiteralClass[`prefix${string}` | `prefix${number}`]: any", "Something generic\nSomething else");
     }
 }

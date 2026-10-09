@@ -29,6 +29,6 @@ public class QuickInfoForConstDeclarationTests
 const /**/c = 0 ;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForConstDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "const c: 0", "")
+    f.VerifyQuickInfoAt("", "const c: 0", "");
     }
 }

@@ -40,12 +40,12 @@ class Animal2 extends Animal<string> {
 var a = new Animal2('eprst');
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalUpdateToClassImplementingGenericClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.Insert("//")
+    f.Insert("//");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

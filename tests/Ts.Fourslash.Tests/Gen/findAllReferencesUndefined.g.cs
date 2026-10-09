@@ -34,6 +34,6 @@ void undefined;
 undefined;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesUndefined", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

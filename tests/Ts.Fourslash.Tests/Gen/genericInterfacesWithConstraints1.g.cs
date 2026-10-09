@@ -38,10 +38,10 @@ var v/*2*/2: G<{ a: string }, C>;   // Ok, equivalent to G<A, C>
 var v/*3*/3: G<G<A, B>, C>;         // Ok
 """;
         using var f = FourslashTest.New(content, fileName: "genericInterfacesWithConstraints1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var v1: G<A, C>", "")
+    f.VerifyQuickInfoAt("1", "var v1: G<A, C>", "");
 
-    f.VerifyQuickInfoAt("2", "var v2: G<{\n    a: string;\n}, C>", "")
+    f.VerifyQuickInfoAt("2", "var v2: G<{\n    a: string;\n}, C>", "");
 
-    f.VerifyQuickInfoAt("3", "var v3: G<G<A, B>, C>", "")
+    f.VerifyQuickInfoAt("3", "var v3: G<G<A, B>, C>", "");
     }
 }

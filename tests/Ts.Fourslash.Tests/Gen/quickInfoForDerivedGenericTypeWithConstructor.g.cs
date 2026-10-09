@@ -40,8 +40,8 @@ var /*1*/b: B<number>;
 var /*2*/b2: B<number>;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForDerivedGenericTypeWithConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var b: B<number>", "")
+    f.VerifyQuickInfoAt("1", "var b: B<number>", "");
 
-    f.VerifyQuickInfoAt("2", "var b2: B<number>", "")
+    f.VerifyQuickInfoAt("2", "var b2: B<number>", "");
     }
 }

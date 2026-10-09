@@ -34,6 +34,6 @@ public class ReferencesForGlobals3Tests
 var i: /*3*/globalInterface;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForGlobals3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

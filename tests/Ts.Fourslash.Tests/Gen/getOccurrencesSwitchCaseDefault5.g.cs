@@ -45,6 +45,6 @@ switch/*1*/ (10) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesSwitchCaseDefault5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

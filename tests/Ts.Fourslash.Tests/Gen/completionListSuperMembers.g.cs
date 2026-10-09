@@ -72,6 +72,6 @@ class Class extends Base {
     ],
         },
         
-    })
+    });
     }
 }

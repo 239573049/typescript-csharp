@@ -52,11 +52,11 @@ export * from "./a";
     f.VerifyImportFixModuleSpecifiers("sibling", new[]{"proj/foo/a", "proj/src/utils", "proj", "proj/foo"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("parent", new[]{"proj/foo", "proj/foo/a", "proj/src/utils", "proj"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
-    })
+    });
     }
 }

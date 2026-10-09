@@ -43,6 +43,6 @@ class MyClass {
 var x = <MyClass name={[|nn|]}></MyClass>;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxRename5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "nn")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "nn");
     }
 }

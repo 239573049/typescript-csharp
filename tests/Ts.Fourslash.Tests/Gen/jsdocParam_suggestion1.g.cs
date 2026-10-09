@@ -41,8 +41,8 @@ function worse(): void {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocParam_suggestion1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("a.ts")
+    f.GoToFile("a.ts");
 
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

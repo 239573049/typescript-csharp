@@ -37,6 +37,6 @@ var numberLike;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagRename02", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]])
+    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]]);
     }
 }

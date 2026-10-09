@@ -65,50 +65,50 @@ var /*22*/r7b = _.map<A, A>(c4, rf3);
 var /*23*/r8a = _.map</*error1*/B/*error2*/, string>(c5, (/*8*/x) => { return x.foo() });
 """;
         using var f = FourslashTest.New(content, fileName: "genericCombinators1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("1", "(parameter) x: number", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) x: Collection<number>", "")
+    f.VerifyQuickInfoAt("2", "(parameter) x: Collection<number>", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) x: A", "")
+    f.VerifyQuickInfoAt("3", "(parameter) x: A", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) x: B<any>", "")
+    f.VerifyQuickInfoAt("4", "(parameter) x: B<any>", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("5", "(parameter) x: number", "");
 
-    f.VerifyQuickInfoAt("6", "var c3: Collection<Collection<number>>", "")
+    f.VerifyQuickInfoAt("6", "var c3: Collection<Collection<number>>", "");
 
-    f.VerifyQuickInfoAt("7", "(parameter) x: A", "")
+    f.VerifyQuickInfoAt("7", "(parameter) x: A", "");
 
-    f.VerifyQuickInfoAt("8", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("8", "(parameter) x: any", "");
 
-    f.VerifyQuickInfoAt("9", "var r1a: Collection<string>", "")
+    f.VerifyQuickInfoAt("9", "var r1a: Collection<string>", "");
 
-    f.VerifyQuickInfoAt("10", "var r1b: Collection<string>", "")
+    f.VerifyQuickInfoAt("10", "var r1b: Collection<string>", "");
 
-    f.VerifyQuickInfoAt("11", "var r2a: Collection<number>", "")
+    f.VerifyQuickInfoAt("11", "var r2a: Collection<number>", "");
 
-    f.VerifyQuickInfoAt("12", "var r2b: Collection<number>", "")
+    f.VerifyQuickInfoAt("12", "var r2b: Collection<number>", "");
 
-    f.VerifyQuickInfoAt("13", "var r3a: Collection<A>", "")
+    f.VerifyQuickInfoAt("13", "var r3a: Collection<A>", "");
 
-    f.VerifyQuickInfoAt("14", "var r3b: Collection<A>", "")
+    f.VerifyQuickInfoAt("14", "var r3b: Collection<A>", "");
 
-    f.VerifyQuickInfoAt("15", "var r4a: Collection<any>", "")
+    f.VerifyQuickInfoAt("15", "var r4a: Collection<any>", "");
 
-    f.VerifyQuickInfoAt("17", "var r5a: Collection<string>", "")
+    f.VerifyQuickInfoAt("17", "var r5a: Collection<string>", "");
 
-    f.VerifyQuickInfoAt("18", "var r5b: Collection<string>", "")
+    f.VerifyQuickInfoAt("18", "var r5b: Collection<string>", "");
 
-    f.VerifyQuickInfoAt("19", "var r6a: Collection<number>", "")
+    f.VerifyQuickInfoAt("19", "var r6a: Collection<number>", "");
 
-    f.VerifyQuickInfoAt("20", "var r6b: Collection<number>", "")
+    f.VerifyQuickInfoAt("20", "var r6b: Collection<number>", "");
 
-    f.VerifyQuickInfoAt("21", "var r7a: Collection<A>", "")
+    f.VerifyQuickInfoAt("21", "var r7a: Collection<A>", "");
 
-    f.VerifyQuickInfoAt("22", "var r7b: Collection<A>", "")
+    f.VerifyQuickInfoAt("22", "var r7b: Collection<A>", "");
 
-    f.VerifyQuickInfoAt("23", "var r8a: Collection<string>", "")
+    f.VerifyQuickInfoAt("23", "var r8a: Collection<string>", "");
 
-    f.VerifyErrorExistsBetweenMarkers("error1", "error2")
+    f.VerifyErrorExistsBetweenMarkers("error1", "error2");
     }
 }

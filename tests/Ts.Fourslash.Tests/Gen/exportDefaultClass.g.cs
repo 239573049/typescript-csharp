@@ -52,6 +52,6 @@ export default class C {
     ],
         },
         
-    })
+    });
     }
 }

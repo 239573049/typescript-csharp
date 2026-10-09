@@ -30,10 +30,10 @@ var foo = foo(function () {
     /**/function foo  ()  {}}    );
 """;
         using var f = FourslashTest.New(content, fileName: "functionFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("    function foo() { }")
+    f.VerifyCurrentLineContent("    function foo() { }");
     }
 }

@@ -47,6 +47,6 @@ Jimmy
 Jon
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingJs5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

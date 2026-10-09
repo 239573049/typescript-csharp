@@ -35,6 +35,6 @@ type A4<T> = /*keyofOperator_keyofKeyword*/keyof T;
 type A5<T> = /*readonlyOperator_readonlyKeyword*/readonly T[];
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForTypeKeywords", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("typeParam_extendsKeyword", "conditionalType_extendsKeyword", "inferType_inferKeyword", "mappedType_inOperator", "keyofOperator_keyofKeyword", "readonlyOperator_readonlyKeyword")
+    f.VerifyBaselineFindAllReferences("typeParam_extendsKeyword", "conditionalType_extendsKeyword", "inferType_inferKeyword", "mappedType_inOperator", "keyofOperator_keyofKeyword", "readonlyOperator_readonlyKeyword");
     }
 }

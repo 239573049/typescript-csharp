@@ -32,6 +32,6 @@ var v;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsDocComment1", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "variable.declaration", Text = "v" },
-        })
+        });
     }
 }

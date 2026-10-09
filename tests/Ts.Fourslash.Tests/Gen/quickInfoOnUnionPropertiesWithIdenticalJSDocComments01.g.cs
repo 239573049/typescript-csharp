@@ -53,6 +53,6 @@ declare let x: DocumentFilter;
 x./**/language
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnUnionPropertiesWithIdenticalJSDocComments01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

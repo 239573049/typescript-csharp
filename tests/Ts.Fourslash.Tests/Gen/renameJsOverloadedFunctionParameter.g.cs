@@ -46,6 +46,6 @@ function foo(x/**/) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsOverloadedFunctionParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

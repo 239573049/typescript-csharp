@@ -47,8 +47,8 @@ f2/*2*/()
 f3/*3*/()
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoThrowsTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

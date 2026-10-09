@@ -89,6 +89,6 @@ import { [|/*start*/add|] } from 'lodash';
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource10_mapFromAtTypes3", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
     }
 }

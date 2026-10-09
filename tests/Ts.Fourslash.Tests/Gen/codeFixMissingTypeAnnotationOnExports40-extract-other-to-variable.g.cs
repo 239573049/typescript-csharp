@@ -52,7 +52,7 @@ export let o = {
     """,
         Index = 2,
         ApplyChanges = true,
-    })
+    });
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -68,6 +68,6 @@ export let o = {
     """,
         Index = 0,
         ApplyChanges = true,
-    })
+    });
     }
 }

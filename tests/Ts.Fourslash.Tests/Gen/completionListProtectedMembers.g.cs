@@ -62,7 +62,7 @@ f./*5*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -83,7 +83,7 @@ f./*5*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -103,7 +103,7 @@ f./*5*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -125,8 +125,8 @@ f./*5*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("5", null)
+    f.VerifyCompletions("5", null);
     }
 }

@@ -33,7 +33,7 @@ var regex = /*0*///*1*/asdf/*2*/ /*3*///*4*/;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateRegex", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var marker in f.Markers())
     {
-        f.VerifyNoJSDocCompletion(marker)
+        f.VerifyNoJSDocCompletion(marker);
     }
     }
 }

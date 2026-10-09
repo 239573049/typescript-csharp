@@ -39,7 +39,7 @@ declare global {
 [|<div/>|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixUMDGlobalReact2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
     f.VerifyImportFixAtPosition([
     """
@@ -47,6 +47,6 @@ declare global {
 
     <div/>
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

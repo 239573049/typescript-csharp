@@ -44,6 +44,6 @@ export function g(x: Foo<number, unknown, number>) { return x; }
 
     """,
         Index = 0,
-    })
+    });
     }
 }

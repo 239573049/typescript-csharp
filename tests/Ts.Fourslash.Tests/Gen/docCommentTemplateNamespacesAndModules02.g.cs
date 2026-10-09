@@ -35,10 +35,10 @@ namespace n1.
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateNamespacesAndModules02", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyJSDocCompletion("top", 3, "/** */", null)
+    f.VerifyJSDocCompletion("top", 3, "/** */", null);
 
-    f.VerifyNoJSDocCompletion("n2")
+    f.VerifyNoJSDocCompletion("n2");
 
-    f.VerifyNoJSDocCompletion("n3")
+    f.VerifyNoJSDocCompletion("n3");
     }
 }

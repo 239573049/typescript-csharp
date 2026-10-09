@@ -47,6 +47,6 @@ f1/*0*/();|]
 
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

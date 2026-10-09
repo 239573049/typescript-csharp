@@ -33,9 +33,9 @@ functionOverload(/*functionOverload1*/);
 functionOverload(""/*functionOverload2*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpFunctionOverload", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("functionOverload1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(): any", ParameterCount = 0, OverloadsCount = 2 })
-    f.GoToMarker("functionOverload2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(test: string): any", ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 })
+    f.GoToMarker("functionOverload1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(): any", ParameterCount = 0, OverloadsCount = 2 });
+    f.GoToMarker("functionOverload2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(test: string): any", ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 });
     }
 }

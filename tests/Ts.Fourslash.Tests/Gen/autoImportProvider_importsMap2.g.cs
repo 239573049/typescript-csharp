@@ -49,6 +49,6 @@ something/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_importsMap2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyImportFixModuleSpecifiers("", new[]{"#internal/foo.js"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"#internal/foo.js"}, null /*preferences*/);
     }
 }

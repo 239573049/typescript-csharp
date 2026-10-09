@@ -43,6 +43,6 @@ const Bar = () =>
     [|<A {...props}></A>|]
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingAttributes6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixMissingAttributes")
+    f.VerifyCodeFixNotAvailable("fixMissingAttributes");
     }
 }

@@ -49,6 +49,6 @@ const /*13*/i = /*14*/h;
 /*16*/h("hello");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsConst", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -36,6 +36,6 @@ with ({}) {
 /*3*/x = /*4*/x + 1;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsInsideWithBlock", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

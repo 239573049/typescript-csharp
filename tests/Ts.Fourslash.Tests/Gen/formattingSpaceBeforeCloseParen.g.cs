@@ -33,52 +33,52 @@ public class FormattingSpaceBeforeCloseParenTests
 /*5*/var bar = (function (a) { });
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpaceBeforeCloseParen", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("( {} );")
+    f.VerifyCurrentLineContent("( {} );");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("( {} );")
+    f.VerifyCurrentLineContent("( {} );");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("( { foo: 42 } );")
+    f.VerifyCurrentLineContent("( { foo: 42 } );");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("( { foo: 42 } );")
+    f.VerifyCurrentLineContent("( { foo: 42 } );");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("var bar = ( function( a ) { } );")
+    f.VerifyCurrentLineContent("var bar = ( function( a ) { } );");
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core.TSFalse })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core.TSFalse });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("({});")
+    f.VerifyCurrentLineContent("({});");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("({});")
+    f.VerifyCurrentLineContent("({});");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("({ foo: 42 });")
+    f.VerifyCurrentLineContent("({ foo: 42 });");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("({ foo: 42 });")
+    f.VerifyCurrentLineContent("({ foo: 42 });");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("var bar = (function(a) { });")
+    f.VerifyCurrentLineContent("var bar = (function(a) { });");
     }
 }

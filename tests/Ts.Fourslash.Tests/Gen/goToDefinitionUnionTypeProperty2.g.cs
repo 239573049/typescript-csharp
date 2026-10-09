@@ -44,6 +44,6 @@ var x : One | Two;
 x.common.[|/*propertyReference*/a|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionUnionTypeProperty2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "propertyReference")
+    f.VerifyBaselineGoToDefinition(true, "propertyReference");
     }
 }

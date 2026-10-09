@@ -44,7 +44,7 @@ export * from "./internal/foo.ts";
 internalFoo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_packageJsonImportsPreference", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -76,7 +76,7 @@ internalFoo/**/
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
     },
-    })
+    });
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -108,6 +108,6 @@ internalFoo/**/
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("relative"),
     },
-    })
+    });
     }
 }

@@ -37,6 +37,6 @@ import { a } from [|"./a"/*moduleSpecifier*/|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource1_localJsBesideDts", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("identifier", "moduleSpecifier")
+    f.VerifyBaselineGoToSourceDefinition("identifier", "moduleSpecifier");
     }
 }

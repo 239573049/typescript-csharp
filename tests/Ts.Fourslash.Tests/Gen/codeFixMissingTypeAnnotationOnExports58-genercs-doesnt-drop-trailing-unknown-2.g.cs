@@ -43,6 +43,6 @@ export const s = new Set<unknown>();
 
     """,
         Index = 0,
-    })
+    });
     }
 }

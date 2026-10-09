@@ -33,9 +33,9 @@ export const foo = 0;
 foo/**/|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixShebang", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.ts")
+    f.GoToFile("/a.ts");
 
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -45,6 +45,6 @@ foo/**/|]
 
     foo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

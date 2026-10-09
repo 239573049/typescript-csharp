@@ -138,6 +138,6 @@ router
     }|])|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansDepthChainedCalls", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

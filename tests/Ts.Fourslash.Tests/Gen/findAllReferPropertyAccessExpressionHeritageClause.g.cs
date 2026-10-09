@@ -34,6 +34,6 @@ class C extends (foo())./*2*/B {}
 class C1 extends foo()./*3*/B {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferPropertyAccessExpressionHeritageClause", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -32,6 +32,6 @@ interface I {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsSymbols2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

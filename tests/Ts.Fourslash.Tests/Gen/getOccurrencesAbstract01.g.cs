@@ -39,6 +39,6 @@ abstract class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesAbstract01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

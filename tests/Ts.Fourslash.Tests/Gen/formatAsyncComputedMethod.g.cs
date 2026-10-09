@@ -31,10 +31,10 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatAsyncComputedMethod", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("method")
+    f.GoToMarker("method");
 
-    f.VerifyCurrentLineContent("    async [0]() { }")
+    f.VerifyCurrentLineContent("    async [0]() { }");
     }
 }

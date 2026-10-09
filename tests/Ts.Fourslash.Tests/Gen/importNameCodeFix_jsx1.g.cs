@@ -41,21 +41,11 @@ import { Foo } from "./Foo";
 <Foo />;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsx1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
-    f.VerifyImportFixAtPosition([], null /*preferences*/)
+    f.VerifyImportFixAtPosition([], null /*preferences*/);
 
-    f.GoToFile("/c.tsx")
-
-    f.VerifyImportFixAtPosition([
-    """
-    import { React } from "react";
-    import { Foo } from "./Foo";
-    <Foo />;
-    """,
-    ], null /*preferences*/)
-
-    f.GoToFile("/d.tsx")
+    f.GoToFile("/c.tsx");
 
     f.VerifyImportFixAtPosition([
     """
@@ -63,6 +53,16 @@ import { Foo } from "./Foo";
     import { Foo } from "./Foo";
     <Foo />;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
+
+    f.GoToFile("/d.tsx");
+
+    f.VerifyImportFixAtPosition([
+    """
+    import { React } from "react";
+    import { Foo } from "./Foo";
+    <Foo />;
+    """,
+    ], null /*preferences*/);
     }
 }

@@ -56,6 +56,6 @@ let opt = <MainButton goTo="goTo" />;
 let opt = <MainButton wrong />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferences10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

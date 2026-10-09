@@ -33,8 +33,8 @@ public class RenameNoDefaultLibTests
 const [|/**/foo|] = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "renameNoDefaultLib", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

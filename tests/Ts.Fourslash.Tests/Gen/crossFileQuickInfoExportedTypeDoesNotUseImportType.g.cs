@@ -39,9 +39,9 @@ import { foob } from "./b";
 const thing/*1*/ = foob(/*2*/);
 """;
         using var f = FourslashTest.New(content, fileName: "crossFileQuickInfoExportedTypeDoesNotUseImportType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const thing: {\n    x: B;\n    y: B;\n}", "")
+    f.VerifyQuickInfoAt("1", "const thing: {\n    x: B;\n    y: B;\n}", "");
 
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foob(): { x: B; y: B; }" })
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foob(): { x: B; y: B; }" });
     }
 }

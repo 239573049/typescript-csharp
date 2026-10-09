@@ -29,6 +29,6 @@ public class QuickInfoFunctionCheckTypeTests
 export type /**/Tail<T extends any[]> = ((...t: T) => void) extends (h: any, ...rest: infer R) => void ? R : never;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFunctionCheckType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "type Tail<T extends any[]> = ((...t: T) => void) extends (h: any, ...rest: infer R) => void ? R : never", "")
+    f.VerifyQuickInfoAt("", "type Tail<T extends any[]> = ((...t: T) => void) extends (h: any, ...rest: infer R) => void ? R : never", "");
     }
 }

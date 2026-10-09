@@ -41,7 +41,7 @@ export as namespace classNames;
 const el1 = <div className={class/*1*/}>foo</div>
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_umdModules3_script", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -63,6 +63,6 @@ const el1 = <div className={class/*1*/}>foo</div>
     ],
         },
         
-    })
+    });
     }
 }

@@ -60,6 +60,6 @@ obj2.NaN;
             new SemanticToken { Type = "variable.declaration.readonly", Text = "obj2" },
             new SemanticToken { Type = "variable.readonly", Text = "obj2" },
             new SemanticToken { Type = "variable.readonly", Text = "obj2" },
-        })
+        });
     }
 }

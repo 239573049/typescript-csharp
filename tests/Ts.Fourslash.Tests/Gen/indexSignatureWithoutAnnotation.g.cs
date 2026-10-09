@@ -36,8 +36,8 @@ interface D extends B, C /**/ {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "indexSignatureWithoutAnnotation", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(" ")
+    f.Insert(" ");
     }
 }

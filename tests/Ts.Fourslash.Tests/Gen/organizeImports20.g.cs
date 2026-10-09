@@ -40,7 +40,7 @@ export { b };
 
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

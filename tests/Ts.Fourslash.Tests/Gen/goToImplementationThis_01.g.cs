@@ -33,6 +33,6 @@ class [|Bar|] extends Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationThis_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("this_type")
+    f.VerifyBaselineGoToImplementation("this_type");
     }
 }

@@ -51,7 +51,7 @@ while (true) {
    
 """;
         using var f = FourslashTest.New(content, fileName: "formatDocumentWithTrivia", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -77,6 +77,6 @@ while (true) {
     // 5 above  
 
 
-    """)
+    """);
     }
 }

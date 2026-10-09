@@ -35,6 +35,6 @@ const { Util } = require('./util');
 new [|Util/*1*/|]()
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDestructuredRequire1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

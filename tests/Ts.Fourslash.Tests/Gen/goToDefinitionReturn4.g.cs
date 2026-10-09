@@ -29,6 +29,6 @@ public class GoToDefinitionReturn4Tests
 [|/*start*/return|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionReturn4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

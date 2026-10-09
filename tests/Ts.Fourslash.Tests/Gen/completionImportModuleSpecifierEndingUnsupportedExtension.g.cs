@@ -50,7 +50,7 @@ import ".//**/"
     {
     ImportModuleSpecifierEnding = new ImportModuleSpecifierEndingPreference("js"),
     },
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -70,6 +70,6 @@ import ".//**/"
     {
     ImportModuleSpecifierEnding = new ImportModuleSpecifierEndingPreference("index"),
     },
-    })
+    });
     }
 }

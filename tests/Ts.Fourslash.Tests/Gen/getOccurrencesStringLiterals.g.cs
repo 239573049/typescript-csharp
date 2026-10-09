@@ -30,6 +30,6 @@ var x = "[|string|]";
 function f(a = "[|initial value|]") { }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesStringLiterals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

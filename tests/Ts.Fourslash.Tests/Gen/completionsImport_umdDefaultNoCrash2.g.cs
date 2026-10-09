@@ -78,6 +78,6 @@ import Dottie from 'dottie';
     ],
         },
         
-    })
+    });
     }
 }

@@ -40,7 +40,7 @@ function foo<S, T extends IFoo, U extends Object, V extends IFoo>() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "memberCompletionOnTypeParameters", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("S", null)
+    f.VerifyCompletions("S", null);
 
     f.VerifyCompletions(new[]{"T", "V", }, new CompletionsExpectedList
     {
@@ -66,7 +66,7 @@ function foo<S, T extends IFoo, U extends Object, V extends IFoo>() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("U", new CompletionsExpectedList
     {
@@ -89,6 +89,6 @@ function foo<S, T extends IFoo, U extends Object, V extends IFoo>() {
     ],
         },
         
-    })
+    });
     }
 }

@@ -53,6 +53,6 @@ class Foo2 implements IFoo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnParameterProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -40,6 +40,6 @@ public class DocCommentTemplateClassDecl01Tests
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateClassDecl01", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyJSDocCompletion("decl", 3, "/** */", null)
+    f.VerifyJSDocCompletion("decl", 3, "/** */", null);
     }
 }

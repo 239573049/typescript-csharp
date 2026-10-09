@@ -39,6 +39,6 @@ interface /*2*/X extends /*3*/M./*4*/I { }
             new SemanticToken { Type = "interface.declaration", Text = "X" },
             new SemanticToken { Type = "namespace", Text = "M" },
             new SemanticToken { Type = "interface", Text = "I" },
-        })
+        });
     }
 }

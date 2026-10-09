@@ -32,6 +32,6 @@ namespace X {
 X.add/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForSyntaxErrorNoError", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "any", "")
+    f.VerifyQuickInfoAt("1", "any", "");
     }
 }

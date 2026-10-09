@@ -35,6 +35,6 @@ export = x;
  test./**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListForNonExportedMemberInAmbientModuleWithExportAssignment1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

@@ -42,6 +42,6 @@ const {
 } = obj;
 """;
         using var f = FourslashTest.New(content, fileName: "renameBindingElementInitializerExternal", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "external")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "external");
     }
 }

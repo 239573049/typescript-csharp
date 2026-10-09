@@ -32,6 +32,6 @@ export const func2 = function() { };
 export function exportedFunction() { }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsNamedArrowFunctions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -30,6 +30,6 @@ const /*1*/x = 1;
 const y: { /*2*/x: number } = { /*3*/x };
 """;
         using var f = FourslashTest.New(content, fileName: "isDefinitionShorthandProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

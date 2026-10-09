@@ -32,6 +32,6 @@ function wrap( [| s |] ) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromPrimitiveUsage", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("s: string | string[]", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("s: string | string[]", false, 0, 0);
     }
 }

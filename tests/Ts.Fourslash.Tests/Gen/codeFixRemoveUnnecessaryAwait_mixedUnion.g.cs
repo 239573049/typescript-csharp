@@ -36,6 +36,6 @@ async function fn2<T extends Promise<void> | void>(a: T) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixRemoveUnnecessaryAwait_mixedUnion", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

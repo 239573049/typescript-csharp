@@ -35,9 +35,9 @@ aa({
 });
 """;
         using var f = FourslashTest.New(content, fileName: "memberListInFunctionCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -54,6 +54,6 @@ aa({
     ],
         },
         
-    })
+    });
     }
 }

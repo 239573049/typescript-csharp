@@ -35,8 +35,8 @@ export class C {
 new C().m/**/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoLinkCodePlain", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

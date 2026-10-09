@@ -39,6 +39,6 @@ public class JsdocSatisfiesTagFindAllReferencesTests
 const foo = { a: 1 };
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocSatisfiesTagFindAllReferences", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

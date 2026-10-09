@@ -46,6 +46,6 @@ class B implements A {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

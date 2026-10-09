@@ -52,6 +52,6 @@ function h(keep) { }
 h/*3*/({ nope: 1 })
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTypedefTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -35,6 +35,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renamePrivateFields1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "#foo")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "#foo");
     }
 }

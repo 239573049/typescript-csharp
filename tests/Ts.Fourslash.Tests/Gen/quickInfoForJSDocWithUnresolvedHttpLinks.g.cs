@@ -35,6 +35,6 @@ var /*5*/see2 = true
 var /*6*/see3 = true
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForJSDocWithUnresolvedHttpLinks", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

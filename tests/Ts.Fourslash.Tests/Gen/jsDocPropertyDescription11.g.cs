@@ -37,6 +37,6 @@ function aliasExample(e: AliasExample) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription11", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("alias", "(index) AliasExample[string | `any${string}`]: string", "Something generic\nSomething else")
+    f.VerifyQuickInfoAt("alias", "(index) AliasExample[string | `any${string}`]: string", "Something generic\nSomething else");
     }
 }

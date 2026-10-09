@@ -36,6 +36,6 @@ public class UnusedEnumInFunction1Tests
     function f1 () {
     }
 
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

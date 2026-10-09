@@ -29,10 +29,10 @@ public class FormatTypeParametersTests
 /**/type Bar<T extends any[]= any[]> = T
 """;
         using var f = FourslashTest.New(content, fileName: "formatTypeParameters", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("type Bar<T extends any[] = any[]> = T")
+    f.VerifyCurrentLineContent("type Bar<T extends any[] = any[]> = T");
     }
 }

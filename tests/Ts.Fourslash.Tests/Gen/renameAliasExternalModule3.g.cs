@@ -34,6 +34,6 @@ import M = require("./a");
 import C = M.[|SomeClass|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameAliasExternalModule3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "SomeClass")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "SomeClass");
     }
 }

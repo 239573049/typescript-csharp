@@ -37,7 +37,7 @@ const c = foo()
 const d = bar()
 """;
         using var f = FourslashTest.New(content, fileName: "inlayHintsInteractiveImportType2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.js")
+    f.GoToFile("/b.js");
 
     f.VerifyBaselineInlayHints(null /*span*/, new LsUtil.UserPreferences
     {
@@ -46,6 +46,6 @@ const d = bar()
     IncludeInlayVariableTypeHints = Core.TSTrue,
     IncludeInlayFunctionLikeReturnTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

@@ -61,6 +61,6 @@ let v = new /*3*/THREE.Vector2();
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesUmdModuleAsGlobalConst", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

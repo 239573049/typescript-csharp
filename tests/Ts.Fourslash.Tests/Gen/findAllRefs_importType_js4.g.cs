@@ -40,6 +40,6 @@ module.exports = {};
 /** @typedef {import("./a").A} A */
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefs_importType_js4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

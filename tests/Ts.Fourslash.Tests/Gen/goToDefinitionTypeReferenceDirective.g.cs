@@ -34,6 +34,6 @@ public class GoToDefinitionTypeReferenceDirectiveTests
  $.x;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionTypeReferenceDirective", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

@@ -43,8 +43,8 @@ const d = new B("b");
 const d1 = new B1("b1");
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOfConstructor_multipleFiles", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("aCtr")
+    f.VerifyBaselineFindAllReferences("aCtr");
     }
 }

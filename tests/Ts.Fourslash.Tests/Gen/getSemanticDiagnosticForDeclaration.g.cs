@@ -36,8 +36,8 @@ export function /*1*/foo/*2*/() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getSemanticDiagnosticForDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

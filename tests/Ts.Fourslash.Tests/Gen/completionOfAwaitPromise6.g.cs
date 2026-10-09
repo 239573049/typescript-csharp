@@ -48,6 +48,6 @@ async function foo(x: Promise<string>) {
     ],
         },
         
-    })
+    });
     }
 }

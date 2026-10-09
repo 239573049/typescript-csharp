@@ -44,10 +44,10 @@ IndirectDependency/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" })
+    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
 
-    f.VerifyImportFixAtPosition([], null /*preferences*/)
+    f.VerifyImportFixAtPosition([], null /*preferences*/);
     }
 }

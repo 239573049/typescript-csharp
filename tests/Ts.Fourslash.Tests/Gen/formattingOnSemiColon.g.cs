@@ -29,10 +29,10 @@ public class FormattingOnSemiColonTests
 var  a=b+c^d-e*++f
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnSemiColon", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentFileContent("var a = b + c ^ d - e * ++f;")
+    f.VerifyCurrentFileContent("var a = b + c ^ d - e * ++f;");
     }
 }

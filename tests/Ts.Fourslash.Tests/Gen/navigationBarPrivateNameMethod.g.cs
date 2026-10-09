@@ -38,6 +38,6 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarPrivateNameMethod", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

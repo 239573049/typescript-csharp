@@ -53,6 +53,6 @@ function test(type) {
     ],
         },
         
-    })
+    });
     }
 }

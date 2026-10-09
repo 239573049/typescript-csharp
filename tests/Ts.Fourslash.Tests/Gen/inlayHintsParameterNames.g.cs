@@ -86,6 +86,6 @@ func(
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.Literals,
     },
-    })
+    });
     }
 }

@@ -38,7 +38,7 @@ export = x;
 """;
         using var f = FourslashTest.New(content, fileName: "importSuggestionsCache_exportUndefined", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -67,7 +67,7 @@ export = x;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -96,6 +96,6 @@ export = x;
     ],
         },
         
-    })
+    });
     }
 }

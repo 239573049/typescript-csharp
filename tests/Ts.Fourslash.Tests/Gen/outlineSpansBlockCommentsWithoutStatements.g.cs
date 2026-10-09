@@ -31,6 +31,6 @@ public class OutlineSpansBlockCommentsWithoutStatementsTests
   */|]
 """;
         using var f = FourslashTest.New(content, fileName: "outlineSpansBlockCommentsWithoutStatements", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

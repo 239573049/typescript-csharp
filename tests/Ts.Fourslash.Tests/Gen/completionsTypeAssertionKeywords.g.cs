@@ -51,6 +51,6 @@ var c = </*3*/>42
             Exact = CompletionTypeAssertionKeywords,
         },
         
-    })
+    });
     }
 }

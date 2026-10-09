@@ -33,6 +33,6 @@ public class JsDocSignature_43394Tests
  */
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocSignature-43394", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

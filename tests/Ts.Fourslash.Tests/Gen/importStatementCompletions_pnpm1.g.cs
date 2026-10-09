@@ -36,7 +36,7 @@ export declare function Component(): void;
 """;
         using var f = FourslashTest.New(content, fileName: "importStatementCompletions_pnpm1", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -78,6 +78,6 @@ export declare function Component(): void;
     ],
         },
         
-    })
+    });
     }
 }

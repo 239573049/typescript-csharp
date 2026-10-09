@@ -56,7 +56,7 @@ import./*4*/meta
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -76,7 +76,7 @@ import./*4*/meta
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -96,7 +96,7 @@ import./*4*/meta
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -113,6 +113,6 @@ import./*4*/meta
     ],
         },
         
-    })
+    });
     }
 }

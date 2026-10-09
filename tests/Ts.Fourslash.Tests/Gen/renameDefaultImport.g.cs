@@ -37,10 +37,10 @@ let b = new [|B|]();
 b.test();
 """;
         using var f = FourslashTest.New(content, fileName: "renameDefaultImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1");
     }
 }

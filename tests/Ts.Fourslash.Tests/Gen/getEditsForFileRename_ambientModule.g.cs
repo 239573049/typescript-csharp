@@ -40,6 +40,6 @@ declare module "sub" {
 import { abc } from "sub";
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_ambientModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyWillRenameFilesEdits("/a.ts", "/b.ts", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/a.ts", "/b.ts", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

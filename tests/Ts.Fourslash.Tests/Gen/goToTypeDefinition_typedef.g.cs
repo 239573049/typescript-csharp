@@ -37,6 +37,6 @@ public class GoToTypeDefinition_typedefTests
 const /*ref*/i = { x: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition_typedef", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("ref")
+    f.VerifyBaselineGoToTypeDefinition("ref");
     }
 }

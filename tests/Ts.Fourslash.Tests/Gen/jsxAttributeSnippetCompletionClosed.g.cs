@@ -120,7 +120,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -145,7 +145,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -170,7 +170,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -195,7 +195,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -220,7 +220,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -245,7 +245,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -270,7 +270,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -295,7 +295,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("9", new CompletionsExpectedList
     {
@@ -320,7 +320,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("10", new CompletionsExpectedList
     {
@@ -345,7 +345,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("11", new CompletionsExpectedList
     {
@@ -370,7 +370,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("12", new CompletionsExpectedList
     {
@@ -395,7 +395,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("13", new CompletionsExpectedList
     {
@@ -420,7 +420,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("14", new CompletionsExpectedList
     {
@@ -445,7 +445,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("15", new CompletionsExpectedList
     {
@@ -469,7 +469,7 @@ function fn16() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("16", new CompletionsExpectedList
     {
@@ -493,6 +493,6 @@ function fn16() {
     ],
         },
         
-    })
+    });
     }
 }

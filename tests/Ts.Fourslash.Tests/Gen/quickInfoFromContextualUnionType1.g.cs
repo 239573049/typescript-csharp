@@ -41,6 +41,6 @@ type X =
 const obj = { name: "john", /*1*/someProp: "foo" } satisfies X;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFromContextualUnionType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) someProp: string", "")
+    f.VerifyQuickInfoAt("1", "(property) someProp: string", "");
     }
 }

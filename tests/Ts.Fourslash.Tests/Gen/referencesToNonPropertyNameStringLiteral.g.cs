@@ -31,6 +31,6 @@ const str: string = "hello/*1*/";
 """;
         using var f = FourslashTest.New(content, fileName: "referencesToNonPropertyNameStringLiteral", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

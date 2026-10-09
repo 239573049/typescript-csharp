@@ -44,7 +44,7 @@ import { foo } from "./a";
 import { foo } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "organizeImports14", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyOrganizeImports(
             """
@@ -61,7 +61,7 @@ import { foo } from "./a";
 
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

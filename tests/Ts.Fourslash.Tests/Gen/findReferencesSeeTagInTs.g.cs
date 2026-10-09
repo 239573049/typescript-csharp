@@ -33,6 +33,6 @@ declare const stuff: { quantity: number };
 if (stuff.quantity) {}
 """;
         using var f = FourslashTest.New(content, fileName: "findReferencesSeeTagInTs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

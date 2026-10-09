@@ -82,7 +82,7 @@ export class MoveInsideNextQuote extends MoveQuoteMatch {/*1*/
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -97,6 +97,6 @@ export class MoveInsideNextQuote extends MoveQuoteMatch {/*1*/
       keys = ["i", "n", "q"];
     }
     """,
-    })
+    });
     }
 }

@@ -32,6 +32,6 @@ const a = {
 a.b.f(foo);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingFunctionDeclaration20", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixMissingFunctionDeclaration")
+    f.VerifyCodeFixNotAvailable("fixMissingFunctionDeclaration");
     }
 }

@@ -47,6 +47,6 @@ const x: I | I[] | Many<string> | C = { /**/ };
     ],
         },
         
-    })
+    });
     }
 }

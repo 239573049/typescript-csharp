@@ -45,7 +45,7 @@ public class CompletionListInTemplateLiteralParts1Tests
             Exact = CompletionGlobals,
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "3", "4", "5", "6", "8", }, new CompletionsExpectedList
     {
@@ -60,6 +60,6 @@ public class CompletionListInTemplateLiteralParts1Tests
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

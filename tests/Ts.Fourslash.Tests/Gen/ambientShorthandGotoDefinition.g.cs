@@ -36,14 +36,14 @@ import [|/*importBang*/bang|] = require("jquery");
 [|foo/*useFoo*/|]([|bar/*useBar*/|], [|baz/*useBaz*/|], [|bang/*useBang*/|]);
 """;
         using var f = FourslashTest.New(content, fileName: "ambientShorthandGotoDefinition", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("useFoo", "(alias) module \"jquery\"\nimport foo", "")
+    f.VerifyQuickInfoAt("useFoo", "(alias) module \"jquery\"\nimport foo", "");
 
-    f.VerifyQuickInfoAt("useBar", "(alias) module \"jquery\"\nimport bar", "")
+    f.VerifyQuickInfoAt("useBar", "(alias) module \"jquery\"\nimport bar", "");
 
-    f.VerifyQuickInfoAt("useBaz", "(alias) module \"jquery\"\nimport baz", "")
+    f.VerifyQuickInfoAt("useBaz", "(alias) module \"jquery\"\nimport baz", "");
 
-    f.VerifyQuickInfoAt("useBang", "(alias) module \"jquery\"\nimport bang = require(\"jquery\")", "")
+    f.VerifyQuickInfoAt("useBang", "(alias) module \"jquery\"\nimport bang = require(\"jquery\")", "");
 
-    f.VerifyBaselineGoToDefinition(true, "useFoo", "importFoo", "useBar", "useBaz", "importBaz", "useBang", "importBang")
+    f.VerifyBaselineGoToDefinition(true, "useFoo", "importFoo", "useBar", "useBaz", "importBaz", "useBang", "importBang");
     }
 }

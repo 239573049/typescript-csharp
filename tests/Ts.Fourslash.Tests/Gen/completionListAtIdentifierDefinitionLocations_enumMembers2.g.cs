@@ -30,6 +30,6 @@ var aa = 1;
 enum a { foo, /*enumValueName3*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtIdentifierDefinitionLocations_enumMembers2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

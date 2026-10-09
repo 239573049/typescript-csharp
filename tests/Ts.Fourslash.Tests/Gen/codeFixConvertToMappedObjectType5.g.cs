@@ -32,6 +32,6 @@ class SomeType {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixConvertToMappedObjectType5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

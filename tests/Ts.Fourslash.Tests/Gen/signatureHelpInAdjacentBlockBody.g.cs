@@ -31,12 +31,12 @@ declare function foo(...args);
 foo(() => {/*1*/}/*2*/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInAdjacentBlockBody", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifySignatureHelpPresent(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.Invoked })
+    f.VerifySignatureHelpPresent(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.Invoked });
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifySignatureHelpPresent(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.Invoked })
+    f.VerifySignatureHelpPresent(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.Invoked });
     }
 }

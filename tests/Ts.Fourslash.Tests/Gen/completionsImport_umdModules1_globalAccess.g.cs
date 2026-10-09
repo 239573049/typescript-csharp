@@ -42,7 +42,7 @@ import * as React from 'react';
 const el1 = <div className={class/*1*/}>foo</div>;
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_umdModules1_globalAccess", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -64,6 +64,6 @@ const el1 = <div className={class/*1*/}>foo</div>;
     ],
         },
         
-    })
+    });
     }
 }

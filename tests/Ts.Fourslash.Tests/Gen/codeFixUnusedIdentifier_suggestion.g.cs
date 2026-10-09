@@ -53,8 +53,8 @@ function f([|p|]) {
     Code = LsProto.IntegerOrString.FromInteger(6133),
     Tags = [LsProto.DiagnosticTag.Unnecessary],
     },
-    ])
+    ]);
 
-    f.VerifyCodeFixAvailable(null)
+    f.VerifyCodeFixAvailable(null);
     }
 }

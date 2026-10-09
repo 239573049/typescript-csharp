@@ -32,22 +32,22 @@ class foo {/*1*/
 }/*4*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatColonAndQMark", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("class foo {")
+    f.VerifyCurrentLineContent("class foo {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    constructor(n?: number, m = 5, o?: string) { }")
+    f.VerifyCurrentLineContent("    constructor(n?: number, m = 5, o?: string) { }");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    x: number = 1 ? 2 : 3;")
+    f.VerifyCurrentLineContent("    x: number = 1 ? 2 : 3;");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

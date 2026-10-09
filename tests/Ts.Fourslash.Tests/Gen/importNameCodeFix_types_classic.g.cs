@@ -36,7 +36,7 @@ xyz;
 qrs;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_types_classic", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.ts")
+    f.GoToFile("/a.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -48,6 +48,6 @@ qrs;
     xyz;
     qrs;
     """,
-    })
+    });
     }
 }

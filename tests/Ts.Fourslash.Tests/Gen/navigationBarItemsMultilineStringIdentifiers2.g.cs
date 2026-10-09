@@ -41,6 +41,6 @@ unterminated backtick 2
 unterminated backtick 3
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsMultilineStringIdentifiers2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -35,7 +35,7 @@ public class FormatTsxMultilineAttributeStringTests
 );
 """;
         using var f = FourslashTest.New(content, fileName: "formatTsxMultilineAttributeString", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     (
@@ -44,6 +44,6 @@ public class FormatTsxMultilineAttributeStringTests
             x"
         />
     );
-    """)
+    """);
     }
 }

@@ -37,6 +37,6 @@ fo/*global*/o();
 var f = foo;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesOfAnonymousFunction2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "local", "global")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "local", "global");
     }
 }

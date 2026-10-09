@@ -34,14 +34,14 @@ namespace multiM {
 
 """;
         using var f = FourslashTest.New(content, fileName: "removeExportedClassFromReopenedModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.DeleteAtCaret(18)
+    f.DeleteAtCaret(18);
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert("new multiM.c();")
+    f.Insert("new multiM.c();");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

@@ -43,8 +43,8 @@ namespace M2 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnMergedModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) M2.A.foo: string", "")
+    f.VerifyQuickInfoAt("1", "(property) M2.A.foo: string", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

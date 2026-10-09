@@ -50,6 +50,6 @@ var y1 = new [|/*yref*/y|]();
 var z1 = new [|/*zref*/z|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionConstructorOfClassExpression01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "xusage", "yusage", "zusage", "cref", "xref", "yref", "zref")
+    f.VerifyBaselineGoToDefinition(true, "xusage", "yusage", "zusage", "cref", "xref", "yref", "zref");
     }
 }

@@ -43,6 +43,6 @@ case /**/
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

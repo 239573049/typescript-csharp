@@ -47,7 +47,7 @@ aB;|]
 aB;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_order2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -59,9 +59,9 @@ aB;|]
     } from "./a";
     aB;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -73,6 +73,6 @@ aB;|]
     } from "./a";
     aB;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

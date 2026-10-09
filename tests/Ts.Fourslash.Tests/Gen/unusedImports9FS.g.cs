@@ -43,6 +43,6 @@ export function test2() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports9FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("", false, 0, 0);
     }
 }

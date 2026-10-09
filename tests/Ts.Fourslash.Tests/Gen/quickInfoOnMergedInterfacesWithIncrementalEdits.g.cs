@@ -40,28 +40,28 @@ namespace MM {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnMergedInterfacesWithIncrementalEdits", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("(property) B<string>.bar: string", "")
+    f.VerifyQuickInfoIs("(property) B<string>.bar: string", "");
 
-    f.DeleteAtCaret(1)
+    f.DeleteAtCaret(1);
 
-    f.Insert("z")
+    f.Insert("z");
 
-    f.VerifyQuickInfoIs("any", "")
+    f.VerifyQuickInfoIs("any", "");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.Insert("a")
+    f.Insert("a");
 
-    f.VerifyQuickInfoIs("(property) B<string>.bar: string", "")
+    f.VerifyQuickInfoIs("(property) B<string>.bar: string", "");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoIs("var r4: string", "")
+    f.VerifyQuickInfoIs("var r4: string", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

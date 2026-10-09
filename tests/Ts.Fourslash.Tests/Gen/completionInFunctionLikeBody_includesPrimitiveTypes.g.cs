@@ -63,7 +63,7 @@ function excludesTypes2() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "3", }, new CompletionsExpectedList
     {
@@ -80,6 +80,6 @@ function excludesTypes2() {
     ],
         },
         
-    })
+    });
     }
 }

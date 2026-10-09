@@ -31,6 +31,6 @@ let y = o./*3*/foo;
 let z = o['/*4*/foo'];
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfComputedProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

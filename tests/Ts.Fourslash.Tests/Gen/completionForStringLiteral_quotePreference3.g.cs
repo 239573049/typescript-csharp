@@ -62,6 +62,6 @@ a[|./**/|]
     {
     QuotePreference = "double",
     },
-    })
+    });
     }
 }

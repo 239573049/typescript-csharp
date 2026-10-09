@@ -38,6 +38,6 @@ namespace greeter {
     f.VerifyRangeAfterCodeFix("""
     export interface interface2 {
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

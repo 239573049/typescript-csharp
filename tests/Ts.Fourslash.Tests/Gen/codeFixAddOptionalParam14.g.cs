@@ -34,6 +34,6 @@ function f(a: string, b?: number): string {
 f("", "", 1);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddOptionalParam14", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("addOptionalParam")
+    f.VerifyCodeFixNotAvailable("addOptionalParam");
     }
 }

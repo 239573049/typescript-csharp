@@ -38,6 +38,6 @@ class C implements I {
 ({} as C).M();
 """;
         using var f = FourslashTest.New(content, fileName: "isDefinitionInterfaceImplementation", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

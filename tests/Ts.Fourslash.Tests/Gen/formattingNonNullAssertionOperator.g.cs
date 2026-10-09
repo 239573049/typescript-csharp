@@ -33,26 +33,26 @@ public class FormattingNonNullAssertionOperatorTests
 /*5*/ var  foo  =  bar ! ;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingNonNullAssertionOperator", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("'bar'!;")
+    f.VerifyCurrentLineContent("'bar'!;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("('bar')!;")
+    f.VerifyCurrentLineContent("('bar')!;");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("'bar'[1]!;")
+    f.VerifyCurrentLineContent("'bar'[1]!;");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("var bar = 'bar'.foo!;")
+    f.VerifyCurrentLineContent("var bar = 'bar'.foo!;");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("var foo = bar!;")
+    f.VerifyCurrentLineContent("var foo = bar!;");
     }
 }

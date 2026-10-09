@@ -40,7 +40,7 @@ var obj2 = obj ||
 
 """;
         using var f = FourslashTest.New(content, fileName: "formattingObjectLiteralOpenCurlyNewlineAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -55,11 +55,11 @@ var obj2 = obj ||
         prop: 0
     }
 
-    """)
+    """);
 
-    f.ConfigureFormat(new FormatCodeSettings { IndentMultiLineObjectLiteralBeginningOnBlankLine = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { IndentMultiLineObjectLiteralBeginningOnBlankLine = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -74,6 +74,6 @@ var obj2 = obj ||
             prop: 0
         }
 
-    """)
+    """);
     }
 }

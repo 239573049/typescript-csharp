@@ -35,7 +35,7 @@ def/*0*/
 fooB/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_default_anonymous", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
     f.VerifyCompletions("0", new CompletionsExpectedList
     {
@@ -52,7 +52,7 @@ fooB/*1*/
     ], true),
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -83,7 +83,7 @@ fooB/*1*/
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -96,6 +96,6 @@ fooB/*1*/
     def
     fooB
     """,
-    })
+    });
     }
 }

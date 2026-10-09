@@ -42,12 +42,12 @@ const /*4*/X = 1;
 export interface X {}
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnValueSymbolWithoutExportWithSameNameExportSymbol", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const Unit: number", "")
+    f.VerifyQuickInfoAt("1", "const Unit: number", "");
 
-    f.VerifyQuickInfoAt("2", "const Unit: number", "")
+    f.VerifyQuickInfoAt("2", "const Unit: number", "");
 
-    f.VerifyQuickInfoAt("3", "function Fn(): void", "")
+    f.VerifyQuickInfoAt("3", "function Fn(): void", "");
 
-    f.VerifyQuickInfoAt("4", "const X: 1", "")
+    f.VerifyQuickInfoAt("4", "const X: 1", "");
     }
 }

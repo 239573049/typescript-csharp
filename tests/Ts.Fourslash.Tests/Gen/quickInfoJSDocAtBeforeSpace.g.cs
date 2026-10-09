@@ -41,6 +41,6 @@ function /*g*/g() { }
 function /*h*/h() { }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJSDocAtBeforeSpace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

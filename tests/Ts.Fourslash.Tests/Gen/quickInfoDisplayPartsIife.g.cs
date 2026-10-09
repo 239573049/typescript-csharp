@@ -30,6 +30,6 @@ public class QuickInfoDisplayPartsIifeTests
 var iife = (function foo/*1*/(x, y) { return x })(12);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsIife", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local function) foo(x: number, y?: undefined): number", "")
+    f.VerifyQuickInfoAt("1", "(local function) foo(x: number, y?: undefined): number", "");
     }
 }

@@ -36,8 +36,8 @@ import bar from "./f";
 bar(1, 2);
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsImportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("start")
+    f.VerifyBaselineFindAllReferences("start");
     }
 }

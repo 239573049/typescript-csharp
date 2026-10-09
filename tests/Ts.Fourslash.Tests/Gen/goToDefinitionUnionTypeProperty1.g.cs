@@ -42,6 +42,6 @@ x.[|/*propertyReference*/commonProperty|];
 x./*3*/commonFunction;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionUnionTypeProperty1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "propertyReference")
+    f.VerifyBaselineGoToDefinition(true, "propertyReference");
     }
 }

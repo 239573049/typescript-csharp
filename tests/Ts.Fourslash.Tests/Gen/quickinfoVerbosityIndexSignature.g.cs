@@ -36,6 +36,6 @@ interface Foo {
 const f/*f*/: Foo = {};
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityIndexSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["a"] = new[]{0, 1}, ["f"] = new[]{0, 1, 2}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["a"] = new[]{0, 1}, ["f"] = new[]{0, 1, 2}});
     }
 }

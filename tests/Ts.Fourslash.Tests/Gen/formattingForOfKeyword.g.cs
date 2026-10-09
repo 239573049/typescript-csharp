@@ -29,10 +29,10 @@ public class FormattingForOfKeywordTests
 /**/for ([]of[]) { }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingForOfKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("for ([] of []) { }")
+    f.VerifyCurrentLineContent("for ([] of []) { }");
     }
 }

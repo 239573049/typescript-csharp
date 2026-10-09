@@ -40,13 +40,13 @@ import { Foo } from './interface';
 class /*1*/X implements Foo {}
 """;
         using var f = FourslashTest.New(content, fileName: "quickfixImplementInterfaceUnreachableTypeUsesRelativeImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
         Description = "Implement interface 'Foo'",
         NewFileContent = "",
         Index = 0,
-    })
+    });
     }
 }

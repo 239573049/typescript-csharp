@@ -61,6 +61,6 @@ function /*f8Def*/f8(ij: any): any { return ij; }
 /*f8*/f8();
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition_returnType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8")
+    f.VerifyBaselineGoToTypeDefinition("f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8");
     }
 }

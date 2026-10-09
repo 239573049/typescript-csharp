@@ -40,7 +40,7 @@ public class SuggestionOfUnusedVariableWithExternalModuleTests
 [|require("./mymodule")|];
 """;
         using var f = FourslashTest.New(content, fileName: "suggestionOfUnusedVariableWithExternalModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/app.js")
+    f.GoToFile("/app.js");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -49,9 +49,9 @@ public class SuggestionOfUnusedVariableWithExternalModuleTests
     Message = LsProto.StringOrMarkupContent.FromString("File is a CommonJS module; it may be converted to an ES module."),
     Range = f.Ranges()[2].LSRange,
     },
-    ])
+    ]);
 
-    f.GoToFile("/mymodule.js")
+    f.GoToFile("/mymodule.js");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -68,6 +68,6 @@ public class SuggestionOfUnusedVariableWithExternalModuleTests
     Range = f.Ranges()[1].LSRange,
     Tags = [LsProto.DiagnosticTag.Unnecessary],
     },
-    ])
+    ]);
     }
 }

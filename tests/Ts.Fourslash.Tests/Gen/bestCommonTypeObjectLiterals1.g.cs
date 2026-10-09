@@ -43,14 +43,14 @@ var i: I;
 var /*4*/c3 = [i, a];
 """;
         using var f = FourslashTest.New(content, fileName: "bestCommonTypeObjectLiterals1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("4", "var c3: I[]", "")
+    f.VerifyQuickInfoAt("4", "var c3: I[]", "");
 
-    f.VerifyQuickInfoAt("1", "var c: {\n    name: string;\n    age: number;\n}[]", "")
+    f.VerifyQuickInfoAt("1", "var c: {\n    name: string;\n    age: number;\n}[]", "");
 
-    f.VerifyQuickInfoAt("2", "var c1: {\n    name: string;\n    age: number;\n}[]", "")
+    f.VerifyQuickInfoAt("2", "var c1: {\n    name: string;\n    age: number;\n}[]", "");
 
-    f.VerifyQuickInfoAt("3", "var c2: ({\n    name: string;\n    age: number;\n    address: string;\n} | {\n    name: string;\n    age: number;\n    dob: Date;\n})[]", "")
+    f.VerifyQuickInfoAt("3", "var c2: ({\n    name: string;\n    age: number;\n    address: string;\n} | {\n    name: string;\n    age: number;\n    dob: Date;\n})[]", "");
 
-    f.VerifyQuickInfoAt("4", "var c3: I[]", "")
+    f.VerifyQuickInfoAt("4", "var c3: I[]", "");
     }
 }

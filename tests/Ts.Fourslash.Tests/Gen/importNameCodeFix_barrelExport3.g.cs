@@ -48,11 +48,11 @@ export * from "./a";
     f.VerifyImportFixModuleSpecifiers("sibling", new[]{"./a", "./index", "../index"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierEnding = new ImportModuleSpecifierEndingPreference("index"),
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("parent", new[]{"../foo/a", "../foo/index", "../index"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierEnding = new ImportModuleSpecifierEndingPreference("index"),
-    })
+    });
     }
 }

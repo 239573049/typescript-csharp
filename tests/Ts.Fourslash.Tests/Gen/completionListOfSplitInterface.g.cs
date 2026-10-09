@@ -79,7 +79,7 @@ ci1./*2*/b;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -100,6 +100,6 @@ ci1./*2*/b;
     ],
         },
         
-    })
+    });
     }
 }

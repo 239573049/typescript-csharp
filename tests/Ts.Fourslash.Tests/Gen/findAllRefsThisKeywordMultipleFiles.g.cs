@@ -37,6 +37,6 @@ public class FindAllRefsThisKeywordMultipleFilesTests
  function f(this) { return this; }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsThisKeywordMultipleFiles", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8");
     }
 }

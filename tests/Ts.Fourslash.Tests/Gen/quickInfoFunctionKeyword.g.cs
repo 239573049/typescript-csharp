@@ -30,8 +30,8 @@ public class QuickInfoFunctionKeywordTests
 [1].map(x =/*2*/> x + 1);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFunctionKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local function)(): void", "")
+    f.VerifyQuickInfoAt("1", "(local function)(): void", "");
 
-    f.VerifyQuickInfoAt("2", "function(x: number): number", "")
+    f.VerifyQuickInfoAt("2", "function(x: number): number", "");
     }
 }

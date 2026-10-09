@@ -40,6 +40,6 @@ new [|/*start*/StringStreamm|]()
 };
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionConstructorFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

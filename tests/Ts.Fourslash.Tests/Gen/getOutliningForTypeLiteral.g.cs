@@ -48,6 +48,6 @@ type B =[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningForTypeLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

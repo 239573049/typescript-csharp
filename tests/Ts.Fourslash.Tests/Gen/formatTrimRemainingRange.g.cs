@@ -34,13 +34,13 @@ public class FormatTrimRemainingRangeTests
 """;
         using var f = FourslashTest.New(content, fileName: "formatTrimRemainingRange", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     ;
     /*
      
     */
-    """)
+    """);
     }
 }

@@ -42,6 +42,6 @@ function /**/CC() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocLink2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

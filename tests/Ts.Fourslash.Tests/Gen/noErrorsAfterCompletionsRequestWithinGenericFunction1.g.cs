@@ -32,10 +32,10 @@ declare function func<T extends { foo: 1 }>(arg: T): void;
 func({ foo: 1, bar/*1*/: 1 });
 """;
         using var f = FourslashTest.New(content, fileName: "noErrorsAfterCompletionsRequestWithinGenericFunction1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

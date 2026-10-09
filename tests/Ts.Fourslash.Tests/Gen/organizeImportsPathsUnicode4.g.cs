@@ -49,8 +49,8 @@ console.log(_aB, _Ab, aB, Ab);
     OrganizeImportsIgnoreCase = Core.TSFalse,
     OrganizeImportsCollation = LsUtil.OrganizeImportsCollation.Unicode,
     OrganizeImportsCaseFirst = LsUtil.OrganizeImportsCaseFirst.Upper,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -67,7 +67,7 @@ console.log(_aB, _Ab, aB, Ab);
     OrganizeImportsIgnoreCase = Core.TSFalse,
     OrganizeImportsCollation = LsUtil.OrganizeImportsCollation.Unicode,
     OrganizeImportsCaseFirst = LsUtil.OrganizeImportsCaseFirst.Lower,
-    },
-        )
+    }
+        );
     }
 }

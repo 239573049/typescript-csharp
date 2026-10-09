@@ -31,6 +31,6 @@ public class ReferencesForLabel3Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForLabel3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

@@ -36,18 +36,18 @@ function a() {
     /* %^ */ }/*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "multilineCommentBeforeOpenBrace", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("function test() /* %^ */ {")
+    f.VerifyCurrentLineContent("function test() /* %^ */ {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    if (true) /* %^ */ {")
+    f.VerifyCurrentLineContent("    if (true) /* %^ */ {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

@@ -32,6 +32,6 @@ enum E {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameReferenceFromLinkTag5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

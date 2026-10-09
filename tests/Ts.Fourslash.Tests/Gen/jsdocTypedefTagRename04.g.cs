@@ -45,16 +45,16 @@ function test2() {
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagRename04", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("111")
+    f.Insert("111");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

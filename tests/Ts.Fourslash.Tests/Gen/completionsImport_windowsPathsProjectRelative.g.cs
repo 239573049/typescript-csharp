@@ -47,7 +47,7 @@ export * from './b';
 myFunction/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_windowsPathsProjectRelative", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -92,7 +92,7 @@ myFunction/**/
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
     },
-    })
+    });
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -137,7 +137,7 @@ myFunction/**/
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("relative"),
     },
-    })
+    });
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -182,6 +182,6 @@ myFunction/**/
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("project-relative"),
     },
-    })
+    });
     }
 }

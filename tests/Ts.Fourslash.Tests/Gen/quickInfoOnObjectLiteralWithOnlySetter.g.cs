@@ -60,12 +60,12 @@ point./*2*/x = 30;
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("1", "function makePoint(x: number): {\n    b: number;\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("1", "function makePoint(x: number): {\n    b: number;\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("2", "(property) x: number", "")
+    f.VerifyQuickInfoAt("2", "(property) x: number", "");
 
-    f.VerifyQuickInfoAt("3", "var point: {\n    b: number;\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("3", "var point: {\n    b: number;\n    x: number;\n}", "");
     }
 }

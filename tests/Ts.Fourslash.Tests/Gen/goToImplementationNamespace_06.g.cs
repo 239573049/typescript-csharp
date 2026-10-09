@@ -34,6 +34,6 @@ namespace [|F/*declaration*/oo|] {
 let x: typeof Foo = [|{ hello() {} }|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationNamespace_06", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("declaration")
+    f.VerifyBaselineGoToImplementation("declaration");
     }
 }

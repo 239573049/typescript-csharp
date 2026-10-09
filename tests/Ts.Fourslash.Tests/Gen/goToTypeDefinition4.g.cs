@@ -34,8 +34,8 @@ import { T } from "./foo";
 let x: [|/*reference*/T|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
 
-    f.VerifyBaselineGoToDefinition(true, "reference")
+    f.VerifyBaselineGoToDefinition(true, "reference");
     }
 }

@@ -33,6 +33,6 @@ const f = async () => {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsUsing", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

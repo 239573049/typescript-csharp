@@ -35,6 +35,6 @@ function multipleClass(e: typeof MultipleClass) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("multipleClass", "any", "")
+    f.VerifyQuickInfoAt("multipleClass", "any", "");
     }
 }

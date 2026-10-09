@@ -45,7 +45,7 @@ type G = A | B | C | D | E | F;
     type G = A | B | C | D | E | F;
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

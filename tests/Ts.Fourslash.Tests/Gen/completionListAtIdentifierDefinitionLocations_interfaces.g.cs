@@ -31,6 +31,6 @@ interface /*interfaceName1*/
 interface a/*interfaceName2*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtIdentifierDefinitionLocations_interfaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

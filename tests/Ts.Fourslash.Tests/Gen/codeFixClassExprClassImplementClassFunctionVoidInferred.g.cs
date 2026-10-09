@@ -46,6 +46,6 @@ let B = class implements A {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

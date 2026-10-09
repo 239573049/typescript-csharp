@@ -38,8 +38,8 @@ function f(/**/x) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsconfig", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.js")
+    f.GoToFile("/a.js");
 
-    f.VerifyErrorExistsAfterMarker("")
+    f.VerifyErrorExistsAfterMarker("");
     }
 }

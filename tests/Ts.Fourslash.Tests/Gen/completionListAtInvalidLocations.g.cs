@@ -62,8 +62,8 @@ var v10 = /reg/*inRegExp1*/ex/;
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions(new[]{"inComment1", "inComment2", "inComment3", "inComment4", "inTypeAlias", "inComment5", "inRegExp1", }, null)
+    f.VerifyCompletions(new[]{"inComment1", "inComment2", "inComment3", "inComment4", "inTypeAlias", "inComment5", "inRegExp1", }, null);
     }
 }

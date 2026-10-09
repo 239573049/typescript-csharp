@@ -69,6 +69,6 @@ var foo3 = require("fake-module//*require0*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -37,6 +37,6 @@ var c = new /*2*/Class();
 export { /*3*/Class } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOnImportAliases", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
     }
 }

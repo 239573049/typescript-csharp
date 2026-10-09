@@ -32,13 +32,13 @@ export class C extends Error {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "optionalPropertyFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     export class C extends Error {
         message: string;
         data? = {};
     }
-    """)
+    """);
     }
 }

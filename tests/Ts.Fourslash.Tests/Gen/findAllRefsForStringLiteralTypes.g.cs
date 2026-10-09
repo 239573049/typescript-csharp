@@ -30,6 +30,6 @@ type Options = "/*1*/option 1" | "option 2";
 let myOption: Options = "/*2*/option 1";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForStringLiteralTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

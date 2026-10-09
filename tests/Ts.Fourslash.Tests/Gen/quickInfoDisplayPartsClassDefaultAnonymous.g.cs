@@ -30,6 +30,6 @@ public class QuickInfoDisplayPartsClassDefaultAnonymousTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsClassDefaultAnonymous", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

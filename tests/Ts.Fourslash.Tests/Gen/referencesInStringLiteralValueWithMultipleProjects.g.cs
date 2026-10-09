@@ -38,6 +38,6 @@ const str2: string = "hello/*2*/";
 """;
         using var f = FourslashTest.New(content, fileName: "referencesInStringLiteralValueWithMultipleProjects", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

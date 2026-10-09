@@ -36,6 +36,6 @@ declare const user2: PickedUser
 /*reference2*/user2
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition_Pick", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference", "reference2")
+    f.VerifyBaselineGoToTypeDefinition("reference", "reference2");
     }
 }

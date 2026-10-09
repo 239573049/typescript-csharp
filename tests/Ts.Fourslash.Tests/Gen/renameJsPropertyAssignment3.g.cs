@@ -34,6 +34,6 @@ var C = class  {
 console.log(C.[|staticProperty|]);
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsPropertyAssignment3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "staticProperty")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "staticProperty");
     }
 }

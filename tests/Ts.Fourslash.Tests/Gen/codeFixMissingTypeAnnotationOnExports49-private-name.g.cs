@@ -57,7 +57,7 @@ export function three() {
     }
     """,
         Index = 0,
-    })
+    });
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -74,6 +74,6 @@ export function three() {
     }
     """,
         Index = 1,
-    })
+    });
     }
 }

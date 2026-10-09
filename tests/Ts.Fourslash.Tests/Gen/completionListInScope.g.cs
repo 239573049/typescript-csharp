@@ -112,7 +112,7 @@ class TestClass {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeReference", new CompletionsExpectedList
     {
@@ -138,7 +138,7 @@ class TestClass {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("insideMethod", new CompletionsExpectedList
     {
@@ -164,6 +164,6 @@ class TestClass {
     ],
         },
         
-    })
+    });
     }
 }

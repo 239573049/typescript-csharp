@@ -69,7 +69,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -86,7 +86,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -103,7 +103,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -120,7 +120,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -137,7 +137,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -154,7 +154,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -171,7 +171,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -188,7 +188,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("9", new CompletionsExpectedList
     {
@@ -205,7 +205,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("10", new CompletionsExpectedList
     {
@@ -222,7 +222,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("11", new CompletionsExpectedList
     {
@@ -239,7 +239,7 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("12", new CompletionsExpectedList
     {
@@ -256,6 +256,6 @@ var x12 = <Exp.M.SFCComp><div><span /></div></[|Exp.M./*12*/SFCComp|]>;
     ],
         },
         
-    })
+    });
     }
 }

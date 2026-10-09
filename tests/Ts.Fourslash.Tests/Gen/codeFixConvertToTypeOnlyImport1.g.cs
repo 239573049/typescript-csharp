@@ -43,8 +43,8 @@ declare const c: C;
 console.log(b, c);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixConvertToTypeOnlyImport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("imports.ts")
+    f.GoToFile("imports.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

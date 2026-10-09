@@ -34,6 +34,6 @@ class /* But it has no name! */ {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsMissingName2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

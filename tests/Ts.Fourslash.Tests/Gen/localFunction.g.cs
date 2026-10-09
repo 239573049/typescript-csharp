@@ -36,12 +36,12 @@ var x = function /*4*/bar4() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "localFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function foo(): void", "")
+    f.VerifyQuickInfoAt("1", "function foo(): void", "");
 
-    f.VerifyQuickInfoAt("2", "(local function) bar2(): void", "")
+    f.VerifyQuickInfoAt("2", "(local function) bar2(): void", "");
 
-    f.VerifyQuickInfoAt("3", "(local function) bar3(): void", "")
+    f.VerifyQuickInfoAt("3", "(local function) bar3(): void", "");
 
-    f.VerifyQuickInfoAt("4", "(local function) bar4(): void", "")
+    f.VerifyQuickInfoAt("4", "(local function) bar4(): void", "");
     }
 }

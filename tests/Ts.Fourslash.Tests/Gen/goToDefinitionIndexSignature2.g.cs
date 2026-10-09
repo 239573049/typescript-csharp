@@ -32,6 +32,6 @@ const o = {};
 o.[|/*use*/foo|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionIndexSignature2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use")
+    f.VerifyBaselineGoToDefinition(true, "use");
     }
 }

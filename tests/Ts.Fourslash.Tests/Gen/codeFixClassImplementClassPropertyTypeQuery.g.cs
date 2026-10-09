@@ -45,6 +45,6 @@ class D implements A {[| |]}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

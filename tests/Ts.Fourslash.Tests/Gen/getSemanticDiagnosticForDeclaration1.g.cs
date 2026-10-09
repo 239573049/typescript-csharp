@@ -31,6 +31,6 @@ public class GetSemanticDiagnosticForDeclaration1Tests
 declare var v: string;
 """;
         using var f = FourslashTest.New(content, fileName: "getSemanticDiagnosticForDeclaration1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

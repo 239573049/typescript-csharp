@@ -36,6 +36,6 @@ export class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixForgottenThisPropertyAccess04", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

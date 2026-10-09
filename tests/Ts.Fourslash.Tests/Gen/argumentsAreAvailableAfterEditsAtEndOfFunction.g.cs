@@ -36,9 +36,9 @@ namespace Test1 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "argumentsAreAvailableAfterEditsAtEndOfFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("this.children = ch")
+    f.Insert("this.children = ch");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -59,6 +59,6 @@ namespace Test1 {
     ],
         },
         
-    })
+    });
     }
 }

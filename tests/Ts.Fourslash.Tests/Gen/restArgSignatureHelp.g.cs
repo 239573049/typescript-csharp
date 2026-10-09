@@ -30,7 +30,7 @@ function f(...x: any[]) { }
 f(/**/);
 """;
         using var f = FourslashTest.New(content, fileName: "restArgSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x", IsVariadic = true, IsVariadicSet = true })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x", IsVariadic = true, IsVariadicSet = true });
     }
 }

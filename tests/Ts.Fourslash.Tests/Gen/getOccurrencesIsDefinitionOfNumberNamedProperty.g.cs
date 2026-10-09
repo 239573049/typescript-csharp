@@ -30,6 +30,6 @@ let o = { /*1*/1: 12 };
 let y = o[/*2*/1];
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfNumberNamedProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

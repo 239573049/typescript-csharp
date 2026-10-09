@@ -36,6 +36,6 @@ public class GoToDefinitionLabelsTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionLabels", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4")
+    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4");
     }
 }

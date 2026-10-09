@@ -35,6 +35,6 @@ function /*1*/foo(/*2*/param: string, /*3*/optionalParam?: string, /*4*/paramWit
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsParameters", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

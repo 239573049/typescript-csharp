@@ -43,6 +43,6 @@ var /*11*/i = /*12*/h;
 /*14*/h("hello");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsVar", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

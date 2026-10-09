@@ -40,7 +40,7 @@ export interface SvgProperties {}
 """;
         using var f = FourslashTest.New(content, fileName: "importStatementCompletions_pnpmTransitive", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -61,6 +61,6 @@ export interface SvgProperties {}
     ],
         },
         
-    })
+    });
     }
 }

@@ -40,6 +40,6 @@ console.log("./script/*3*/");
 console.log("./script");
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsNonModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

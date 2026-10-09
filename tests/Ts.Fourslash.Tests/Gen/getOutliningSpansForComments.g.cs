@@ -44,6 +44,6 @@ declare module "n";
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansForComments", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Comment)
+    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Comment);
     }
 }

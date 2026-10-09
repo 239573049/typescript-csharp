@@ -31,6 +31,6 @@ declare var x: [1, 2];
 x.b;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingMember8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

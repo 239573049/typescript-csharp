@@ -71,6 +71,6 @@ foo4(p => {})
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

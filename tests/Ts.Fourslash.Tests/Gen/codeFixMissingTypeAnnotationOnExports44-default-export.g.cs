@@ -41,6 +41,6 @@ export default 1 + 1;
     export default _default_1;
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -35,6 +35,6 @@ class Greeter {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "thisBindingInLambda", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "this: this", "")
+    f.VerifyQuickInfoAt("", "this: this", "");
     }
 }

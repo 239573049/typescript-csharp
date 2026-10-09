@@ -40,6 +40,6 @@ Thing.toExponential();
             new SemanticToken { Type = "variable.declaration", Text = "Thing" },
             new SemanticToken { Type = "variable", Text = "Thing" },
             new SemanticToken { Type = "method.defaultLibrary", Text = "toExponential" },
-        })
+        });
     }
 }

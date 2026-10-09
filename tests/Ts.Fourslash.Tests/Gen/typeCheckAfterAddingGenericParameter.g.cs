@@ -40,12 +40,12 @@ interface I<X, X> {
 
 """;
         using var f = FourslashTest.New(content, fileName: "typeCheckAfterAddingGenericParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("addParam")
+    f.GoToMarker("addParam");
 
-    f.Insert(", X")
+    f.Insert(", X");
 
-    f.GoToMarker("addTypeParam")
+    f.GoToMarker("addTypeParam");
 
-    f.Insert(", X")
+    f.Insert(", X");
     }
 }

@@ -34,6 +34,6 @@ let a12 = { ...a1, ...a2 };
 a12.[|a|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameObjectSpread", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4]);
     }
 }

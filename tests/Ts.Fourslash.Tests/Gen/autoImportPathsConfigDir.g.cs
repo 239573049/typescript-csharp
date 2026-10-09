@@ -40,6 +40,6 @@ export const one = 1;
 one/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPathsConfigDir", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"@root/one"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"@root/one"}, null /*preferences*/);
     }
 }

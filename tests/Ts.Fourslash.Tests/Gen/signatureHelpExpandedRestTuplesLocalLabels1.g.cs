@@ -91,6 +91,6 @@ withPair(/*27*/);
 withPair(101, /*28*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpExpandedRestTuplesLocalLabels1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

@@ -39,6 +39,6 @@ export function something(name: string): any;
 something/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPackageJsonImportsPattern_ts", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"#something"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"#something"}, null /*preferences*/);
     }
 }

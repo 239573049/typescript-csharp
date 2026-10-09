@@ -55,6 +55,6 @@ type Unwrap<T extends Wrapper<any>> = T["_type"] extends Record<
 type Test/*1*/ = Unwrap<typeof value>;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoAssertionNodeNotReusedWhenTypeNotEquivalent1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "type Test = {\n    prop1: \"hello\";\n}", "")
+    f.VerifyQuickInfoAt("1", "type Test = {\n    prop1: \"hello\";\n}", "");
     }
 }

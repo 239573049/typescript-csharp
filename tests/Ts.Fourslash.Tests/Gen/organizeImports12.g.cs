@@ -41,7 +41,7 @@ declare export * from "foo";
 
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

@@ -32,7 +32,7 @@ export const foo: number;
 [|foo;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_quoteStyle", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -43,6 +43,6 @@ export const foo: number;
     ], new LsUtil.UserPreferences
     {
     QuotePreference = "single",
-    })
+    });
     }
 }

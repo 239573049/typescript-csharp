@@ -34,6 +34,6 @@ var obj1 = { /*2*/name: /*3*/name };
 obj./*4*/name;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsWithShorthandPropertyAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "3", "1", "2", "4")
+    f.VerifyBaselineFindAllReferences("0", "3", "1", "2", "4");
     }
 }

@@ -38,6 +38,6 @@ export class B extends A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionOverriddenMember26", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

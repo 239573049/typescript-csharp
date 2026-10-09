@@ -33,6 +33,6 @@ namespace Test.B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsModules2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

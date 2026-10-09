@@ -44,6 +44,6 @@ class C extends B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags16", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

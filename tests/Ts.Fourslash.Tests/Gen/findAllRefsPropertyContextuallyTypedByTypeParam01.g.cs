@@ -44,6 +44,6 @@ var x: IFoo = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsPropertyContextuallyTypedByTypeParam01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

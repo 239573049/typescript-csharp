@@ -38,6 +38,6 @@ public class ReferencesInEmptyFileWithMultipleProjectsTests
 """;
         using var f = FourslashTest.New(content, fileName: "referencesInEmptyFileWithMultipleProjects", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

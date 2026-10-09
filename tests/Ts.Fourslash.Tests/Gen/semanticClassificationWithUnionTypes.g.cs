@@ -53,6 +53,6 @@ var I: typeof M | typeof /*8*/C;
             new SemanticToken { Type = "class.declaration", Text = "I" },
             new SemanticToken { Type = "variable", Text = "M" },
             new SemanticToken { Type = "class", Text = "C" },
-        })
+        });
     }
 }

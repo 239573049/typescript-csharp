@@ -50,9 +50,9 @@ import./*3*/meta
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("2", null)
+    f.VerifyCompletions("2", null);
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ import./*3*/meta
     ],
         },
         
-    })
+    });
     }
 }

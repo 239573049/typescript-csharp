@@ -220,224 +220,224 @@ Point.prototype = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoContextualTyping", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) C1T5.foo: (i: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("1", "(property) C1T5.foo: (i: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("3", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("4", "var C2T5.foo: (i: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("4", "var C2T5.foo: (i: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("5", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("6", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("6", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("7", "var c3t1: (s: string) => string", "")
+    f.VerifyQuickInfoAt("7", "var c3t1: (s: string) => string", "");
 
-    f.VerifyQuickInfoAt("8", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("8", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("9", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("9", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("10", "var c3t2: IFoo", "")
+    f.VerifyQuickInfoAt("10", "var c3t2: IFoo", "");
 
-    f.VerifyQuickInfoAt("11", "var c3t3: number[]", "")
+    f.VerifyQuickInfoAt("11", "var c3t3: number[]", "");
 
-    f.VerifyQuickInfoAt("12", "var c3t4: () => IFoo", "")
+    f.VerifyQuickInfoAt("12", "var c3t4: () => IFoo", "");
 
-    f.VerifyQuickInfoAt("13", "var c3t5: (n: number) => IFoo", "")
+    f.VerifyQuickInfoAt("13", "var c3t5: (n: number) => IFoo", "");
 
-    f.VerifyQuickInfoAt("14", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("14", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("15", "var c3t6: (n: number, s: string) => IFoo", "")
+    f.VerifyQuickInfoAt("15", "var c3t6: (n: number, s: string) => IFoo", "");
 
-    f.VerifyQuickInfoAt("16", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("16", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("17", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("17", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("18", "var c3t7: {\n    (n: number): number;\n    (s1: string): number;\n}", "")
+    f.VerifyQuickInfoAt("18", "var c3t7: {\n    (n: number): number;\n    (s1: string): number;\n}", "");
 
-    f.VerifyQuickInfoAt("20", "var c3t8: (n: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("20", "var c3t8: (n: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("21", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("21", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("22", "var c3t9: number[][]", "")
+    f.VerifyQuickInfoAt("22", "var c3t9: number[][]", "");
 
-    f.VerifyQuickInfoAt("23", "var c3t10: IFoo[]", "")
+    f.VerifyQuickInfoAt("23", "var c3t10: IFoo[]", "");
 
-    f.VerifyQuickInfoAt("24", "var c3t11: ((n: number, s: string) => string)[]", "")
+    f.VerifyQuickInfoAt("24", "var c3t11: ((n: number, s: string) => string)[]", "");
 
-    f.VerifyQuickInfoAt("25", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("25", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("26", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("26", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("27", "var c3t12: IBar", "")
+    f.VerifyQuickInfoAt("27", "var c3t12: IBar", "");
 
-    f.VerifyQuickInfoAt("28", "(property) IBar.foo: IFoo", "")
+    f.VerifyQuickInfoAt("28", "(property) IBar.foo: IFoo", "");
 
-    f.VerifyQuickInfoAt("29", "var c3t13: IFoo", "")
+    f.VerifyQuickInfoAt("29", "var c3t13: IFoo", "");
 
-    f.VerifyQuickInfoAt("30", "(method) IFoo.f(i: number, s: string): string", "")
+    f.VerifyQuickInfoAt("30", "(method) IFoo.f(i: number, s: string): string", "");
 
-    f.VerifyQuickInfoAt("31", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("31", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("32", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("32", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("33", "var c3t14: IFoo", "")
+    f.VerifyQuickInfoAt("33", "var c3t14: IFoo", "");
 
-    f.VerifyQuickInfoAt("34", "(property) IFoo.a: number[]", "")
+    f.VerifyQuickInfoAt("34", "(property) IFoo.a: number[]", "");
 
-    f.VerifyQuickInfoAt("35", "(property) C4T5.foo: (i: number, s: string) => string", "")
+    f.VerifyQuickInfoAt("35", "(property) C4T5.foo: (i: number, s: string) => string", "");
 
-    f.VerifyQuickInfoAt("36", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("36", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("37", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("37", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("38", "var C5T5.foo: (i: number, s: string) => string", "")
+    f.VerifyQuickInfoAt("38", "var C5T5.foo: (i: number, s: string) => string", "");
 
-    f.VerifyQuickInfoAt("39", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("39", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("40", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("40", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("41", "var c6t5: (n: number) => IFoo", "")
+    f.VerifyQuickInfoAt("41", "var c6t5: (n: number) => IFoo", "");
 
-    f.VerifyQuickInfoAt("42", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("42", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("43", "var c7t2: IFoo[]", "")
+    f.VerifyQuickInfoAt("43", "var c7t2: IFoo[]", "");
 
-    f.VerifyQuickInfoAt("44", "var c7t2: IFoo[]", "")
+    f.VerifyQuickInfoAt("44", "var c7t2: IFoo[]", "");
 
-    f.VerifyQuickInfoAt("45", "(property) t1: (s: string) => string", "")
+    f.VerifyQuickInfoAt("45", "(property) t1: (s: string) => string", "");
 
-    f.VerifyQuickInfoAt("46", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("46", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("47", "(property) t2: IFoo", "")
+    f.VerifyQuickInfoAt("47", "(property) t2: IFoo", "");
 
-    f.VerifyQuickInfoAt("48", "(property) t3: number[]", "")
+    f.VerifyQuickInfoAt("48", "(property) t3: number[]", "");
 
-    f.VerifyQuickInfoAt("49", "(property) t4: () => IFoo", "")
+    f.VerifyQuickInfoAt("49", "(property) t4: () => IFoo", "");
 
-    f.VerifyQuickInfoAt("50", "(property) t5: (n: number) => IFoo", "")
+    f.VerifyQuickInfoAt("50", "(property) t5: (n: number) => IFoo", "");
 
-    f.VerifyQuickInfoAt("51", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("51", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("52", "(property) t6: (n: number, s: string) => IFoo", "")
+    f.VerifyQuickInfoAt("52", "(property) t6: (n: number, s: string) => IFoo", "");
 
-    f.VerifyQuickInfoAt("53", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("53", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("54", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("54", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("55", "(property) t7: (n: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("55", "(property) t7: (n: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("56", "(property) t8: (n: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("56", "(property) t8: (n: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("57", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("57", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("58", "(property) t9: number[][]", "")
+    f.VerifyQuickInfoAt("58", "(property) t9: number[][]", "");
 
-    f.VerifyQuickInfoAt("59", "(property) t10: IFoo[]", "")
+    f.VerifyQuickInfoAt("59", "(property) t10: IFoo[]", "");
 
-    f.VerifyQuickInfoAt("60", "(property) t11: ((n: number, s: string) => string)[]", "")
+    f.VerifyQuickInfoAt("60", "(property) t11: ((n: number, s: string) => string)[]", "");
 
-    f.VerifyQuickInfoAt("61", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("61", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("62", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("62", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("63", "(property) t12: IBar", "")
+    f.VerifyQuickInfoAt("63", "(property) t12: IBar", "");
 
-    f.VerifyQuickInfoAt("64", "(property) IBar.foo: IFoo", "")
+    f.VerifyQuickInfoAt("64", "(property) IBar.foo: IFoo", "");
 
-    f.VerifyQuickInfoAt("65", "(property) t13: IFoo", "")
+    f.VerifyQuickInfoAt("65", "(property) t13: IFoo", "");
 
-    f.VerifyQuickInfoAt("66", "(method) IFoo.f(i: number, s: string): string", "")
+    f.VerifyQuickInfoAt("66", "(method) IFoo.f(i: number, s: string): string", "");
 
-    f.VerifyQuickInfoAt("67", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("67", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("68", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("68", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("69", "(property) t14: IFoo", "")
+    f.VerifyQuickInfoAt("69", "(property) t14: IFoo", "");
 
-    f.VerifyQuickInfoAt("70", "(property) IFoo.a: number[]", "")
+    f.VerifyQuickInfoAt("70", "(property) IFoo.a: number[]", "");
 
-    f.VerifyQuickInfoAt("71", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("71", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("72", "var c10t5: () => (n: number) => IFoo", "")
+    f.VerifyQuickInfoAt("72", "var c10t5: () => (n: number) => IFoo", "");
 
-    f.VerifyQuickInfoAt("73", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("73", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("74", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("74", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("75", "var c12t1: (s: string) => string", "")
+    f.VerifyQuickInfoAt("75", "var c12t1: (s: string) => string", "");
 
-    f.VerifyQuickInfoAt("76", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("76", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("77", "var c12t2: IFoo", "")
+    f.VerifyQuickInfoAt("77", "var c12t2: IFoo", "");
 
-    f.VerifyQuickInfoAt("78", "var c12t3: number[]", "")
+    f.VerifyQuickInfoAt("78", "var c12t3: number[]", "");
 
-    f.VerifyQuickInfoAt("79", "var c12t4: () => IFoo", "")
+    f.VerifyQuickInfoAt("79", "var c12t4: () => IFoo", "");
 
-    f.VerifyQuickInfoAt("80", "var c12t5: (n: number) => IFoo", "")
+    f.VerifyQuickInfoAt("80", "var c12t5: (n: number) => IFoo", "");
 
-    f.VerifyQuickInfoAt("81", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("81", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("82", "var c12t6: (n: number, s: string) => IFoo", "")
+    f.VerifyQuickInfoAt("82", "var c12t6: (n: number, s: string) => IFoo", "");
 
-    f.VerifyQuickInfoAt("83", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("83", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("84", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("84", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("85", "var c12t7: (n: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("85", "var c12t7: (n: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("86", "var c12t8: (n: number, s: string) => number", "")
+    f.VerifyQuickInfoAt("86", "var c12t8: (n: number, s: string) => number", "");
 
-    f.VerifyQuickInfoAt("87", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("87", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("88", "var c12t9: number[][]", "")
+    f.VerifyQuickInfoAt("88", "var c12t9: number[][]", "");
 
-    f.VerifyQuickInfoAt("89", "var c12t10: IFoo[]", "")
+    f.VerifyQuickInfoAt("89", "var c12t10: IFoo[]", "");
 
-    f.VerifyQuickInfoAt("90", "var c12t11: ((n: number, s: string) => string)[]", "")
+    f.VerifyQuickInfoAt("90", "var c12t11: ((n: number, s: string) => string)[]", "");
 
-    f.VerifyQuickInfoAt("91", "(parameter) n: number", "")
+    f.VerifyQuickInfoAt("91", "(parameter) n: number", "");
 
-    f.VerifyQuickInfoAt("92", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("92", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("93", "var c12t12: IBar", "")
+    f.VerifyQuickInfoAt("93", "var c12t12: IBar", "");
 
-    f.VerifyQuickInfoAt("94", "(property) IBar.foo: IFoo", "")
+    f.VerifyQuickInfoAt("94", "(property) IBar.foo: IFoo", "");
 
-    f.VerifyQuickInfoAt("95", "var c12t13: IFoo", "")
+    f.VerifyQuickInfoAt("95", "var c12t13: IFoo", "");
 
-    f.VerifyQuickInfoAt("96", "(method) IFoo.f(i: number, s: string): string", "")
+    f.VerifyQuickInfoAt("96", "(method) IFoo.f(i: number, s: string): string", "");
 
-    f.VerifyQuickInfoAt("97", "(parameter) i: number", "")
+    f.VerifyQuickInfoAt("97", "(parameter) i: number", "");
 
-    f.VerifyQuickInfoAt("98", "(parameter) s: string", "")
+    f.VerifyQuickInfoAt("98", "(parameter) s: string", "");
 
-    f.VerifyQuickInfoAt("99", "var c12t14: IFoo", "")
+    f.VerifyQuickInfoAt("99", "var c12t14: IFoo", "");
 
-    f.VerifyQuickInfoAt("100", "(property) IFoo.a: number[]", "")
+    f.VerifyQuickInfoAt("100", "(property) IFoo.a: number[]", "");
 
-    f.VerifyQuickInfoAt("101", "function EF1(a: number, b: number): number", "")
+    f.VerifyQuickInfoAt("101", "function EF1(a: number, b: number): number", "");
 
-    f.VerifyQuickInfoAt("102", "(parameter) a: any", "")
+    f.VerifyQuickInfoAt("102", "(parameter) a: any", "");
 
-    f.VerifyQuickInfoAt("103", "(parameter) b: any", "")
+    f.VerifyQuickInfoAt("103", "(parameter) b: any", "");
 
-    f.VerifyQuickInfoAt("110", "(property) Point.origin: Point", "")
+    f.VerifyQuickInfoAt("110", "(property) Point.origin: Point", "");
 
-    f.VerifyQuickInfoAt("111", "constructor Point(x: number, y: number): Point", "")
+    f.VerifyQuickInfoAt("111", "constructor Point(x: number, y: number): Point", "");
 
-    f.VerifyQuickInfoAt("112", "(method) Point.add(dx: number, dy: number): Point", "")
+    f.VerifyQuickInfoAt("112", "(method) Point.add(dx: number, dy: number): Point", "");
 
-    f.VerifyQuickInfoAt("113", "(parameter) dx: number", "")
+    f.VerifyQuickInfoAt("113", "(parameter) dx: number", "");
 
-    f.VerifyQuickInfoAt("114", "(parameter) dy: number", "")
+    f.VerifyQuickInfoAt("114", "(parameter) dy: number", "");
 
-    f.VerifyQuickInfoAt("115", "(method) Point.add(dx: number, dy: number): Point", "")
+    f.VerifyQuickInfoAt("115", "(method) Point.add(dx: number, dy: number): Point", "");
 
-    f.VerifyQuickInfoAt("116", "(parameter) dx: number", "")
+    f.VerifyQuickInfoAt("116", "(parameter) dx: number", "");
 
-    f.VerifyQuickInfoAt("117", "(parameter) dy: number", "")
+    f.VerifyQuickInfoAt("117", "(parameter) dy: number", "");
     }
 }

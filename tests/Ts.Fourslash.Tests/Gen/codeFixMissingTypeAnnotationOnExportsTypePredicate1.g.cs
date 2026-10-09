@@ -43,6 +43,6 @@ export function isString(value: unknown) {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -98,6 +98,6 @@ _.[|/*propertyAccess*/add|]
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource9_mapFromAtTypes2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("defaultImport", "unresolvableNamedImport", "moduleSpecifier")
+    f.VerifyBaselineGoToSourceDefinition("defaultImport", "unresolvableNamedImport", "moduleSpecifier");
     }
 }

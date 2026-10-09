@@ -57,7 +57,7 @@ x[|./**/|];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -89,6 +89,6 @@ x[|./**/|];
     {
     QuotePreference = "single",
     },
-    })
+    });
     }
 }

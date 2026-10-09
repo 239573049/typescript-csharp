@@ -43,18 +43,18 @@ function explicitLiteral(th/*6*/is: { n: number }): void {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnThis3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "any", "")
+    f.VerifyQuickInfoAt("1", "any", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) this: void", "")
+    f.VerifyQuickInfoAt("2", "(parameter) this: void", "");
 
-    f.VerifyQuickInfoAt("3", "this: void", "")
+    f.VerifyQuickInfoAt("3", "this: void", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) this: Restricted", "")
+    f.VerifyQuickInfoAt("4", "(parameter) this: Restricted", "");
 
-    f.VerifyQuickInfoAt("5", "this: Restricted", "")
+    f.VerifyQuickInfoAt("5", "this: Restricted", "");
 
-    f.VerifyQuickInfoAt("6", "(parameter) this: {\n    n: number;\n}", "")
+    f.VerifyQuickInfoAt("6", "(parameter) this: {\n    n: number;\n}", "");
 
-    f.VerifyQuickInfoAt("7", "this: {\n    n: number;\n}", "")
+    f.VerifyQuickInfoAt("7", "this: {\n    n: number;\n}", "");
     }
 }

@@ -34,8 +34,8 @@ import * as test from "test";
 test.foo();
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingFunctionDeclaration16", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/foo.ts")
+    f.GoToFile("/foo.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

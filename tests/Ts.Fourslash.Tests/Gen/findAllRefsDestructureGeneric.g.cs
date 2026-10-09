@@ -33,6 +33,6 @@ declare const i: I<number>;
 const { /*1*/x } = i;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsDestructureGeneric", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1")
+    f.VerifyBaselineFindAllReferences("0", "1");
     }
 }

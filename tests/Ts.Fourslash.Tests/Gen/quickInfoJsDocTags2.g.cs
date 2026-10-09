@@ -31,6 +31,6 @@ public class QuickInfoJsDocTags2Tests
 const /**/x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "const x: 0", "Doc")
+    f.VerifyQuickInfoAt("", "const x: 0", "Doc");
     }
 }

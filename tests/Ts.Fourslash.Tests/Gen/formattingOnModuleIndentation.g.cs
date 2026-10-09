@@ -31,18 +31,18 @@ public class FormattingOnModuleIndentationTests
                }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnModuleIndentation", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.VerifyCurrentLineContent("namespace Foo {")
+    f.VerifyCurrentLineContent("namespace Foo {");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("    export namespace A.B.C { }")
+    f.VerifyCurrentLineContent("    export namespace A.B.C { }");
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

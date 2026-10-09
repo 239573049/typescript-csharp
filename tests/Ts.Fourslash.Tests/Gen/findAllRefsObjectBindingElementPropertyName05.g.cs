@@ -36,6 +36,6 @@ function f({ /**/property1: p }, { property1 }) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsObjectBindingElementPropertyName05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

@@ -64,7 +64,7 @@ const obj2: UnionType = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -84,6 +84,6 @@ const obj2: UnionType = {
     ],
         },
         
-    })
+    });
     }
 }

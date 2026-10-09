@@ -46,8 +46,8 @@ console.log(A, B, C, D, E);
     console.log(A, B, C, D, E);
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -59,8 +59,8 @@ console.log(A, B, C, D, E);
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -72,8 +72,8 @@ console.log(A, B, C, D, E);
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -85,7 +85,7 @@ console.log(A, B, C, D, E);
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    },
-        )
+    }
+        );
     }
 }

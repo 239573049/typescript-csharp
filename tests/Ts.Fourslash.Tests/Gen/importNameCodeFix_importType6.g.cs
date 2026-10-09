@@ -37,7 +37,7 @@ function Component() {}
 (<Component/**/ />)
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_importType6", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -45,6 +45,6 @@ function Component() {}
     function Component() {}
     (<Component />)
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

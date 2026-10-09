@@ -29,8 +29,8 @@ public class QuickInfoOfLablledForStatementIteratorTests
 label1: for(var /**/i = 0; i < 1; i++) { }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOfLablledForStatementIterator", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

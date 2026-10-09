@@ -32,13 +32,13 @@ y,
 } = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "formatObjectBindingPattern", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     const {
         x,
         y,
     } = 0;
-    """)
+    """);
     }
 }

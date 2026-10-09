@@ -36,6 +36,6 @@ interface Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameReferenceFromLinkTag2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

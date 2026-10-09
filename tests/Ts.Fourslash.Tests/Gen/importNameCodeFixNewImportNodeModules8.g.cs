@@ -47,6 +47,6 @@ exports.f1 = f1;
 
     f1('');
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

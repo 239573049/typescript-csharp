@@ -37,8 +37,8 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTypeOfThisInStatics", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local var) r: typeof C", "")
+    f.VerifyQuickInfoAt("1", "(local var) r: typeof C", "");
 
-    f.VerifyQuickInfoAt("2", "(local var) r: typeof C", "")
+    f.VerifyQuickInfoAt("2", "(local var) r: typeof C", "");
     }
 }

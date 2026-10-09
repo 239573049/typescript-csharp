@@ -43,6 +43,6 @@ function whatever(a: Foo) {
 whatever(new Bar());
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceMethod_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call", "declaration")
+    f.VerifyBaselineGoToImplementation("function_call", "declaration");
     }
 }

@@ -34,7 +34,7 @@ namespace Shapes {
 var p = <Shapes.
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtEOF2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -51,6 +51,6 @@ var p = <Shapes.
     ],
         },
         
-    })
+    });
     }
 }

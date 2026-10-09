@@ -85,6 +85,6 @@ namespace m {
 var myVar = new m.m2.c/*33*/1();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCommentsClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

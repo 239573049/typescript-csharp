@@ -33,10 +33,10 @@ var x = n => p => {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "formattingAfterChainedFatArrow", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
     }
 }

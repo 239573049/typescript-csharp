@@ -91,6 +91,6 @@ function nestor() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesLinkTag1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8");
     }
 }

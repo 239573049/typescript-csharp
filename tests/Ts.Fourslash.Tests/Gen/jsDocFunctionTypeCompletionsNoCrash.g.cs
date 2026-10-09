@@ -48,6 +48,6 @@ function updateCalendarEvent() {
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

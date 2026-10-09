@@ -49,6 +49,6 @@ public class JsdocImportTagCompletion1Tests
     ],
         },
         
-    })
+    });
     }
 }

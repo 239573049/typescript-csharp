@@ -34,13 +34,13 @@ import type { A } from './a';
 new B
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixConvertTypeOnly1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
     import { B, type A } from './a';
     new B
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

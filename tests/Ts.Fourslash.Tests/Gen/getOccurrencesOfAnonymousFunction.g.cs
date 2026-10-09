@@ -32,6 +32,6 @@ public class GetOccurrencesOfAnonymousFunctionTests
 })
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesOfAnonymousFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

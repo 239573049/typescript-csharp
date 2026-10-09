@@ -58,14 +58,14 @@ export const dep = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportCrossProject_symlinks_stripSrc", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { dep } from "dep/sub/folder";
-    
+
     dep
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

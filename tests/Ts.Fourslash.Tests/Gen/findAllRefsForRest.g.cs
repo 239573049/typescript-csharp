@@ -36,6 +36,6 @@ var { x, ...rest } = t;
 rest./*2*/parent;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForRest", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

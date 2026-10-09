@@ -32,6 +32,6 @@ const b: Type = function (a/*3*/, b/*4*/) {}
 const c: Type = ({ /*5*/a: { b/*6*/ }}/*7*/ = { }/*8*/, [b/*9*/]/*10*/, .../*11*/c/*12*/) => {}
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpAfterParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

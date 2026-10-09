@@ -54,6 +54,6 @@ var /*23*/cWithMultipleOverloadsInstance3 = new /*24*/cWithMultipleOverloads(tru
 var /*25*/cWithMultipleOverloadsVal = /*26*/cWithMultipleOverloads;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsClassConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

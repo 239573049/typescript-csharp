@@ -38,21 +38,21 @@ type namespaceImport = typeof import('./foo/types');
 type fullType2 = import('./foo/types')./*foo4*/[|foo|]./*full2*/[|Full|];
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExportsUseInImportType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("full0", "full1", "full2", "foo0", "foo1", "foo2", "foo3", "foo4")
+    f.VerifyBaselineFindAllReferences("full0", "full1", "full2", "foo0", "foo1", "foo2", "foo3", "foo4");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[9], f.Ranges()[11])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[9], f.Ranges()[11]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5], f.Ranges()[10])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5], f.Ranges()[10]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8]);
 
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSFalse,
-    }, f.Ranges()[7], f.Ranges()[8], f.Ranges()[10], f.Ranges()[3], f.Ranges()[5])
+    }, f.Ranges()[7], f.Ranges()[8], f.Ranges()[10], f.Ranges()[3], f.Ranges()[5]);
     }
 }

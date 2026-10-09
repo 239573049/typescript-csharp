@@ -37,8 +37,8 @@ export const x = 0;
  /// <reference path="/*2*/[|./a.ts|]" />
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
 
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, new[]{"/b.ts", "/c/sub.js", "/d.ts"}, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4])
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4], new[]{"/b.ts", "/c/sub.js", "/d.ts"}, f.Ranges()[1], f.Ranges()[3], f.Ranges()[4]);
     }
 }

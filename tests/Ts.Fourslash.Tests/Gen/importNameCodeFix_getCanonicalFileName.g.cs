@@ -32,7 +32,7 @@ export const foo: number;
 foo;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_getCanonicalFileName", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/howNow/a.ts")
+    f.GoToFile("/howNow/a.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -40,6 +40,6 @@ foo;
 
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

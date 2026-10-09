@@ -69,6 +69,6 @@ function f<T extends Address>(x: T) {
     ],
         },
         
-    })
+    });
     }
 }

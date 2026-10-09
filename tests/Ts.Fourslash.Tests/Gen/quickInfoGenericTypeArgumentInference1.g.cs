@@ -45,22 +45,22 @@ var /*3*/r3 = _./*31*/all([], _.identity);
 var /*4*/r4 = _./*41*/all([<any>true], _.identity);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoGenericTypeArgumentInference1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r: string | number | boolean", "")
+    f.VerifyQuickInfoAt("1", "var r: string | number | boolean", "");
 
-    f.VerifyQuickInfoAt("11", "(method) Underscore.Static.all<string | number | boolean>(list: (string | number | boolean)[], iterator?: Underscore.Iterator<string | number | boolean, boolean>, context?: any): string | number | boolean", "")
+    f.VerifyQuickInfoAt("11", "(method) Underscore.Static.all<string | number | boolean>(list: (string | number | boolean)[], iterator?: Underscore.Iterator<string | number | boolean, boolean>, context?: any): string | number | boolean", "");
 
-    f.VerifyQuickInfoAt("2", "var r2: boolean", "")
+    f.VerifyQuickInfoAt("2", "var r2: boolean", "");
 
-    f.VerifyQuickInfoAt("21", "(method) Underscore.Static.all<boolean>(list: boolean[], iterator?: Underscore.Iterator<boolean, boolean>, context?: any): boolean", "")
+    f.VerifyQuickInfoAt("21", "(method) Underscore.Static.all<boolean>(list: boolean[], iterator?: Underscore.Iterator<boolean, boolean>, context?: any): boolean", "");
 
-    f.VerifyQuickInfoAt("3", "var r3: any", "")
+    f.VerifyQuickInfoAt("3", "var r3: any", "");
 
-    f.VerifyQuickInfoAt("31", "(method) Underscore.Static.all<any>(list: any[], iterator?: Underscore.Iterator<any, boolean>, context?: any): any", "")
+    f.VerifyQuickInfoAt("31", "(method) Underscore.Static.all<any>(list: any[], iterator?: Underscore.Iterator<any, boolean>, context?: any): any", "");
 
-    f.VerifyQuickInfoAt("4", "var r4: any", "")
+    f.VerifyQuickInfoAt("4", "var r4: any", "");
 
-    f.VerifyQuickInfoAt("41", "(method) Underscore.Static.all<any>(list: any[], iterator?: Underscore.Iterator<any, boolean>, context?: any): any", "")
+    f.VerifyQuickInfoAt("41", "(method) Underscore.Static.all<any>(list: any[], iterator?: Underscore.Iterator<any, boolean>, context?: any): any", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

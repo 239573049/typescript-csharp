@@ -47,8 +47,8 @@ var r2 = a._itemsByKey['x'];
 var result2 = r2.x;
 """;
         using var f = FourslashTest.New(content, fileName: "derivedTypeIndexerWithGenericConstraints", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var r: CollectionItem", "")
+    f.VerifyQuickInfoAt("", "var r: CollectionItem", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

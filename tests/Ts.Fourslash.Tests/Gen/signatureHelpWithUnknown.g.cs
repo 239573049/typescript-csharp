@@ -29,6 +29,6 @@ public class SignatureHelpWithUnknownTests
 eval(\/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpWithUnknown", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

@@ -39,6 +39,6 @@ public class GotoDefinitionSatisfiesTagTests
 const foo = { a: 1 };
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionSatisfiesTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "use")
+    f.VerifyBaselineGoToDefinition(false, "use");
     }
 }

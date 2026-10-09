@@ -40,6 +40,6 @@ d./*3*/prop0;
 d./*4*/prop1;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsInheritedProperties4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "2", "3", "1", "4")
+    f.VerifyBaselineFindAllReferences("0", "2", "3", "1", "4");
     }
 }

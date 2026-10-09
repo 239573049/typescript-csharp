@@ -84,6 +84,6 @@ class Gossip extends Secret {
     ],
         },
         
-    })
+    });
     }
 }

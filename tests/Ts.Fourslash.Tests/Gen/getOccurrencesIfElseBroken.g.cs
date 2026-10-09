@@ -35,8 +35,8 @@ public class GetOccurrencesIfElseBrokenTests
 else
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIfElseBroken", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "");
     }
 }

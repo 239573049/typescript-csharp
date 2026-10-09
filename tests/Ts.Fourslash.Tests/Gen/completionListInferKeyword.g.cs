@@ -51,6 +51,6 @@ type Bar<T> = T extends { a: (x: in/**/) => void }
     ],
         },
         
-    })
+    });
     }
 }

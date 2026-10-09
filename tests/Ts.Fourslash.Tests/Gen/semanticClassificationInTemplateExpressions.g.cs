@@ -49,6 +49,6 @@ module /*0*/M {
             new SemanticToken { Type = "namespace", Text = "M" },
             new SemanticToken { Type = "enum", Text = "E" },
             new SemanticToken { Type = "enumMember.readonly", Text = "E1" },
-        })
+        });
     }
 }

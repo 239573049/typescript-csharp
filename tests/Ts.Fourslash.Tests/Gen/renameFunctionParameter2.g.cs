@@ -34,6 +34,6 @@ const foo = function foo(p/**/) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameFunctionParameter2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

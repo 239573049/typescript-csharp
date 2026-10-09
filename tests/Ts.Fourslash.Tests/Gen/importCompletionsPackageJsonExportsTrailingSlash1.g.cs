@@ -64,7 +64,7 @@ import {} from "pkg/test//*2*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -81,6 +81,6 @@ import {} from "pkg/test//*2*/";
     ],
         },
         
-    })
+    });
     }
 }

@@ -32,7 +32,7 @@ type Map1<K,V> = /*2*/[];
 type Map1<K1, V1> = </*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInTypeParameterOfTypeAlias2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"0", "1", }, null)
+    f.VerifyCompletions(new[]{"0", "1", }, null);
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -50,8 +50,8 @@ type Map1<K1, V1> = </*3*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("3", null)
+    f.VerifyCompletions("3", null);
     }
 }

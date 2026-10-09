@@ -35,7 +35,7 @@ export const x = 0;
 x
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_require_importVsRequire_moduleTarget", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.js")
+    f.GoToFile("index.js");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -46,11 +46,11 @@ x
     x
     """,
         Index = 0,
-    })
+    });
 
-    f.GoToPosition(0)
+    f.GoToPosition(0);
 
-    f.InsertLine("const fs = require('fs');\n")
+    f.InsertLine("const fs = require('fs');\n");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -62,6 +62,6 @@ x
     x
     """,
         Index = 0,
-    })
+    });
     }
 }

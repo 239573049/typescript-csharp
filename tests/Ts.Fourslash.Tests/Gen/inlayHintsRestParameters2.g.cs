@@ -50,6 +50,6 @@ function foo5(...x: [number, number]) {
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     },
-    })
+    });
     }
 }

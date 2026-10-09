@@ -35,8 +35,8 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalParsingInsertIntoMethod1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(" + 1")
+    f.Insert(" + 1");
     }
 }

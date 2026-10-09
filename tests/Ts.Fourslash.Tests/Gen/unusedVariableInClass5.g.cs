@@ -34,6 +34,6 @@ declare class greeter {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedVariableInClass5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

@@ -46,30 +46,30 @@ var /*10*/callVar = /*11*/internalFoo();
 var /*12*/anotherAliasFoo = /*13*/internalFoo;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnInternalAliases", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "class m1.m2.c", "class comment;")
+    f.VerifyQuickInfoAt("1", "class m1.m2.c", "class comment;");
 
-    f.VerifyQuickInfoAt("2", "(alias) class internalAlias\nimport internalAlias = m1.m2.c", "This is on import declaration")
+    f.VerifyQuickInfoAt("2", "(alias) class internalAlias\nimport internalAlias = m1.m2.c", "This is on import declaration");
 
-    f.VerifyQuickInfoAt("3", "class m1.m2.c", "class comment;")
+    f.VerifyQuickInfoAt("3", "class m1.m2.c", "class comment;");
 
-    f.VerifyQuickInfoAt("4", "var newVar: internalAlias", "")
+    f.VerifyQuickInfoAt("4", "var newVar: internalAlias", "");
 
-    f.VerifyQuickInfoAt("5", "(alias) new internalAlias(): internalAlias\nimport internalAlias = m1.m2.c", "This is on import declaration")
+    f.VerifyQuickInfoAt("5", "(alias) new internalAlias(): internalAlias\nimport internalAlias = m1.m2.c", "This is on import declaration");
 
-    f.VerifyQuickInfoAt("6", "var anotherAliasVar: typeof internalAlias", "")
+    f.VerifyQuickInfoAt("6", "var anotherAliasVar: typeof internalAlias", "");
 
-    f.VerifyQuickInfoAt("7", "(alias) class internalAlias\nimport internalAlias = m1.m2.c", "This is on import declaration")
+    f.VerifyQuickInfoAt("7", "(alias) class internalAlias\nimport internalAlias = m1.m2.c", "This is on import declaration");
 
-    f.VerifyQuickInfoAt("8", "(alias) function internalFoo(): void\nimport internalFoo = m1.foo", "")
+    f.VerifyQuickInfoAt("8", "(alias) function internalFoo(): void\nimport internalFoo = m1.foo", "");
 
-    f.VerifyQuickInfoAt("9", "function m1.foo(): void", "")
+    f.VerifyQuickInfoAt("9", "function m1.foo(): void", "");
 
-    f.VerifyQuickInfoAt("10", "var callVar: void", "")
+    f.VerifyQuickInfoAt("10", "var callVar: void", "");
 
-    f.VerifyQuickInfoAt("11", "(alias) internalFoo(): void\nimport internalFoo = m1.foo", "")
+    f.VerifyQuickInfoAt("11", "(alias) internalFoo(): void\nimport internalFoo = m1.foo", "");
 
-    f.VerifyQuickInfoAt("12", "var anotherAliasFoo: () => void", "")
+    f.VerifyQuickInfoAt("12", "var anotherAliasFoo: () => void", "");
 
-    f.VerifyQuickInfoAt("13", "(alias) function internalFoo(): void\nimport internalFoo = m1.foo", "")
+    f.VerifyQuickInfoAt("13", "(alias) function internalFoo(): void\nimport internalFoo = m1.foo", "");
     }
 }

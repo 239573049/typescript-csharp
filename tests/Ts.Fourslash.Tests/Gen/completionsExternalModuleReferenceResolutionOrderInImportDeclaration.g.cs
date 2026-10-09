@@ -38,9 +38,9 @@ import file1 = require('externalModuleRefernceResolutionOrderInImportDeclaration
 /*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsExternalModuleReferenceResolutionOrderInImportDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("file1.")
+    f.Insert("file1.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -60,6 +60,6 @@ import file1 = require('externalModuleRefernceResolutionOrderInImportDeclaration
     ],
         },
         
-    })
+    });
     }
 }

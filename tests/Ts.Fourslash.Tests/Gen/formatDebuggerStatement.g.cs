@@ -30,14 +30,14 @@ if(false){debugger;}
   if    (   false   )   {    debugger  ;   }
 """;
         using var f = FourslashTest.New(content, fileName: "formatDebuggerStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.VerifyCurrentLineContent("if (false) { debugger; }")
+    f.VerifyCurrentLineContent("if (false) { debugger; }");
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.VerifyCurrentLineContent("if (false) { debugger; }")
+    f.VerifyCurrentLineContent("if (false) { debugger; }");
     }
 }

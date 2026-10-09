@@ -36,8 +36,8 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "callHierarchyClassPropertyArrowFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineCallHierarchy()
+    f.VerifyBaselineCallHierarchy();
     }
 }

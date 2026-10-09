@@ -31,6 +31,6 @@ declare function Foo(): any;
 let x = <></Fo/*$*/o>;
 """;
         using var f = FourslashTest.New(content, fileName: "jsxElementMissingOpeningTagNoCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("$", "let Foo: any", "")
+    f.VerifyQuickInfoAt("$", "let Foo: any", "");
     }
 }

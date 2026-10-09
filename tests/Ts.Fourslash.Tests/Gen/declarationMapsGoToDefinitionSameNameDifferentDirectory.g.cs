@@ -85,6 +85,6 @@ class Button extends [|/*1*/Control|] {
 """;
         using var f = FourslashTest.New(content, fileName: "declarationMapsGoToDefinitionSameNameDifferentDirectory", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToDefinition(true, "1", "3")
+    f.VerifyBaselineGoToDefinition(true, "1", "3");
     }
 }

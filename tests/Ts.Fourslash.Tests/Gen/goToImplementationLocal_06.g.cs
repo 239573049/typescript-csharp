@@ -30,6 +30,6 @@ declare var [|someVar|]: string;
 someVa/*reference*/r
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationLocal_06", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

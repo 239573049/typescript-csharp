@@ -33,6 +33,11 @@
 //   - `f.GetRangesByText().Get(k)` (Go collections.MultiMap.Get) becomes the C# Dictionary
 //     indexer `f.GetRangesByText()[k]`.
 //   - goTo.file path prefixes and server marking (MarkTestAsStradaServer) are preserved.
+//   - Basename collisions across source directories are resolved instead of silently dropped
+//     (Go's converter lets the last write win): the server/ variant is emitted as
+//     `<name>_server` — this is how fourslash/getOutliningSpansForRegions.ts survives here
+//     while upstream loses it. Emitted string content is CRLF-normalized to LF (the Go corpus
+//     gets the same normalization from dprint's lineBreak=lf).
 
 import * as fs from "fs";
 import * as path from "path";
@@ -132,15 +137,25 @@ export async function main() {
     emitFourslashTestUtil();
 
     const crashing = getCrashingTests();
-    let emitted = 0;
-    for (const name of parseTypeScriptFiles(getManualTests(), stradaFourslashPath(), crashing)) {
-        emitted++;
-        console.error(`emitted: ${name}`);
+    const emittedTests = [...parseTypeScriptFiles(getManualTests(), stradaFourslashPath(), crashing)];
+    // Name-collision resolution (see resolveTestNameCollisions below): Go's converter lets the
+    // last write win, silently dropping one test when two sources share a basename
+    // (fourslash/getOutliningSpansForRegions.ts vs server/getOutliningSpansForRegions.ts —
+    // upstream's 3,796 gen .go files are really 3,795 tests + testmain_test.go). The C#
+    // corpus keeps both, suffixing the server/ variant with `_server`.
+    const finalNames = resolveTestNameCollisions(emittedTests);
+    for (const test of emittedTests) {
+        const finalName = finalNames.get(test)!;
+        // `_server` is a filename-only disambiguator; the class and test method keep the Go
+        // spelling (<name>Tests / TestName) but must be renamed when two sources collide, or
+        // the two emitted types would clash (CS0101). Non-colliding tests are unaffected.
+        const body = test.name === finalName ? test.content : retargetTestName(test.content, test.name, finalName);
+        fs.writeFileSync(path.join(outputDir, `${finalName}.g.cs`), body, "utf-8");
     }
 
     unparsedFiles.sort((a, b) => a.file.localeCompare(b.file, "en-US"));
     fs.writeFileSync(unparsedReportPath, unparsedFiles.map(({ file, error }) => `${file} parse error: ${JSON.stringify(error)}`).join("\n"), "utf-8");
-    console.log(`Emitted ${emitted} tests to ${outputDir}`);
+    console.log(`Emitted ${emittedTests.length} tests to ${outputDir}`);
     console.log(`Failed to parse ${unparsedFiles.length} files. See ${unparsedReportPath} for details.`);
     console.log(`Wrote ${utilOutputPath}`);
 }
@@ -150,7 +165,45 @@ function hasTSExtension(file: string): boolean {
         file.endsWith(".tsx");
 }
 
-function* parseTypeScriptFiles(manualTests: Set<string>, folder: string, crashingTests: Set<string>): Generator<string> {
+interface EmittedTest {
+    name: string;
+    isServer: boolean;
+    sourceFile: string;
+    content: string;
+}
+
+// Assign output names: the plain test name when unique; on a basename collision (the source
+// directory is stripped by testName derivation) the server/ variant gets `_server` and any
+// remaining duplicates get numeric suffixes — deterministic, and every source survives.
+function resolveTestNameCollisions(tests: EmittedTest[]): Map<EmittedTest, string> {
+    const byName = new Map<string, EmittedTest[]>();
+    for (const test of tests) {
+        const bucket = byName.get(test.name) ?? [];
+        bucket.push(test);
+        byName.set(test.name, bucket);
+    }
+    const finalNames = new Map<EmittedTest, string>();
+    for (const [name, bucket] of byName) {
+        if (bucket.length === 1) {
+            finalNames.set(bucket[0], name);
+            continue;
+        }
+        const nonServer = bucket.filter(t => !t.isServer);
+        const server = bucket.filter(t => t.isServer);
+        if (nonServer.length === 1) {
+            finalNames.set(nonServer[0], name);
+            server.forEach((test, i) => finalNames.set(test, i === 0 ? `${name}_server` : `${name}_server${i + 1}`));
+        }
+        else {
+            nonServer.forEach((test, i) => finalNames.set(test, i === 0 ? name : `${name}_${i + 1}`));
+            server.forEach((test, i) => finalNames.set(test, `${name}_server${i + 1}`));
+        }
+        console.error(`name collision on ${name}: ${bucket.map(t => t.sourceFile).join(", ")}`);
+    }
+    return finalNames;
+}
+
+function* parseTypeScriptFiles(manualTests: Set<string>, folder: string, crashingTests: Set<string>): Generator<EmittedTest> {
     const files = fs.readdirSync(folder);
 
     for (const file of files) {
@@ -170,9 +223,7 @@ function* parseTypeScriptFiles(manualTests: Set<string>, folder: string, crashin
                 const test = parseFileContent(file, content);
                 if (test === NO_TEST) continue;
                 const testContent = generateCSharpTest(test, isServer, crashingTests.has(`Test${testName(test.name)}`));
-                const testPath = path.join(outputDir, `${test.name}.g.cs`);
-                fs.writeFileSync(testPath, testContent, "utf-8");
-                yield test.name;
+                yield { name: test.name, isServer, sourceFile: file, content: testContent };
             }
             catch (e) {
                 const message = e instanceof Error ? e.message : String(e);
@@ -753,7 +804,13 @@ function csStringLiteral(text: string): string {
 // Multi-line strings become C# 11 raw string literals. The literal is emitted with the
 // content at column 0 (mirroring the Go backtick emission); the quote-fence width escalates
 // past any run of quotes inside the content. Single-line strings stay escaped literals.
-function csMultiLineStringLiteral(text: string): string {
+//
+// Line endings are normalized to LF: source tests may spell `\r\n` escapes whose cooked value
+// would otherwise leak CR bytes into the .g.cs. The Go corpus has the same shape (its raw
+// backtick literals are CRLF-normalized by `dprint fmt`'s lineBreak=lf at convert time — the
+// committed tests/gen carries zero CR bytes), so this is 1:1 with upstream, not a deviation.
+function csMultiLineStringLiteral(inputText: string): string {
+    const text = normalizeLineEndings(inputText);
     if (!text.includes("\n")) {
         return csStringLiteral(text);
     }
@@ -787,6 +844,12 @@ function csMultiLineStringLiteralEscalated(text: string, fenceCount: number): st
         return csMultiLineStringLiteralEscalated(text, fenceCount + 1);
     }
     return `${fence}\n${text}\n${fence}`;
+}
+
+// dprint lineBreak=lf equivalent: CRLF and stray CR become LF, so emitted .g.cs files are
+// LF-only and byte-stable regardless of the source's escape spellings.
+function normalizeLineEndings(text: string): string {
+    return text.replace(/\r\n?/g, "\n");
 }
 
 function csStringLiteralFromNode(node: ts.Node): string {
@@ -4253,11 +4316,13 @@ function generateBaselineFindAllReferences({ markers, ranges }: VerifyBaselineFi
 }
 
 function generateBaselineDocumentHighlights({ args, preferences, filesToSearch }: VerifyBaselineDocumentHighlightsCmd): string {
+    // `args` may be empty; don't leave a dangling `, )` behind the fixed first argument.
+    const allArgs = [preferences, ...args].filter(arg => arg.length > 0).join(", ");
     if (filesToSearch) {
         const filesGo = `new[]{${filesToSearch.join(", ")}}`;
-        return `f.VerifyBaselineDocumentHighlightsWithOptions(${preferences}, ${filesGo}, ${args.join(", ")})`;
+        return `f.VerifyBaselineDocumentHighlightsWithOptions(${allArgs}, ${filesGo}, ${args.join(", ")})`;
     }
-    return `f.VerifyBaselineDocumentHighlights(${preferences}, ${args.join(", ")})`;
+    return `f.VerifyBaselineDocumentHighlights(${allArgs})`;
 }
 
 function generateBaselineGoToDefinition({ markers, ranges, kind, boundSpan }: VerifyBaselineGoToDefinitionCmd): string {
@@ -4308,16 +4373,18 @@ function generateOrganizeImports({ expectedContent, mode, preferences }: VerifyO
     return `f.VerifyOrganizeImports(
         ${csMultiLineStringLiteral(expectedContent)},
         ${mode},
-        ${preferences},
+        ${preferences}
     )`;
 }
 
 function generateBaselineRename({ kind, args, preferences }: VerifyBaselineRenameCmd): string {
+    // `args` may be empty; a fixed first argument must not leave a dangling `, )`.
+    const allArgs = [preferences, ...args].filter(arg => arg.length > 0).join(", ");
     switch (kind) {
         case "verifyBaselineRename":
-            return `f.VerifyBaselineRename(${preferences}, ${args.join(", ")})`;
+            return `f.VerifyBaselineRename(${allArgs})`;
         case "verifyBaselineRenameAtRangesWithText":
-            return `f.VerifyBaselineRenameAtRangesWithText(${preferences}, ${args.join(", ")})`;
+            return `f.VerifyBaselineRenameAtRangesWithText(${allArgs})`;
     }
 }
 
@@ -4387,11 +4454,11 @@ function generateSignatureHelp({ options }: VerifySignatureHelpCmd): string {
         if (opts.marker !== undefined) {
             const markers = Array.isArray(opts.marker) ? opts.marker : [opts.marker];
             for (const marker of markers) {
-                lines.push(`f.GoToMarker(${csStringLiteral(marker)})`);
+                lines.push(`f.GoToMarker(${csStringLiteral(marker)});`);
                 for (const comment of unsupportedComments) {
                     lines.push(comment);
                 }
-                lines.push(`f.VerifySignatureHelp(${expected})`);
+                lines.push(`f.VerifySignatureHelp(${expected});`);
             }
         }
         else {
@@ -4399,7 +4466,7 @@ function generateSignatureHelp({ options }: VerifySignatureHelpCmd): string {
             for (const comment of unsupportedComments) {
                 lines.push(comment);
             }
-            lines.push(`f.VerifySignatureHelp(${expected})`);
+            lines.push(`f.VerifySignatureHelp(${expected});`);
         }
     }
 
@@ -4478,7 +4545,15 @@ function generateSemanticClassifications({ format, tokens }: VerifySemanticClass
     })`;
 }
 
+// C# requires a trailing `;` on expression statements (Go needs none). Block statements
+// (the forOf foreach) must not get one; nothing else ends in `}` (invocations close with
+// `)` after their object-initializer arguments, so a trailing `}` can only be the forOf).
 function generateCSharpCmd(cmd: Cmd): string {
+    const statement = generateCSharpCmdStatement(cmd);
+    return statement.endsWith("}") || statement.endsWith(";") ? statement : statement + ";";
+}
+
+function generateCSharpCmdStatement(cmd: Cmd): string {
     switch (cmd.kind) {
         case "verifyCompletions":
             return generateVerifyCompletions(cmd);
@@ -4644,6 +4719,18 @@ function testName(name: string): string {
     return (name[0].toUpperCase() + name.substring(1)).replaceAll("-", "_").replaceAll(/[^a-zA-Z0-9_]/g, "");
 }
 
+// Rewrites the class name and test method name of an already-emitted .g.cs when a basename
+// collision forces a `_server`-style output name. The header comment (which cites the upstream
+// and gen file paths) is left alone for the rare collisions where a source file is shared; in
+// practice the colliding pairs are distinct files, so only the two identifier lines change.
+function retargetTestName(content: string, oldName: string, newName: string): string {
+    const oldCs = testName(oldName);
+    const newCs = testName(newName);
+    return content
+        .replace(`public class ${oldCs}Tests`, `public class ${newCs}Tests`)
+        .replace(`public void Test${oldCs}()`, `public void Test${newCs}()`);
+}
+
 const fileHeader = (testName: string, goName: string): string => `// <auto-generated>convert-fourslash-csharp; DO NOT EDIT.
 // Fork of tsgo internal/fourslash/tests/gen/${goName}_test.go (convertFourslash); C# emission
 // per plan/08-testing-strategy.md §7.2. To modify this test, edit
@@ -4678,7 +4765,9 @@ const fileFooter = `    }
 
 // The test content is a C# raw string literal with the content at column 0 (exactly like the
 // Go backtick emission); the fence width escalates past any run of quotes in the content.
-function contentLiteral(content: string): string {
+// Line endings normalized to LF (see csMultiLineStringLiteral).
+function contentLiteral(inputContent: string): string {
+    const content = normalizeLineEndings(inputContent);
     let fenceCount = 3;
     for (;;) {
         const fence = "\"".repeat(fenceCount);
@@ -5147,7 +5236,8 @@ function translateUtilGo(source: string): { singleItems: string; lists: string; 
     const singleRe = /var ([A-Za-z]+) = &lsproto\.CompletionItem\{([\s\S]*?)\n\}/g;
     let m: RegExpExecArray | null;
     while ((m = singleRe.exec(source)) !== null) {
-        singleItems.push(`    public static readonly object ${m[1]} =\n${translateItem(m[2])}\n`);
+        // translateItem trails a `,` (list-element form); a standalone field initializer ends `;`.
+        singleItems.push(`    public static readonly object ${m[1]} =\n${translateItem(m[2]).replace(/,$/, ";")}\n`);
     }
 
     // Lists: var X = []fourslash.CompletionsExpectedItem{ ... }

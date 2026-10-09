@@ -60,7 +60,7 @@ g("[|/*g*/|]");
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("g", new CompletionsExpectedList
     {
@@ -100,6 +100,6 @@ g("[|/*g*/|]");
     ],
         },
         
-    })
+    });
     }
 }

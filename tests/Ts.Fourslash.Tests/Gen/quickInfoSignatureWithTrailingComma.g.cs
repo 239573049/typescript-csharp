@@ -30,6 +30,6 @@ declare function f<T>(a: T): T;
 /**/f(2,);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSignatureWithTrailingComma", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "function f<2>(a: 2): 2", "")
+    f.VerifyQuickInfoAt("", "function f<2>(a: 2): 2", "");
     }
 }

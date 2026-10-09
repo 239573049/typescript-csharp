@@ -41,7 +41,7 @@ export class Logger {};
 Logger/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_pathsWithoutBaseUrl2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -49,6 +49,6 @@ Logger/**/
 
     Logger
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

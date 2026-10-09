@@ -34,6 +34,6 @@ namespace Container {
 const x: [|Container.Foo.bar|] = ""
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixNegativeReplaceQualifiedNameWithIndexedAccessType01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

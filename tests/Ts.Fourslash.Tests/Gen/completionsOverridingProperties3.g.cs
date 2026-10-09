@@ -52,6 +52,6 @@ class C implements I {
     ],
         },
         
-    })
+    });
     }
 }

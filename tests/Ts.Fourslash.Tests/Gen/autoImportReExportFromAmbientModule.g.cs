@@ -85,7 +85,7 @@ access/**/
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -94,13 +94,13 @@ access/**/
     Description = "Add import from \"fs-extra\"",
     NewFileContent = """
     import { accessSync } from "fs-extra";
-    
+
     access
     """,
     AutoImportFix = new LsProto.AutoImportFix
     {
     ModuleSpecifier = "fs-extra",
     },
-    })
+    });
     }
 }

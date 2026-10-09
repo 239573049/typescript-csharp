@@ -29,14 +29,14 @@ public class FormatAfterPasteInStringTests
 /*2*/const x = f('aa/*1*/a').x()
 """;
         using var f = FourslashTest.New(content, fileName: "formatAfterPasteInString", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Paste("bb")
+    f.Paste("bb");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("const x = f('aabba').x()")
+    f.VerifyCurrentLineContent("const x = f('aabba').x()");
     }
 }

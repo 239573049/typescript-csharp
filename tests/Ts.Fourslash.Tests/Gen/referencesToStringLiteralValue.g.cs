@@ -31,6 +31,6 @@ const s: string = "some /*1*/ string";
 """;
         using var f = FourslashTest.New(content, fileName: "referencesToStringLiteralValue", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

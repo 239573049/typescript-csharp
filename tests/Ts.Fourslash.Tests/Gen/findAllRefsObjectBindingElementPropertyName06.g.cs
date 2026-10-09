@@ -43,6 +43,6 @@ for ({ /*4*/property1 : p2 } of elems) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsObjectBindingElementPropertyName06", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "3", "4", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "3", "4", "2");
     }
 }

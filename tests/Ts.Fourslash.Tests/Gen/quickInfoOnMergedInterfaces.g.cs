@@ -43,6 +43,6 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnMergedInterfaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r4: number", "")
+    f.VerifyQuickInfoAt("1", "var r4: number", "");
     }
 }

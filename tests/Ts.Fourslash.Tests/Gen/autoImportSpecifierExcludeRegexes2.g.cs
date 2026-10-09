@@ -41,27 +41,27 @@ export function add(a: number, b: number) {}
 add/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportSpecifierExcludeRegexes2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"./utils"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"./utils"}, null /*preferences*/);
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"@app/utils"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["^\\./"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"@app/utils"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"./utils"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
     AutoImportSpecifierExcludeRegexes = ["^@app/"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", [], new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["utils"],
-    })
+    });
     }
 }

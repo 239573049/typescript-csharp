@@ -56,8 +56,8 @@ export {};
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_referencesCrash", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/home/src/workspaces/project/c/index.ts")
+    f.GoToFile("/home/src/workspaces/project/c/index.ts");
 
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

@@ -37,19 +37,19 @@ var a = new A<number>();
 A.B(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "staticGenericOverloads1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
 
-    f.Insert("a")
+    f.Insert("a");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2 })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2 });
 
-    f.Insert("); A.B(")
+    f.Insert("); A.B(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<unknown>): A<unknown>", OverloadsCount = 2 })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<unknown>): A<unknown>", OverloadsCount = 2 });
 
-    f.Insert("a")
+    f.Insert("a");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2 })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2 });
     }
 }

@@ -47,7 +47,7 @@ declare var f1: (b: number, b2: /*2*/) => void;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -64,9 +64,9 @@ declare var f1: (b: number, b2: /*2*/) => void;
     ],
         },
         
-    })
+    });
 
-    f.Insert("typeof ")
+    f.Insert("typeof ");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -83,6 +83,6 @@ declare var f1: (b: number, b2: /*2*/) => void;
     ],
         },
         
-    })
+    });
     }
 }

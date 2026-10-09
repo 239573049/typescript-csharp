@@ -47,6 +47,6 @@ const result = fn({
 result.foo/*5*/;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionObjectLiteralProperties2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4", "5")
+    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4", "5");
     }
 }

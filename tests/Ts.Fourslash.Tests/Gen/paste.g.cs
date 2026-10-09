@@ -29,10 +29,10 @@ public class PasteTests
 fn(/**/);
 """;
         using var f = FourslashTest.New(content, fileName: "paste", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Paste("x,y,z")
+    f.Paste("x,y,z");
 
-    f.VerifyCurrentLineContent("fn(x, y, z);")
+    f.VerifyCurrentLineContent("fn(x, y, z);");
     }
 }

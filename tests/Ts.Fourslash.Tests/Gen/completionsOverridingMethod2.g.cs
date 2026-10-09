@@ -85,6 +85,6 @@ class USD implements DollarSign {
     ],
         },
         
-    })
+    });
     }
 }

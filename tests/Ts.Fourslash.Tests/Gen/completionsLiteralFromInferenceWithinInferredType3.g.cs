@@ -64,7 +64,7 @@ test({
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"ts2", }, new CompletionsExpectedList
     {
@@ -82,6 +82,6 @@ test({
     ],
         },
         
-    })
+    });
     }
 }

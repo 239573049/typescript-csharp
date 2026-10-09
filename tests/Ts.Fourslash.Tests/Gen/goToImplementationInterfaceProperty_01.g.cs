@@ -37,6 +37,6 @@ function whatever(foo: Foo) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceProperty_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

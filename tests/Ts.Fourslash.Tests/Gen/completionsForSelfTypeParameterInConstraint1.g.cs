@@ -50,6 +50,6 @@ declare function createMachine<Config extends StateMachine</*1*/>>(
     ],
         },
         
-    })
+    });
     }
 }

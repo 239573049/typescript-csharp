@@ -40,15 +40,15 @@ testFunction<any, any,/*4*/ any>(null, null, null);
 testFunction<, ,/*5*/>(null, null, null);
 """;
         using var f = FourslashTest.New(content, fileName: "genericParameterHelp", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testFunction<T extends IFoo, U, M extends IFoo>(a: T, b: U, c: M): M", ParameterCount = 3, ParameterName = "T", ParameterSpan = "T extends IFoo" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "a", ParameterSpan = "a: any" })
-    f.GoToMarker("4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" })
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testFunction<T extends IFoo, U, M extends IFoo>(a: T, b: U, c: M): M", ParameterCount = 3, ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "a", ParameterSpan = "a: any" });
+    f.GoToMarker("4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" });
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" });
     }
 }

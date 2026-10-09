@@ -41,6 +41,6 @@ ambientClass./*staticMethodReference*/method();
 ambientClassVariable./*instanceMethodReference*/method();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionAmbiants", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "ambientVariableReference", "ambientFunctionReference", "constructorReference", "staticMethodReference", "instanceMethodReference")
+    f.VerifyBaselineGoToDefinition(false, "ambientVariableReference", "ambientFunctionReference", "constructorReference", "staticMethodReference", "instanceMethodReference");
     }
 }

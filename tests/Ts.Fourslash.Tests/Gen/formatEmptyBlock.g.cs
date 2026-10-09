@@ -29,12 +29,12 @@ public class FormatEmptyBlockTests
 {}
 """;
         using var f = FourslashTest.New(content, fileName: "formatEmptyBlock", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.VerifyCurrentLineContent("{ }")
+    f.VerifyCurrentLineContent("{ }");
     }
 }

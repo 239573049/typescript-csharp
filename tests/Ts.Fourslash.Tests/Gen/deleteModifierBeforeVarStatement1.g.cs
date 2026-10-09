@@ -48,18 +48,18 @@ declare var WScript: {
 
 """;
         using var f = FourslashTest.New(content, fileName: "deleteModifierBeforeVarStatement1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFileNumber(0)
+    f.GoToFileNumber(0);
 
-    f.GoToPosition(0)
+    f.GoToPosition(0);
 
-    f.DeleteAtCaret(100)
+    f.DeleteAtCaret(100);
 
-    f.GoToPosition(198)
+    f.GoToPosition(198);
 
-    f.DeleteAtCaret(16)
+    f.DeleteAtCaret(16);
 
-    f.GoToPosition(198)
+    f.GoToPosition(198);
 
-    f.Insert("Item(): string; ")
+    f.Insert("Item(): string; ");
     }
 }

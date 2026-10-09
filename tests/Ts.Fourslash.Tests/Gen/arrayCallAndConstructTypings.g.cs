@@ -38,24 +38,24 @@ var a/*9*/9 = Array<boolean>(1);
 var a/*10*/10 = Array("s");
 """;
         using var f = FourslashTest.New(content, fileName: "arrayCallAndConstructTypings", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var a1: any[]", "")
+    f.VerifyQuickInfoAt("1", "var a1: any[]", "");
 
-    f.VerifyQuickInfoAt("2", "var a2: any[]", "")
+    f.VerifyQuickInfoAt("2", "var a2: any[]", "");
 
-    f.VerifyQuickInfoAt("3", "var a3: boolean[]", "")
+    f.VerifyQuickInfoAt("3", "var a3: boolean[]", "");
 
-    f.VerifyQuickInfoAt("4", "var a4: boolean[]", "")
+    f.VerifyQuickInfoAt("4", "var a4: boolean[]", "");
 
-    f.VerifyQuickInfoAt("5", "var a5: string[]", "")
+    f.VerifyQuickInfoAt("5", "var a5: string[]", "");
 
-    f.VerifyQuickInfoAt("6", "var a6: any[]", "")
+    f.VerifyQuickInfoAt("6", "var a6: any[]", "");
 
-    f.VerifyQuickInfoAt("7", "var a7: any[]", "")
+    f.VerifyQuickInfoAt("7", "var a7: any[]", "");
 
-    f.VerifyQuickInfoAt("8", "var a8: boolean[]", "")
+    f.VerifyQuickInfoAt("8", "var a8: boolean[]", "");
 
-    f.VerifyQuickInfoAt("9", "var a9: boolean[]", "")
+    f.VerifyQuickInfoAt("9", "var a9: boolean[]", "");
 
-    f.VerifyQuickInfoAt("10", "var a10: string[]", "")
+    f.VerifyQuickInfoAt("10", "var a10: string[]", "");
     }
 }

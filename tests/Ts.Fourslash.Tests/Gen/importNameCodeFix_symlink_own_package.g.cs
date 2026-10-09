@@ -38,7 +38,7 @@ export const x = 0;
 export const a: number;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_symlink_own_package", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/packages/b/b0.ts")
+    f.GoToFile("/packages/b/b0.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -46,6 +46,6 @@ export const a: number;
 
     x;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -47,6 +47,6 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesSuperNegatives", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

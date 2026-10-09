@@ -42,6 +42,6 @@ function f(x: /*3*/Alias): /*4*/Alias { return undefined; }
             new SemanticToken { Type = "parameter.declaration", Text = "x" },
             new SemanticToken { Type = "type", Text = "Alias" },
             new SemanticToken { Type = "type", Text = "Alias" },
-        })
+        });
     }
 }

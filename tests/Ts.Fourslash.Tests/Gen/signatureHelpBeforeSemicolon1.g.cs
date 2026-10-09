@@ -32,7 +32,7 @@ function Foo(arg1: string, arg2: string) {
 Foo(/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpBeforeSemicolon1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(arg1: string, arg2: string): void", ParameterCount = 2, ParameterName = "arg1", ParameterSpan = "arg1: string" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(arg1: string, arg2: string): void", ParameterCount = 2, ParameterName = "arg1", ParameterSpan = "arg1: string" });
     }
 }

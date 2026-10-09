@@ -44,6 +44,6 @@ class Derivee extends Classe {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpellingJs3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

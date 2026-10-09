@@ -31,6 +31,6 @@ function f([|{[|{| "contextRangeIndex": 0 |}a|]}: {[|a|]}|]) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameDestructuringFunctionParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[2])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[2]);
     }
 }

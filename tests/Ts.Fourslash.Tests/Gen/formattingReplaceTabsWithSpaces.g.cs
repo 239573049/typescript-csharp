@@ -37,34 +37,34 @@ namespace Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingReplaceTabsWithSpaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    class Test { }")
+    f.VerifyCurrentLineContent("    class Test { }");
     }
 }

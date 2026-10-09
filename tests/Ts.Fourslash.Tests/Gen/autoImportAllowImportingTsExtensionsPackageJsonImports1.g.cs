@@ -60,8 +60,8 @@ add/*imports*/;
 external/*exports*/;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportAllowImportingTsExtensionsPackageJsonImports1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("imports", new[]{"#add.ts"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("imports", new[]{"#add.ts"}, null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("exports", new[]{"pkg/external.js"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("exports", new[]{"pkg/external.js"}, null /*preferences*/);
     }
 }

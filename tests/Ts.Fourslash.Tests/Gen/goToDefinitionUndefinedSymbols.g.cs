@@ -32,6 +32,6 @@ var x = {}; x.some/*undefinedProperty*/Property;
 var a: any; a.some/*unkownProperty*/Property;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionUndefinedSymbols", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, [.. f.MarkerNames()])
+    f.VerifyBaselineGoToDefinition(true, [.. f.MarkerNames()]);
     }
 }

@@ -29,10 +29,10 @@ public class FormattingForInTests
 /**/for (var i    in[]   )  {}
 """;
         using var f = FourslashTest.New(content, fileName: "formattingForIn", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("for (var i in []) { }")
+    f.VerifyCurrentLineContent("for (var i in []) { }");
     }
 }

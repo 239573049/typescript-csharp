@@ -36,6 +36,6 @@ export function f2(s: string){};
 export default f1;
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports12FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("import f1 from \"./file1\";", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("import f1 from \"./file1\";", false, 0, 0);
     }
 }

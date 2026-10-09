@@ -52,7 +52,7 @@ const x = bar/*bar_value*/;
 const i: bar/*bar_type*/ = { x: 1, y: 2 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoMeaning", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
     f.VerifyWorkspaceSymbol(new[]{
     new VerifyWorkspaceSymbolCase
@@ -77,15 +77,15 @@ const i: bar/*bar_type*/ = { x: 1, y: 2 };
     Kind = LsProto.SymbolKind.Namespace,
     Location = f.Ranges()[1].LSLocation(),
     },},
-        }})
+        }});
 
-    f.GoToMarker("foo_value")
+    f.GoToMarker("foo_value");
 
-    f.VerifyQuickInfoIs("const foo: number", "")
+    f.VerifyQuickInfoIs("const foo: number", "");
 
-    f.GoToMarker("foo_type")
+    f.GoToMarker("foo_type");
 
-    f.VerifyQuickInfoIs("(alias) interface foo\nimport foo = require(\"foo_module\")", "")
+    f.VerifyQuickInfoIs("(alias) interface foo\nimport foo = require(\"foo_module\")", "");
 
     f.VerifyWorkspaceSymbol(new[]{
     new VerifyWorkspaceSymbolCase
@@ -110,16 +110,16 @@ const i: bar/*bar_type*/ = { x: 1, y: 2 };
     Kind = LsProto.SymbolKind.Namespace,
     Location = f.Ranges()[4].LSLocation(),
     },},
-        }})
+        }});
 
-    f.GoToMarker("bar_value")
+    f.GoToMarker("bar_value");
 
-    f.VerifyQuickInfoIs("(alias) const bar: number\nimport bar = require(\"bar_module\")", "")
+    f.VerifyQuickInfoIs("(alias) const bar: number\nimport bar = require(\"bar_module\")", "");
 
-    f.GoToMarker("bar_type")
+    f.GoToMarker("bar_type");
 
-    f.VerifyQuickInfoIs("interface bar", "")
+    f.VerifyQuickInfoIs("interface bar", "");
 
-    f.VerifyBaselineGoToDefinition(false, "foo_value", "foo_type", "bar_value", "bar_type")
+    f.VerifyBaselineGoToDefinition(false, "foo_value", "foo_type", "bar_value", "bar_type");
     }
 }

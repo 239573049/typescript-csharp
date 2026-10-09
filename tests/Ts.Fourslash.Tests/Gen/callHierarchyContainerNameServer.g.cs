@@ -65,8 +65,8 @@ namespace Foo.Bar {
 """;
         using var f = FourslashTest.New(content, fileName: "callHierarchyContainerNameServer", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineCallHierarchy()
+    f.VerifyBaselineCallHierarchy();
     }
 }

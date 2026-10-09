@@ -33,6 +33,6 @@ public class CodeFixInferFromUsageCallbackParameter6Tests
 const foo = [(/** @type {number} */ x) => x + 1];
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageCallbackParameter6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

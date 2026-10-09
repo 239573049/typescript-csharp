@@ -36,8 +36,8 @@ export import B = require('./app');
 export var Y = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "selfReferencedExternalModule2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var A.Y: number", "")
+    f.VerifyQuickInfoAt("1", "var A.Y: number", "");
 
-    f.VerifyQuickInfoAt("2", "var I: number", "")
+    f.VerifyQuickInfoAt("2", "var I: number", "");
     }
 }

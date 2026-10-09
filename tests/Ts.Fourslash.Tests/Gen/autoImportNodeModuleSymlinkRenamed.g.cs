@@ -82,8 +82,8 @@ gainUtility/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportNodeModuleSymlinkRenamed", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyImportFixModuleSpecifiers("", new[]{"@monorepo/utils"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"@monorepo/utils"}, null /*preferences*/);
     }
 }

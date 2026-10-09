@@ -48,7 +48,7 @@ export declare function Component(): any;
 (<Component/**/ />);
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsxReact17", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -56,6 +56,6 @@ export declare function Component(): any;
 
     (<Component />);
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

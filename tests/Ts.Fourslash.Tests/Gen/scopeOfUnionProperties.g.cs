@@ -31,6 +31,6 @@ function f(s: string | number) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "scopeOfUnionProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1");
     }
 }

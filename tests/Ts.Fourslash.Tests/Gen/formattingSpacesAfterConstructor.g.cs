@@ -30,18 +30,18 @@ public class FormattingSpacesAfterConstructorTests
 /*2*/class test { constructor                   () { } }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpacesAfterConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("class test { constructor() { } }")
+    f.VerifyCurrentLineContent("class test { constructor() { } }");
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterConstructor = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterConstructor = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("class test { constructor () { } }")
+    f.VerifyCurrentLineContent("class test { constructor () { } }");
     }
 }

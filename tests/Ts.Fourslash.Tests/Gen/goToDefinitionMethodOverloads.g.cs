@@ -43,6 +43,6 @@ methodOverload.[|/*instanceMethodReference1*/method|]();
 methodOverload.[|/*instanceMethodReference2*/method|]("456");
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionMethodOverloads", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "staticMethodReference1", "staticMethodReference2", "instanceMethodReference1", "instanceMethodReference2", "staticMethodOverload1", "instanceMethodOverload1")
+    f.VerifyBaselineGoToDefinition(true, "staticMethodReference1", "staticMethodReference2", "instanceMethodReference1", "instanceMethodReference2", "staticMethodOverload1", "instanceMethodOverload1");
     }
 }

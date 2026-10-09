@@ -35,8 +35,8 @@ import /*deg*/g from "./a";
 import { f } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("def", "deg")
+    f.VerifyBaselineFindAllReferences("def", "deg");
 
-    f.VerifyBaselineGoToDefinition(true, "ref")
+    f.VerifyBaselineGoToDefinition(true, "ref");
     }
 }

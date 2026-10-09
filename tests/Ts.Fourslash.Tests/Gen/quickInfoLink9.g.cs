@@ -34,6 +34,6 @@ type Foo = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoLink9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

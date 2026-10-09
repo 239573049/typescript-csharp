@@ -44,8 +44,8 @@ class MyClass {
 var x = <MyClass {...[|n/*src*/n|]}></MyClass>;
 """;
         using var f = FourslashTest.New(content, fileName: "jsxSpreadReference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "nn")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "nn");
 
-    f.VerifyBaselineGoToDefinition(true, "src")
+    f.VerifyBaselineGoToDefinition(true, "src");
     }
 }

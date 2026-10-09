@@ -44,9 +44,9 @@ class SuperOverLoad2 extends SuperOverloadBase {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSuperConstructorOverload", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("superOverload1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperOverloadBase(): SuperOverloadBase", ParameterCount = 0, OverloadsCount = 2 })
-    f.GoToMarker("superOverload2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperOverloadBase(test: string): SuperOverloadBase", ParameterCount = 1, ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 })
+    f.GoToMarker("superOverload1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperOverloadBase(): SuperOverloadBase", ParameterCount = 0, OverloadsCount = 2 });
+    f.GoToMarker("superOverload2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperOverloadBase(test: string): SuperOverloadBase", ParameterCount = 1, ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 });
     }
 }

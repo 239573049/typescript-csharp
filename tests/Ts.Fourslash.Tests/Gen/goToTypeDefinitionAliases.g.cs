@@ -40,6 +40,6 @@ import {/*reference1*/v2 as v3} from "./goToTypeDefinitioAliases_module2";
 /*reference2*/v3;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinitionAliases", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference1", "reference2")
+    f.VerifyBaselineGoToTypeDefinition("reference1", "reference2");
     }
 }

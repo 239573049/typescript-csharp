@@ -31,6 +31,6 @@ public class FindAllReferencesImportMetaTests
 let x = import.meta/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesImportMeta", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

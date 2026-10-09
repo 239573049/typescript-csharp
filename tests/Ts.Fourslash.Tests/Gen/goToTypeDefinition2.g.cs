@@ -39,6 +39,6 @@ var i2: I2;
 i2.prop/*reference*/erty;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

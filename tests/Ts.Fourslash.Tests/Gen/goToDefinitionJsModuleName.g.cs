@@ -33,6 +33,6 @@ public class GoToDefinitionJsModuleNameTests
 var x = require([|/*1*/"./foo"|]);
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsModuleName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

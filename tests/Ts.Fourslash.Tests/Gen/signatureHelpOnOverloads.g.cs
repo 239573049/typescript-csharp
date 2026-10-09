@@ -31,11 +31,11 @@ declare function fn(x: string, y: number);
 fn(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnOverloads", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn(x: string): any", ParameterName = "x", ParameterSpan = "x: string", OverloadsCount = 2 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn(x: string): any", ParameterName = "x", ParameterSpan = "x: string", OverloadsCount = 2 });
 
-    f.Insert("'',")
+    f.Insert("'',");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn(x: string, y: number): any", ParameterName = "y", ParameterSpan = "y: number", OverloadsCount = 2 })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn(x: string, y: number): any", ParameterName = "y", ParameterSpan = "y: number", OverloadsCount = 2 });
     }
 }

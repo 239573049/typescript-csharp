@@ -36,7 +36,7 @@ Dep/**/
 import fs from 'fs';
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsCJSvsESM1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -44,6 +44,6 @@ import fs from 'fs';
 
     Dep
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

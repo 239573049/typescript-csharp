@@ -38,6 +38,6 @@ a.[|a/*start*/|]
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource11_propertyOfAlias", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
     }
 }

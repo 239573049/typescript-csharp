@@ -39,22 +39,22 @@ wow(
 );
 """;
         using var f = FourslashTest.New(content, fileName: "formatComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("callChain1")
+    f.GoToMarker("callChain1");
 
-    f.VerifyCurrentLineContent("    // wow")
+    f.VerifyCurrentLineContent("    // wow");
 
-    f.GoToMarker("callChain2")
+    f.GoToMarker("callChain2");
 
-    f.VerifyCurrentLineContent("    // waa")
+    f.VerifyCurrentLineContent("    // waa");
 
-    f.GoToMarker("argument1")
+    f.GoToMarker("argument1");
 
-    f.VerifyCurrentLineContent("    // uaa")
+    f.VerifyCurrentLineContent("    // uaa");
 
-    f.GoToMarker("argument2")
+    f.GoToMarker("argument2");
 
-    f.VerifyCurrentLineContent("    // wua")
+    f.VerifyCurrentLineContent("    // wua");
     }
 }

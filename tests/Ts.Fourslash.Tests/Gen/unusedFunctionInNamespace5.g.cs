@@ -54,6 +54,6 @@ namespace Validation {
         }
 
         export let a = function3;
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

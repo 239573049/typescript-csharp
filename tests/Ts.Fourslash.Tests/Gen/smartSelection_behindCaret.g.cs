@@ -29,6 +29,6 @@ public class SmartSelection_behindCaretTests
 let/**/ x: string
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_behindCaret", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

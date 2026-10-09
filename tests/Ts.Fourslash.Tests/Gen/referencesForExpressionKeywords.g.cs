@@ -42,6 +42,6 @@ undefined /*instanceof*/instanceof C;
 undefined /*as*/as C;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForExpressionKeywords", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("new", "void", "typeof", "yield", "await", "in", "instanceof", "as", "delete")
+    f.VerifyBaselineFindAllReferences("new", "void", "typeof", "yield", "await", "in", "instanceof", "as", "delete");
     }
 }

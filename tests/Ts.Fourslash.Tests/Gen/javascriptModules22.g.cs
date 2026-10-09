@@ -62,11 +62,11 @@ a./**/
     ],
         },
         
-    })
+    });
 
-    f.Backspace(2)
+    f.Backspace(2);
 
-    f.Insert("def.")
+    f.Insert("def.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -83,9 +83,9 @@ a./**/
     ],
         },
         
-    })
+    });
 
-    f.Insert("name;\nsausages.")
+    f.Insert("name;\nsausages.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -102,10 +102,10 @@ a./**/
     ],
         },
         
-    })
+    });
 
-    f.Insert("eggs;")
+    f.Insert("eggs;");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

@@ -38,9 +38,9 @@ exports.foo = function(a, b) {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptCompletions18", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("a")
+    f.GoToMarker("a");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -61,11 +61,11 @@ exports.foo = function(a, b) {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("b")
+    f.GoToMarker("b");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -86,6 +86,6 @@ exports.foo = function(a, b) {
     ],
         },
         
-    })
+    });
     }
 }

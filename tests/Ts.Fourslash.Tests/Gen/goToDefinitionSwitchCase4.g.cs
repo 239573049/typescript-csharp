@@ -35,6 +35,6 @@ public class GoToDefinitionSwitchCase4Tests
      }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSwitchCase4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

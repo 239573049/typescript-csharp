@@ -38,6 +38,6 @@ class iClass implements /*interfaceReference*/sInt {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionInterfaceAfterImplement", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "interfaceReference")
+    f.VerifyBaselineGoToDefinition(false, "interfaceReference");
     }
 }

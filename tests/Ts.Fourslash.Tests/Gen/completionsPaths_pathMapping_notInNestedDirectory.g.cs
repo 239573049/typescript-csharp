@@ -53,6 +53,6 @@ import {} from "something//**/";
     ],
         },
         
-    })
+    });
     }
 }

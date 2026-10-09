@@ -91,6 +91,6 @@ export const All = {
     };
     """,
         Index = 1,
-    })
+    });
     }
 }

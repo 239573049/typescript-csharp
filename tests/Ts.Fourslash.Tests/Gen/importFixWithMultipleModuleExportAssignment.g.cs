@@ -39,7 +39,7 @@ export const foo = 0;
 foo
 """;
         using var f = FourslashTest.New(content, fileName: "importFixWithMultipleModuleExportAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/c.js")
+    f.GoToFile("/c.js");
 
     f.VerifyImportFixAtPosition([
     """
@@ -47,6 +47,6 @@ foo
 
     foo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

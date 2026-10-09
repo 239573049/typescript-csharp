@@ -44,6 +44,6 @@ const x: { m(): Promise<void> } = { async /**/ };
     ],
         },
         
-    })
+    });
     }
 }

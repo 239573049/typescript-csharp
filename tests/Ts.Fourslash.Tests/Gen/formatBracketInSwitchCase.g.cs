@@ -33,12 +33,12 @@ switch (x) {
 """;
         using var f = FourslashTest.New(content, fileName: "formatBracketInSwitchCase", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     switch (x) {
         case []:
     }
-    """)
+    """);
     }
 }

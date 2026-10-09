@@ -39,6 +39,6 @@ declare global {
 let v = new /*1*/THREE.Vector3();
 """;
         using var f = FourslashTest.New(content, fileName: "moduleReexportedIntoGlobalQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const THREE: typeof import(\"three\")", "")
+    f.VerifyQuickInfoAt("1", "const THREE: typeof import(\"three\")", "");
     }
 }

@@ -32,6 +32,6 @@ export /*1*/default 1;
 import a from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport_anonymous", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

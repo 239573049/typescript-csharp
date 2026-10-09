@@ -37,6 +37,6 @@ describe('foo', () => {
 })
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarAnonymousClassAndFunctionExpressions3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

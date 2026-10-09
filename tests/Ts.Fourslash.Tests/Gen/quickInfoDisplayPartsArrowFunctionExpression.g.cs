@@ -32,6 +32,6 @@ var /*3*/z = (/*8*/a: number) => 10;
 var /*4*/z2 = () => 10;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsArrowFunctionExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

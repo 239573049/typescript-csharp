@@ -52,7 +52,7 @@ class K {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -70,6 +70,6 @@ class K {
     ],
         },
         
-    })
+    });
     }
 }

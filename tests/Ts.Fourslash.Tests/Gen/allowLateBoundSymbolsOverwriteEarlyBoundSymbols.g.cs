@@ -37,6 +37,6 @@ interface T0 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "allowLateBoundSymbolsOverwriteEarlyBoundSymbols", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

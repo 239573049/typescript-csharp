@@ -46,9 +46,9 @@ declare class Thing<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocAugmentsAndExtends", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("(local var) x: number", "")
+    f.VerifyQuickInfoIs("(local var) x: number", "");
 
     f.VerifyNonSuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -56,6 +56,6 @@ declare class Thing<T> {
     Message = LsProto.StringOrMarkupContent.FromString("Class declarations cannot have more than one '@augments' or '@extends' tag."),
     Code = LsProto.IntegerOrString.FromInteger(8025),
     },
-    ])
+    ]);
     }
 }

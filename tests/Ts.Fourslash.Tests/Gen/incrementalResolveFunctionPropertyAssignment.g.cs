@@ -48,8 +48,8 @@ var val = foo(["myString1", "myString2"]);
 /*1*/val;
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalResolveFunctionPropertyAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var val: string", "")
+    f.VerifyQuickInfoAt("1", "var val: string", "");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

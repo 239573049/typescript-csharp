@@ -36,6 +36,6 @@ import f = require("./verifySingleFileEmitOutput1_file0");
 var /**/b = new f.A();
 """;
         using var f = FourslashTest.New(content, fileName: "verifySingleFileEmitOutput1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var b: f.A", "")
+    f.VerifyQuickInfoAt("", "var b: f.A", "");
     }
 }

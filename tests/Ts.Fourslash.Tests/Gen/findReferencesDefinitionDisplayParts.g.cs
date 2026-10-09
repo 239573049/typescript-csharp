@@ -37,6 +37,6 @@ some/*4*/Label:
 break someLabel;
 """;
         using var f = FourslashTest.New(content, fileName: "findReferencesDefinitionDisplayParts", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

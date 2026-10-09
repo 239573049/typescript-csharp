@@ -35,6 +35,6 @@ function other2<T extends Date>(arg: T) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForIndexerResultWithConstraint", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local var) r2: {\n    [x: string]: T;\n}", "")
+    f.VerifyQuickInfoAt("1", "(local var) r2: {\n    [x: string]: T;\n}", "");
     }
 }

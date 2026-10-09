@@ -50,18 +50,18 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("0", "this", "")
+    f.VerifyQuickInfoAt("0", "this", "");
 
-    f.VerifyQuickInfoAt("1", "this: void", "")
+    f.VerifyQuickInfoAt("1", "this: void", "");
 
-    f.VerifyQuickInfoAt("2", "this: this", "")
+    f.VerifyQuickInfoAt("2", "this: this", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) this: Restricted", "")
+    f.VerifyQuickInfoAt("3", "(parameter) this: Restricted", "");
 
-    f.VerifyQuickInfoAt("4", "this: Restricted", "")
+    f.VerifyQuickInfoAt("4", "this: Restricted", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) this: Foo", "")
+    f.VerifyQuickInfoAt("5", "(parameter) this: Foo", "");
 
-    f.VerifyQuickInfoAt("6", "this: Foo", "")
+    f.VerifyQuickInfoAt("6", "this: Foo", "");
     }
 }

@@ -40,7 +40,7 @@ var inst2 = new class2();
 inst2.blah/*b*/;
 """;
         using var f = FourslashTest.New(content, fileName: "indirectClassInstantiation", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("a")
+    f.GoToMarker("a");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -92,12 +92,12 @@ inst2.blah/*b*/;
     ],
         },
         
-    })
+    });
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.GoToMarker("b")
+    f.GoToMarker("b");
 
-    f.VerifyQuickInfoIs("(method) class2.blah(): void", "")
+    f.VerifyQuickInfoIs("(method) class2.blah(): void", "");
     }
 }

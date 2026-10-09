@@ -36,7 +36,7 @@ export function Index() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsxOpeningTagImportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -46,6 +46,6 @@ export function Index() {
         return <Component />;
     }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

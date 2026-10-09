@@ -105,7 +105,7 @@ class C2 extends Base {
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "3", }, new CompletionsExpectedList
     {
@@ -162,7 +162,7 @@ class C2 extends Base {
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -248,6 +248,6 @@ class C2 extends Base {
     ],
         },
         
-    })
+    });
     }
 }

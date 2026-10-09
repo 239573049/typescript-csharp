@@ -30,8 +30,8 @@ declare function create<T>(initialValues);
 create([{}]);
 """;
         using var f = FourslashTest.New(content, fileName: "typeCheckObjectInArrayLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToPosition(0)
+    f.GoToPosition(0);
 
-    f.Insert("")
+    f.Insert("");
     }
 }

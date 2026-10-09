@@ -31,6 +31,6 @@ import { resolve/*0*/ as resolveUrl } from "idontcare";
 import { resolve/*1*/ } from "whatever";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsMissingModulesOverlappingSpecifiers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1")
+    f.VerifyBaselineFindAllReferences("0", "1");
     }
 }

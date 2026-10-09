@@ -33,10 +33,10 @@ import { logger } from './first';
 new logger()
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion9", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("second.ts")
+    f.GoToFile("second.ts");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

@@ -35,6 +35,6 @@ export default 10;
 export var x = 10;
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports14FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("import /* 1 */ A /* 2 */ /* 6 */ from './a';", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("import /* 1 */ A /* 2 */ /* 6 */ from './a';", false, 0, 0);
     }
 }

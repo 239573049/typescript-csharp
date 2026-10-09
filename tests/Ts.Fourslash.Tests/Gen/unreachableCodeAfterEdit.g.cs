@@ -54,18 +54,18 @@ export class TransparentCrypto implements ISecretStorageCrypto {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unreachableCodeAfterEdit", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.GoToMarker("before")
+    f.GoToMarker("before");
 
-    f.Insert("throw new Error('foo');\n")
+    f.Insert("throw new Error('foo');\n");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("before")
+    f.GoToMarker("before");
 
-    f.DeleteAtCaret(24)
+    f.DeleteAtCaret(24);
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
     }
 }

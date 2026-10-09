@@ -32,7 +32,7 @@ function foo(n: number): string {
 foo(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpNoArguments", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(n: number): string", ParameterName = "n", ParameterSpan = "n: number" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(n: number): string", ParameterName = "n", ParameterSpan = "n: number" });
     }
 }

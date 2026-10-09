@@ -44,6 +44,6 @@ class C3 implements C2 {[|
         throw new Error("Method not implemented.");
     }
 
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

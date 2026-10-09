@@ -110,274 +110,274 @@ public class FormattingOnClassesTests
 /*END*/}
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnClasses", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("class a {")
+    f.VerifyCurrentLineContent("class a {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    constructor(n: number);")
+    f.VerifyCurrentLineContent("    constructor(n: number);");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    constructor(s: string);")
+    f.VerifyCurrentLineContent("    constructor(s: string);");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    constructor(ns: any) {")
+    f.VerifyCurrentLineContent("    constructor(ns: any) {");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    public pgF() { }")
+    f.VerifyCurrentLineContent("    public pgF() { }");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    public pv;")
+    f.VerifyCurrentLineContent("    public pv;");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    public get d() {")
+    f.VerifyCurrentLineContent("    public get d() {");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("        return 30;")
+    f.VerifyCurrentLineContent("        return 30;");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("    public set d(number) {")
+    f.VerifyCurrentLineContent("    public set d(number) {");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("    public static get p2() {")
+    f.VerifyCurrentLineContent("    public static get p2() {");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("        return { x: 30, y: 40 };")
+    f.VerifyCurrentLineContent("        return { x: 30, y: 40 };");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("    private static d2() {")
+    f.VerifyCurrentLineContent("    private static d2() {");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("    private static get p3() {")
+    f.VerifyCurrentLineContent("    private static get p3() {");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("        return \"string\";")
+    f.VerifyCurrentLineContent("        return \"string\";");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("    private pv3;")
+    f.VerifyCurrentLineContent("    private pv3;");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("    private foo(n: number): string;")
+    f.VerifyCurrentLineContent("    private foo(n: number): string;");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("    private foo(s: string): string;")
+    f.VerifyCurrentLineContent("    private foo(s: string): string;");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("    private foo(ns: any) {")
+    f.VerifyCurrentLineContent("    private foo(ns: any) {");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("        return ns.toString();")
+    f.VerifyCurrentLineContent("        return ns.toString();");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("28")
+    f.GoToMarker("28");
 
-    f.VerifyCurrentLineContent("class b extends a {")
+    f.VerifyCurrentLineContent("class b extends a {");
 
-    f.GoToMarker("29")
+    f.GoToMarker("29");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("30")
+    f.GoToMarker("30");
 
-    f.VerifyCurrentLineContent("class m1b {")
+    f.VerifyCurrentLineContent("class m1b {");
 
-    f.GoToMarker("31")
+    f.GoToMarker("31");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("32")
+    f.GoToMarker("32");
 
-    f.VerifyCurrentLineContent("interface m1ib {")
+    f.VerifyCurrentLineContent("interface m1ib {");
 
-    f.GoToMarker("33")
+    f.GoToMarker("33");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("34")
+    f.GoToMarker("34");
 
-    f.VerifyCurrentLineContent("class c extends m1b {")
+    f.VerifyCurrentLineContent("class c extends m1b {");
 
-    f.GoToMarker("35")
+    f.GoToMarker("35");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("36")
+    f.GoToMarker("36");
 
-    f.VerifyCurrentLineContent("class ib2 implements m1ib {")
+    f.VerifyCurrentLineContent("class ib2 implements m1ib {");
 
-    f.GoToMarker("37")
+    f.GoToMarker("37");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("38")
+    f.GoToMarker("38");
 
-    f.VerifyCurrentLineContent("declare class aAmbient {")
+    f.VerifyCurrentLineContent("declare class aAmbient {");
 
-    f.GoToMarker("39")
+    f.GoToMarker("39");
 
-    f.VerifyCurrentLineContent("    constructor(n: number);")
+    f.VerifyCurrentLineContent("    constructor(n: number);");
 
-    f.GoToMarker("40")
+    f.GoToMarker("40");
 
-    f.VerifyCurrentLineContent("    constructor(s: string);")
+    f.VerifyCurrentLineContent("    constructor(s: string);");
 
-    f.GoToMarker("41")
+    f.GoToMarker("41");
 
-    f.VerifyCurrentLineContent("    public pgF(): void;")
+    f.VerifyCurrentLineContent("    public pgF(): void;");
 
-    f.GoToMarker("42")
+    f.GoToMarker("42");
 
-    f.VerifyCurrentLineContent("    public pv;")
+    f.VerifyCurrentLineContent("    public pv;");
 
-    f.GoToMarker("43")
+    f.GoToMarker("43");
 
-    f.VerifyCurrentLineContent("    public d: number;")
+    f.VerifyCurrentLineContent("    public d: number;");
 
-    f.GoToMarker("44")
+    f.GoToMarker("44");
 
-    f.VerifyCurrentLineContent("    static p2: { x: number; y: number; };")
+    f.VerifyCurrentLineContent("    static p2: { x: number; y: number; };");
 
-    f.GoToMarker("45")
+    f.GoToMarker("45");
 
-    f.VerifyCurrentLineContent("    static d2();")
+    f.VerifyCurrentLineContent("    static d2();");
 
-    f.GoToMarker("46")
+    f.GoToMarker("46");
 
-    f.VerifyCurrentLineContent("    static p3;")
+    f.VerifyCurrentLineContent("    static p3;");
 
-    f.GoToMarker("47")
+    f.GoToMarker("47");
 
-    f.VerifyCurrentLineContent("    private pv3;")
+    f.VerifyCurrentLineContent("    private pv3;");
 
-    f.GoToMarker("48")
+    f.GoToMarker("48");
 
-    f.VerifyCurrentLineContent("    private foo(s);")
+    f.VerifyCurrentLineContent("    private foo(s);");
 
-    f.GoToMarker("49")
+    f.GoToMarker("49");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("50")
+    f.GoToMarker("50");
 
-    f.VerifyCurrentLineContent("class d {")
+    f.VerifyCurrentLineContent("class d {");
 
-    f.GoToMarker("51")
+    f.GoToMarker("51");
 
-    f.VerifyCurrentLineContent("    private foo(n: number): string;")
+    f.VerifyCurrentLineContent("    private foo(n: number): string;");
 
-    f.GoToMarker("52")
+    f.GoToMarker("52");
 
-    f.VerifyCurrentLineContent("    private foo(s: string): string;")
+    f.VerifyCurrentLineContent("    private foo(s: string): string;");
 
-    f.GoToMarker("53")
+    f.GoToMarker("53");
 
-    f.VerifyCurrentLineContent("    private foo(ns: any) {")
+    f.VerifyCurrentLineContent("    private foo(ns: any) {");
 
-    f.GoToMarker("54")
+    f.GoToMarker("54");
 
-    f.VerifyCurrentLineContent("        return ns.toString();")
+    f.VerifyCurrentLineContent("        return ns.toString();");
 
-    f.GoToMarker("55")
+    f.GoToMarker("55");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("56")
+    f.GoToMarker("56");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("57")
+    f.GoToMarker("57");
 
-    f.VerifyCurrentLineContent("class e {")
+    f.VerifyCurrentLineContent("class e {");
 
-    f.GoToMarker("58")
+    f.GoToMarker("58");
 
-    f.VerifyCurrentLineContent("    private foo(s: string): string;")
+    f.VerifyCurrentLineContent("    private foo(s: string): string;");
 
-    f.GoToMarker("59")
+    f.GoToMarker("59");
 
-    f.VerifyCurrentLineContent("    private foo(n: number): string;")
+    f.VerifyCurrentLineContent("    private foo(n: number): string;");
 
-    f.GoToMarker("60")
+    f.GoToMarker("60");
 
-    f.VerifyCurrentLineContent("    private foo(ns: any) {")
+    f.VerifyCurrentLineContent("    private foo(ns: any) {");
 
-    f.GoToMarker("61")
+    f.GoToMarker("61");
 
-    f.VerifyCurrentLineContent("        return ns.toString();")
+    f.VerifyCurrentLineContent("        return ns.toString();");
 
-    f.GoToMarker("62")
+    f.GoToMarker("62");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("63")
+    f.GoToMarker("63");
 
-    f.VerifyCurrentLineContent("    protected bar() { }")
+    f.VerifyCurrentLineContent("    protected bar() { }");
 
-    f.GoToMarker("64")
+    f.GoToMarker("64");
 
-    f.VerifyCurrentLineContent("    protected static bar2() { }")
+    f.VerifyCurrentLineContent("    protected static bar2() { }");
 
-    f.GoToMarker("65")
+    f.GoToMarker("65");
 
-    f.VerifyCurrentLineContent("    private pv4: number =")
+    f.VerifyCurrentLineContent("    private pv4: number =");
 
-    f.GoToMarker("66")
+    f.GoToMarker("66");
 
-    f.VerifyCurrentLineContent("        {};")
+    f.VerifyCurrentLineContent("        {};");
 
-    f.GoToMarker("END")
+    f.GoToMarker("END");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

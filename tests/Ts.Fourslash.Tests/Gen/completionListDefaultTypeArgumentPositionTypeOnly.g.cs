@@ -44,6 +44,6 @@ function test1<T = /*1*/>() {}
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

@@ -41,6 +41,6 @@ Core.Test.prototype.foo = 10
 new Core.Tes/*1*/t()
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionExpandoClass2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

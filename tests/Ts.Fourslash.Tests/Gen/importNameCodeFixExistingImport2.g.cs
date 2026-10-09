@@ -46,6 +46,6 @@ f1/*0*/();
     // Comment
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

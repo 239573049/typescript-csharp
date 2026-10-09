@@ -42,7 +42,7 @@ import { a as a2 } from "./a"; // Ignored, only the first relative import is con
 b; c;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsExtension", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -55,6 +55,6 @@ b; c;
     import { c } from "./c.jsx";
     b; c;
     """,
-    })
+    });
     }
 }

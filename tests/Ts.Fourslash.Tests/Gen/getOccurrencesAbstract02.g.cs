@@ -38,8 +38,8 @@ let c = /*1*/abstract class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesAbstract02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1", "2")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1", "2");
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

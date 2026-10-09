@@ -43,6 +43,6 @@ var x = /*12*/topLevelModule.x;
 export = x;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForGlobalsInExternalModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
     }
 }

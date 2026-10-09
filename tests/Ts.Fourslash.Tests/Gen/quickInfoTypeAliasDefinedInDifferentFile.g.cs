@@ -34,6 +34,6 @@ import { f } from "./a";
 /**/f({ x: 1 });
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoTypeAliasDefinedInDifferentFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(alias) f(x: X): void\nimport f", "")
+    f.VerifyQuickInfoAt("", "(alias) f(x: X): void\nimport f", "");
     }
 }

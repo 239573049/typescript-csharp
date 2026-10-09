@@ -36,6 +36,6 @@ var numbers: number[];
 var x = (strings || numbers).[|/*usage*/specialPop|]()
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionUnionTypeProperty3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "usage")
+    f.VerifyBaselineGoToDefinition(true, "usage");
     }
 }

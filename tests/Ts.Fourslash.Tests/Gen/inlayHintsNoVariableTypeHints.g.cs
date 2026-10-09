@@ -35,6 +35,6 @@ const a = 123;
     {
     IncludeInlayVariableTypeHints = Core.TSFalse,
     },
-    })
+    });
     }
 }

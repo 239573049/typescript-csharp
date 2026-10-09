@@ -34,6 +34,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsage_noCrashOnMissingParens", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

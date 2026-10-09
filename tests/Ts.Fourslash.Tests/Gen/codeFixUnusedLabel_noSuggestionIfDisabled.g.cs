@@ -30,6 +30,6 @@ public class CodeFixUnusedLabel_noSuggestionIfDisabledTests
 [|foo|]: while (true) {}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixUnusedLabel_noSuggestionIfDisabled", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

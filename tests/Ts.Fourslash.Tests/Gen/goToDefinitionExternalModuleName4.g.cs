@@ -30,6 +30,6 @@ public class GoToDefinitionExternalModuleName4Tests
 import n = require('unknown/*1*/');
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionExternalModuleName4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

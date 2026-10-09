@@ -54,6 +54,6 @@ namespace NPR/*5*/ {
 export function outerref() { }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesLinkTag3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5");
     }
 }

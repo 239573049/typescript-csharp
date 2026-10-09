@@ -49,12 +49,12 @@ declare const root: Root;
 export = root;
 """;
         using var f = FourslashTest.New(content, fileName: "codefixCrashExportGlobal", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("bar.ts")
+    f.GoToFile("bar.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
 
-    f.GoToFile("foo.d.ts")
+    f.GoToFile("foo.d.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

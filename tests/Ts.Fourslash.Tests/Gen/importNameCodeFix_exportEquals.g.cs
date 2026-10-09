@@ -40,7 +40,7 @@ a;
 let x: b;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_exportEquals", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -52,6 +52,6 @@ let x: b;
     a;
     let x: b;
     """,
-    })
+    });
     }
 }

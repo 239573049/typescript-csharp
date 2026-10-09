@@ -43,15 +43,15 @@ class B extends A {
 var x = new /*2*/B(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnConstructorWithGenericParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B" });
 
-    f.Insert("null,")
+    f.Insert("null,");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B" });
 
-    f.Insert("10);")
+    f.Insert("10);");
 
-    f.VerifyQuickInfoAt("2", "constructor B(a: Foo<I>, b: number): B", "")
+    f.VerifyQuickInfoAt("2", "constructor B(a: Foo<I>, b: number): B", "");
     }
 }

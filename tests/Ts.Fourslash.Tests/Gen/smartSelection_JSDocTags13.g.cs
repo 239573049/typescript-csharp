@@ -35,6 +35,6 @@ let b: {
 let c;
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_JSDocTags13", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

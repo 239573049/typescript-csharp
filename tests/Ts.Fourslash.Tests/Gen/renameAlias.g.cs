@@ -31,6 +31,6 @@ namespace SomeModule { export class SomeClass { } }
 import C = [|M|].SomeClass;
 """;
         using var f = FourslashTest.New(content, fileName: "renameAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "M")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "M");
     }
 }

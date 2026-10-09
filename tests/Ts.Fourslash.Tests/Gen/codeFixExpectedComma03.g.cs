@@ -31,6 +31,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixExpectedComma03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixExpectedComma")
+    f.VerifyCodeFixNotAvailable("fixExpectedComma");
     }
 }

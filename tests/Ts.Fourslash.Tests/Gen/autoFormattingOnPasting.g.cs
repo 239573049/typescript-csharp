@@ -31,9 +31,9 @@ namespace TestModule {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "autoFormattingOnPasting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Paste(" class TestClass{\nprivate   foo;\npublic testMethod( )\n{}\n}")
+    f.Paste(" class TestClass{\nprivate   foo;\npublic testMethod( )\n{}\n}");
 
     f.VerifyCurrentFileContent("""
     namespace TestModule {
@@ -42,6 +42,6 @@ namespace TestModule {
             public testMethod() { }
         }
     }
-    """)
+    """);
     }
 }

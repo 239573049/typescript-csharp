@@ -38,6 +38,6 @@ export import /*3*/a2 = require(/*mod2*/"./quickInfoDisplayPartsExternalModuleAl
 new /*4*/a2.m1.c();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsExternalModuleAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -37,7 +37,7 @@ export class Point3D2 extends mixin(Point2D) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports24-heritage-formatting-2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Extract base class to variable"})
+    f.VerifyCodeFixAvailable(new[]{"Extract base class to variable"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -53,6 +53,6 @@ export class Point3D2 extends mixin(Point2D) {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

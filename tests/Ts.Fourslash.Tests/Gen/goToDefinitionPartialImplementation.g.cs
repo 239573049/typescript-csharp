@@ -42,6 +42,6 @@ namespace A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionPartialImplementation", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "Part2Use")
+    f.VerifyBaselineGoToDefinition(true, "Part2Use");
     }
 }

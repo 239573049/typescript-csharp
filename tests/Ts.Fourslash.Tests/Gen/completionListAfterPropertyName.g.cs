@@ -84,7 +84,7 @@ class Test14 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAfterPropertyName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"afterPropertyName", "inMethodParameter", "atMethodParameter", "afterMethodParameter", "afterMethodParameterBeforeComma", "afterMethodParameterComma", "afterConstructorParameter", }, null)
+    f.VerifyCompletions(new[]{"afterPropertyName", "inMethodParameter", "atMethodParameter", "afterMethodParameter", "afterMethodParameterBeforeComma", "afterMethodParameterComma", "afterConstructorParameter", }, null);
 
     f.VerifyCompletions(new[]{"inConstructorParameter", "inConstructorParameterAfterModifier", "atConstructorParameter", "atConstructorParameterModifier", "atConstructorParameterAfterModifier", "afterConstructorParameterComma", }, new CompletionsExpectedList
     {
@@ -99,6 +99,6 @@ class Test14 {
             Exact = CompletionConstructorParameterKeywords,
         },
         
-    })
+    });
     }
 }

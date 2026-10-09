@@ -40,12 +40,12 @@ function SFC<T>(_props: Record<string, T>) {
 (</*2*/SFC<string>/>);
 """;
         using var f = FourslashTest.New(content, fileName: "jsxWithTypeParametershasInstantiatedSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, unknown>): string" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, unknown>): string" });
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, string>): string" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, string>): string" });
     }
 }

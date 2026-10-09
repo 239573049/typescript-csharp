@@ -38,7 +38,7 @@ export function f1() { };
 [|f1/*0*/();|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixNewImportBaseUrl2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a/c/y.ts")
+    f.GoToFile("/a/c/y.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -46,7 +46,7 @@ export function f1() { };
 
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
     f.VerifyImportFixAtPosition([
     """
@@ -57,6 +57,6 @@ export function f1() { };
     ], new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("relative"),
-    })
+    });
     }
 }

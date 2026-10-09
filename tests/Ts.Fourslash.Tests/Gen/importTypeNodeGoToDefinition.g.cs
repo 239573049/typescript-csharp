@@ -37,6 +37,6 @@ type A = typeof import([|/*1*/"./ns"|]).[|/*2*/Foo|].[|/*3*/Bar|];
 type B = import([|/*4*/"./ns"|]).[|/*5*/Foo|].[|/*6*/Bar|].[|/*7*/Baz|];
 """;
         using var f = FourslashTest.New(content, fileName: "importTypeNodeGoToDefinition", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4", "5", "6", "7")
+    f.VerifyBaselineGoToDefinition(true, "1", "2", "3", "4", "5", "6", "7");
     }
 }

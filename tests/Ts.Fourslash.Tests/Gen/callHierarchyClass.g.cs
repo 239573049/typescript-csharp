@@ -38,8 +38,8 @@ class Baz {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "callHierarchyClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineCallHierarchy()
+    f.VerifyBaselineCallHierarchy();
     }
 }

@@ -35,8 +35,8 @@ export as namespace /**/[|myLib|];
 myLib.doThing();
 """;
         using var f = FourslashTest.New(content, fileName: "renameUMDModuleAlias2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

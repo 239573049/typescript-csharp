@@ -30,12 +30,12 @@ function foo(x: { } /*objLit*/){
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "formatAnyTypeLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.GoToMarker("objLit")
+    f.GoToMarker("objLit");
 
-    f.VerifyCurrentLineContent("function foo(x: {}) {")
+    f.VerifyCurrentLineContent("function foo(x: {}) {");
     }
 }

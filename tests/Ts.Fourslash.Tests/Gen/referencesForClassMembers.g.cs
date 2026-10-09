@@ -40,6 +40,6 @@ c./*a3*/a;
 c./*method3*/method();
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForClassMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("a1", "a2", "a3", "method1", "method2", "method3")
+    f.VerifyBaselineFindAllReferences("a1", "a2", "a3", "method1", "method2", "method3");
     }
 }

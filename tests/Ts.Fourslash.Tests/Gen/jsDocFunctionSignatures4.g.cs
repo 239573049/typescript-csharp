@@ -33,6 +33,6 @@ public class JsDocFunctionSignatures4Tests
 function fn(x, y) { }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

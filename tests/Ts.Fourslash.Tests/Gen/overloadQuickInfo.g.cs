@@ -44,6 +44,6 @@ function Foo(x?: any, y?: any, z?: any) {
 Fo/**/o();
 """;
         using var f = FourslashTest.New(content, fileName: "overloadQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "function Foo(): any (+12 overloads)", "")
+    f.VerifyQuickInfoAt("", "function Foo(): any (+12 overloads)", "");
     }
 }

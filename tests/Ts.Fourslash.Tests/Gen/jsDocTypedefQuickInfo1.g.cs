@@ -56,6 +56,6 @@ function foo1(/*2*/opts1) {
 foo1({x: 'abc'});
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocTypedefQuickInfo1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -40,6 +40,6 @@ public class UnusedFunctionInNamespace2Tests
         export function function2() {
         }
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

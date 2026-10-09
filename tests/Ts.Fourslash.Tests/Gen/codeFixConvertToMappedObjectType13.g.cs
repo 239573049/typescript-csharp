@@ -31,6 +31,6 @@ let x: {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixConvertToMappedObjectType13", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixConvertToMappedObjectType")
+    f.VerifyCodeFixNotAvailable("fixConvertToMappedObjectType");
     }
 }

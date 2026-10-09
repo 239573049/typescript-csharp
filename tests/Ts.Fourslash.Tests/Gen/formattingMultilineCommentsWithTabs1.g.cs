@@ -43,26 +43,26 @@ var f = function (j) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingMultilineCommentsWithTabs1", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("            /* when current checkbox has focus, Firefox has changed check state already")
+    f.VerifyCurrentLineContent("            /* when current checkbox has focus, Firefox has changed check state already");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("            on SPACE bar press only")
+    f.VerifyCurrentLineContent("            on SPACE bar press only");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("            IE does not have issue, use the CSS class")
+    f.VerifyCurrentLineContent("            IE does not have issue, use the CSS class");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("            input:focus[type=checkbox] (z-index = 31290)")
+    f.VerifyCurrentLineContent("            input:focus[type=checkbox] (z-index = 31290)");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("            to determine whether checkbox has focus or not")
+    f.VerifyCurrentLineContent("            to determine whether checkbox has focus or not");
     }
 }

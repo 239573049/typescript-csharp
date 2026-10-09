@@ -33,7 +33,7 @@ r./*2*/
 var /*4*/r2 = m3d./*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "augmentedTypesModule4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r: m3d", "")
+    f.VerifyQuickInfoAt("1", "var r: m3d", "");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -50,9 +50,9 @@ var /*4*/r2 = m3d./*3*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("foo();")
+    f.Insert("foo();");
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -69,10 +69,10 @@ var /*4*/r2 = m3d./*3*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("y;")
+    f.Insert("y;");
 
-    f.VerifyQuickInfoAt("4", "var r2: number", "")
+    f.VerifyQuickInfoAt("4", "var r2: number", "");
     }
 }

@@ -47,8 +47,8 @@ export {};
 """;
         using var f = FourslashTest.New(content, fileName: "tripleSlashReferenceResolutionMode", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/home/src/workspaces/project/index.ts")
+    f.GoToFile("/home/src/workspaces/project/index.ts");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
     }
 }

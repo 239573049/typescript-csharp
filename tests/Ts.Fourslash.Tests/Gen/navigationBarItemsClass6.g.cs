@@ -33,6 +33,6 @@ Z.foo = 42
 class Z { }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsClass6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -29,6 +29,6 @@ public class CodeFixCorrectReturnValue27Tests
 const a: ((() => number) | (() => undefined)) = () => { "" }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixCorrectReturnValue27", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

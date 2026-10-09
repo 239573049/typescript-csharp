@@ -35,6 +35,6 @@ obj.[|/*valueReference1*/name|];
 obj.[|/*valueReference2*/id|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionShorthandProperty01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "valueDefinition1", "valueDefinition2", "valueReference1", "valueReference2")
+    f.VerifyBaselineGoToDefinition(true, "valueDefinition1", "valueDefinition2", "valueReference1", "valueReference2");
     }
 }

@@ -30,6 +30,6 @@ public class DocumentHighlightDefaultInKeywordTests
 [|default|]
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightDefaultInKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

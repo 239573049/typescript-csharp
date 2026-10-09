@@ -72,6 +72,6 @@ export [|{
 ;
 """;
         using var f = FourslashTest.New(content, fileName: "outliningSpansForImportAndExportAttributes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

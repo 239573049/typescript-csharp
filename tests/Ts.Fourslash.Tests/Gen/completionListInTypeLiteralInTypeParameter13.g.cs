@@ -55,7 +55,7 @@ const Component = <T extends Foo>() => <></>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -73,6 +73,6 @@ const Component = <T extends Foo>() => <></>;
     ],
         },
         
-    })
+    });
     }
 }

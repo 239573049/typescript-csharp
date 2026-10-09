@@ -68,6 +68,6 @@ function anotherFunction(x: Foo & Bar) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceMethod_10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call0", "function_call1")
+    f.VerifyBaselineGoToImplementation("function_call0", "function_call1");
     }
 }

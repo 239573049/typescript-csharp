@@ -32,6 +32,6 @@ public class GetOccurrencesIsDefinitionOfInterfaceTests
 let i: /*3*/I = { p: 12 };
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfInterface", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

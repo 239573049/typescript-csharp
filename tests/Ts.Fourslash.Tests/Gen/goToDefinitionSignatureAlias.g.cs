@@ -61,8 +61,8 @@ declare const /*MyComponent3*/MyComponent3: ComponentClass2;
 new [|/*newMyComponent3*/MyComponent3|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSignatureAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineGoToDefinition(true, "useF", "useG", "useH", "useI", "useIFn", "useJ", "useM", "useMFn", "jsxMyComponent", "newMyComponent", "jsxMyComponent2", "newMyComponent2", "jsxMyComponent3", "newMyComponent3")
+    f.VerifyBaselineGoToDefinition(true, "useF", "useG", "useH", "useI", "useIFn", "useJ", "useM", "useMFn", "jsxMyComponent", "newMyComponent", "jsxMyComponent2", "newMyComponent2", "jsxMyComponent3", "newMyComponent3");
     }
 }

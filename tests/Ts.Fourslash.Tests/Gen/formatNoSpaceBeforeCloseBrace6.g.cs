@@ -30,11 +30,11 @@ new Foo(1, /* comment */
   );
 """;
         using var f = FourslashTest.New(content, fileName: "formatNoSpaceBeforeCloseBrace6", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     new Foo(1, /* comment */
     );
-    """)
+    """);
     }
 }

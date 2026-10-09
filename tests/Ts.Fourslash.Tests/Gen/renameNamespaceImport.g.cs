@@ -41,10 +41,10 @@ lib.someExportedVariable;
 """;
         using var f = FourslashTest.New(content, fileName: "renameNamespaceImport", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/home/src/workspaces/project/lib/index.ts")
+    f.GoToFile("/home/src/workspaces/project/lib/index.ts");
 
-    f.GoToFile("/home/src/workspaces/project/src/index.ts")
+    f.GoToFile("/home/src/workspaces/project/src/index.ts");
 
-    f.VerifyBaselineRename(null /*preferences*/, "i")
+    f.VerifyBaselineRename(null /*preferences*/, "i");
     }
 }

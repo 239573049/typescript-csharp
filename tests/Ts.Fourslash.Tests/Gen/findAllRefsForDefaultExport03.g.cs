@@ -41,6 +41,6 @@ var y = /*6*/f();
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8");
     }
 }

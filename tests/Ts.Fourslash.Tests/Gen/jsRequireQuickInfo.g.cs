@@ -33,6 +33,6 @@ const /**/x = require("./b");
 exports.x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "jsRequireQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "import x", "")
+    f.VerifyQuickInfoAt("", "import x", "");
     }
 }

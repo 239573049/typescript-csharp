@@ -82,6 +82,6 @@ var o10: I = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "renameContextuallyTypedProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "prop1")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "prop1");
     }
 }

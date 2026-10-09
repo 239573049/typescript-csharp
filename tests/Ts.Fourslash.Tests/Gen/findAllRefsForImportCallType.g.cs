@@ -36,6 +36,6 @@ declare const app: app
 app.hello();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForImportCallType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

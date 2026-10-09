@@ -34,6 +34,6 @@ var x: Foo;
 x./*3*/___bar;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsWithLeadingUnderscoreNames3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -35,8 +35,8 @@ export as namespace /*0*/myLib;
 /*1*/myLib.doThing();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForUMDModuleAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("0", "export namespace myLib", "")
+    f.VerifyQuickInfoAt("0", "export namespace myLib", "");
 
-    f.VerifyQuickInfoAt("1", "export namespace myLib", "")
+    f.VerifyQuickInfoAt("1", "export namespace myLib", "");
     }
 }

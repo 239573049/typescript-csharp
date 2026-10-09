@@ -51,7 +51,7 @@ unrelatedIdentifier;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -72,6 +72,6 @@ unrelatedIdentifier;
     ],
         },
         
-    })
+    });
     }
 }

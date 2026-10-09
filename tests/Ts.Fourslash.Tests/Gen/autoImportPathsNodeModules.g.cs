@@ -48,6 +48,6 @@ export class Dialog {}
 Dialog/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPathsNodeModules", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"WoltLabSuite/Core/Component/Dialog"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"WoltLabSuite/Core/Component/Dialog"}, null /*preferences*/);
     }
 }

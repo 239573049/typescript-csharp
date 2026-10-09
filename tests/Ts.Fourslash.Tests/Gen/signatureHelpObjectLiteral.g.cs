@@ -30,9 +30,9 @@ var objectLiteral = { n: 5, s: "", f: (a: number, b: string) => "" };
 objectLiteral.f(/*objectLiteral1*/4, /*objectLiteral2*/"");
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("objectLiteral1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" })
-    f.GoToMarker("objectLiteral2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterName = "b", ParameterSpan = "b: string" })
+    f.GoToMarker("objectLiteral1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" });
+    f.GoToMarker("objectLiteral2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterName = "b", ParameterSpan = "b: string" });
     }
 }

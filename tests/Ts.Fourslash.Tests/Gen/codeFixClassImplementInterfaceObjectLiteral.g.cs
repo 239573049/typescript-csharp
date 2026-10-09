@@ -50,6 +50,6 @@ class Person implements IPerson { }
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

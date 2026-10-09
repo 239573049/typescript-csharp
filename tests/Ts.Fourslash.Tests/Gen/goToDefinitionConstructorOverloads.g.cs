@@ -42,6 +42,6 @@ var extended1 = new [|/*extendedRef1*/Extended|]();
 var extended2 = new [|/*extendedRef2*/Extended|]("foo");
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionConstructorOverloads", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "constructorOverloadReference1", "constructorOverloadReference2", "constructorOverload1", "extendedRef1", "extendedRef2")
+    f.VerifyBaselineGoToDefinition(true, "constructorOverloadReference1", "constructorOverloadReference2", "constructorOverload1", "extendedRef1", "extendedRef2");
     }
 }

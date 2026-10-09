@@ -71,7 +71,7 @@ switch (x) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -92,7 +92,7 @@ switch (x) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -113,7 +113,7 @@ switch (x) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -131,6 +131,6 @@ switch (x) {
     ],
         },
         
-    })
+    });
     }
 }

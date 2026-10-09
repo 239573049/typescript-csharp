@@ -45,38 +45,38 @@ public class FormattingTypeInferTests
 
 """;
         using var f = FourslashTest.New(content, fileName: "formattingTypeInfer", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("L1")
+    f.GoToMarker("L1");
 
-    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : never;")
+    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : never;");
 
-    f.GoToMarker("L2")
+    f.GoToMarker("L2");
 
-    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : never;")
+    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : never;");
 
-    f.GoToMarker("L3")
+    f.GoToMarker("L3");
 
-    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : T;")
+    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : T;");
 
-    f.GoToMarker("L4")
+    f.GoToMarker("L4");
 
-    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : T;")
+    f.VerifyCurrentLineContent("type C<T> = T extends Array<infer U> ? U : T;");
 
-    f.GoToMarker("L5")
+    f.GoToMarker("L5");
 
-    f.VerifyCurrentLineContent("type Foo<T> = T extends { a: infer U, b: infer U } ? U : never;")
+    f.VerifyCurrentLineContent("type Foo<T> = T extends { a: infer U, b: infer U } ? U : never;");
 
-    f.GoToMarker("L6")
+    f.GoToMarker("L6");
 
-    f.VerifyCurrentLineContent("type Foo<T> = T extends { a: infer U, b: infer U } ? U : never;")
+    f.VerifyCurrentLineContent("type Foo<T> = T extends { a: infer U, b: infer U } ? U : never;");
 
-    f.GoToMarker("L7")
+    f.GoToMarker("L7");
 
-    f.VerifyCurrentLineContent("type Bar<T> = T extends { a: (x: infer U) => void, b: (x: infer U) => void } ? U : never;")
+    f.VerifyCurrentLineContent("type Bar<T> = T extends { a: (x: infer U) => void, b: (x: infer U) => void } ? U : never;");
 
-    f.GoToMarker("L8")
+    f.GoToMarker("L8");
 
-    f.VerifyCurrentLineContent("type Bar<T> = T extends { a: (x: infer U) => void, b: (x: infer U) => void } ? U : never;")
+    f.VerifyCurrentLineContent("type Bar<T> = T extends { a: (x: infer U) => void, b: (x: infer U) => void } ? U : never;");
     }
 }

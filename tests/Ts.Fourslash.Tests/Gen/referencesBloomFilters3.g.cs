@@ -32,6 +32,6 @@ enum Test { /*1*/"/*2*/42" = 1 };
 (Test[/*3*/42]);
 """;
         using var f = FourslashTest.New(content, fileName: "referencesBloomFilters3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

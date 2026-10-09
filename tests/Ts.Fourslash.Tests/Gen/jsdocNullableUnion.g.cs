@@ -57,7 +57,7 @@ function f(p1, p2, p3) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -74,7 +74,7 @@ function f(p1, p2, p3) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -91,6 +91,6 @@ function f(p1, p2, p3) {
     ],
         },
         
-    })
+    });
     }
 }

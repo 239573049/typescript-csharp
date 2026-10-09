@@ -29,6 +29,6 @@ public class SmartSelection_loneVariableDeclarationTests
 const /**/x = 3;
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_loneVariableDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

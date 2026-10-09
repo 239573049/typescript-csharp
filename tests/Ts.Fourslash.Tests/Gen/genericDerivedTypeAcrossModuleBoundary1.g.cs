@@ -40,8 +40,8 @@ var /*1*/n2 = new N.D2<number>();
 var /*2*/n3 = new N.D2();
 """;
         using var f = FourslashTest.New(content, fileName: "genericDerivedTypeAcrossModuleBoundary1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var n2: N.D2<number>", "")
+    f.VerifyQuickInfoAt("1", "var n2: N.D2<number>", "");
 
-    f.VerifyQuickInfoAt("2", "var n3: N.D2<unknown>", "")
+    f.VerifyQuickInfoAt("2", "var n3: N.D2<unknown>", "");
     }
 }

@@ -35,6 +35,6 @@ import /*2*/A = require("./a");
 /*3*/A;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsClassExpression0", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

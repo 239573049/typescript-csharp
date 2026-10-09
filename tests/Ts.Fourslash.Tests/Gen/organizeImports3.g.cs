@@ -44,7 +44,7 @@ console.log(Foo, Bar);
     console.log(Foo, Bar);
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

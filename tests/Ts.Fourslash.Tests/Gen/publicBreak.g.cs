@@ -30,8 +30,8 @@ public break;
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "publicBreak", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(" ")
+    f.Insert(" ");
     }
 }

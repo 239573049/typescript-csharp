@@ -38,7 +38,7 @@ autorun/**/
 import "./mobx.cjs";
 """;
         using var f = FourslashTest.New(content, fileName: "moduleNodeNextAutoImport2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -46,6 +46,6 @@ import "./mobx.cjs";
 
     autorun
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

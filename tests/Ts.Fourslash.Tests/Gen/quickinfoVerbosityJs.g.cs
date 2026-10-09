@@ -57,6 +57,6 @@ class SomeClass/*5*/ {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityJs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1}, ["3"] = new[]{0, 1}, ["4"] = new[]{0, 1}, ["5"] = new[]{0, 1, 2}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1}, ["3"] = new[]{0, 1}, ["4"] = new[]{0, 1}, ["5"] = new[]{0, 1, 2}});
     }
 }

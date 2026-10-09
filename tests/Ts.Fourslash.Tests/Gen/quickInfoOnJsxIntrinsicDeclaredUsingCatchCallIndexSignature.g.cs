@@ -34,6 +34,6 @@ declare namespace JSX {
 </**/div class="democlass" />;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnJsxIntrinsicDeclaredUsingCatchCallIndexSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

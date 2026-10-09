@@ -32,7 +32,7 @@ let foo /*1*/
 /*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionAfterNewline", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("1", null)
+    f.VerifyCompletions("1", null);
 
     f.VerifyCompletions(new[]{"2", "3", }, new CompletionsExpectedList
     {
@@ -53,6 +53,6 @@ let foo /*1*/
     ], false),
         },
         
-    })
+    });
     }
 }

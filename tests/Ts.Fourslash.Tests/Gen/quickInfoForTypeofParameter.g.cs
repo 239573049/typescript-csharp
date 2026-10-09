@@ -32,8 +32,8 @@ function foo() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForTypeofParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("ref1", "(local var) y1: string", "")
+    f.VerifyQuickInfoAt("ref1", "(local var) y1: string", "");
 
-    f.VerifyQuickInfoAt("ref2", "(local var) y1: string", "")
+    f.VerifyQuickInfoAt("ref2", "(local var) y1: string", "");
     }
 }

@@ -84,6 +84,6 @@ t/**/
     import { Test1, Test2 } from "./a";
     t
     """,
-    })
+    });
     }
 }

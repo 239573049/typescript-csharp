@@ -30,7 +30,7 @@ var f = <T>(a: T) => a;
 f(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "genericFunctionSignatureHelp2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: unknown): unknown" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: unknown): unknown" });
     }
 }

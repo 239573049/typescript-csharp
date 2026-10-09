@@ -59,6 +59,6 @@ namespace TypeModule3 {
     ],
         },
         
-    })
+    });
     }
 }

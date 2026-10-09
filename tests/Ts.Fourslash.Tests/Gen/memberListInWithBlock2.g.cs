@@ -35,6 +35,6 @@ with (x) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "memberListInWithBlock2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("1", null)
+    f.VerifyCompletions("1", null);
     }
 }

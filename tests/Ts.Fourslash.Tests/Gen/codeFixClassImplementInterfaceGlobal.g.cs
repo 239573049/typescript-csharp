@@ -45,7 +45,7 @@ export interface Service {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceGlobal", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/src/test.ts")
+    f.GoToFile("/src/test.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -57,6 +57,6 @@ export interface Service {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

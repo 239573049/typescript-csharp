@@ -62,6 +62,6 @@ export class Home extends Component[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getJSXOutliningSpans", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

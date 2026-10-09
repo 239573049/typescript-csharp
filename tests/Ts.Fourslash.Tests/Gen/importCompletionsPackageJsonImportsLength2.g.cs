@@ -58,7 +58,7 @@ import {} from "#a/b/c/something//*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -75,7 +75,7 @@ import {} from "#a/b/c/something//*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", }, new CompletionsExpectedList
     {
@@ -92,7 +92,7 @@ import {} from "#a/b/c/something//*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", }, new CompletionsExpectedList
     {
@@ -109,7 +109,7 @@ import {} from "#a/b/c/something//*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"5", }, new CompletionsExpectedList
     {
@@ -125,6 +125,6 @@ import {} from "#a/b/c/something//*5*/";
     ],
         },
         
-    })
+    });
     }
 }

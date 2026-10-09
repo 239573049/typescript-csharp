@@ -32,13 +32,13 @@ public class FormatSelectionWithTrivia2Tests
     
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionWithTrivia2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("begin", "end")
+    f.FormatSelection("begin", "end");
 
     f.VerifyCurrentFileContent("""
     ;
 
 
         
-    """)
+    """);
     }
 }

@@ -51,29 +51,9 @@ var p15: MyPoint = {
     ],
         },
         
-    })
+    });
 
-    f.Insert("x")
-
-    f.VerifyCompletions(null, new CompletionsExpectedList
-    {
-        IsIncomplete = false,
-        ItemDefaults = new CompletionsExpectedItemDefaults
-        {
-            CommitCharacters = DefaultCommitCharacters,
-            EditRange = Ignored,
-        },
-        Items = new CompletionsExpectedItems
-        {
-            Exact = [
-    "x1",
-    "y1",
-    ],
-        },
-        
-    })
-
-    f.Insert("1")
+    f.Insert("x");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -91,9 +71,29 @@ var p15: MyPoint = {
     ],
         },
         
-    })
+    });
 
-    f.Insert(": null,")
+    f.Insert("1");
+
+    f.VerifyCompletions(null, new CompletionsExpectedList
+    {
+        IsIncomplete = false,
+        ItemDefaults = new CompletionsExpectedItemDefaults
+        {
+            CommitCharacters = DefaultCommitCharacters,
+            EditRange = Ignored,
+        },
+        Items = new CompletionsExpectedItems
+        {
+            Exact = [
+    "x1",
+    "y1",
+    ],
+        },
+        
+    });
+
+    f.Insert(": null,");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -110,6 +110,6 @@ var p15: MyPoint = {
     ],
         },
         
-    })
+    });
     }
 }

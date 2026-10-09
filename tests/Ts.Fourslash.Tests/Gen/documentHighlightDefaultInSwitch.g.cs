@@ -35,6 +35,6 @@ const foo = 'foo';
 }
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightDefaultInSwitch", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[1], f.Ranges()[4])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[1], f.Ranges()[4]);
     }
 }

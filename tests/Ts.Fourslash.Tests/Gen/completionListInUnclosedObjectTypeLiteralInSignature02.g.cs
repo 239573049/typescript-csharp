@@ -55,6 +55,6 @@ declare function foo<TString, TNumber>(obj: I<TString, TNumber>): { str: TStr/*1
     ],
         },
         
-    })
+    });
     }
 }

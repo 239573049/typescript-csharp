@@ -32,8 +32,8 @@ Foo.prototype.bar = function() {}
 new [|Foo/*ref*/|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionVariableAssignment3", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("foo.ts")
+    f.GoToFile("foo.ts");
 
-    f.VerifyBaselineGoToDefinition(true, "ref")
+    f.VerifyBaselineGoToDefinition(true, "ref");
     }
 }

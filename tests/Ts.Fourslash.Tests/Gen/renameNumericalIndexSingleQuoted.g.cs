@@ -33,6 +33,6 @@ foo[[|0|]];
     f.VerifyBaselineRenameAtRangesWithText(new LsUtil.UserPreferences
     {
     QuotePreference = "single",
-    }, "0")
+    }, "0");
     }
 }

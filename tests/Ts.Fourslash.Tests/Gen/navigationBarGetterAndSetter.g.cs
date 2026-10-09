@@ -35,6 +35,6 @@ class X {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarGetterAndSetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

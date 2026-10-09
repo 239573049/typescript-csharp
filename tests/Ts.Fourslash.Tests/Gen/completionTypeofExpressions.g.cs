@@ -46,7 +46,7 @@ function test1(arg: typeof (x./*2*/)) {}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -63,6 +63,6 @@ function test1(arg: typeof (x./*2*/)) {}
     ],
         },
         
-    })
+    });
     }
 }

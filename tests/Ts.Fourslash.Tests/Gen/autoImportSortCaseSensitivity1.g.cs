@@ -47,23 +47,23 @@ import { E } from "./exports2";
 d/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportSortCaseSensitivity1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
     f.VerifyImportFixAtPosition([
     """
     import { a, A, B, C } from "./exports1";
     a
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
     f.VerifyImportFixAtPosition([
     """
     import { a, A, B, C } from "./exports1";
     a
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyImportFixAtPosition([
     """
@@ -71,7 +71,7 @@ d/*1*/
     import { d, E } from "./exports2";
     d
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
     f.VerifyImportFixAtPosition([
     """
@@ -79,6 +79,6 @@ d/*1*/
     import { E, d } from "./exports2";
     d
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

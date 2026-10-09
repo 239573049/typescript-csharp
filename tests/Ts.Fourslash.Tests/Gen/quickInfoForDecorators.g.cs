@@ -33,6 +33,6 @@ class C {
 var decorator = t=> t;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForDecorators", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var decorator: (t: any) => any", "decorator documentation")
+    f.VerifyQuickInfoAt("1", "var decorator: (t: any) => any", "decorator documentation");
     }
 }

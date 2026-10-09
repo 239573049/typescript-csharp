@@ -37,6 +37,6 @@ const x = name.toString();
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSFalse,
-    }, "")
+    }, "");
     }
 }

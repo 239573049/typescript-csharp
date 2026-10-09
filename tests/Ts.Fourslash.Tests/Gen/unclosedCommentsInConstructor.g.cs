@@ -31,6 +31,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unclosedCommentsInConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

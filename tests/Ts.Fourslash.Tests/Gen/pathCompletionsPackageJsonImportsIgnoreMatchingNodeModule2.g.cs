@@ -57,6 +57,6 @@ import {} from "#internal//*1*/";
     ],
         },
         
-    })
+    });
     }
 }

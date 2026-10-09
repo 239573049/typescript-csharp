@@ -30,11 +30,11 @@ public class FormatAfterMultilineCommentTests
 */"123123";
 """;
         using var f = FourslashTest.New(content, fileName: "formatAfterMultilineComment", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     /*foo
     */"123123";
-    """)
+    """);
     }
 }

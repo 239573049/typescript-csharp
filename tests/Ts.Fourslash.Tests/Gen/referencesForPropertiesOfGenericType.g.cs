@@ -37,6 +37,6 @@ var y: IFoo<number>;
 y./*3*/doSomething(12);
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForPropertiesOfGenericType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

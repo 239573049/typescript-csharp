@@ -37,6 +37,6 @@ let y = <element attr="123"/>
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "variable.declaration", Text = "x" },
             new SemanticToken { Type = "variable.declaration", Text = "y" },
-        })
+        });
     }
 }

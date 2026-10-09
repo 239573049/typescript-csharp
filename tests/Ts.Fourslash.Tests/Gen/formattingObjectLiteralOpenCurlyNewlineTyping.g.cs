@@ -31,20 +31,20 @@ var varName =/**/
 
 """;
         using var f = FourslashTest.New(content, fileName: "formattingObjectLiteralOpenCurlyNewlineTyping", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("\n{")
+    f.Insert("\n{");
 
     f.VerifyCurrentFileContent("""
 
     var varName =
         {
 
-    """)
+    """);
 
-    f.Insert("\na: 1")
+    f.Insert("\na: 1");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -52,11 +52,11 @@ var varName =/**/
     {
         a: 1
 
-    """)
+    """);
 
-    f.Insert("\n};")
+    f.Insert("\n};");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -65,6 +65,6 @@ var varName =/**/
         a: 1
     };
 
-    """)
+    """);
     }
 }

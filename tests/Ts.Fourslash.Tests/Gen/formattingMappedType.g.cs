@@ -31,14 +31,14 @@ public class FormattingMappedTypeTests
 };
 """;
         using var f = FourslashTest.New(content, fileName: "formattingMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("generic")
+    f.GoToMarker("generic");
 
-    f.VerifyCurrentLineContent("type t<T> = {")
+    f.VerifyCurrentLineContent("type t<T> = {");
 
-    f.GoToMarker("map")
+    f.GoToMarker("map");
 
-    f.VerifyCurrentLineContent("    [P in keyof T]: T[P]")
+    f.VerifyCurrentLineContent("    [P in keyof T]: T[P]");
     }
 }

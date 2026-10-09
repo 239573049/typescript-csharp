@@ -32,6 +32,6 @@ function Foo() {}
 class Foo {}
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsClass3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

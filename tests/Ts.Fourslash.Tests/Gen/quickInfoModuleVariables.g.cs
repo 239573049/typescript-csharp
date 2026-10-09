@@ -40,10 +40,10 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoModuleVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var M.x: number", "")
+    f.VerifyQuickInfoAt("1", "var M.x: number", "");
 
-    f.VerifyQuickInfoAt("2", "var M.x: number", "")
+    f.VerifyQuickInfoAt("2", "var M.x: number", "");
 
-    f.VerifyQuickInfoAt("3", "var x: number", "")
+    f.VerifyQuickInfoAt("3", "var x: number", "");
     }
 }

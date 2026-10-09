@@ -37,6 +37,6 @@ namespace B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoUnionOfNamespaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(method) f(): void", "")
+    f.VerifyQuickInfoAt("", "(method) f(): void", "");
     }
 }

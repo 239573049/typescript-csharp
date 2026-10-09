@@ -51,12 +51,12 @@ import { b } from "b";
 a(/*error*/b);
 """;
         using var f = FourslashTest.New(content, fileName: "duplicatePackageServices", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/src/a.ts")
+    f.GoToFile("/src/a.ts");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.VerifyBaselineFindAllReferences("useAX", "defAX", "useBX")
+    f.VerifyBaselineFindAllReferences("useAX", "defAX", "useBX");
 
-    f.VerifyBaselineGoToDefinition(true, "useAX", "useBX")
+    f.VerifyBaselineGoToDefinition(true, "useAX", "useBX");
     }
 }

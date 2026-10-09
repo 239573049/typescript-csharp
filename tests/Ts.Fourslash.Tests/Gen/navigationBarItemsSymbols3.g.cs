@@ -32,6 +32,6 @@ enum E {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsSymbols3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -35,6 +35,6 @@ export function doTheOtherThing(): void;
 [|myLib|].doThing();
 """;
         using var f = FourslashTest.New(content, fileName: "renameUMDModuleAlias1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "myLib")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "myLib");
     }
 }

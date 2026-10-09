@@ -45,6 +45,6 @@ function foo(a) {}
 foo(/**/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInferenceJsDocImportTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

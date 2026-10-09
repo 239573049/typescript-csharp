@@ -141,50 +141,50 @@ function /*l*/l(param1: string) { /*9*/param1 = "hello"; }
 function /*m*/m(param1: string) { /*10*/param1 = "hello"; }
 """;
         using var f = FourslashTest.New(content, fileName: "commentsLinePreservation", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("a", "var a: string", "This is firstLine\nThis is second Line\n\nThis is fourth Line")
+    f.VerifyQuickInfoAt("a", "var a: string", "This is firstLine\nThis is second Line\n\nThis is fourth Line");
 
-    f.VerifyQuickInfoAt("b", "var b: string", "This is firstLine\nThis is second Line\n\nThis is fourth Line")
+    f.VerifyQuickInfoAt("b", "var b: string", "This is firstLine\nThis is second Line\n\nThis is fourth Line");
 
-    f.VerifyQuickInfoAt("c", "var c: string", "This is firstLine\nThis is second Line\n\nThis is fourth Line")
+    f.VerifyQuickInfoAt("c", "var c: string", "This is firstLine\nThis is second Line\n\nThis is fourth Line");
 
-    f.VerifyQuickInfoAt("d", "function d(param: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("d", "function d(param: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("1", "(parameter) param: string", "")
+    f.VerifyQuickInfoAt("1", "(parameter) param: string", "");
 
-    f.VerifyQuickInfoAt("e", "function e(param: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("e", "function e(param: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("2", "(parameter) param: string", "")
+    f.VerifyQuickInfoAt("2", "(parameter) param: string", "");
 
-    f.VerifyQuickInfoAt("f", "function f(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("f", "function f(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("3", "(parameter) param1: string", "first line of param\n\nparam information third line")
+    f.VerifyQuickInfoAt("3", "(parameter) param1: string", "first line of param\n\nparam information third line");
 
-    f.VerifyQuickInfoAt("g", "function g(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("g", "function g(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("4", "(parameter) param1: string", " param information first line")
+    f.VerifyQuickInfoAt("4", "(parameter) param1: string", " param information first line");
 
-    f.VerifyQuickInfoAt("h", "function h(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("h", "function h(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("5", "(parameter) param1: string", " param information first line\n\n param information third line")
+    f.VerifyQuickInfoAt("5", "(parameter) param1: string", " param information first line\n\n param information third line");
 
-    f.VerifyQuickInfoAt("i", "function i(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("i", "function i(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("6", "(parameter) param1: string", " param information first line\n\n param information third line")
+    f.VerifyQuickInfoAt("6", "(parameter) param1: string", " param information first line\n\n param information third line");
 
-    f.VerifyQuickInfoAt("j", "function j(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("j", "function j(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("7", "(parameter) param1: string", " param information first line\n\n param information third line")
+    f.VerifyQuickInfoAt("7", "(parameter) param1: string", " param information first line\n\n param information third line");
 
-    f.VerifyQuickInfoAt("k", "function k(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("k", "function k(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("8", "(parameter) param1: string", "hello")
+    f.VerifyQuickInfoAt("8", "(parameter) param1: string", "hello");
 
-    f.VerifyQuickInfoAt("l", "function l(param1: string): void", "This is firstLine\nThis is second Line")
+    f.VerifyQuickInfoAt("l", "function l(param1: string): void", "This is firstLine\nThis is second Line");
 
-    f.VerifyQuickInfoAt("9", "(parameter) param1: string", "first Line text\nblank line that shouldnt be shown when starting this \nsecond time information about the param again")
+    f.VerifyQuickInfoAt("9", "(parameter) param1: string", "first Line text\nblank line that shouldnt be shown when starting this \nsecond time information about the param again");
 
-    f.VerifyQuickInfoAt("m", "function m(param1: string): void", "This is firstLine\nThis is second Line\n[1]: third * line")
+    f.VerifyQuickInfoAt("m", "function m(param1: string): void", "This is firstLine\nThis is second Line\n[1]: third * line");
 
-    f.VerifyQuickInfoAt("10", "(parameter) param1: string", "first Line text\nsecond line text")
+    f.VerifyQuickInfoAt("10", "(parameter) param1: string", "first Line text\nsecond line text");
     }
 }

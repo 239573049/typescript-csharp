@@ -32,6 +32,6 @@ type /*2*/t1 = /*3*/c;
 var /*4*/cInstance: /*5*/t1 = new /*6*/c();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

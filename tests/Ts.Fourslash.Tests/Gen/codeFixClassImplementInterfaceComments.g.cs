@@ -71,6 +71,6 @@ class C implements N.I {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

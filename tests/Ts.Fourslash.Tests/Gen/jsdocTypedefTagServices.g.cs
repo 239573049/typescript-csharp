@@ -39,14 +39,14 @@ public class JsdocTypedefTagServicesTests
 const product = null;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagServices", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("use", "type Product = {\n    title: string;\n}", "Doc comment")
+    f.VerifyQuickInfoAt("use", "type Product = {\n    title: string;\n}", "Doc comment");
 
-    f.VerifyBaselineFindAllReferences("use", "def")
+    f.VerifyBaselineFindAllReferences("use", "def");
 
-    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]])
+    f.VerifyBaselineRename(null /*preferences*/, [.. f.Ranges()[1..]]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()[1..]])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()[1..]]);
 
-    f.VerifyBaselineGoToDefinition(true, "use")
+    f.VerifyBaselineGoToDefinition(true, "use");
     }
 }

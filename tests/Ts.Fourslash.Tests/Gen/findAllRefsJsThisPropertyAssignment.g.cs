@@ -52,6 +52,6 @@ infer({
 });
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsThisPropertyAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

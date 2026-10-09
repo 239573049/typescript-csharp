@@ -55,7 +55,7 @@ const foo: x/*1*/;
 const bar: y;
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportTypeImport5", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
     f.VerifyImportFixAtPosition([
     """
@@ -71,7 +71,7 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -87,7 +87,7 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -103,7 +103,7 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -119,7 +119,7 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -135,7 +135,7 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -151,25 +151,9 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    })
+    });
 
-    f.GoToMarker("1")
-
-    f.VerifyImportFixAtPosition([
-    """
-    import { A, B, type x, type X, type Y, type Z } from "./exports1";
-    const foo: x;
-    const bar: y;
-    """,
-    """
-    import { A, B, type X, type y, type Y, type Z } from "./exports1";
-    const foo: x;
-    const bar: y;
-    """,
-    ], new LsUtil.UserPreferences
-    {
-    OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    f.GoToMarker("1");
 
     f.VerifyImportFixAtPosition([
     """
@@ -185,6 +169,22 @@ const bar: y;
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
+
+    f.VerifyImportFixAtPosition([
+    """
+    import { A, B, type x, type X, type Y, type Z } from "./exports1";
+    const foo: x;
+    const bar: y;
+    """,
+    """
+    import { A, B, type X, type y, type Y, type Z } from "./exports1";
+    const foo: x;
+    const bar: y;
+    """,
+    ], new LsUtil.UserPreferences
+    {
+    OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
+    });
     }
 }

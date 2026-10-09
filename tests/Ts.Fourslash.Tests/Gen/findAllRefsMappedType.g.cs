@@ -34,6 +34,6 @@ declare const u: U;
 u./*3*/a;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

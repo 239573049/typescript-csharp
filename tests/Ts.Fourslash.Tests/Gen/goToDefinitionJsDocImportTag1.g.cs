@@ -36,6 +36,6 @@ public class GoToDefinitionJsDocImportTag1Tests
  */
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsDocImportTag1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

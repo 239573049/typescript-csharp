@@ -61,6 +61,6 @@ switch (undefined)[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "outliningSpansSwitchCases", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

@@ -47,6 +47,6 @@ var c2: /*6*/testClass.Bar;
 new /*11*/testClass();
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForMergedDeclarations4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
     }
 }

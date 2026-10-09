@@ -44,7 +44,7 @@ type Z = B | A;
 type Y = F;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_all_promoteType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -54,9 +54,9 @@ type Y = F;
     type Z = B | A;
     new F;
     """,
-    })
+    });
 
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -66,6 +66,6 @@ type Y = F;
     type Z = B | A;
     type Y = F;
     """,
-    })
+    });
     }
 }

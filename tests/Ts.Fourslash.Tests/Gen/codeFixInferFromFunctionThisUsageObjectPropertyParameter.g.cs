@@ -44,6 +44,6 @@ function returnThisMember([| |]suffix: string) {
  container.returnThisMember("");
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromFunctionThisUsageObjectPropertyParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("this: Container, ", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("this: Container, ", false, 0, 0);
     }
 }

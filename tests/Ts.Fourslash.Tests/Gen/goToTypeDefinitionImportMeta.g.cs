@@ -36,6 +36,6 @@ interface /*definition*/ImportMeta {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinitionImportMeta", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

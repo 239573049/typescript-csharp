@@ -41,10 +41,10 @@ p2.then(function (x/*3*/x) {
 } );
 """;
         using var f = FourslashTest.New(content, fileName: "promiseTyping1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var p2: IPromise<string>", "")
+    f.VerifyQuickInfoAt("1", "var p2: IPromise<string>", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("2", "(parameter) xx: string", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("3", "(parameter) xx: string", "");
     }
 }

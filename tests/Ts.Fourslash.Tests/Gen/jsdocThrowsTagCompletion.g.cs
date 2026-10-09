@@ -46,6 +46,6 @@ function fn() {}
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

@@ -53,23 +53,23 @@ type Bar = Foo & any;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateInterfacesEnumsAndTypeAliases", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyJSDocCompletion("interfaceFoo", 3, "/** */", null)
+    f.VerifyJSDocCompletion("interfaceFoo", 3, "/** */", null);
 
-    f.VerifyJSDocCompletion("propertybar", 3, "/** */", null)
+    f.VerifyJSDocCompletion("propertybar", 3, "/** */", null);
 
     f.VerifyJSDocCompletion("methodbaz", 11, """
     /**
          * 
          * @param message
          */
-    """, null)
+    """, null);
 
-    f.VerifyJSDocCompletion("methodUnit", 3, "/** */", null)
+    f.VerifyJSDocCompletion("methodUnit", 3, "/** */", null);
 
-    f.VerifyJSDocCompletion("enumStatus", 3, "/** */", null)
+    f.VerifyJSDocCompletion("enumStatus", 3, "/** */", null);
 
-    f.VerifyJSDocCompletion("memberOpen", 3, "/** */", null)
+    f.VerifyJSDocCompletion("memberOpen", 3, "/** */", null);
 
-    f.VerifyJSDocCompletion("memberClosed", 3, "/** */", null)
+    f.VerifyJSDocCompletion("memberClosed", 3, "/** */", null);
     }
 }

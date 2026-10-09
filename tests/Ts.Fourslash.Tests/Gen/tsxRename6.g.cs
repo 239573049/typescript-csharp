@@ -48,6 +48,6 @@ let opt3 = [|<[|{| "contextRangeIndex": 8 |}Opt|] wrong />|];
 let opt4 = [|<[|{| "contextRangeIndex": 10 |}Opt|] propx={100} propString="hi" />|];
 """;
         using var f = FourslashTest.New(content, fileName: "tsxRename6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Opt")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Opt");
     }
 }

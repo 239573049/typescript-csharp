@@ -33,12 +33,12 @@ public class EditJsdocTypeTests
 const x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "editJsdocType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("", "")
+    f.VerifyQuickInfoIs("", "");
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.VerifyQuickInfoIs("", "")
+    f.VerifyQuickInfoIs("", "");
     }
 }

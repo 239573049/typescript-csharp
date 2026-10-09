@@ -32,7 +32,7 @@ type List4<T> = /*2*/T[];
 type List3<T1> = /*3*/;
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInTypeParameterOfTypeAlias1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"0", "1", }, null)
+    f.VerifyCompletions(new[]{"0", "1", }, null);
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -49,7 +49,7 @@ type List3<T1> = /*3*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ type List3<T1> = /*3*/;
     ],
         },
         
-    })
+    });
     }
 }

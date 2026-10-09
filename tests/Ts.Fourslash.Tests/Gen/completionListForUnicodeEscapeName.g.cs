@@ -47,7 +47,7 @@ class \u0041 { /*2*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -65,7 +65,7 @@ class \u0041 { /*2*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -84,6 +84,6 @@ class \u0041 { /*2*/ }
     ],
         },
         
-    })
+    });
     }
 }

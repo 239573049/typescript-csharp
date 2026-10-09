@@ -32,6 +32,6 @@ function g(templateStrings, x, y, z) { return ""; }
 /*1*/f/*2*/ /*3*/` qwerty ${ 123 } asdf ${   41234   }  zxcvb ${ g `    ` }     `/*4*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpTaggedTemplatesNegatives1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers([.. f.MarkerNames()])
+    f.VerifyNoSignatureHelpForMarkers([.. f.MarkerNames()]);
     }
 }

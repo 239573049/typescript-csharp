@@ -55,8 +55,8 @@ var k: FinalType;
 k.test.test_inner/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "reverseMappedTypeQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "type FinalType = {\n    test: {\n        test_inner: string;\n    };\n}", "")
+    f.VerifyQuickInfoAt("1", "type FinalType = {\n    test: {\n        test_inner: string;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("2", "(property) test_inner: string", "")
+    f.VerifyQuickInfoAt("2", "(property) test_inner: string", "");
     }
 }

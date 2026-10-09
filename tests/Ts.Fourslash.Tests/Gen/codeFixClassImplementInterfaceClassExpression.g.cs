@@ -40,6 +40,6 @@ new class implements I {};
     };
     """,
         Index = 0,
-    })
+    });
     }
 }

@@ -36,6 +36,6 @@ function blah2() { container["42"] };
 container = { "42" : 18 };
 """;
         using var f = FourslashTest.New(content, fileName: "referencesBloomFilters2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

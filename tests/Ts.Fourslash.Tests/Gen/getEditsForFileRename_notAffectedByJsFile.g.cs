@@ -37,6 +37,6 @@ import { x } from "./a";
     f.VerifyWillRenameFilesEdits("/a.ts", "/a2.ts", new Dictionary<string, string>
     {
     ["/b.ts"] = "import { x } from \"./a2\";",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

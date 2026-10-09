@@ -77,6 +77,6 @@ export interface LargeInterface/*2*/ {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityToplevelTruncation1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{1}, ["2"] = new[]{1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{1}, ["2"] = new[]{1}});
     }
 }

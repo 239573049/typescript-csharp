@@ -30,6 +30,6 @@ class clsOverload { constructor(); constructor(test: string); constructor(test?:
 var x = new clsOverload/*beforeOpenParen*/()/*afterCloseParen*/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpNegativeTests2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("beforeOpenParen", "afterCloseParen")
+    f.VerifyNoSignatureHelpForMarkers("beforeOpenParen", "afterCloseParen");
     }
 }

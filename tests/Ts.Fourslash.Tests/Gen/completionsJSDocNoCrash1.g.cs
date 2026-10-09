@@ -62,6 +62,6 @@ var ngShowDirective = ['$animate', function($animate) {}];
     ],
         },
         
-    })
+    });
     }
 }

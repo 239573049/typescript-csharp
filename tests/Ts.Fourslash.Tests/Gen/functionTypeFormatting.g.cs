@@ -29,10 +29,10 @@ public class FunctionTypeFormattingTests
 var x: () =>           string/**/
 """;
         using var f = FourslashTest.New(content, fileName: "functionTypeFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("var x: () => string;")
+    f.VerifyCurrentLineContent("var x: () => string;");
     }
 }

@@ -56,7 +56,7 @@ var y = function () {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -78,6 +78,6 @@ var y = function () {
     ],
         },
         
-    })
+    });
     }
 }

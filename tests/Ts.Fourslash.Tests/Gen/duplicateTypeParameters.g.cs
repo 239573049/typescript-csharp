@@ -29,8 +29,8 @@ public class DuplicateTypeParametersTests
 class A<B, /**/B>  { }
 """;
         using var f = FourslashTest.New(content, fileName: "duplicateTypeParameters", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

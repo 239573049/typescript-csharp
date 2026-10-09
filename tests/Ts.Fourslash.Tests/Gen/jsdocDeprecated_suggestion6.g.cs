@@ -39,7 +39,7 @@ const deprecatedFunction = (options: [|Options|]) => { options }
 [|deprecatedFunction|]({});
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion6", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("a.tsx")
+    f.GoToFile("a.tsx");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -70,6 +70,6 @@ const deprecatedFunction = (options: [|Options|]) => { options }
     Range = f.Ranges()[3].LSRange,
     Tags = [LsProto.DiagnosticTag.Deprecated],
     },
-    ])
+    ]);
     }
 }

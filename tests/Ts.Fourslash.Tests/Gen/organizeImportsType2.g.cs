@@ -45,8 +45,8 @@ export { A, type B, C };
 
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -60,8 +60,8 @@ export { A, type B, C };
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -75,8 +75,8 @@ export { A, type B, C };
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -90,7 +90,7 @@ export { A, type B, C };
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    },
-        )
+    }
+        );
     }
 }

@@ -30,6 +30,6 @@ let x: any;
 [x, y] = [0, 1];
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingConstToArrayDestructuring3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

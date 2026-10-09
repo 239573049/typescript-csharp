@@ -73,7 +73,7 @@ function g(this: Restricted) {this./*4*/}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "4", }, new CompletionsExpectedList
     {
@@ -94,8 +94,8 @@ function g(this: Restricted) {this./*4*/}
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("3", null)
+    f.VerifyCompletions("3", null);
     }
 }

@@ -141,358 +141,358 @@ public class FormattingFatArrowFunctionsTests
  /*88*/)      ;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingFatArrowFunctions", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("() => 1;")
+    f.VerifyCurrentLineContent("() => 1;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("(arg) => 2;")
+    f.VerifyCurrentLineContent("(arg) => 2;");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("arg => 2;")
+    f.VerifyCurrentLineContent("arg => 2;");
 
-    f.GoToMarker("3a")
+    f.GoToMarker("3a");
 
-    f.VerifyCurrentLineContent("arg => 2;")
+    f.VerifyCurrentLineContent("arg => 2;");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("(arg = 1) => 3;")
+    f.VerifyCurrentLineContent("(arg = 1) => 3;");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("(arg?) => 4;")
+    f.VerifyCurrentLineContent("(arg?) => 4;");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("(arg: number) => 5;")
+    f.VerifyCurrentLineContent("(arg: number) => 5;");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("(arg: number = 0) => 6;")
+    f.VerifyCurrentLineContent("(arg: number = 0) => 6;");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("(arg?: number) => 7;")
+    f.VerifyCurrentLineContent("(arg?: number) => 7;");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("(...arg: number[]) => 8;")
+    f.VerifyCurrentLineContent("(...arg: number[]) => 8;");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("(arg1, arg2) => 12;")
+    f.VerifyCurrentLineContent("(arg1, arg2) => 12;");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("(arg1 = 1, arg2 = 3) => 13;")
+    f.VerifyCurrentLineContent("(arg1 = 1, arg2 = 3) => 13;");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("(arg1?, arg2?) => 14;")
+    f.VerifyCurrentLineContent("(arg1?, arg2?) => 14;");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("(arg1: number, arg2: number) => 15;")
+    f.VerifyCurrentLineContent("(arg1: number, arg2: number) => 15;");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("(arg1: number = 0, arg2: number = 1) => 16;")
+    f.VerifyCurrentLineContent("(arg1: number = 0, arg2: number = 1) => 16;");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("(arg1?: number, arg2?: number) => 17;")
+    f.VerifyCurrentLineContent("(arg1?: number, arg2?: number) => 17;");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("(arg1, ...arg2: number[]) => 18;")
+    f.VerifyCurrentLineContent("(arg1, ...arg2: number[]) => 18;");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("(arg1, arg2?: number) => 19;")
+    f.VerifyCurrentLineContent("(arg1, arg2?: number) => 19;");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("(() => 21);")
+    f.VerifyCurrentLineContent("(() => 21);");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("((arg) => 22);")
+    f.VerifyCurrentLineContent("((arg) => 22);");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("((arg = 1) => 23);")
+    f.VerifyCurrentLineContent("((arg = 1) => 23);");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("((arg?) => 24);")
+    f.VerifyCurrentLineContent("((arg?) => 24);");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("((arg: number) => 25);")
+    f.VerifyCurrentLineContent("((arg: number) => 25);");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("((arg: number = 0) => 26);")
+    f.VerifyCurrentLineContent("((arg: number = 0) => 26);");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("((arg?: number) => 27);")
+    f.VerifyCurrentLineContent("((arg?: number) => 27);");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("((...arg: number[]) => 28);")
+    f.VerifyCurrentLineContent("((...arg: number[]) => 28);");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("(((((arg) => { return 32; }))));")
+    f.VerifyCurrentLineContent("(((((arg) => { return 32; }))));");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("false ? () => 41 : null;")
+    f.VerifyCurrentLineContent("false ? () => 41 : null;");
 
-    f.GoToMarker("28")
+    f.GoToMarker("28");
 
-    f.VerifyCurrentLineContent("false ? (arg) => 42 : null;")
+    f.VerifyCurrentLineContent("false ? (arg) => 42 : null;");
 
-    f.GoToMarker("29")
+    f.GoToMarker("29");
 
-    f.VerifyCurrentLineContent("false ? (arg = 1) => 43 : null;")
+    f.VerifyCurrentLineContent("false ? (arg = 1) => 43 : null;");
 
-    f.GoToMarker("30")
+    f.GoToMarker("30");
 
-    f.VerifyCurrentLineContent("false ? (arg?) => 44 : null;")
+    f.VerifyCurrentLineContent("false ? (arg?) => 44 : null;");
 
-    f.GoToMarker("31")
+    f.GoToMarker("31");
 
-    f.VerifyCurrentLineContent("false ? (arg: number) => 45 : null;")
+    f.VerifyCurrentLineContent("false ? (arg: number) => 45 : null;");
 
-    f.GoToMarker("32")
+    f.GoToMarker("32");
 
-    f.VerifyCurrentLineContent("false ? (arg?: number) => 46 : null;")
+    f.VerifyCurrentLineContent("false ? (arg?: number) => 46 : null;");
 
-    f.GoToMarker("33")
+    f.GoToMarker("33");
 
-    f.VerifyCurrentLineContent("false ? (arg?: number = 0) => 47 : null;")
+    f.VerifyCurrentLineContent("false ? (arg?: number = 0) => 47 : null;");
 
-    f.GoToMarker("34")
+    f.GoToMarker("34");
 
-    f.VerifyCurrentLineContent("false ? (...arg: number[]) => 48 : null;")
+    f.VerifyCurrentLineContent("false ? (...arg: number[]) => 48 : null;");
 
-    f.GoToMarker("35")
+    f.GoToMarker("35");
 
-    f.VerifyCurrentLineContent("false ? (() => 51) : null;")
+    f.VerifyCurrentLineContent("false ? (() => 51) : null;");
 
-    f.GoToMarker("36")
+    f.GoToMarker("36");
 
-    f.VerifyCurrentLineContent("false ? ((arg) => 52) : null;")
+    f.VerifyCurrentLineContent("false ? ((arg) => 52) : null;");
 
-    f.GoToMarker("37")
+    f.GoToMarker("37");
 
-    f.VerifyCurrentLineContent("false ? ((arg = 1) => 53) : null;")
+    f.VerifyCurrentLineContent("false ? ((arg = 1) => 53) : null;");
 
-    f.GoToMarker("38")
+    f.GoToMarker("38");
 
-    f.VerifyCurrentLineContent("false ? ((arg?) => 54) : null;")
+    f.VerifyCurrentLineContent("false ? ((arg?) => 54) : null;");
 
-    f.GoToMarker("39")
+    f.GoToMarker("39");
 
-    f.VerifyCurrentLineContent("false ? ((arg: number) => 55) : null;")
+    f.VerifyCurrentLineContent("false ? ((arg: number) => 55) : null;");
 
-    f.GoToMarker("40")
+    f.GoToMarker("40");
 
-    f.VerifyCurrentLineContent("false ? ((arg?: number) => 56) : null;")
+    f.VerifyCurrentLineContent("false ? ((arg?: number) => 56) : null;");
 
-    f.GoToMarker("41")
+    f.GoToMarker("41");
 
-    f.VerifyCurrentLineContent("false ? ((arg?: number = 0) => 57) : null;")
+    f.VerifyCurrentLineContent("false ? ((arg?: number = 0) => 57) : null;");
 
-    f.GoToMarker("42")
+    f.GoToMarker("42");
 
-    f.VerifyCurrentLineContent("false ? ((...arg: number[]) => 58) : null;")
+    f.VerifyCurrentLineContent("false ? ((...arg: number[]) => 58) : null;");
 
-    f.GoToMarker("43")
+    f.GoToMarker("43");
 
-    f.VerifyCurrentLineContent("false ? null : () => 61;")
+    f.VerifyCurrentLineContent("false ? null : () => 61;");
 
-    f.GoToMarker("44")
+    f.GoToMarker("44");
 
-    f.VerifyCurrentLineContent("false ? null : (arg) => 62;")
+    f.VerifyCurrentLineContent("false ? null : (arg) => 62;");
 
-    f.GoToMarker("45")
+    f.GoToMarker("45");
 
-    f.VerifyCurrentLineContent("false ? null : (arg = 1) => 63;")
+    f.VerifyCurrentLineContent("false ? null : (arg = 1) => 63;");
 
-    f.GoToMarker("46")
+    f.GoToMarker("46");
 
-    f.VerifyCurrentLineContent("false ? null : (arg?) => 64;")
+    f.VerifyCurrentLineContent("false ? null : (arg?) => 64;");
 
-    f.GoToMarker("47")
+    f.GoToMarker("47");
 
-    f.VerifyCurrentLineContent("false ? null : (arg: number) => 65;")
+    f.VerifyCurrentLineContent("false ? null : (arg: number) => 65;");
 
-    f.GoToMarker("48")
+    f.GoToMarker("48");
 
-    f.VerifyCurrentLineContent("false ? null : (arg?: number) => 66;")
+    f.VerifyCurrentLineContent("false ? null : (arg?: number) => 66;");
 
-    f.GoToMarker("49")
+    f.GoToMarker("49");
 
-    f.VerifyCurrentLineContent("false ? null : (arg?: number = 0) => 67;")
+    f.VerifyCurrentLineContent("false ? null : (arg?: number = 0) => 67;");
 
-    f.GoToMarker("50")
+    f.GoToMarker("50");
 
-    f.VerifyCurrentLineContent("false ? null : (...arg: number[]) => 68;")
+    f.VerifyCurrentLineContent("false ? null : (...arg: number[]) => 68;");
 
-    f.GoToMarker("51")
+    f.GoToMarker("51");
 
-    f.VerifyCurrentLineContent("((a?) => { return a; }) ? (b?) => { return b; } : (c?) => { return c; };")
+    f.VerifyCurrentLineContent("((a?) => { return a; }) ? (b?) => { return b; } : (c?) => { return c; };");
 
-    f.GoToMarker("52")
+    f.GoToMarker("52");
 
-    f.VerifyCurrentLineContent("((a?) => { return a; }) ? (b) => (c) => 81 : (c) => (d) => 82;")
+    f.VerifyCurrentLineContent("((a?) => { return a; }) ? (b) => (c) => 81 : (c) => (d) => 82;");
 
-    f.GoToMarker("53")
+    f.GoToMarker("53");
 
-    f.VerifyCurrentLineContent("((arg) => 90) instanceof Function;")
+    f.VerifyCurrentLineContent("((arg) => 90) instanceof Function;");
 
-    f.GoToMarker("54")
+    f.GoToMarker("54");
 
-    f.VerifyCurrentLineContent("((arg = 1) => 91) instanceof Function;")
+    f.VerifyCurrentLineContent("((arg = 1) => 91) instanceof Function;");
 
-    f.GoToMarker("55")
+    f.GoToMarker("55");
 
-    f.VerifyCurrentLineContent("((arg?) => 92) instanceof Function;")
+    f.VerifyCurrentLineContent("((arg?) => 92) instanceof Function;");
 
-    f.GoToMarker("56")
+    f.GoToMarker("56");
 
-    f.VerifyCurrentLineContent("((arg: number) => 93) instanceof Function;")
+    f.VerifyCurrentLineContent("((arg: number) => 93) instanceof Function;");
 
-    f.GoToMarker("57")
+    f.GoToMarker("57");
 
-    f.VerifyCurrentLineContent("((arg: number = 1) => 94) instanceof Function;")
+    f.VerifyCurrentLineContent("((arg: number = 1) => 94) instanceof Function;");
 
-    f.GoToMarker("58")
+    f.GoToMarker("58");
 
-    f.VerifyCurrentLineContent("((arg?: number) => 95) instanceof Function;")
+    f.VerifyCurrentLineContent("((arg?: number) => 95) instanceof Function;");
 
-    f.GoToMarker("59")
+    f.GoToMarker("59");
 
-    f.VerifyCurrentLineContent("((...arg: number[]) => 96) instanceof Function;")
+    f.VerifyCurrentLineContent("((...arg: number[]) => 96) instanceof Function;");
 
-    f.GoToMarker("60")
+    f.GoToMarker("60");
 
-    f.VerifyCurrentLineContent("'' + ((arg) => 100);")
+    f.VerifyCurrentLineContent("'' + ((arg) => 100);");
 
-    f.GoToMarker("61")
+    f.GoToMarker("61");
 
-    f.VerifyCurrentLineContent("((arg) => 0) + '' + ((arg) => 101);")
+    f.VerifyCurrentLineContent("((arg) => 0) + '' + ((arg) => 101);");
 
-    f.GoToMarker("62")
+    f.GoToMarker("62");
 
-    f.VerifyCurrentLineContent("((arg = 1) => 0) + '' + ((arg = 2) => 102);")
+    f.VerifyCurrentLineContent("((arg = 1) => 0) + '' + ((arg = 2) => 102);");
 
-    f.GoToMarker("63")
+    f.GoToMarker("63");
 
-    f.VerifyCurrentLineContent("((arg?) => 0) + '' + ((arg?) => 103);")
+    f.VerifyCurrentLineContent("((arg?) => 0) + '' + ((arg?) => 103);");
 
-    f.GoToMarker("64")
+    f.GoToMarker("64");
 
-    f.VerifyCurrentLineContent("((arg: number) => 0) + '' + ((arg: number) => 104);")
+    f.VerifyCurrentLineContent("((arg: number) => 0) + '' + ((arg: number) => 104);");
 
-    f.GoToMarker("65")
+    f.GoToMarker("65");
 
-    f.VerifyCurrentLineContent("((arg: number = 1) => 0) + '' + ((arg: number = 2) => 105);")
+    f.VerifyCurrentLineContent("((arg: number = 1) => 0) + '' + ((arg: number = 2) => 105);");
 
-    f.GoToMarker("66")
+    f.GoToMarker("66");
 
-    f.VerifyCurrentLineContent("((arg?: number) => 0) + '' + ((arg?: number) => 106);")
+    f.VerifyCurrentLineContent("((arg?: number) => 0) + '' + ((arg?: number) => 106);");
 
-    f.GoToMarker("67")
+    f.GoToMarker("67");
 
-    f.VerifyCurrentLineContent("((...arg: number[]) => 0) + '' + ((...arg: number[]) => 107);")
+    f.VerifyCurrentLineContent("((...arg: number[]) => 0) + '' + ((...arg: number[]) => 107);");
 
-    f.GoToMarker("68")
+    f.GoToMarker("68");
 
-    f.VerifyCurrentLineContent("((arg1, arg2?) => 0) + '' + ((arg1, arg2?) => 108);")
+    f.VerifyCurrentLineContent("((arg1, arg2?) => 0) + '' + ((arg1, arg2?) => 108);");
 
-    f.GoToMarker("69")
+    f.GoToMarker("69");
 
-    f.VerifyCurrentLineContent("((arg1, ...arg2: number[]) => 0) + '' + ((arg1, ...arg2: number[]) => 108);")
+    f.VerifyCurrentLineContent("((arg1, ...arg2: number[]) => 0) + '' + ((arg1, ...arg2: number[]) => 108);");
 
-    f.GoToMarker("70")
+    f.GoToMarker("70");
 
-    f.VerifyCurrentLineContent("function foo(...arg: any[]) { }")
+    f.VerifyCurrentLineContent("function foo(...arg: any[]) { }");
 
-    f.GoToMarker("71")
+    f.GoToMarker("71");
 
-    f.VerifyCurrentLineContent("foo(")
+    f.VerifyCurrentLineContent("foo(");
 
-    f.GoToMarker("72")
+    f.GoToMarker("72");
 
-    f.VerifyCurrentLineContent("    (a) => 110,")
+    f.VerifyCurrentLineContent("    (a) => 110,");
 
-    f.GoToMarker("73")
+    f.GoToMarker("73");
 
-    f.VerifyCurrentLineContent("    ((a) => 111),")
+    f.VerifyCurrentLineContent("    ((a) => 111),");
 
-    f.GoToMarker("74")
+    f.GoToMarker("74");
 
-    f.VerifyCurrentLineContent("    (a) => {")
+    f.VerifyCurrentLineContent("    (a) => {");
 
-    f.GoToMarker("75")
+    f.GoToMarker("75");
 
-    f.VerifyCurrentLineContent("        return 112;")
+    f.VerifyCurrentLineContent("        return 112;");
 
-    f.GoToMarker("76")
+    f.GoToMarker("76");
 
-    f.VerifyCurrentLineContent("    },")
+    f.VerifyCurrentLineContent("    },");
 
-    f.GoToMarker("77")
+    f.GoToMarker("77");
 
-    f.VerifyCurrentLineContent("    (a?) => 113,")
+    f.VerifyCurrentLineContent("    (a?) => 113,");
 
-    f.GoToMarker("78")
+    f.GoToMarker("78");
 
-    f.VerifyCurrentLineContent("    (a, b?) => 114,")
+    f.VerifyCurrentLineContent("    (a, b?) => 114,");
 
-    f.GoToMarker("79")
+    f.GoToMarker("79");
 
-    f.VerifyCurrentLineContent("    (a: number) => 115,")
+    f.VerifyCurrentLineContent("    (a: number) => 115,");
 
-    f.GoToMarker("80")
+    f.GoToMarker("80");
 
-    f.VerifyCurrentLineContent("    (a: number = 0) => 116,")
+    f.VerifyCurrentLineContent("    (a: number = 0) => 116,");
 
-    f.GoToMarker("81")
+    f.GoToMarker("81");
 
-    f.VerifyCurrentLineContent("    (a = 0) => 117,")
+    f.VerifyCurrentLineContent("    (a = 0) => 117,");
 
-    f.GoToMarker("82")
+    f.GoToMarker("82");
 
-    f.VerifyCurrentLineContent("    (a: number = 0) => 118,")
+    f.VerifyCurrentLineContent("    (a: number = 0) => 118,");
 
-    f.GoToMarker("83")
+    f.GoToMarker("83");
 
-    f.VerifyCurrentLineContent("    (a?, b?: number) => 118,")
+    f.VerifyCurrentLineContent("    (a?, b?: number) => 118,");
 
-    f.GoToMarker("84")
+    f.GoToMarker("84");
 
-    f.VerifyCurrentLineContent("    (...a: number[]) => 119,")
+    f.VerifyCurrentLineContent("    (...a: number[]) => 119,");
 
-    f.GoToMarker("85")
+    f.GoToMarker("85");
 
-    f.VerifyCurrentLineContent("    (a, b = 0, ...c: number[]) => 120,")
+    f.VerifyCurrentLineContent("    (a, b = 0, ...c: number[]) => 120,");
 
-    f.GoToMarker("86")
+    f.GoToMarker("86");
 
-    f.VerifyCurrentLineContent("    (a) => (b) => (c) => 121,")
+    f.VerifyCurrentLineContent("    (a) => (b) => (c) => 121,");
 
-    f.GoToMarker("87")
+    f.GoToMarker("87");
 
-    f.VerifyCurrentLineContent("    false ? (a) => 0 : (b) => 122")
+    f.VerifyCurrentLineContent("    false ? (a) => 0 : (b) => 122");
     }
 }

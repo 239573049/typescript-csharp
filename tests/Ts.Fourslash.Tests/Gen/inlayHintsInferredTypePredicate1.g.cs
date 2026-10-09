@@ -38,6 +38,6 @@ function test(x: unknown) {
     {
     IncludeInlayFunctionLikeReturnTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

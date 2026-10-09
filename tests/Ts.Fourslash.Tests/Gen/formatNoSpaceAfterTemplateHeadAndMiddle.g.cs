@@ -48,9 +48,9 @@ const a6 = `
 `;
 """;
         using var f = FourslashTest.New(content, fileName: "formatNoSpaceAfterTemplateHeadAndMiddle", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = Core.TSFalse })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = Core.TSFalse });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     const a1 = `${1}${1}`;
@@ -109,6 +109,6 @@ const a6 = `
     """+"""
         text
 
-    """+"`;")
+    """+"`;");
     }
 }

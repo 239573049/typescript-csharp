@@ -36,6 +36,6 @@ class ABCD {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOnPrivateParameterProperty1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

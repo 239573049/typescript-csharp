@@ -35,10 +35,10 @@ public static class FourslashTestUtil
     public static readonly string[] DefaultCommitCharacters = [".", ",", ";"];
 
     public static readonly object CompletionGlobalThisItem =
-        new LsProto.CompletionItem { Label = "globalThis", Kind = LsProto.CompletionItemKind.Module, SortText = SortTextGlobalsOrKeywords },
+        new LsProto.CompletionItem { Label = "globalThis", Kind = LsProto.CompletionItemKind.Module, SortText = SortTextGlobalsOrKeywords };
 
     public static readonly object CompletionUndefinedVarItem =
-        new LsProto.CompletionItem { Label = "undefined", Kind = LsProto.CompletionItemKind.Variable, SortText = SortTextGlobalsOrKeywords },
+        new LsProto.CompletionItem { Label = "undefined", Kind = LsProto.CompletionItemKind.Variable, SortText = SortTextGlobalsOrKeywords };
     // util.go — CompletionGlobalVars.
     public static readonly object[] CompletionGlobalVars =
     [

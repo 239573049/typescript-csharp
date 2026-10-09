@@ -29,6 +29,6 @@ public class NavigationBarItemsTypeAliasTests
 type T = number | string;
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

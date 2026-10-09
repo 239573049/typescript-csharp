@@ -46,6 +46,6 @@ function someFun(a: SomeType): SomeType {
 someFun/*s*/.what = 'what';
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o"] = new[]{0, 1, 2}, ["f"] = new[]{0, 1}, ["s"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o"] = new[]{0, 1, 2}, ["f"] = new[]{0, 1}, ["s"] = new[]{0, 1}});
     }
 }

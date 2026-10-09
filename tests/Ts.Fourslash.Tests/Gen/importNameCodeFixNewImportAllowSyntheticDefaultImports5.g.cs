@@ -44,6 +44,6 @@ export as namespace bar;
     export var x = 0;
     bar();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

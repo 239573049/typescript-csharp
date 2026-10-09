@@ -42,6 +42,6 @@ import b = require("./b");
 [|/*bUse*/b|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "aUse", "fUse", "xUse", "bUse")
+    f.VerifyBaselineGoToDefinition(true, "aUse", "fUse", "xUse", "bUse");
     }
 }

@@ -40,6 +40,6 @@ export default class implements I {[| |]}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

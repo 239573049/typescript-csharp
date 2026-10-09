@@ -50,6 +50,6 @@ function /*1*/outerFoo() {
 /*16*/outerFoo();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsLocalFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

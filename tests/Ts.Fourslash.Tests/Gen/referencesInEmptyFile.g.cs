@@ -31,6 +31,6 @@ public class ReferencesInEmptyFileTests
 """;
         using var f = FourslashTest.New(content, fileName: "referencesInEmptyFile", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

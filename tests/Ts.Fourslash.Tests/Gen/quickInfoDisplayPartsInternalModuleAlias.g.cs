@@ -42,6 +42,6 @@ namespace m2 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsInternalModuleAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -45,6 +45,6 @@ var postDecrement = [|{| "isWriteAccess": true |}x|]--;
 [|{| "isWriteAccess": true |}x|] <<= 1;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsWriteAccess", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0]);
     }
 }

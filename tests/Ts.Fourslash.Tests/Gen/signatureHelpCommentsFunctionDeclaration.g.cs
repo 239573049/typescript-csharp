@@ -45,6 +45,6 @@ declare function fn(a: string);
 fn(/*12*/"hello");
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCommentsFunctionDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

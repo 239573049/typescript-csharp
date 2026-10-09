@@ -53,7 +53,7 @@ const a5 = <Foo b={"somethingelse"} c={0} /*5*/ />
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", "4", }, new CompletionsExpectedList
     {
@@ -70,7 +70,7 @@ const a5 = <Foo b={"somethingelse"} c={0} /*5*/ />
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"5", }, new CompletionsExpectedList
     {
@@ -88,6 +88,6 @@ const a5 = <Foo b={"somethingelse"} c={0} /*5*/ />
     ],
         },
         
-    })
+    });
     }
 }

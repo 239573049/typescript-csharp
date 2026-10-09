@@ -39,8 +39,8 @@ var x: typeof DefaultExportedFunction;
 var y = DefaultExportedFunction();
 """;
         using var f = FourslashTest.New(content, fileName: "renameForDefaultExport07", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

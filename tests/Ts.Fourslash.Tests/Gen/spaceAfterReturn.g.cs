@@ -33,18 +33,18 @@ return    ;/*3*/
 }
 """;
         using var f = FourslashTest.New(content, fileName: "spaceAfterReturn", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    return 1;")
+    f.VerifyCurrentLineContent("    return 1;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    return [1];")
+    f.VerifyCurrentLineContent("    return [1];");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    return;")
+    f.VerifyCurrentLineContent("    return;");
     }
 }

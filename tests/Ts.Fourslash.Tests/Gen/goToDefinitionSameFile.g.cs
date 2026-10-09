@@ -40,6 +40,6 @@ class fooCls implements /*localInterfaceReference*/localInterface { }
 var fooVar = /*localModuleReference*/localModule.foo;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSameFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "localVariableReference", "localFunctionReference", "localClassReference", "localInterfaceReference", "localModuleReference")
+    f.VerifyBaselineGoToDefinition(false, "localVariableReference", "localFunctionReference", "localClassReference", "localInterfaceReference", "localModuleReference");
     }
 }

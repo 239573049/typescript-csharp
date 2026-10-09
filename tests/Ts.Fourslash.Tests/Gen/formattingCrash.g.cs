@@ -30,14 +30,14 @@ public class FormattingCrashTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core.TSTrue });
 
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("module Default")
+    f.VerifyCurrentLineContent("module Default");
     }
 }

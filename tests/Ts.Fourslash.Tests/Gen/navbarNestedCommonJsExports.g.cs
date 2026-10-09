@@ -31,6 +31,6 @@ public class NavbarNestedCommonJsExportsTests
 exports.a = exports.b = exports.c = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "navbarNestedCommonJsExports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

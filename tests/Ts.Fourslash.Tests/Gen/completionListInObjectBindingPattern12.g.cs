@@ -53,6 +53,6 @@ function f({ property1, /**/ }: I): void {
     ],
         },
         
-    })
+    });
     }
 }

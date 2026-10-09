@@ -43,8 +43,8 @@ declare class Thing<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocAugments", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("(local var) x: string", "")
+    f.VerifyQuickInfoIs("(local var) x: string", "");
     }
 }

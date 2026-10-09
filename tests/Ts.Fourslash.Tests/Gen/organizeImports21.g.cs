@@ -40,7 +40,7 @@ export {
 } from './a';
 """;
         using var f = FourslashTest.New(content, fileName: "organizeImports21", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyOrganizeImports(
             """
@@ -55,7 +55,7 @@ export {
 
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

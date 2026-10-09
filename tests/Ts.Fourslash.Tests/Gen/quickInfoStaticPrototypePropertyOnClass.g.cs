@@ -46,12 +46,12 @@ c3./*3*/prototype;
 c4./*4*/prototype;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoStaticPrototypePropertyOnClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) c1.prototype: c1", "")
+    f.VerifyQuickInfoAt("1", "(property) c1.prototype: c1", "");
 
-    f.VerifyQuickInfoAt("2", "(property) c2<T>.prototype: c2<any>", "")
+    f.VerifyQuickInfoAt("2", "(property) c2<T>.prototype: c2<any>", "");
 
-    f.VerifyQuickInfoAt("3", "(property) c3.prototype: c3", "")
+    f.VerifyQuickInfoAt("3", "(property) c3.prototype: c3", "");
 
-    f.VerifyQuickInfoAt("4", "(property) c4.prototype: c4", "")
+    f.VerifyQuickInfoAt("4", "(property) c4.prototype: c4", "");
     }
 }

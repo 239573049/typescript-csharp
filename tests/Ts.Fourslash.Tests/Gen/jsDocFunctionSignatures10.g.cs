@@ -39,8 +39,8 @@ function foo(x) {
 fo/**/o()
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures10", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("function foo<any>(x: any): void", "Do some foo things")
+    f.VerifyQuickInfoIs("function foo<any>(x: any): void", "Do some foo things");
     }
 }

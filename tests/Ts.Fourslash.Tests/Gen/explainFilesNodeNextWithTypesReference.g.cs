@@ -64,6 +64,6 @@ declare namespace React { export interface Whatever {} }
 import { useForm } from "react-hook-form";
 """;
         using var f = FourslashTest.New(content, fileName: "explainFilesNodeNextWithTypesReference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

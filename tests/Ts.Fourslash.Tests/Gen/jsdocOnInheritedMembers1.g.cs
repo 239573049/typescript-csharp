@@ -44,6 +44,6 @@ const b = new B();
 b.method/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocOnInheritedMembers1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

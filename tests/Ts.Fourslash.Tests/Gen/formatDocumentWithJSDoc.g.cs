@@ -40,7 +40,7 @@ function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatDocumentWithJSDoc", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     /**
@@ -55,6 +55,6 @@ function f() {
          */
         var multiline;
     }
-    """)
+    """);
     }
 }

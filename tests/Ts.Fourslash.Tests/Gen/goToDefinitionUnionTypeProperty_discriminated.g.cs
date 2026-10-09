@@ -48,6 +48,6 @@ const u2: U = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionUnionTypeProperty_discriminated", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "kind", "prop", "kindBogus", "propBogus")
+    f.VerifyBaselineGoToDefinition(true, "kind", "prop", "kindBogus", "propBogus");
     }
 }

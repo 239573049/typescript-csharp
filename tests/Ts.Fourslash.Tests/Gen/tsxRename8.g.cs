@@ -48,6 +48,6 @@ let opt3 = <Opt [|wrong|] />;
 let opt4 = <Opt propx={100} propString="hi" />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxRename8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, )
+    f.VerifyBaselineRename(null /*preferences*/);
     }
 }

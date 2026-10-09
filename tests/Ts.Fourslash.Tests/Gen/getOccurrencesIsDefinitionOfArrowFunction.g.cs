@@ -30,6 +30,6 @@ public class GetOccurrencesIsDefinitionOfArrowFunctionTests
 /*3*/f(12);
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfArrowFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

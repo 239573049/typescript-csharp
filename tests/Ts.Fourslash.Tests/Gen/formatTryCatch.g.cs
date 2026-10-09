@@ -34,18 +34,18 @@ function test() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatTryCatch", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("try")
+    f.GoToMarker("try");
 
-    f.VerifyCurrentLineContent("    try {")
+    f.VerifyCurrentLineContent("    try {");
 
-    f.GoToMarker("catch")
+    f.GoToMarker("catch");
 
-    f.VerifyCurrentLineContent("    catch (e) {")
+    f.VerifyCurrentLineContent("    catch (e) {");
     }
 }

@@ -39,7 +39,7 @@ import { I } from './a';
 class Foo implements I {}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterface_quotePreferenceAuto2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("b.ts")
+    f.GoToFile("b.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -62,6 +62,6 @@ class Foo implements I {}
     {
     QuotePreference = "auto",
     },
-    })
+    });
     }
 }

@@ -54,6 +54,6 @@ var x = /*5*/M;
             new SemanticToken { Type = "interface", Text = "I" },
             new SemanticToken { Type = "variable.declaration", Text = "x" },
             new SemanticToken { Type = "namespace", Text = "M" },
-        })
+        });
     }
 }

@@ -44,6 +44,6 @@ class C<Y> implements I<Y> {[| |]}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

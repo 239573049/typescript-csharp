@@ -32,6 +32,6 @@ declare const xx: { prop?: number };
 xx['prop'/*1*/] += 1;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnElementAccessInWriteLocation2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) prop?: number", "")
+    f.VerifyQuickInfoAt("1", "(property) prop?: number", "");
     }
 }

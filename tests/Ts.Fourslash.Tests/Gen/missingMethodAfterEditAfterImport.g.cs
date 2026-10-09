@@ -35,12 +35,12 @@ import f = /*foo*/foo;
 /*delete*/var x;
 """;
         using var f = FourslashTest.New(content, fileName: "missingMethodAfterEditAfterImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("foo", "namespace foo", "")
+    f.VerifyQuickInfoAt("foo", "namespace foo", "");
 
-    f.GoToMarker("delete")
+    f.GoToMarker("delete");
 
-    f.DeleteAtCaret(6)
+    f.DeleteAtCaret(6);
 
-    f.VerifyQuickInfoAt("foo", "namespace foo", "")
+    f.VerifyQuickInfoAt("foo", "namespace foo", "");
     }
 }

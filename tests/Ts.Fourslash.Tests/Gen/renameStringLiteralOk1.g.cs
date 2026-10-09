@@ -35,6 +35,6 @@ declare const ff: Foo
 ff.f = '[|foo|]'
 """;
         using var f = FourslashTest.New(content, fileName: "renameStringLiteralOk1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "foo")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "foo");
     }
 }

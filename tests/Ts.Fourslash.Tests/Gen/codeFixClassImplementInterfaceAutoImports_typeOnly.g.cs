@@ -49,7 +49,7 @@ import type { Base } from './interface';
 export class C implements Base {[| |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceAutoImports_typeOnly", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.ts")
+    f.GoToFile("index.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -67,6 +67,6 @@ export class C implements Base {[| |]}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

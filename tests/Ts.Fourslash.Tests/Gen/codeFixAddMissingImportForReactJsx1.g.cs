@@ -50,7 +50,7 @@ export declare var React: any;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingImportForReactJsx1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("bar.tsx")
+    f.GoToFile("bar.tsx");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -62,6 +62,6 @@ export declare var React: any;
         return <Foo></Foo>;
     }
     """,
-    })
+    });
     }
 }

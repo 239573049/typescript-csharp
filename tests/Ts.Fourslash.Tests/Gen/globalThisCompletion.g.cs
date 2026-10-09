@@ -37,7 +37,7 @@ public class GlobalThisCompletionTests
 declare var foo: typeof globalThis;
 """;
         using var f = FourslashTest.New(content, fileName: "globalThisCompletion", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ declare var foo: typeof globalThis;
             
         },
         
-    })
+    });
     }
 }

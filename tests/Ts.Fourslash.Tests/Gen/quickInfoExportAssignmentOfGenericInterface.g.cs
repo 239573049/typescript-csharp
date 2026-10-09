@@ -37,6 +37,6 @@ export var /*1*/x: a<a<string>>;
 x.a;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoExportAssignmentOfGenericInterface", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var x: a<a<string>>", "")
+    f.VerifyQuickInfoAt("1", "var x: a<a<string>>", "");
     }
 }

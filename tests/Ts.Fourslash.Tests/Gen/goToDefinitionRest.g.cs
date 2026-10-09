@@ -36,6 +36,6 @@ var { x, ...rest } = t;
 rest.[|/*2*/parent|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionRest", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "2")
+    f.VerifyBaselineGoToDefinition(true, "2");
     }
 }

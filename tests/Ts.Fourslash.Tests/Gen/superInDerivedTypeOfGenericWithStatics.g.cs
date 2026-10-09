@@ -41,10 +41,10 @@ class D extends M.C<Date> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "superInDerivedTypeOfGenericWithStatics", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("super();")
+    f.Insert("super();");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

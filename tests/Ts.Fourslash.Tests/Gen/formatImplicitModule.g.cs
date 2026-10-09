@@ -31,14 +31,14 @@ public class FormatImplicitModuleTests
        }
 """;
         using var f = FourslashTest.New(content, fileName: "formatImplicitModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.VerifyCurrentLineContent("export class A {")
+    f.VerifyCurrentLineContent("export class A {");
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

@@ -43,8 +43,8 @@ declare namespace JSX {
 <my-el /*1*/prop:foo="bar" /*2*/foo="baz" />
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnJsxNamespacedNameWithDoc1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) 'prop:foo': string", "This also appears")
+    f.VerifyQuickInfoAt("1", "(property) 'prop:foo': string", "This also appears");
 
-    f.VerifyQuickInfoAt("2", "(property) foo: string", "This appears")
+    f.VerifyQuickInfoAt("2", "(property) foo: string", "This appears");
     }
 }

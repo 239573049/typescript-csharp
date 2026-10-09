@@ -35,6 +35,6 @@ public class UnusedConstantInFunction1Tests
     f.VerifyRangeAfterCodeFix("""
     function f1 () {
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

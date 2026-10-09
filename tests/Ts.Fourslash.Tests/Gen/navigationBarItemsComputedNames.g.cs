@@ -50,6 +50,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsComputedNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

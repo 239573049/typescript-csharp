@@ -30,6 +30,6 @@ public class FindAllRefsReExport_broken2Tests
 /*1*/export { /*2*/x } from "nonsense";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExport_broken2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

@@ -41,8 +41,8 @@ function g(p) { return p; }
      * @param p
      * @returns
      */
-    """, null)
+    """, null);
 
-    f.VerifyNoJSDocCompletion("1")
+    f.VerifyNoJSDocCompletion("1");
     }
 }

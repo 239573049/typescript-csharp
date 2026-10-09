@@ -86,6 +86,6 @@ foo./*9*/method5();
 foo.newMet/*14*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJSDocTags", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

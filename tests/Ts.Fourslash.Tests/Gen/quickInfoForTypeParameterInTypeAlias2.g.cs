@@ -32,18 +32,18 @@ type GenericMethod<AA> = { method<BB>(): A/*3*/A & B/*4*/B }
 type Nesting<TT> = { method<UU>(): new <WW>() => T/*5*/T & U/*6*/U & W/*7*/W };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForTypeParameterInTypeAlias2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(type parameter) AA in type Call<AA>", "")
+    f.VerifyQuickInfoAt("1", "(type parameter) AA in type Call<AA>", "");
 
-    f.VerifyQuickInfoAt("2", "(type parameter) AA in type Index<AA>", "")
+    f.VerifyQuickInfoAt("2", "(type parameter) AA in type Index<AA>", "");
 
-    f.VerifyQuickInfoAt("3", "(type parameter) AA in type GenericMethod<AA>", "")
+    f.VerifyQuickInfoAt("3", "(type parameter) AA in type GenericMethod<AA>", "");
 
-    f.VerifyQuickInfoAt("4", "(type parameter) BB in method<BB>(): AA & BB", "")
+    f.VerifyQuickInfoAt("4", "(type parameter) BB in method<BB>(): AA & BB", "");
 
-    f.VerifyQuickInfoAt("5", "(type parameter) TT in type Nesting<TT>", "")
+    f.VerifyQuickInfoAt("5", "(type parameter) TT in type Nesting<TT>", "");
 
-    f.VerifyQuickInfoAt("6", "(type parameter) UU in method<UU>(): new <WW>() => TT & UU & WW", "")
+    f.VerifyQuickInfoAt("6", "(type parameter) UU in method<UU>(): new <WW>() => TT & UU & WW", "");
 
-    f.VerifyQuickInfoAt("7", "(type parameter) WW in <WW>(): TT & UU & WW", "")
+    f.VerifyQuickInfoAt("7", "(type parameter) WW in <WW>(): TT & UU & WW", "");
     }
 }

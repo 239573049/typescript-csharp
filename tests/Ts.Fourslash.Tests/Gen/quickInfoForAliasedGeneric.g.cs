@@ -37,8 +37,8 @@ var /*1*/aa: d.C<number>;
 var /*2*/bb: d.D;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForAliasedGeneric", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var aa: d.C<number>", "")
+    f.VerifyQuickInfoAt("1", "var aa: d.C<number>", "");
 
-    f.VerifyQuickInfoAt("2", "var bb: d.D", "")
+    f.VerifyQuickInfoAt("2", "var bb: d.D", "");
     }
 }

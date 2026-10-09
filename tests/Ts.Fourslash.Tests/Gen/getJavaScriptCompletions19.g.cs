@@ -43,9 +43,9 @@ if(typeof x === 'string') {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptCompletions19", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("str")
+    f.GoToMarker("str");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -66,11 +66,11 @@ if(typeof x === 'string') {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("num")
+    f.GoToMarker("num");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -91,6 +91,6 @@ if(typeof x === 'string') {
     ],
         },
         
-    })
+    });
     }
 }

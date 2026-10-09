@@ -44,6 +44,6 @@ export const fn = () => ({ u } as const);
     } => ({ u } as const);
     """,
         Index = 0,
-    })
+    });
     }
 }

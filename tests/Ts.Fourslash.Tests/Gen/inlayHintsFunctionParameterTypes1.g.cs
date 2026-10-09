@@ -52,6 +52,6 @@ const foo5: F2 = (a) => { }
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

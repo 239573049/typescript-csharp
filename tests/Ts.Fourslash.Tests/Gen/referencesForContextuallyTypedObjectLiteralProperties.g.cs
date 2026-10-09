@@ -52,6 +52,6 @@ var w: IFoo = { xy: undefined };
 var u = { xy: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForContextuallyTypedObjectLiteralProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("xy")
+    f.VerifyBaselineFindAllReferences("xy");
     }
 }

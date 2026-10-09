@@ -49,8 +49,8 @@ var /*2*/r = m1c;
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("2", "var r: number", "")
+    f.VerifyQuickInfoAt("2", "var r: number", "");
     }
 }

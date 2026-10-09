@@ -34,8 +34,8 @@ var x2: Foo2;
 var /*2*/r2 = x2[0];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoExtendArray", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r: string", "")
+    f.VerifyQuickInfoAt("1", "var r: string", "");
 
-    f.VerifyQuickInfoAt("2", "var r2: string", "")
+    f.VerifyQuickInfoAt("2", "var r2: string", "");
     }
 }

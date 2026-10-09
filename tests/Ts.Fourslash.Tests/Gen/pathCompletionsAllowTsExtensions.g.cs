@@ -50,7 +50,7 @@ import {} from ".//**/"
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -70,9 +70,9 @@ import {} from ".//**/"
     {
     ImportModuleSpecifierEnding = new ImportModuleSpecifierEndingPreference("js"),
     },
-    })
+    });
 
-    f.Insert("foo.ts\"\nimport {} from \"./")
+    f.Insert("foo.ts\"\nimport {} from \"./");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -89,6 +89,6 @@ import {} from ".//**/"
     ],
         },
         
-    })
+    });
     }
 }

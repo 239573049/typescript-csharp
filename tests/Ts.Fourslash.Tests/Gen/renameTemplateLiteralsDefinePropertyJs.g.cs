@@ -42,6 +42,6 @@ obj["[|prop|]"];
 obj[`[|prop|]`];
 """;
         using var f = FourslashTest.New(content, fileName: "renameTemplateLiteralsDefinePropertyJs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "prop")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "prop");
     }
 }

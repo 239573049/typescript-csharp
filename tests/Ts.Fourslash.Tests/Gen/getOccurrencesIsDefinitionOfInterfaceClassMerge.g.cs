@@ -41,6 +41,6 @@ let i: /*7*/Numbers = new /*8*/Numbers();
 let x = i.f(i.p + i.m);
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfInterfaceClassMerge", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8");
     }
 }

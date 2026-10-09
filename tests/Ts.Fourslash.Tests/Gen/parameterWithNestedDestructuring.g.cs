@@ -31,12 +31,12 @@ public class ParameterWithNestedDestructuringTests
 function f([[/*3*/a]]: [[string]], { b1: { /*4*/b2 } }: { b1: { b2: string; } }) {}
 """;
         using var f = FourslashTest.New(content, fileName: "parameterWithNestedDestructuring", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("1", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) c: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) c: number", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) a: string", "")
+    f.VerifyQuickInfoAt("3", "(parameter) a: string", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) b2: string", "")
+    f.VerifyQuickInfoAt("4", "(parameter) b2: string", "");
     }
 }

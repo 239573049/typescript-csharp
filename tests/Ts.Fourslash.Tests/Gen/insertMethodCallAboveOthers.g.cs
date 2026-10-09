@@ -31,8 +31,8 @@ paired.reduce();
 paired.map(() => undefined);
 """;
         using var f = FourslashTest.New(content, fileName: "insertMethodCallAboveOthers", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("paired.reduce();")
+    f.Insert("paired.reduce();");
     }
 }

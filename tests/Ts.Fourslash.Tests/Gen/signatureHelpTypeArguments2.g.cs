@@ -40,6 +40,6 @@ f<number, string, /*f2*/;
 f<number, string, boolean, /*f3*/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpTypeArguments2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

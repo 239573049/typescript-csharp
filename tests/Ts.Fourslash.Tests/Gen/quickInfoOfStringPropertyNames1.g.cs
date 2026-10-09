@@ -44,12 +44,12 @@ var /*3*/r4 = b['1'];
 var /*4*/r5 = b[1];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOfStringPropertyNames1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r: string", "")
+    f.VerifyQuickInfoAt("1", "var r: string", "");
 
-    f.VerifyQuickInfoAt("2", "var r2: number", "")
+    f.VerifyQuickInfoAt("2", "var r2: number", "");
 
-    f.VerifyQuickInfoAt("3", "var r4: string", "")
+    f.VerifyQuickInfoAt("3", "var r4: string", "");
 
-    f.VerifyQuickInfoAt("4", "var r5: string", "")
+    f.VerifyQuickInfoAt("4", "var r5: string", "");
     }
 }

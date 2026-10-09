@@ -52,7 +52,7 @@ Foo.bar./*enumValueReference*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("enumValueReference", new CompletionsExpectedList
     {
@@ -74,6 +74,6 @@ Foo.bar./*enumValueReference*/;
     ],
         },
         
-    })
+    });
     }
 }

@@ -33,6 +33,6 @@ and ${ `good${ " " }riddance` }`;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsTemplates2", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "variable.declaration", Text = "tiredOfCanonicalExamples" },
-        })
+        });
     }
 }

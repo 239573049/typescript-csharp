@@ -31,6 +31,6 @@ var x = [|function [|{| "contextRangeIndex": 0 |}f|](g: any, h: any) {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameLocationsForFunctionExpression01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "f")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "f");
     }
 }

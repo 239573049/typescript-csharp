@@ -31,6 +31,6 @@ export default { [|/*a*/case|] };
 [|/*c*/case|] 42;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSwitchCase6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "a", "b", "c")
+    f.VerifyBaselineGoToDefinition(true, "a", "b", "c");
     }
 }

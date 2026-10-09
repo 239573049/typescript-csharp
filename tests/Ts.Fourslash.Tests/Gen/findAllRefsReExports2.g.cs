@@ -32,8 +32,8 @@ export function /*1*/foo(): void {}
 import { foo as oof } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExports2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

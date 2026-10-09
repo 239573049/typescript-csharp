@@ -90,6 +90,6 @@ label5: while (true) break label5;
 label7: while (true) co/*10*/ntinue label5;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesLoopBreakContinue6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

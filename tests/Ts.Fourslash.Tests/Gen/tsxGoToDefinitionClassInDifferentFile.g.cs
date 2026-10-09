@@ -34,8 +34,8 @@ import C from "./C";
 const foo = </*use*/C />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionClassInDifferentFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineGoToDefinition(false, "use")
+    f.VerifyBaselineGoToDefinition(false, "use");
     }
 }

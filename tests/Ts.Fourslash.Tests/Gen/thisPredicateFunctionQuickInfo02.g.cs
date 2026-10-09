@@ -58,20 +58,20 @@ if (crate.isSupplies/*7*/()) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "thisPredicateFunctionQuickInfo02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(method) Crate<T>.isSundries(): this is Crate<Sundries>", "")
+    f.VerifyQuickInfoAt("1", "(method) Crate<T>.isSundries(): this is Crate<Sundries>", "");
 
-    f.VerifyQuickInfoAt("2", "(method) Crate<T>.isSupplies(): this is Crate<Supplies>", "")
+    f.VerifyQuickInfoAt("2", "(method) Crate<T>.isSupplies(): this is Crate<Supplies>", "");
 
-    f.VerifyQuickInfoAt("3", "(method) Crate<T>.isPackedTight(): this is (this & {\n    extraContents: T;\n})", "")
+    f.VerifyQuickInfoAt("3", "(method) Crate<T>.isPackedTight(): this is (this & {\n    extraContents: T;\n})", "");
 
-    f.VerifyQuickInfoAt("4", "(method) Crate<any>.isPackedTight(): this is (Crate<any> & {\n    extraContents: any;\n})", "")
+    f.VerifyQuickInfoAt("4", "(method) Crate<any>.isPackedTight(): this is (Crate<any> & {\n    extraContents: any;\n})", "");
 
-    f.VerifyQuickInfoAt("5", "(method) Crate<any>.isSundries(): this is Crate<Sundries>", "")
+    f.VerifyQuickInfoAt("5", "(method) Crate<any>.isSundries(): this is Crate<Sundries>", "");
 
-    f.VerifyQuickInfoAt("6", "(method) Crate<Sundries>.isPackedTight(): this is (Crate<Sundries> & {\n    extraContents: Sundries;\n})", "")
+    f.VerifyQuickInfoAt("6", "(method) Crate<Sundries>.isPackedTight(): this is (Crate<Sundries> & {\n    extraContents: Sundries;\n})", "");
 
-    f.VerifyQuickInfoAt("7", "(method) Crate<any>.isSupplies(): this is Crate<Supplies>", "")
+    f.VerifyQuickInfoAt("7", "(method) Crate<any>.isSupplies(): this is Crate<Supplies>", "");
 
-    f.VerifyQuickInfoAt("8", "(method) Crate<Supplies>.isPackedTight(): this is (Crate<Supplies> & {\n    extraContents: Supplies;\n})", "")
+    f.VerifyQuickInfoAt("8", "(method) Crate<Supplies>.isPackedTight(): this is (Crate<Supplies> & {\n    extraContents: Supplies;\n})", "");
     }
 }

@@ -59,7 +59,7 @@ var x1; x1./*3*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -80,6 +80,6 @@ var x1; x1./*3*/;
     ],
         },
         
-    })
+    });
     }
 }

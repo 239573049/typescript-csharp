@@ -47,6 +47,6 @@ var animal; animal.[|animalName/*4*/|]
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagGoToDefinition", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToDefinition(true, "3", "4")
+    f.VerifyBaselineGoToDefinition(true, "3", "4");
     }
 }

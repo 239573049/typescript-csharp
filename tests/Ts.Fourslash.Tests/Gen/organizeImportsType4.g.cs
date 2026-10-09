@@ -58,7 +58,7 @@ console.log(A, a, B, b, c, C, d, D);
     {
     OrganizeImportsIgnoreCase = Core.TSTrue,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
     }
 }

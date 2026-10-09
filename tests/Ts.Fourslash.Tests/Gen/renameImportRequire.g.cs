@@ -36,6 +36,6 @@ a = { [|e|] };
 [|export { [|{| "contextRangeIndex": 8 |}e|] };|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameImportRequire", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[2], f.Ranges()[3], f.Ranges()[5], f.Ranges()[7], f.Ranges()[9])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[2], f.Ranges()[3], f.Ranges()[5], f.Ranges()[7], f.Ranges()[9]);
     }
 }

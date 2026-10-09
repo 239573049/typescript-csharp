@@ -51,6 +51,6 @@ var x = function foo() {
     ],
         },
         
-    })
+    });
     }
 }

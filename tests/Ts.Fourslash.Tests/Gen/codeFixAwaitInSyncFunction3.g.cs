@@ -36,6 +36,6 @@ const f = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAwaitInSyncFunction3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

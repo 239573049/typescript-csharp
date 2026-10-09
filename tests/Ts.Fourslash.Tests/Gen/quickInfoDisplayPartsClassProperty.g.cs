@@ -47,6 +47,6 @@ var cInstance = new c();
 /*11*/c./*12*/staticProperty;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsClassProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

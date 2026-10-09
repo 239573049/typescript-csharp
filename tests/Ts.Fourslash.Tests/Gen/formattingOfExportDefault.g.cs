@@ -32,14 +32,14 @@ namespace Foo {
 /*2*/export        default        function        bar() { }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOfExportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    export default class Test { }")
+    f.VerifyCurrentLineContent("    export default class Test { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("export default function bar() { }")
+    f.VerifyCurrentLineContent("export default function bar() { }");
     }
 }

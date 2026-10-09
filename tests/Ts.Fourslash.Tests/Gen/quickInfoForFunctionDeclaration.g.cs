@@ -38,8 +38,8 @@ var x = f(0);
 var y = makeA(0);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForFunctionDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("makeA", "function makeA<T>(t: T): A<T>", "")
+    f.VerifyQuickInfoAt("makeA", "function makeA<T>(t: T): A<T>", "");
 
-    f.VerifyQuickInfoAt("f", "function f<T>(t: T): A<T>", "")
+    f.VerifyQuickInfoAt("f", "function f<T>(t: T): A<T>", "");
     }
 }

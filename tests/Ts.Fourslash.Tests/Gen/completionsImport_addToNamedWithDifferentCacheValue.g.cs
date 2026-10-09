@@ -47,9 +47,9 @@ const b = new MyClass2/*2*/();
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_addToNamedWithDifferentCacheValue", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" })
+    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -78,7 +78,7 @@ const b = new MyClass2/*2*/();
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -95,9 +95,9 @@ const b = new MyClass2/*2*/();
     const a = new MyClass();
     const b = new MyClass2();
     """,
-    })
+    });
 
-    f.ReplaceLine(0, "import { MyClass } from \"mylib\";")
+    f.ReplaceLine(0, "import { MyClass } from \"mylib\";");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -126,6 +126,6 @@ const b = new MyClass2/*2*/();
     ],
         },
         
-    })
+    });
     }
 }

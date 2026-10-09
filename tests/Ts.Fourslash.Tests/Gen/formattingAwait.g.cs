@@ -33,7 +33,7 @@ async function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingAwait", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     async function f() {
@@ -41,6 +41,6 @@ async function f() {
             console.log(x);
         }
     }
-    """)
+    """);
     }
 }

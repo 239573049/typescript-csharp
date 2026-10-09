@@ -43,6 +43,6 @@ export var v2 = 6;
 
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

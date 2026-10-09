@@ -32,16 +32,16 @@ foo(              ); // /*1*/
 function foo() {       var x;       } // /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInComment", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("foo(              ); // ;")
+    f.VerifyCurrentLineContent("foo(              ); // ;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert("}")
+    f.Insert("}");
 
-    f.VerifyCurrentLineContent("function foo() {       var x;       } // }")
+    f.VerifyCurrentLineContent("function foo() {       var x;       } // }");
     }
 }

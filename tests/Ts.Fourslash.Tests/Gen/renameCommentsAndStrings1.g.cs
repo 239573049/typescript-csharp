@@ -33,6 +33,6 @@ public class RenameCommentsAndStrings1Tests
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameCommentsAndStrings1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Bar")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "Bar");
     }
 }

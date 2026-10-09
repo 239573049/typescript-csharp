@@ -39,7 +39,7 @@ public class DocCommentTemplateInSingleLineCommentTests
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateInSingleLineComment", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var marker in f.Markers())
     {
-        f.VerifyNoJSDocCompletion(marker)
+        f.VerifyNoJSDocCompletion(marker);
     }
     }
 }

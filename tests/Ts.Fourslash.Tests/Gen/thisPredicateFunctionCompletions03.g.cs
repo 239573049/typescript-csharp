@@ -88,7 +88,7 @@ let checked/*14*/LeaderStatus = isLeader/*15*/Guard(a);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", "8", }, new CompletionsExpectedList
     {
@@ -107,6 +107,6 @@ let checked/*14*/LeaderStatus = isLeader/*15*/Guard(a);
     ],
         },
         
-    })
+    });
     }
 }

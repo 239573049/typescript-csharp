@@ -42,10 +42,10 @@ declare module "b" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameImportOfExportEquals2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("N", "O", "P", "Q")
+    f.VerifyBaselineFindAllReferences("N", "O", "P", "Q");
 
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "N", "O", "P", "Q")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "N", "O", "P", "Q");
     }
 }

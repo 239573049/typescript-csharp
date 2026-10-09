@@ -65,7 +65,7 @@ const obj = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -86,7 +86,7 @@ const obj = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", }, new CompletionsExpectedList
     {
@@ -105,7 +105,7 @@ const obj = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", }, new CompletionsExpectedList
     {
@@ -125,6 +125,6 @@ const obj = {
     ],
         },
         
-    })
+    });
     }
 }

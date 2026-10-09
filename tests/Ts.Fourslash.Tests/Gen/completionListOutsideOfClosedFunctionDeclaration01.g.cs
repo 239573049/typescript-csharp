@@ -46,6 +46,6 @@ public class CompletionListOutsideOfClosedFunctionDeclaration01Tests
     ],
         },
         
-    })
+    });
     }
 }

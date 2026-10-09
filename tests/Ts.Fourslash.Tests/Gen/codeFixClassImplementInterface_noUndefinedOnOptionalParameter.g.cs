@@ -49,6 +49,6 @@ class Foo implements IFoo {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

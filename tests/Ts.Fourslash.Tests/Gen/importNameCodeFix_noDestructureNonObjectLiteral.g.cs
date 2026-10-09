@@ -51,6 +51,6 @@ module.exports = {};
 filter/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_noDestructureNonObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"./object-literal", "./jquery"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"./object-literal", "./jquery"}, null /*preferences*/);
     }
 }

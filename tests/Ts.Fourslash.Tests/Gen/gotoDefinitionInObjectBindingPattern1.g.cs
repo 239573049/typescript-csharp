@@ -35,6 +35,6 @@ interface Test {
 bar<Test>(({[|pr/*goto*/op2|]})=>{});
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionInObjectBindingPattern1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "goto")
+    f.VerifyBaselineGoToDefinition(true, "goto");
     }
 }

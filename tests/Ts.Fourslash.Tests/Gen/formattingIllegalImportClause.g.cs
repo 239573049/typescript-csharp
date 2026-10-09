@@ -44,10 +44,10 @@ describe('<Failed />', () => {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "formattingIllegalImportClause", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("import React from 'react';")
+    f.VerifyCurrentLineContent("import React from 'react';");
     }
 }

@@ -54,6 +54,6 @@ import { useQuery } from "use-query";
 const { /*1*/data } = useQuery();
 """;
         using var f = FourslashTest.New(content, fileName: "findReferencesBindingPatternInJsdocNoCrash1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

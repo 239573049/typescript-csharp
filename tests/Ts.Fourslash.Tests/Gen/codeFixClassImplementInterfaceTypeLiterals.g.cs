@@ -54,6 +54,6 @@ interface Foo {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

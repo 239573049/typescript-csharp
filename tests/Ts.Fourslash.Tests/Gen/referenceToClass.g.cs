@@ -44,6 +44,6 @@ namespace mod {
 var k: /*6*/foo;
 """;
         using var f = FourslashTest.New(content, fileName: "referenceToClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6");
     }
 }

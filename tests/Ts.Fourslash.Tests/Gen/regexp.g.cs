@@ -29,6 +29,6 @@ public class RegexpTests
 var /**/x = /aa/;
 """;
         using var f = FourslashTest.New(content, fileName: "regexp", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var x: RegExp", "")
+    f.VerifyQuickInfoAt("", "var x: RegExp", "");
     }
 }

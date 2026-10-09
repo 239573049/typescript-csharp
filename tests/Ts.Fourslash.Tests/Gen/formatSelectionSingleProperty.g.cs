@@ -33,7 +33,7 @@ console.log({
 })
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionSingleProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("1", "2")
+    f.FormatSelection("1", "2");
 
     f.VerifyCurrentFileContent("""
     console.log({
@@ -41,6 +41,6 @@ console.log({
         a: 1,
         b: 2
     })
-    """)
+    """);
     }
 }

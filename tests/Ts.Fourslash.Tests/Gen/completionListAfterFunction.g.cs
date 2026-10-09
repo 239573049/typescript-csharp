@@ -54,7 +54,7 @@ function f4(d: number) { /*4*/}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -71,7 +71,7 @@ function f4(d: number) { /*4*/}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -88,7 +88,7 @@ function f4(d: number) { /*4*/}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -105,6 +105,6 @@ function f4(d: number) { /*4*/}
     ],
         },
         
-    })
+    });
     }
 }

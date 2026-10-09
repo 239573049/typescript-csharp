@@ -67,6 +67,6 @@ class C1 implements I1 {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

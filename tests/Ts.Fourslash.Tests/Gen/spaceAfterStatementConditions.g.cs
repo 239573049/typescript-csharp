@@ -50,7 +50,7 @@ for(let j = 0; j < 10; j++) --i;
 
 """;
         using var f = FourslashTest.New(content, fileName: "spaceAfterStatementConditions", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     let i = 0;
@@ -75,6 +75,6 @@ for(let j = 0; j < 10; j++) --i;
     for (let j = 0; j < 10; j++) ++i;
     for (let j = 0; j < 10; j++) --i;
 
-    """)
+    """);
     }
 }

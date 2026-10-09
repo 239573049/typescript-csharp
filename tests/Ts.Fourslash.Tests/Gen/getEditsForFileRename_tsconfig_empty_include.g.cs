@@ -32,6 +32,6 @@ const x = 1
 { "include": [] }
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_tsconfig_empty_include", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyWillRenameFilesEdits("/a/foo.ts", "/a/bar.ts", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/a/foo.ts", "/a/bar.ts", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

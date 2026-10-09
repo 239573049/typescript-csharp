@@ -34,7 +34,7 @@ export class A {}
 const a: /**/A
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_typeOnly", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -42,6 +42,6 @@ const a: /**/A
 
     const a: A
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

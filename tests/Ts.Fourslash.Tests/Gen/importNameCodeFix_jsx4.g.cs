@@ -44,7 +44,7 @@ import { Text } from "react-native";
 <Text></Text>;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsx4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -55,6 +55,6 @@ import { Text } from "react-native";
     <Text></Text>;
     """,
         Index = 0,
-    })
+    });
     }
 }

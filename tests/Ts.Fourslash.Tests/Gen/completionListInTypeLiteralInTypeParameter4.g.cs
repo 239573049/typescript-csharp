@@ -53,6 +53,6 @@ var foobar: Bar<{ one: string } & {/**/
     ],
         },
         
-    })
+    });
     }
 }

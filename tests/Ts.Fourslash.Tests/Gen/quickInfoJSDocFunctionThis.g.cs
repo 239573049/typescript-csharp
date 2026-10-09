@@ -32,8 +32,8 @@ public class QuickInfoJSDocFunctionThisTests
 var f/**/ = function (s) { return s; }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJSDocFunctionThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("var f: (this: string, arg1: string) => string", "")
+    f.VerifyQuickInfoIs("var f: (this: string, arg1: string) => string", "");
     }
 }

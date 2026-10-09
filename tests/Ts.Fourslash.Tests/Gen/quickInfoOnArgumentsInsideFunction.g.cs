@@ -31,6 +31,6 @@ function foo(x: string) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnArgumentsInsideFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local var) arguments: IArguments", "")
+    f.VerifyQuickInfoAt("1", "(local var) arguments: IArguments", "");
     }
 }

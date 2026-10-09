@@ -37,6 +37,6 @@ type x = string
 var y: x = 'hi'
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

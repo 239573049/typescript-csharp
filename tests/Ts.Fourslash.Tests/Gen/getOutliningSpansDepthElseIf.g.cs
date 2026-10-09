@@ -111,6 +111,6 @@ if (1)[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansDepthElseIf", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

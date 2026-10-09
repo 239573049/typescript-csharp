@@ -35,6 +35,6 @@ MoreThanOneHundredAndFiftyCharacters\
 MoreThanOneHundredAndFiftyCharacters' { }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsMultilineStringIdentifiers3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

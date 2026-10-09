@@ -94,7 +94,7 @@ var y;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("typeFooMember", new CompletionsExpectedList
     {
@@ -115,7 +115,7 @@ var y;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("NamespaceMember", new CompletionsExpectedList
     {
@@ -136,7 +136,7 @@ var y;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("globalValue", new CompletionsExpectedList
     {
@@ -182,9 +182,9 @@ var y;
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("valueMemberOfSomeType", null)
+    f.VerifyCompletions("valueMemberOfSomeType", null);
 
     f.VerifyCompletions("valueMemberOfFooInstance", new CompletionsExpectedList
     {
@@ -215,7 +215,7 @@ var y;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("valueMemberOfFoo", new CompletionsExpectedList
     {
@@ -243,8 +243,8 @@ var y;
     ]),
         },
         
-    })
+    });
 
-    f.VerifyCompletions("propertyName", null)
+    f.VerifyCompletions("propertyName", null);
     }
 }

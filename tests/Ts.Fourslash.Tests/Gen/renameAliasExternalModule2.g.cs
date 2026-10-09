@@ -34,6 +34,6 @@ public class RenameAliasExternalModule2Tests
 import C = [|M|].SomeClass;
 """;
         using var f = FourslashTest.New(content, fileName: "renameAliasExternalModule2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[5], f.Ranges()[6])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3], f.Ranges()[5], f.Ranges()[6]);
     }
 }

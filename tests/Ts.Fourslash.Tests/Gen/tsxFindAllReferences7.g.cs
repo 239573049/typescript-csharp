@@ -47,6 +47,6 @@ let opt2 = <Opt propx={100} optional/>;
 let opt3 = <Opt wrong />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferences7", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

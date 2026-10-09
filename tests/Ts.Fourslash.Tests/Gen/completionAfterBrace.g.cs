@@ -45,6 +45,6 @@ public class CompletionAfterBraceTests
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

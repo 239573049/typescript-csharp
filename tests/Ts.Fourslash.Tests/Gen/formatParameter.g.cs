@@ -40,18 +40,18 @@ function foo(
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("first")
+    f.GoToMarker("first");
 
-    f.VerifyCurrentLineContent("        number,")
+    f.VerifyCurrentLineContent("        number,");
 
-    f.GoToMarker("second")
+    f.GoToMarker("second");
 
-    f.VerifyCurrentLineContent("        string")
+    f.VerifyCurrentLineContent("        string");
 
-    f.GoToMarker("third")
+    f.GoToMarker("third");
 
-    f.VerifyCurrentLineContent("            boolean")
+    f.VerifyCurrentLineContent("            boolean");
     }
 }

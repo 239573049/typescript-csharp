@@ -42,6 +42,6 @@ declare class C3 implements C2 {[|
     f.VerifyRangeAfterCodeFix("""
     f1(): void;
 
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

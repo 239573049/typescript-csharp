@@ -30,6 +30,6 @@ let y: any;
 x = 0, y = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingConstToCommaSeparatedInitializer4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

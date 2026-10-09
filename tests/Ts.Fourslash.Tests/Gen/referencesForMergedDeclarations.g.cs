@@ -41,6 +41,6 @@ var f2: /*8*/Foo;
 /*9*/Foo.bind(this);
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForMergedDeclarations", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9");
     }
 }

@@ -102,6 +102,6 @@ namespace FindRef3 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForOverrides", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("foo", "ifoo", "icfoo", "field", "method")
+    f.VerifyBaselineFindAllReferences("foo", "ifoo", "icfoo", "field", "method");
     }
 }

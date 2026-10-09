@@ -34,6 +34,6 @@ function useQuery({ data }): { data: string[] } {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoBindingPatternInJsdocNoCrash1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "", "")
+    f.VerifyQuickInfoAt("1", "", "");
     }
 }

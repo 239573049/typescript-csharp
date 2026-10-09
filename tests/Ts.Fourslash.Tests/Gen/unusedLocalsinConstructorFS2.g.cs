@@ -44,6 +44,6 @@ class greeter {
             used = used + "second part";
         }
 
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

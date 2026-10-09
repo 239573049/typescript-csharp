@@ -34,7 +34,7 @@ acb/*1*/;
 acb/*2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_details_withMisspelledName", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -46,9 +46,9 @@ acb/*2*/;
 
     acb;
     """,
-    })
+    });
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
     f.VerifyApplyCodeActionFromCompletion("2", new ApplyCodeActionFromCompletionOptions
     {
@@ -64,6 +64,6 @@ acb/*2*/;
 
     acb;
     """,
-    })
+    });
     }
 }

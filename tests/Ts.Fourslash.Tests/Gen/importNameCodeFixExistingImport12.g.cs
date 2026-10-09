@@ -37,6 +37,6 @@ export var v3 = 5;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixExistingImport12", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyImportFixAtPosition([
     "{ f1 }",
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

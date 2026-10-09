@@ -90,6 +90,6 @@ label5: while (true) break label5;
 label7: while (true) continue label5;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesLoopBreakContinue2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

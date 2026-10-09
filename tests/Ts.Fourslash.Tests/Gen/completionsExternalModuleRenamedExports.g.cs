@@ -55,6 +55,6 @@ export * as alsoNotInScope from "./other";
     ],
         },
         
-    })
+    });
     }
 }

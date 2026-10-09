@@ -59,6 +59,6 @@ class TAD<T> extends TAB<T> {
     ],
         },
         
-    })
+    });
     }
 }

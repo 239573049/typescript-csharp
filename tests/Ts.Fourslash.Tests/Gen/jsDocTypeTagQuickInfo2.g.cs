@@ -56,6 +56,6 @@ var /*11*/func1;
 var /*12*/sOrn;
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocTypeTagQuickInfo2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

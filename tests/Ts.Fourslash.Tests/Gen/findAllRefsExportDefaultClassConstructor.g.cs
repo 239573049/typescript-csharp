@@ -31,6 +31,6 @@ export default class {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsExportDefaultClassConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

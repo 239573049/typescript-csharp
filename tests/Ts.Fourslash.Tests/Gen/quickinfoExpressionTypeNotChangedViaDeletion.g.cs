@@ -36,12 +36,12 @@ declare const bar: number[];
 const /*1*/test2: TypeEq<typeof foo, typeof bar> = false;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoExpressionTypeNotChangedViaDeletion", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("const test2: false", "")
+    f.VerifyQuickInfoIs("const test2: false", "");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoIs("const test1: false", "")
+    f.VerifyQuickInfoIs("const test1: false", "");
     }
 }

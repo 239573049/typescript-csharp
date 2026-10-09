@@ -49,7 +49,7 @@ namespace N2.M/*4*/
             
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -66,9 +66,9 @@ namespace N2.M/*4*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("3", null)
+    f.VerifyCompletions("3", null);
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -85,6 +85,6 @@ namespace N2.M/*4*/
     ],
         },
         
-    })
+    });
     }
 }

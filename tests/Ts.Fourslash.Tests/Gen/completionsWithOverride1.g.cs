@@ -51,6 +51,6 @@ class B extends A {
     ],
         },
         
-    })
+    });
     }
 }

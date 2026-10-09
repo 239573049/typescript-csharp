@@ -48,6 +48,6 @@ export interface IFoo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "alias1Type", "alias1Value", "alias2Type", "alias2Value")
+    f.VerifyBaselineGoToDefinition(true, "alias1Type", "alias1Value", "alias2Type", "alias2Value");
     }
 }

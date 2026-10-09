@@ -34,6 +34,6 @@ public class GetEditsForFileRename_tsconfig_include_noChangeTests
 
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_tsconfig_include_noChange", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyWillRenameFilesEdits("/src/dir/a.ts", "/src/dir/b.ts", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/src/dir/a.ts", "/src/dir/b.ts", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

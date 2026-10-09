@@ -37,6 +37,6 @@ class Circle {
 var a = new Circle(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpConstructorCallParamProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

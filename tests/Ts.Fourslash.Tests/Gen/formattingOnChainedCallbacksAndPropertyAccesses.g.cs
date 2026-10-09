@@ -41,38 +41,38 @@ x
 /*8*/.length;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnChainedCallbacksAndPropertyAccesses", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    .toFixed")
+    f.VerifyCurrentLineContent("    .toFixed");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    .toFixed()")
+    f.VerifyCurrentLineContent("    .toFixed()");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    .toFixed()")
+    f.VerifyCurrentLineContent("    .toFixed()");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    .length")
+    f.VerifyCurrentLineContent("    .length");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    .toString();")
+    f.VerifyCurrentLineContent("    .toString();");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    .toFixed")
+    f.VerifyCurrentLineContent("    .toFixed");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    .toString()")
+    f.VerifyCurrentLineContent("    .toString()");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    .length;")
+    f.VerifyCurrentLineContent("    .length;");
     }
 }

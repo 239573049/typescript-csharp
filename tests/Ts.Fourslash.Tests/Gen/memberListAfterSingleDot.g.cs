@@ -29,6 +29,6 @@ public class MemberListAfterSingleDotTests
 ./**/
 """;
         using var f = FourslashTest.New(content, fileName: "memberListAfterSingleDot", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

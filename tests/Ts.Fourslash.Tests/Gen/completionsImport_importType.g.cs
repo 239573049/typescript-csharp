@@ -82,7 +82,7 @@ export const m = 0;
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("0", new ApplyCodeActionFromCompletionOptions
     {
@@ -96,7 +96,7 @@ export const m = 0;
     /** @type {} */
     /** @type {} */
     """,
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -110,6 +110,6 @@ export const m = 0;
     /** @type {} */
     /** @type {import("./a").} */
     """,
-    })
+    });
     }
 }

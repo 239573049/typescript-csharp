@@ -51,6 +51,6 @@ class Slider extends React.Component {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

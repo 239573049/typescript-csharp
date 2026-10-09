@@ -32,6 +32,6 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "z")
+    f.VerifyBaselineGoToDefinition(true, "z");
     }
 }

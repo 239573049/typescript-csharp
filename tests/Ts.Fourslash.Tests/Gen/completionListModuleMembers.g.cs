@@ -66,7 +66,7 @@ interface TestInterface implements Module./*TypeReferenceInImplementsList*/ { }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"TypeReference", "TypeReferenceInImplementsList", }, new CompletionsExpectedList
     {
@@ -84,6 +84,6 @@ interface TestInterface implements Module./*TypeReferenceInImplementsList*/ { }
     ],
         },
         
-    })
+    });
     }
 }

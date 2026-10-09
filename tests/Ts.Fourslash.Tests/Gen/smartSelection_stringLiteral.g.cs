@@ -30,6 +30,6 @@ const a = 'a';
 const b = /**/'b';
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_stringLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

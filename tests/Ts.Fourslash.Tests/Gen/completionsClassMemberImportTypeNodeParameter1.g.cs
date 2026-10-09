@@ -62,6 +62,6 @@ export declare class BlenderbotSmallPreTrainedModel extends PreTrainedModel {
     ],
         },
         
-    })
+    });
     }
 }

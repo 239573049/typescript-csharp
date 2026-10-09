@@ -32,6 +32,6 @@ public class CodeFixAddConvertToUnknownForNonOverlappingTypes9Tests
 let x = /** @type {string} */ (100);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddConvertToUnknownForNonOverlappingTypes9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("Add 'unknown' conversion for non-overlapping types")
+    f.VerifyCodeFixNotAvailable("Add 'unknown' conversion for non-overlapping types");
     }
 }

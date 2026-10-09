@@ -33,6 +33,6 @@ function foo(p) {}
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateWithMultipleJSDoc3", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyJSDocCompletion("", 3, "/** */", null)
+    f.VerifyJSDocCompletion("", 3, "/** */", null);
     }
 }

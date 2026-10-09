@@ -151,6 +151,6 @@ declare const th: [|H|]
     Range = f.Ranges()[10].LSRange,
     Tags = [LsProto.DiagnosticTag.Deprecated],
     },
-    ])
+    ]);
     }
 }

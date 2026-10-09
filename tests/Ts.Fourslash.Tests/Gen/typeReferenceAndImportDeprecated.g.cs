@@ -46,7 +46,7 @@ export declare const value3: {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "typeReferenceAndImportDeprecated", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.ts")
+    f.GoToFile("index.ts");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -63,6 +63,6 @@ export declare const value3: {
     Tags = [LsProto.DiagnosticTag.Deprecated],
     Range = f.Ranges()[1].LSRange,
     },
-    ])
+    ]);
     }
 }

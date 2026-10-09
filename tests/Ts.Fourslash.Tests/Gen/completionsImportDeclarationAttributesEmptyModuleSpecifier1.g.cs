@@ -50,6 +50,6 @@ import * as ns from "" with { type: "/**/" };
     ],
         },
         
-    })
+    });
     }
 }

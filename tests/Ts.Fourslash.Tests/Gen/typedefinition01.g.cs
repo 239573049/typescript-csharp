@@ -35,6 +35,6 @@ export class /*2*/Foo {}
 """;
         using var f = FourslashTest.New(content, fileName: "typedefinition01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToTypeDefinition("1")
+    f.VerifyBaselineGoToTypeDefinition("1");
     }
 }

@@ -32,6 +32,6 @@ export var foo: number = 1;
 import * as /**/ from "m1"
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInNamespaceImportName01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

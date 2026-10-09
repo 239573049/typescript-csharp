@@ -43,7 +43,7 @@ util2();
 new Blah;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_require", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.js")
+    f.GoToFile("index.js");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -58,6 +58,6 @@ new Blah;
     util2();
     new Blah;
     """,
-    })
+    });
     }
 }

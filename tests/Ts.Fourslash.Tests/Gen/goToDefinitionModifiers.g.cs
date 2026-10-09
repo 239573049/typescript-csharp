@@ -43,6 +43,6 @@ public class GoToDefinitionModifiersTests
 exp/*exportFunction*/ort function foo/*foo*/() { }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionModifiers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "export", "A", "private", "z", "readonly", "x", "async", "a", "override", "b", "public1", "public2", "multipleModifiers", "c", "exportFunction", "foo")
+    f.VerifyBaselineGoToDefinition(true, "export", "A", "private", "z", "readonly", "x", "async", "a", "override", "b", "public1", "public2", "multipleModifiers", "c", "exportFunction", "foo");
     }
 }

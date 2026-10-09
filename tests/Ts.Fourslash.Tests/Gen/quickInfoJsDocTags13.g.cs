@@ -53,6 +53,6 @@ f(/*a*/1);
 f(/*b*/"");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocTags13", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

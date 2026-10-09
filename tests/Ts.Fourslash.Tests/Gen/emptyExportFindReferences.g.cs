@@ -33,6 +33,6 @@ public class EmptyExportFindReferencesTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "emptyExportFindReferences", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "");
     }
 }

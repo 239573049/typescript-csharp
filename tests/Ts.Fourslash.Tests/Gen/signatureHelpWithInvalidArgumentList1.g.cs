@@ -30,7 +30,7 @@ function foo(a) { }
 foo(hello my name /**/is
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpWithInvalidArgumentList1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(a: any): void" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(a: any): void" });
     }
 }

@@ -32,6 +32,6 @@ export const foo = 1;
 import { foo } from "./江南/*1*/今何在/tmp";
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoImportNonunicodePath", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "module \"./江南今何在/tmp\"", "")
+    f.VerifyQuickInfoAt("1", "module \"./江南今何在/tmp\"", "");
     }
 }

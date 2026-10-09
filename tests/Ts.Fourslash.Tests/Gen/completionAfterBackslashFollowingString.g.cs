@@ -43,6 +43,6 @@ Harness.newLine = ""\n/**/
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

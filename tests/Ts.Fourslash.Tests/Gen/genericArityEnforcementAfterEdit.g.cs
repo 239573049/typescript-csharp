@@ -31,12 +31,12 @@ interface G<T, U> { }
 var v4: G<G<any>, any>;
 """;
         using var f = FourslashTest.New(content, fileName: "genericArityEnforcementAfterEdit", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

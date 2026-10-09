@@ -59,7 +59,7 @@ let f = class F {
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateVariableStatements01", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var varName in new[]{"a", "b", "c", "d"})
     {
-        f.VerifyJSDocCompletion(varName, 3, "/** */", null)
+        f.VerifyJSDocCompletion(varName, 3, "/** */", null);
     }
 
     f.VerifyJSDocCompletion("e", 7, """
@@ -70,7 +70,7 @@ let f = class F {
      * @param z
      * @returns
      */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("f", 7, """
     /**
@@ -79,6 +79,6 @@ let f = class F {
      * @param b
      * @param c
      */
-    """, null)
+    """, null);
     }
 }

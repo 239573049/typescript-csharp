@@ -53,6 +53,6 @@ interface LotsOfProps {
 const obj1/*o1*/: LotsOfProps = undefined as any as LotsOfProps;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityTruncation1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1}});
     }
 }

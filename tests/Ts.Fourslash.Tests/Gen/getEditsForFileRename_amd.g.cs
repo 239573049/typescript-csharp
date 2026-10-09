@@ -36,6 +36,6 @@ export const x = 0;
     f.VerifyWillRenameFilesEdits("/src/old.ts", "/src/new.ts", new Dictionary<string, string>
     {
     ["/src/user.ts"] = "import { x } from \"./new\";",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

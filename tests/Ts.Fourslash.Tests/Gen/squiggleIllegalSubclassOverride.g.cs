@@ -36,8 +36,8 @@ class Bar extends Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "squiggleIllegalSubclassOverride", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

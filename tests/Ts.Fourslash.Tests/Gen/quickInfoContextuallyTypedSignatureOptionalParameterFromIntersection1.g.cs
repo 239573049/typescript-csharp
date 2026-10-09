@@ -32,6 +32,6 @@ const optionals: ((a?: number) => unknown) & ((b?: string) => unknown) = (
 ) =/**/> {};
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoContextuallyTypedSignatureOptionalParameterFromIntersection1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "function(arg: string | number | undefined): void", "")
+    f.VerifyQuickInfoAt("", "function(arg: string | number | undefined): void", "");
     }
 }

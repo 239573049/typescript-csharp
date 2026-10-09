@@ -50,6 +50,6 @@ function b(a: () => void) { a(); };
             new SemanticToken { Type = "function.declaration", Text = "b" },
             new SemanticToken { Type = "function.declaration", Text = "a" },
             new SemanticToken { Type = "function", Text = "a" },
-        })
+        });
     }
 }

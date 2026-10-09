@@ -43,6 +43,6 @@ import f from "./a"
 /**/f
 """;
         using var f = FourslashTest.New(content, fileName: "syntheticImportFromBabelGeneratedFile2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(alias) function f(t: string): void\nimport f", "Run this function")
+    f.VerifyQuickInfoAt("", "(alias) function f(t: string): void\nimport f", "Run this function");
     }
 }

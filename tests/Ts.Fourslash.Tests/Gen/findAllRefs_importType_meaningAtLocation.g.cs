@@ -34,6 +34,6 @@ const x: import("./a")./*5*/T = 0;
 const x: typeof import("./a")./*6*/T = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefs_importType_meaningAtLocation", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6");
     }
 }

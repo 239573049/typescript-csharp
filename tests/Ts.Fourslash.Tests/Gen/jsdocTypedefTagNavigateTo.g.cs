@@ -39,6 +39,6 @@ var numberLike;
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocTypedefTagNavigateTo", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

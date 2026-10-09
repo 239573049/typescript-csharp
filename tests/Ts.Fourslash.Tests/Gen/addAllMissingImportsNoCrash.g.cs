@@ -41,7 +41,7 @@ interface Testing {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "addAllMissingImportsNoCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("file2.ts")
+    f.GoToFile("file2.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -55,6 +55,6 @@ interface Testing {
         test4: Test4;
     }
     """,
-    })
+    });
     }
 }

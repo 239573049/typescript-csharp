@@ -32,6 +32,6 @@ declare namespace N {
 type T = N./**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsRecursiveNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

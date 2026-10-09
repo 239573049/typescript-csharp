@@ -58,7 +58,7 @@ export const bar = (a = foo()) =>
     """,
         Index = 0,
         ApplyChanges = true,
-    })
+    });
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -77,6 +77,6 @@ export const bar = (a = foo()) =>
     """,
         Index = 0,
         ApplyChanges = true,
-    })
+    });
     }
 }

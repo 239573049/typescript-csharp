@@ -45,6 +45,6 @@ declare module "ambient-module" {
     import ns = require("ambient-module");
     var x = v1 + 5;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

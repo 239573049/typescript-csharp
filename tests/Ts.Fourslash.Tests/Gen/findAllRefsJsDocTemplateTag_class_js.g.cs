@@ -37,6 +37,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsDocTemplateTag_class_js", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

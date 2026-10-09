@@ -47,6 +47,6 @@ function /*8*/foowith3overload(a: any): any {
 /*14*/foowith3overload(true);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

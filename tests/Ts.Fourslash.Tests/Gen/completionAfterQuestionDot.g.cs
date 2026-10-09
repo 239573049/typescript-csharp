@@ -75,7 +75,7 @@ class User {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -99,7 +99,7 @@ class User {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -123,6 +123,6 @@ class User {
     ],
         },
         
-    })
+    });
     }
 }

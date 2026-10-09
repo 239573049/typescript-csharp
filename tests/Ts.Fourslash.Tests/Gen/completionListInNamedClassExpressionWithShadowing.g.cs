@@ -57,7 +57,7 @@ var y = class {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"1", "4", }, new CompletionsExpectedList
     {
@@ -79,7 +79,7 @@ var y = class {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -101,7 +101,7 @@ var y = class {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", "5", }, new CompletionsExpectedList
     {
@@ -118,6 +118,6 @@ var y = class {
     ],
         },
         
-    })
+    });
     }
 }

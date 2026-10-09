@@ -37,44 +37,44 @@ with (bar.blah)/*4*/
 }/*6*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatWithStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSFalse })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSFalse });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("with (foo.bar) {")
+    f.VerifyCurrentLineContent("with (foo.bar) {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("with (bar.blah) {")
+    f.VerifyCurrentLineContent("with (bar.blah) {");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("with (foo.bar)")
+    f.VerifyCurrentLineContent("with (foo.bar)");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("{")
+    f.VerifyCurrentLineContent("{");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("with (bar.blah)")
+    f.VerifyCurrentLineContent("with (bar.blah)");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("{")
+    f.VerifyCurrentLineContent("{");
     }
 }

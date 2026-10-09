@@ -54,7 +54,7 @@ import bar = require("bar");
 foo
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixNewImportExportEqualsCommonJSInteropOn", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.ts")
+    f.GoToFile("/a.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -63,9 +63,9 @@ foo
 
     foo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -73,9 +73,9 @@ foo
 
     foo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -85,6 +85,6 @@ foo
 
     foo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

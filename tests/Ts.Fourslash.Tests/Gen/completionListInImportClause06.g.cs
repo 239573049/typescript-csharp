@@ -50,6 +50,6 @@ export declare let x: number;
     ],
         },
         
-    })
+    });
     }
 }

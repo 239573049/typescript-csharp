@@ -34,6 +34,6 @@ import { /*1*/A } from "./a";
 /*2*/A;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsClassExpression2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
     }
 }

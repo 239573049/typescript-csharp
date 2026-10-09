@@ -34,8 +34,8 @@ public class GetOccurrencesConst01Tests
 /*2*/const c = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesConst01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "2")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "2");
     }
 }

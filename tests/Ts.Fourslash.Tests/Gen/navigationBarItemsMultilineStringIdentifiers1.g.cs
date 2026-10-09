@@ -56,6 +56,6 @@ class Bar implements Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsMultilineStringIdentifiers1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -33,12 +33,12 @@ export function bar() { return 1; }
 var x = import/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalParsingDynamicImport3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("(")
+    f.Insert("(");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

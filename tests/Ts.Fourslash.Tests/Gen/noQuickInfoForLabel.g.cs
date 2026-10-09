@@ -31,12 +31,12 @@ public class NoQuickInfoForLabelTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "noQuickInfoForLabel", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
     }
 }

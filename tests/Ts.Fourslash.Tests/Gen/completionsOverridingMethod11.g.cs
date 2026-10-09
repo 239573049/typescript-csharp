@@ -81,6 +81,6 @@ class Sub implements Base {
     ],
         },
         
-    })
+    });
     }
 }

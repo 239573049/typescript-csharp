@@ -30,6 +30,6 @@ let v = 100;
 let x = /absidey/g/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAfterRegularExpressionLiteral05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

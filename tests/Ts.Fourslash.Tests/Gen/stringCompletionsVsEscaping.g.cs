@@ -57,7 +57,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -74,7 +74,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -91,7 +91,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -108,7 +108,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -125,7 +125,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -142,7 +142,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -159,7 +159,7 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -176,6 +176,6 @@ export const backtickQuoted2: '`backtick-quoted`' = `/*8*/`
     ],
         },
         
-    })
+    });
     }
 }

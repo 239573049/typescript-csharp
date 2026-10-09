@@ -53,16 +53,16 @@ var b = new Component({items: [0, 1, 2], render/*0*/Item: it/*1*/em => item.toFi
 var c = <Component items={[0, 1, 2]} render/*3*/Item={it/*4*/em => item.toFixed()} name/*5*/="A" />
 """;
         using var f = FourslashTest.New(content, fileName: "jsxGenericQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("0", "(property) PropsA<number>.renderItem: (item: number) => string", "")
+    f.VerifyQuickInfoAt("0", "(property) PropsA<number>.renderItem: (item: number) => string", "");
 
-    f.VerifyQuickInfoAt("1", "(parameter) item: number", "")
+    f.VerifyQuickInfoAt("1", "(parameter) item: number", "");
 
-    f.VerifyQuickInfoAt("2", "(property) PropsA<T>.name: \"A\"", "comments for A")
+    f.VerifyQuickInfoAt("2", "(property) PropsA<T>.name: \"A\"", "comments for A");
 
-    f.VerifyQuickInfoAt("3", "(property) PropsA<number>.renderItem: (item: number) => string", "")
+    f.VerifyQuickInfoAt("3", "(property) PropsA<number>.renderItem: (item: number) => string", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) item: number", "")
+    f.VerifyQuickInfoAt("4", "(parameter) item: number", "");
 
-    f.VerifyQuickInfoAt("5", "(property) PropsA<T>.name: \"A\"", "comments for A")
+    f.VerifyQuickInfoAt("5", "(property) PropsA<T>.name: \"A\"", "comments for A");
     }
 }

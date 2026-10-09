@@ -49,6 +49,6 @@ if (false) {
 else { }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIfElse4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

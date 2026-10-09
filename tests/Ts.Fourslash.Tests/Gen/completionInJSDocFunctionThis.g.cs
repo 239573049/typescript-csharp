@@ -51,6 +51,6 @@ var f = function (s) { return this/**/; }
     ],
         },
         
-    })
+    });
     }
 }

@@ -39,6 +39,6 @@ var x = new Foo();
 x.[|union|];
 """;
         using var f = FourslashTest.New(content, fileName: "javaScriptClass2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "union")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "union");
     }
 }

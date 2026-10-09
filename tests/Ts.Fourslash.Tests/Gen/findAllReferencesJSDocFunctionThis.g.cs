@@ -32,6 +32,6 @@ public class FindAllReferencesJSDocFunctionThisTests
 var f = function (s) { return /*0*/this + s; }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesJSDocFunctionThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0")
+    f.VerifyBaselineFindAllReferences("0");
     }
 }

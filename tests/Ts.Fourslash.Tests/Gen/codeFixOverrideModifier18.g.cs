@@ -35,6 +35,6 @@ class B extends A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixOverrideModifier18", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixAddOverrideModifier")
+    f.VerifyCodeFixNotAvailable("fixAddOverrideModifier");
     }
 }

@@ -32,6 +32,6 @@ catch (/*1*/err) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsCatchClause", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

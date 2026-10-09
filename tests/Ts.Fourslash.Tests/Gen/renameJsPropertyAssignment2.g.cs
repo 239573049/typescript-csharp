@@ -34,6 +34,6 @@ class Minimatch {
 console.log(Minimatch.[|staticProperty|]);
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsPropertyAssignment2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "staticProperty")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "staticProperty");
     }
 }

@@ -36,18 +36,18 @@ function f([|[|/*def*/{| "contextRangeIndex": 1 |}foo|]: I|]) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocServices", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("use")
+    f.GoToMarker("use");
 
-    f.VerifyQuickInfoIs("(parameter) foo: I", "I pity the foo")
+    f.VerifyQuickInfoIs("(parameter) foo: I", "I pity the foo");
 
-    f.VerifyBaselineFindAllReferences("use", "def", "use2")
+    f.VerifyBaselineFindAllReferences("use", "def", "use2");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[0], f.Ranges()[2], f.Ranges()[3])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[0], f.Ranges()[2], f.Ranges()[3]);
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0], f.Ranges()[2], f.Ranges()[3])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[0], f.Ranges()[2], f.Ranges()[3]);
 
-    f.VerifyBaselineGoToTypeDefinition("use")
+    f.VerifyBaselineGoToTypeDefinition("use");
 
-    f.VerifyBaselineGoToDefinition(false, "use")
+    f.VerifyBaselineGoToDefinition(false, "use");
     }
 }

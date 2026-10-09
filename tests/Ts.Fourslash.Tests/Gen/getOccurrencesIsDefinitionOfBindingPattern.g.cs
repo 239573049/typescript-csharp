@@ -30,6 +30,6 @@ const { /*1*/x, y } = { /*2*/x: 1, y: 2 };
 const z = /*3*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfBindingPattern", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

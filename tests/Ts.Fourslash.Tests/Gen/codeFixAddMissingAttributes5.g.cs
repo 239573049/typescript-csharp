@@ -42,6 +42,6 @@ const Bar = () =>
     [|<A a={100} b={""} c={[]} d={undefined}></A>|]
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingAttributes5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixMissingAttributes")
+    f.VerifyCodeFixNotAvailable("fixMissingAttributes");
     }
 }

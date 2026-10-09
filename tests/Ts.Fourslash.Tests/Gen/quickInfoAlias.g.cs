@@ -50,6 +50,6 @@ import {
 x/*c*/;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

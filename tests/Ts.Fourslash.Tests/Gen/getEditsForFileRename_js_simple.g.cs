@@ -36,6 +36,6 @@ module.exports = 1;
     f.VerifyWillRenameFilesEdits("/b.js", "/c.js", new Dictionary<string, string>
     {
     ["/a.js"] = "import b from \"./c.js\";",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

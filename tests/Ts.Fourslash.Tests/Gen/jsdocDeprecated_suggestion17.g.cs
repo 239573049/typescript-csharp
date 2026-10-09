@@ -56,6 +56,6 @@ function f(foo: Foo) {
     Tags = [LsProto.DiagnosticTag.Deprecated],
     Range = f.Ranges()[2].LSRange,
     },
-    ])
+    ]);
     }
 }

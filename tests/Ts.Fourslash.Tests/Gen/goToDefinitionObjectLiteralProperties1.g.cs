@@ -39,6 +39,6 @@ bar(true, {
 })
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionObjectLiteralProperties1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "p1", "p2")
+    f.VerifyBaselineGoToDefinition(true, "p1", "p2");
     }
 }

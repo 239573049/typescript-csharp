@@ -33,26 +33,26 @@ public class FormattingSingleLineWithNewLineOptionSetTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSingleLineWithNewLineOptionSet", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core.TSTrue });
 
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("namespace Default { }")
+    f.VerifyCurrentLineContent("namespace Default { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("function foo() { }")
+    f.VerifyCurrentLineContent("function foo() { }");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("if (true) { }")
+    f.VerifyCurrentLineContent("if (true) { }");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("function boo()")
+    f.VerifyCurrentLineContent("function boo()");
     }
 }

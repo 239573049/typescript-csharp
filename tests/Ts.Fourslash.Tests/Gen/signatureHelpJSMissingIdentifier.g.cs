@@ -32,6 +32,6 @@ public class SignatureHelpJSMissingIdentifierTests
 log(/**/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpJSMissingIdentifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("")
+    f.VerifyNoSignatureHelpForMarkers("");
     }
 }

@@ -41,6 +41,6 @@ class B extends A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInheritDoc5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

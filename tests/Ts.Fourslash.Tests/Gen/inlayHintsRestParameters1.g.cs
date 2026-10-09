@@ -42,6 +42,6 @@ foo3(1, 2, 3)
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.Literals,
     },
-    })
+    });
     }
 }

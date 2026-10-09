@@ -33,8 +33,8 @@ const obj/*1*/ = schema(b);
 const actualTypeOfNested/*2*/ = schema(obj);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInforForSucessiveInferencesIsNotAny", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const obj: {\n    field: boolean;\n}", "")
+    f.VerifyQuickInfoAt("1", "const obj: {\n    field: boolean;\n}", "");
 
-    f.VerifyQuickInfoAt("2", "const actualTypeOfNested: {\n    field: {\n        field: boolean;\n    };\n}", "")
+    f.VerifyQuickInfoAt("2", "const actualTypeOfNested: {\n    field: {\n        field: boolean;\n    };\n}", "");
     }
 }

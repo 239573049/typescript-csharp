@@ -33,10 +33,10 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "addFunctionInDuplicatedConstructorClassBody", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("fn() { }")
+    f.Insert("fn() { }");
 
-    f.VerifyNumberOfErrorsInCurrentFile(2)
+    f.VerifyNumberOfErrorsInCurrentFile(2);
     }
 }

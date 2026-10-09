@@ -43,6 +43,6 @@ public class UnusedImports3FSTests
  }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports3FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("import {/*some comments*/ test, test2} from \"./file1\"", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("import {/*some comments*/ test, test2} from \"./file1\"", false, 0, 0);
     }
 }

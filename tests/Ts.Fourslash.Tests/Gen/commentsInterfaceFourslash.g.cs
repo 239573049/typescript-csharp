@@ -96,21 +96,21 @@ i3_i.nc_/*44q*/f(/*44*/10);
 i3_i.nc/*45q*/_l(/*45*/10);
 """;
         using var f = FourslashTest.New(content, fileName: "commentsInterfaceFourslash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "interface i1", "this is interface 1")
+    f.VerifyQuickInfoAt("1", "interface i1", "this is interface 1");
 
-    f.VerifyQuickInfoAt("2", "var i1_i: i1", "")
+    f.VerifyQuickInfoAt("2", "var i1_i: i1", "");
 
-    f.VerifyQuickInfoAt("3", "interface nc_i1", "")
+    f.VerifyQuickInfoAt("3", "interface nc_i1", "");
 
-    f.VerifyQuickInfoAt("4", "var nc_i1_i: nc_i1", "")
+    f.VerifyQuickInfoAt("4", "var nc_i1_i: nc_i1", "");
 
-    f.VerifyQuickInfoAt("5", "interface i2", "this is interface 2 with members")
+    f.VerifyQuickInfoAt("5", "interface i2", "this is interface 2 with members");
 
-    f.VerifyQuickInfoAt("6", "var i2_i: i2", "")
+    f.VerifyQuickInfoAt("6", "var i2_i: i2", "");
 
-    f.VerifyQuickInfoAt("7", "var i2_i_x: number", "")
+    f.VerifyQuickInfoAt("7", "var i2_i_x: number", "");
 
-    f.VerifyQuickInfoAt("8", "(property) i2.x: number", "this is x")
+    f.VerifyQuickInfoAt("8", "(property) i2.x: number", "this is x");
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -172,80 +172,80 @@ i3_i.nc/*45q*/_l(/*45*/10);
     ]),
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("9", "var i2_i_foo: (b: number) => string", "")
+    f.VerifyQuickInfoAt("9", "var i2_i_foo: (b: number) => string", "");
 
-    f.VerifyQuickInfoAt("10", "(property) i2.foo: (b: number) => string", "this is foo")
+    f.VerifyQuickInfoAt("10", "(property) i2.foo: (b: number) => string", "this is foo");
 
-    f.VerifyQuickInfoAt("11", "var i2_i_foo_r: string", "")
+    f.VerifyQuickInfoAt("11", "var i2_i_foo_r: string", "");
 
-    f.GoToMarker("12")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "param help" })
+    f.GoToMarker("12");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "param help" });
 
-    f.VerifyQuickInfoAt("12q", "(property) i2.foo: (b: number) => string", "this is foo")
+    f.VerifyQuickInfoAt("12q", "(property) i2.foo: (b: number) => string", "this is foo");
 
-    f.VerifyQuickInfoAt("13", "var i2_i_i2_si: number", "")
+    f.VerifyQuickInfoAt("13", "var i2_i_i2_si: number", "");
 
-    f.VerifyQuickInfoAt("13q", "var i2_i: i2", "")
+    f.VerifyQuickInfoAt("13q", "var i2_i: i2", "");
 
-    f.VerifyQuickInfoAt("14", "var i2_i_i2_ii: number", "")
+    f.VerifyQuickInfoAt("14", "var i2_i_i2_ii: number", "");
 
-    f.VerifyQuickInfoAt("14q", "var i2_i: i2", "")
+    f.VerifyQuickInfoAt("14q", "var i2_i: i2", "");
 
-    f.VerifyQuickInfoAt("15", "var i2_i_n: any", "")
+    f.VerifyQuickInfoAt("15", "var i2_i_n: any", "");
 
-    f.GoToMarker("16")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new method", ParameterDocComment = "param" })
+    f.GoToMarker("16");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new method", ParameterDocComment = "param" });
 
-    f.VerifyQuickInfoAt("16q", "var i2_i: i2\nnew (i: i1) => any", "new method")
+    f.VerifyQuickInfoAt("16q", "var i2_i: i2\nnew (i: i1) => any", "new method");
 
-    f.VerifyQuickInfoAt("17", "var i2_i_nc_x: number", "")
+    f.VerifyQuickInfoAt("17", "var i2_i_nc_x: number", "");
 
-    f.VerifyQuickInfoAt("18", "(property) i2.nc_x: number", "")
+    f.VerifyQuickInfoAt("18", "(property) i2.nc_x: number", "");
 
-    f.VerifyQuickInfoAt("19", "var i2_i_nc_foo: (b: number) => string", "")
+    f.VerifyQuickInfoAt("19", "var i2_i_nc_foo: (b: number) => string", "");
 
-    f.VerifyQuickInfoAt("20", "(property) i2.nc_foo: (b: number) => string", "")
+    f.VerifyQuickInfoAt("20", "(property) i2.nc_foo: (b: number) => string", "");
 
-    f.VerifyQuickInfoAt("21", "var i2_i_nc_foo_r: string", "")
+    f.VerifyQuickInfoAt("21", "var i2_i_nc_foo_r: string", "");
 
-    f.GoToMarker("22")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("22");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("22q", "(property) i2.nc_foo: (b: number) => string", "")
+    f.VerifyQuickInfoAt("22q", "(property) i2.nc_foo: (b: number) => string", "");
 
-    f.VerifyQuickInfoAt("23", "var i2_i_r: number", "")
+    f.VerifyQuickInfoAt("23", "var i2_i_r: number", "");
 
-    f.GoToMarker("24")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp a" })
+    f.GoToMarker("24");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp a" });
 
-    f.VerifyQuickInfoAt("24q", "var i2_i: i2\n(a: number, b: number) => number", "this is call signature")
+    f.VerifyQuickInfoAt("24q", "var i2_i: i2\n(a: number, b: number) => number", "this is call signature");
 
-    f.GoToMarker("25")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp b" })
+    f.GoToMarker("25");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp b" });
 
-    f.VerifyQuickInfoAt("26", "var i2_i_fnfoo: (b: number) => string", "")
+    f.VerifyQuickInfoAt("26", "var i2_i_fnfoo: (b: number) => string", "");
 
-    f.VerifyQuickInfoAt("27", "(method) i2.fnfoo(b: number): string", "this is fnfoo")
+    f.VerifyQuickInfoAt("27", "(method) i2.fnfoo(b: number): string", "this is fnfoo");
 
-    f.VerifyQuickInfoAt("28", "var i2_i_fnfoo_r: string", "")
+    f.VerifyQuickInfoAt("28", "var i2_i_fnfoo_r: string", "");
 
-    f.GoToMarker("29")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is fnfoo", ParameterDocComment = "param help" })
+    f.GoToMarker("29");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is fnfoo", ParameterDocComment = "param help" });
 
-    f.VerifyQuickInfoAt("29q", "(method) i2.fnfoo(b: number): string", "this is fnfoo")
+    f.VerifyQuickInfoAt("29q", "(method) i2.fnfoo(b: number): string", "this is fnfoo");
 
-    f.VerifyQuickInfoAt("30", "var i2_i_nc_fnfoo: (b: number) => string", "")
+    f.VerifyQuickInfoAt("30", "var i2_i_nc_fnfoo: (b: number) => string", "");
 
-    f.VerifyQuickInfoAt("31", "(method) i2.nc_fnfoo(b: number): string", "")
+    f.VerifyQuickInfoAt("31", "(method) i2.nc_fnfoo(b: number): string", "");
 
-    f.VerifyQuickInfoAt("32", "var i2_i_nc_fnfoo_r: string", "")
+    f.VerifyQuickInfoAt("32", "var i2_i_nc_fnfoo_r: string", "");
 
-    f.GoToMarker("33")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("33");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("33q", "(method) i2.nc_fnfoo(b: number): string", "")
+    f.VerifyQuickInfoAt("33q", "(method) i2.nc_fnfoo(b: number): string", "");
 
     f.VerifyCompletions("34", new CompletionsExpectedList
     {
@@ -356,7 +356,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("34i", new CompletionsExpectedList
     {
@@ -397,7 +397,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("36", new CompletionsExpectedList
     {
@@ -423,9 +423,9 @@ i3_i.nc/*45q*/_l(/*45*/10);
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("40q", "var i3_i: i3", "")
+    f.VerifyQuickInfoAt("40q", "var i3_i: i3", "");
 
     f.VerifyCompletions("40", new CompletionsExpectedList
     {
@@ -449,11 +449,11 @@ i3_i.nc/*45q*/_l(/*45*/10);
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("41")
+    f.GoToMarker("41");
 
-    f.VerifyQuickInfoIs("(method) i3.f(a: number): string", "Function i3 f")
+    f.VerifyQuickInfoIs("(method) i3.f(a: number): string", "Function i3 f");
 
     f.VerifyCompletions("41", new CompletionsExpectedList
     {
@@ -514,24 +514,24 @@ i3_i.nc/*45q*/_l(/*45*/10);
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("42")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "Function i3 f", ParameterDocComment = "number parameter" })
+    f.GoToMarker("42");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "Function i3 f", ParameterDocComment = "number parameter" });
 
-    f.GoToMarker("43")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "comment i3 l b" })
+    f.GoToMarker("43");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "comment i3 l b" });
 
-    f.VerifyQuickInfoAt("43q", "(property) i3.l: (b: number) => string", "i3 l")
+    f.VerifyQuickInfoAt("43q", "(property) i3.l: (b: number) => string", "i3 l");
 
-    f.GoToMarker("44")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("44");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("44q", "(method) i3.nc_f(a: number): string", "")
+    f.VerifyQuickInfoAt("44q", "(method) i3.nc_f(a: number): string", "");
 
-    f.GoToMarker("45")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("45");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("45q", "(property) i3.nc_l: (b: number) => string", "")
+    f.VerifyQuickInfoAt("45q", "(property) i3.nc_l: (b: number) => string", "");
     }
 }

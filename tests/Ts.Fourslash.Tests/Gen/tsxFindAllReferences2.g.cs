@@ -40,6 +40,6 @@ declare namespace JSX {
 var x = <div name="hello" />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferences2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

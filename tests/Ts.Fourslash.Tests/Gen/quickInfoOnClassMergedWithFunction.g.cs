@@ -40,6 +40,6 @@ namespace Test {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnClassMergedWithFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) myProp: string", "")
+    f.VerifyQuickInfoAt("", "(property) myProp: string", "");
     }
 }

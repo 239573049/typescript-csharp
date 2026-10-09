@@ -64,6 +64,6 @@ obj.[|bool|];
 obj[`[|bool|]`];
 """;
         using var f = FourslashTest.New(content, fileName: "renameTemplateLiteralsComputedProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "num", "bool")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "num", "bool");
     }
 }

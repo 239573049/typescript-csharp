@@ -34,6 +34,6 @@ export interface IService {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_simple2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

@@ -32,6 +32,6 @@ async function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesAsyncAwait3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "");
     }
 }

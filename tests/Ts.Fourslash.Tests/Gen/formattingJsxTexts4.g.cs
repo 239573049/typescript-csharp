@@ -34,7 +34,7 @@ return a;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingJsxTexts4", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function foo() {
@@ -42,6 +42,6 @@ return a;
 
         return a;
     }
-    """)
+    """);
     }
 }

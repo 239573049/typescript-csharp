@@ -32,6 +32,6 @@ const c = "c" as /*3*/const;
 const d = [1, 2] as /*4*/const;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForConstAssertions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

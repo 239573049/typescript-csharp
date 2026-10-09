@@ -33,6 +33,6 @@ const u: U = { a: "" }
 const v: V = { a: true }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

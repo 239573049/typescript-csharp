@@ -50,9 +50,9 @@ shared/*external2external*/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_externalNonRelateive2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" })
+    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
 
-    f.GoToMarker("internal2external")
+    f.GoToMarker("internal2external");
 
     f.VerifyImportFixAtPosition([
     """
@@ -63,9 +63,9 @@ shared/*external2external*/
     ], new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("project-relative"),
-    })
+    });
 
-    f.GoToMarker("internal2internal")
+    f.GoToMarker("internal2internal");
 
     f.VerifyImportFixAtPosition([
     """
@@ -76,9 +76,9 @@ shared/*external2external*/
     ], new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("project-relative"),
-    })
+    });
 
-    f.GoToMarker("external2external")
+    f.GoToMarker("external2external");
 
     f.VerifyImportFixAtPosition([
     """
@@ -89,6 +89,6 @@ shared/*external2external*/
     ], new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("project-relative"),
-    })
+    });
     }
 }

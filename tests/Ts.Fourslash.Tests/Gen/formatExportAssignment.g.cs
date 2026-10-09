@@ -29,8 +29,8 @@ public class FormatExportAssignmentTests
 export='foo';
 """;
         using var f = FourslashTest.New(content, fileName: "formatExportAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentFileContent("export = 'foo';")
+    f.VerifyCurrentFileContent("export = 'foo';");
     }
 }

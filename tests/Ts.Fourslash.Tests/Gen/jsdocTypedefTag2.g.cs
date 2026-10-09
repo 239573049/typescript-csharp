@@ -64,7 +64,7 @@ function b(my2) {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -81,6 +81,6 @@ function b(my2) {
     ],
         },
         
-    })
+    });
     }
 }

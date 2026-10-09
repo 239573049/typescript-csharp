@@ -42,7 +42,7 @@ public class CompletionListAfterNumericLiteralTests
 (0.0)./*validDotOnNumberExpressions3*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAfterNumericLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"dotOnNumberExpressions1", "dotOnNumberExpressions4", }, null)
+    f.VerifyCompletions(new[]{"dotOnNumberExpressions1", "dotOnNumberExpressions4", }, null);
 
     f.VerifyCompletions(new[]{"dotOnNumberExpressions2", "dotOnNumberExpressions3", "validDotOnNumberExpressions1", "validDotOnNumberExpressions2", "validDotOnNumberExpressions3", }, new CompletionsExpectedList
     {
@@ -59,6 +59,6 @@ public class CompletionListAfterNumericLiteralTests
     ],
         },
         
-    })
+    });
     }
 }

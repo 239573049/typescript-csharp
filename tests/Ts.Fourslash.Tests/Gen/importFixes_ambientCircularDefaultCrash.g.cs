@@ -43,6 +43,6 @@ my/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importFixes_ambientCircularDefaultCrash", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyImportFixModuleSpecifiers("", [], null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", [], null /*preferences*/);
     }
 }

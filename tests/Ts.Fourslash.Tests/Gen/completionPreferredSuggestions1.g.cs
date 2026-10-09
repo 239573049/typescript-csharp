@@ -57,7 +57,7 @@ v5 = "/*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -76,7 +76,7 @@ v5 = "/*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -95,7 +95,7 @@ v5 = "/*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -111,7 +111,7 @@ v5 = "/*5*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -130,6 +130,6 @@ v5 = "/*5*/";
     ],
         },
         
-    })
+    });
     }
 }

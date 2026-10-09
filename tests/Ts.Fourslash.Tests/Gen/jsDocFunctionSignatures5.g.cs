@@ -43,6 +43,6 @@ function pathFilter(basePath, pattern, type, options){
 pathFilter(/**/'foo', 'bar', 'baz', {});
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

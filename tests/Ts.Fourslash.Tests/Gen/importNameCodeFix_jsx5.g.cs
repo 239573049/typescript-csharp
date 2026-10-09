@@ -45,7 +45,7 @@ import React from "react";
 <[|Text|] />;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsx5", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -56,6 +56,6 @@ import React from "react";
     <Text />;
     """,
         Index = 0,
-    })
+    });
     }
 }

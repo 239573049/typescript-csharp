@@ -53,6 +53,6 @@ function UserName() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "tsxCompletionInFunctionExpressionOfChildrenCallback", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

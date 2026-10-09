@@ -33,6 +33,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsSymbols1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

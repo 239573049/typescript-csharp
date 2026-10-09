@@ -45,6 +45,6 @@ var /*def*/SFCComp = SFC1 || SFC2;
 <[|SFC/*one*/Comp|] x />
 """;
         using var f = FourslashTest.New(content, fileName: "tsxGoToDefinitionUnionElementType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "one")
+    f.VerifyBaselineGoToDefinition(true, "one");
     }
 }

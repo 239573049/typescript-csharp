@@ -39,11 +39,11 @@ someOptional(1, 2, 3);
 someOptional(); // no error here; x and y are optional in JS
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCallExpressionJs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "allOptional(...args: any[]): void", ParameterCount = 1, ParameterName = "args", ParameterSpan = "...args: any[]", IsVariadic = true, IsVariadicSet = true })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "someOptional(x: any, y: any, ...args: any[]): void", ParameterCount = 3, ParameterName = "x", ParameterSpan = "x: any", IsVariadic = true, IsVariadicSet = true })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "allOptional(...args: any[]): void", ParameterCount = 1, ParameterName = "args", ParameterSpan = "...args: any[]", IsVariadic = true, IsVariadicSet = true });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "someOptional(x: any, y: any, ...args: any[]): void", ParameterCount = 3, ParameterName = "x", ParameterSpan = "x: any", IsVariadic = true, IsVariadicSet = true });
     }
 }

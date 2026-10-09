@@ -44,6 +44,6 @@ class Child extends Namespace.Parent {
             Includes = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

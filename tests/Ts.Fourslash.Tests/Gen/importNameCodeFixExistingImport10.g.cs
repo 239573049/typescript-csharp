@@ -46,6 +46,6 @@ export var v3 = 5;
         v2
     }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

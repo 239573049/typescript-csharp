@@ -33,6 +33,6 @@ var ===;
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

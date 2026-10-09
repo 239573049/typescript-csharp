@@ -65,7 +65,7 @@ import {} from "#internal//*2*/";
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -82,6 +82,6 @@ import {} from "#internal//*2*/";
     ],
         },
         
-    })
+    });
     }
 }

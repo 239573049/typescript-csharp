@@ -38,6 +38,6 @@ declare namespace JSX {
 </*2*/foobarbaz />;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnJsxIntrinsicDeclaredUsingTemplateLiteralTypeSignatures", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

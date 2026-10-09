@@ -34,22 +34,22 @@ import bar  =    Foo;/*3*/
 import bar2=Foo;/*4*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatImportDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("namespace Foo {")
+    f.VerifyCurrentLineContent("namespace Foo {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("import bar = Foo;")
+    f.VerifyCurrentLineContent("import bar = Foo;");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("import bar2 = Foo;")
+    f.VerifyCurrentLineContent("import bar2 = Foo;");
     }
 }

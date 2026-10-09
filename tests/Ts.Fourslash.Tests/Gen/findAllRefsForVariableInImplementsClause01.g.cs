@@ -30,6 +30,6 @@ var Base = class { };
 class C extends Base implements /**/Base { }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForVariableInImplementsClause01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

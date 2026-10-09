@@ -37,6 +37,6 @@ const /*3*/A = require("./a");
 new /*4*/A;
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsExports03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

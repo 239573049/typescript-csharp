@@ -65,9 +65,9 @@ Pkg2/*internal*/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_externalNonRelative1", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" })
+    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
 
-    f.GoToMarker("external")
+    f.GoToMarker("external");
 
     f.VerifyImportFixAtPosition([
     """
@@ -78,9 +78,9 @@ Pkg2/*internal*/
     ], new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("project-relative"),
-    })
+    });
 
-    f.GoToMarker("internal")
+    f.GoToMarker("internal");
 
     f.VerifyImportFixAtPosition([
     """
@@ -91,6 +91,6 @@ Pkg2/*internal*/
     ], new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("project-relative"),
-    })
+    });
     }
 }

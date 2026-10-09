@@ -43,7 +43,7 @@ export class Point3D extends
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports23-heritage-formatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Extract base class to variable"})
+    f.VerifyCodeFixAvailable(new[]{"Extract base class to variable"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -65,6 +65,6 @@ export class Point3D extends
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

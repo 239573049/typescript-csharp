@@ -42,6 +42,6 @@ export var v1 = 5;
         v1
     }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -54,29 +54,29 @@ var /*11*/dd = aa.map(/*12*/x => x.length);
 var e = a.map(x => x./*13*/
 """;
         using var f = FourslashTest.New(content, fileName: "underscoreTypings01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var b: number[]", "")
+    f.VerifyQuickInfoAt("1", "var b: number[]", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) x: string", "")
+    f.VerifyQuickInfoAt("2", "(parameter) x: string", "");
 
-    f.VerifyQuickInfoAt("3", "var c: number[]", "")
+    f.VerifyQuickInfoAt("3", "var c: number[]", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) x: string", "")
+    f.VerifyQuickInfoAt("4", "(parameter) x: string", "");
 
-    f.VerifyQuickInfoAt("5", "var d: number[]", "")
+    f.VerifyQuickInfoAt("5", "var d: number[]", "");
 
-    f.VerifyQuickInfoAt("6", "(parameter) x: string", "")
+    f.VerifyQuickInfoAt("6", "(parameter) x: string", "");
 
-    f.VerifyQuickInfoAt("7", "var bb: any[]", "")
+    f.VerifyQuickInfoAt("7", "var bb: any[]", "");
 
-    f.VerifyQuickInfoAt("8", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("8", "(parameter) x: any", "");
 
-    f.VerifyQuickInfoAt("9", "var cc: any[]", "")
+    f.VerifyQuickInfoAt("9", "var cc: any[]", "");
 
-    f.VerifyQuickInfoAt("10", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("10", "(parameter) x: any", "");
 
-    f.VerifyQuickInfoAt("11", "var dd: any[]", "")
+    f.VerifyQuickInfoAt("11", "var dd: any[]", "");
 
-    f.VerifyQuickInfoAt("12", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("12", "(parameter) x: any", "");
 
     f.VerifyCompletions("13", new CompletionsExpectedList
     {
@@ -96,6 +96,6 @@ var e = a.map(x => x./*13*/
     ],
         },
         
-    })
+    });
     }
 }

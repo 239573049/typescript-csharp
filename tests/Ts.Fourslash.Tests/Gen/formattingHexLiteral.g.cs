@@ -29,6 +29,6 @@ public class FormattingHexLiteralTests
 var x =  0x1,y;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingHexLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
     }
 }

@@ -38,8 +38,8 @@ import int = ext.IntMod;
 var x = new int/*0*/
 """;
         using var f = FourslashTest.New(content, fileName: "syntaxErrorAfterImport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
-    f.Insert(".")
+    f.Insert(".");
     }
 }

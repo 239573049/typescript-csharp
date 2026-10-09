@@ -43,6 +43,6 @@ function myFunction(/* x */ x: any) {
             new SemanticToken { Type = "parameter", Text = "x" },
             new SemanticToken { Type = "parameter", Text = "x" },
             new SemanticToken { Type = "parameter", Text = "x" },
-        })
+        });
     }
 }

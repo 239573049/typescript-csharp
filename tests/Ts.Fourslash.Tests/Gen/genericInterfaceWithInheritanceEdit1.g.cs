@@ -40,12 +40,12 @@ interface ChainedArray<T> extends ChainedObject<Array<T>> {
  /*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "genericInterfaceWithInheritanceEdit1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(" ")
+    f.Insert(" ");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

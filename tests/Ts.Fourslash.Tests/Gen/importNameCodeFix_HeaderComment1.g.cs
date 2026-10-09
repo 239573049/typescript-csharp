@@ -39,7 +39,7 @@ import { bar } from "./b";
 foo;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_HeaderComment1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -51,6 +51,6 @@ foo;
     import { bar } from "./b";
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

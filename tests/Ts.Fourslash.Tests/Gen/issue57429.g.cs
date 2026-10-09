@@ -45,7 +45,7 @@ Builder<IThing>({
 })
 """;
         using var f = FourslashTest.New(content, fileName: "issue57429", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const value: any", "")
+    f.VerifyQuickInfoAt("1", "const value: any", "");
 
     f.VerifyNonSuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -53,6 +53,6 @@ Builder<IThing>({
     Message = LsProto.StringOrMarkupContent.FromString("Property 'args' does not exist on type 'IThing'."),
     Code = LsProto.IntegerOrString.FromInteger(2339),
     },
-    ])
+    ]);
     }
 }

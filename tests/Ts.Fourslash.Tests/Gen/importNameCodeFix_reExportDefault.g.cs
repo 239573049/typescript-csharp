@@ -43,7 +43,7 @@ export default foo;
 export default 0;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_reExportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/user.ts")
+    f.GoToFile("/user.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -56,9 +56,9 @@ export default 0;
 
     foo;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/user2.ts")
+    f.GoToFile("/user2.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -71,9 +71,9 @@ export default 0;
 
     unnamed;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/user3.ts")
+    f.GoToFile("/user3.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -81,6 +81,6 @@ export default 0;
 
     reExportUnnamed;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

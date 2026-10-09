@@ -52,6 +52,6 @@ function Blah(x: /**/Bar.Bleah) {
     ],
         },
         
-    })
+    });
     }
 }

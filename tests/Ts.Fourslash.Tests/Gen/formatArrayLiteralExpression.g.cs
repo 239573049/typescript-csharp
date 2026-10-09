@@ -49,42 +49,42 @@ export let Things2 = [
     }];/*9*/
 """;
         using var f = FourslashTest.New(content, fileName: "formatArrayLiteralExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    Hat: 'hat',")
+    f.VerifyCurrentLineContent("    Hat: 'hat',");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("}, {")
+    f.VerifyCurrentLineContent("}, {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    Salad: 'salad',")
+    f.VerifyCurrentLineContent("    Salad: 'salad',");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("}];")
+    f.VerifyCurrentLineContent("}];");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("        Hat: 'hat',")
+    f.VerifyCurrentLineContent("        Hat: 'hat',");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    },")
+    f.VerifyCurrentLineContent("    },");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("        Salad: 'salad',")
+    f.VerifyCurrentLineContent("        Salad: 'salad',");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("        Burrito: ['burrito', 'carne asada', 'tinga de res', 'tinga de pollo'],")
+    f.VerifyCurrentLineContent("        Burrito: ['burrito', 'carne asada', 'tinga de res', 'tinga de pollo'],");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("    }];")
+    f.VerifyCurrentLineContent("    }];");
     }
 }

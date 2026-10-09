@@ -46,6 +46,6 @@ export = a;
     export = a;
     """,
         Index = 0,
-    })
+    });
     }
 }

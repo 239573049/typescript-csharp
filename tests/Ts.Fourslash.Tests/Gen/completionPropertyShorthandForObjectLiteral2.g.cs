@@ -55,7 +55,7 @@ const obj2: any = {
     ], false),
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -75,6 +75,6 @@ const obj2: any = {
     ], false),
         },
         
-    })
+    });
     }
 }

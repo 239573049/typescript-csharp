@@ -41,6 +41,6 @@ var d: D;
 d.[|prop1|];
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightAtInheritedProperties6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

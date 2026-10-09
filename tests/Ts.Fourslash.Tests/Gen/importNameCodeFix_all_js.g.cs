@@ -38,7 +38,7 @@ C;
 const x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_all_js", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.js")
+    f.GoToFile("/b.js");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -50,6 +50,6 @@ const x = 0;
     /** @type {import("./a").T} */
     const x = 0;
     """,
-    })
+    });
     }
 }

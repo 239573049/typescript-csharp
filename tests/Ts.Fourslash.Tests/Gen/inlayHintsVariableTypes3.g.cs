@@ -46,6 +46,6 @@ const div = getCtor("div");
     {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

@@ -41,6 +41,6 @@ export interface /*2*/A { }
 function f(a) {}
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsDocImportTag5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

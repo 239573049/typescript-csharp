@@ -49,6 +49,6 @@ function whatever(x: Foo.Ba/*reference*/r) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationNamespace_03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

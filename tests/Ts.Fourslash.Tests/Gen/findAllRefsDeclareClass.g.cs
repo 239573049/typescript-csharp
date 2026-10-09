@@ -31,6 +31,6 @@ public class FindAllRefsDeclareClassTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsDeclareClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

@@ -40,7 +40,7 @@ while (true) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionDocCommentInBlock", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("1", "2")
+    f.FormatSelection("1", "2");
 
     f.VerifyCurrentFileContent("""
     {
@@ -55,9 +55,9 @@ while (true) {
      * Some doc comment
      */
     }
-    """)
+    """);
 
-    f.FormatSelection("3", "4")
+    f.FormatSelection("3", "4");
 
     f.VerifyCurrentFileContent("""
     {
@@ -72,6 +72,6 @@ while (true) {
          * Some doc comment
          */
     }
-    """)
+    """);
     }
 }

@@ -31,7 +31,7 @@ A./*1*/prototype;
 A./*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "prototypeProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) A.prototype: A", "")
+    f.VerifyQuickInfoAt("1", "(property) A.prototype: A", "");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ A./*2*/
     ],
         },
         
-    })
+    });
     }
 }

@@ -36,6 +36,6 @@ public class DoubleUnderscoreRenamesTests
 bar();
 """;
         using var f = FourslashTest.New(content, fileName: "doubleUnderscoreRenames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "__foo")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "__foo");
     }
 }

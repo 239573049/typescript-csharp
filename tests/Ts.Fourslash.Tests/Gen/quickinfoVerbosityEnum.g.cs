@@ -54,6 +54,6 @@ import { Color } from "./b";
 const c: Color/*a*/ = Color.Red;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityEnum", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["c"] = new[]{0, 1}, ["x"] = new[]{0, 1}, ["d"] = new[]{0, 1}, ["y"] = new[]{0, 1}, ["f"] = new[]{0, 1}, ["a"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["c"] = new[]{0, 1}, ["x"] = new[]{0, 1}, ["d"] = new[]{0, 1}, ["y"] = new[]{0, 1}, ["f"] = new[]{0, 1}, ["a"] = new[]{0, 1}});
     }
 }

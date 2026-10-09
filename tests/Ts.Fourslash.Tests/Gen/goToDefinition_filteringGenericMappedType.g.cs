@@ -49,6 +49,6 @@ const obj2 = omit2(obj, {
 obj2.[|/*ref*/id|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinition_filteringGenericMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "ref")
+    f.VerifyBaselineGoToDefinition(true, "ref");
     }
 }

@@ -34,8 +34,8 @@ x.then(foo => {
 })
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesDynamicImport2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
 
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "bar")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "bar");
     }
 }

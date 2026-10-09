@@ -41,6 +41,6 @@ export interface A { }
 function f(a) {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsDocImportTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

@@ -44,6 +44,6 @@ export interface /**/Foo {
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementation_inDifferentFiles", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToImplementation("")
+    f.VerifyBaselineGoToImplementation("");
     }
 }

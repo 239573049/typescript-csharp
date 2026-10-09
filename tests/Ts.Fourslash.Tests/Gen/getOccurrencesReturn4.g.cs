@@ -46,6 +46,6 @@ function f(a: number) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesReturn4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

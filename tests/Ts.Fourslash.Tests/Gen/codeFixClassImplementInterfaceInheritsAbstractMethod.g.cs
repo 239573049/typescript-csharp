@@ -50,6 +50,6 @@ class C3 implements I1 {[| |]}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

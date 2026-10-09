@@ -30,6 +30,6 @@ public class FindAllRefsForVariableInExtendsClause01Tests
 class C extends /*3*/Base { }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForVariableInExtendsClause01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

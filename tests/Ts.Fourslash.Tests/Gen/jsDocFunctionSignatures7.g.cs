@@ -41,8 +41,8 @@ function Test(p0, p1) {
 var /**/test = new Test("");
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures7", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("var test: Test", "")
+    f.VerifyQuickInfoIs("var test: Test", "");
     }
 }

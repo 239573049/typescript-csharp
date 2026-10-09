@@ -48,7 +48,7 @@ somethingElse;
     somethingElse;
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

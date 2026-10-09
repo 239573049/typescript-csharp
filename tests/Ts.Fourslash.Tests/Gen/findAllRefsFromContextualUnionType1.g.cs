@@ -34,6 +34,6 @@ function test2(arg: { prop: "foo" } | undefined) {}
 test2({ /*2*/prop: "bar" });
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsFromContextualUnionType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

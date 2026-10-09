@@ -43,6 +43,6 @@ function someFunction(d : A) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_08", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call")
+    f.VerifyBaselineGoToImplementation("function_call");
     }
 }

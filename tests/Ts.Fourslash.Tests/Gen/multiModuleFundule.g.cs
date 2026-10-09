@@ -56,11 +56,11 @@ var r3 = C./*5*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("C.x);")
+    f.Insert("C.x);");
 
-    f.VerifyQuickInfoAt("2", "var r: void", "")
+    f.VerifyQuickInfoAt("2", "var r: void", "");
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -77,11 +77,11 @@ var r3 = C./*5*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("C.x);")
+    f.Insert("C.x);");
 
-    f.VerifyQuickInfoAt("4", "var r2: any", "")
+    f.VerifyQuickInfoAt("4", "var r2: any", "");
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -99,10 +99,10 @@ var r3 = C./*5*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("x;")
+    f.Insert("x;");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

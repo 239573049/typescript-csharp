@@ -41,9 +41,9 @@ class DataHandler {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionListFunctionExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("local")
+    f.GoToMarker("local");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -60,8 +60,8 @@ class DataHandler {
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("this", null)
+    f.VerifyCompletions("this", null);
     }
 }

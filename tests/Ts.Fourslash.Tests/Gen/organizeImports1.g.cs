@@ -67,8 +67,8 @@ console.log(e, f, F, g, G, H, h);
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSTrue,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -96,7 +96,7 @@ console.log(e, f, F, g, G, H, h);
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSFalse,
-    },
-        )
+    }
+        );
     }
 }

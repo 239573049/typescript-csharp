@@ -54,7 +54,7 @@ var [{ property1: { propertyOfI_1, }, /*1*/ }, { /*2*/ }] = foo;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -72,6 +72,6 @@ var [{ property1: { propertyOfI_1, }, /*1*/ }, { /*2*/ }] = foo;
     ],
         },
         
-    })
+    });
     }
 }

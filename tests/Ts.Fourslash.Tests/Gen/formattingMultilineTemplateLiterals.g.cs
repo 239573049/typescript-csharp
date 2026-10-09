@@ -31,18 +31,18 @@ public class FormattingMultilineTemplateLiteralsTests
 /*3*/                with error: ${ex.message}`)
 """;
         using var f = FourslashTest.New(content, fileName: "formattingMultilineTemplateLiterals", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("new Error(`Failed to expand glob: ${projectSpec.filesGlob}")
+    f.VerifyCurrentLineContent("new Error(`Failed to expand glob: ${projectSpec.filesGlob}");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("                at projectPath : ${projectFile}")
+    f.VerifyCurrentLineContent("                at projectPath : ${projectFile}");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("                with error: ${ex.message}`)")
+    f.VerifyCurrentLineContent("                with error: ${ex.message}`)");
     }
 }

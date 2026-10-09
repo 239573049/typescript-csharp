@@ -33,6 +33,6 @@ function f(a: number, [|...rest |]){
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageRestParam3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("...rest: number[]", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("...rest: number[]", false, 0, 0);
     }
 }

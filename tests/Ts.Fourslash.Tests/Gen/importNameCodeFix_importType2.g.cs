@@ -47,7 +47,7 @@ import type { OtherType } from "./exports1.js";
 const x: OtherOtherType/*d*/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_importType2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("a")
+    f.GoToMarker("a");
 
     f.VerifyImportFixAtPosition([
     """
@@ -55,9 +55,9 @@ const x: OtherOtherType/*d*/
     import { someValue } from "./exports1.js";
     someValue
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("b")
+    f.GoToMarker("b");
 
     f.VerifyImportFixAtPosition([
     """
@@ -65,9 +65,9 @@ const x: OtherOtherType/*d*/
     import { someValue } from "./exports1.js";
     const b: SomeType = someValue;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("c")
+    f.GoToMarker("c");
 
     f.VerifyImportFixAtPosition([
     """
@@ -75,15 +75,15 @@ const x: OtherOtherType/*d*/
     import type SomeType from "./exports1.js";
     const x: OtherType
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("d")
+    f.GoToMarker("d");
 
     f.VerifyImportFixAtPosition([
     """
     import type { OtherOtherType, OtherType } from "./exports1.js";
     const x: OtherOtherType
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -40,6 +40,6 @@ import { a } from "./a.js";
 b/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixInferEndingPreference_classic", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"./b.js"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"./b.js"}, null /*preferences*/);
     }
 }

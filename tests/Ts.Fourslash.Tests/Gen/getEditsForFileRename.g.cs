@@ -58,6 +58,6 @@ export default 0;
     import old from "../new";
     """,
     ["/tsconfig.json"] = "{ \"files\": [\"a.ts\", \"src/a.ts\", \"src/foo/a.ts\", \"src/new.ts\"] }",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

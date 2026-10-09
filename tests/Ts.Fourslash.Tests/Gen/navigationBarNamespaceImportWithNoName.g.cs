@@ -29,6 +29,6 @@ public class NavigationBarNamespaceImportWithNoNameTests
 import *{} from 'foo';
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarNamespaceImportWithNoName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

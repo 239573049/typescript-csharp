@@ -34,6 +34,6 @@ let bar2 = <Foo> [|function(a) {}|];
 
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("interface_definition")
+    f.VerifyBaselineGoToImplementation("interface_definition");
     }
 }

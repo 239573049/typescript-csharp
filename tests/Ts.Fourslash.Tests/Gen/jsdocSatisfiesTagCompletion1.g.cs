@@ -50,6 +50,6 @@ const t = { a: 1 };
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

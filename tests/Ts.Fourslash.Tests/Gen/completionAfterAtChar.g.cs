@@ -43,6 +43,6 @@ public class CompletionAfterAtCharTests
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

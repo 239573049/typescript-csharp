@@ -29,8 +29,8 @@ public class QuickInfoOnGenericWithConstraints1Tests
 interface Fo/*1*/o<T/*2*/T extends Date> {}
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnGenericWithConstraints1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "interface Foo<TT extends Date>", "")
+    f.VerifyQuickInfoAt("1", "interface Foo<TT extends Date>", "");
 
-    f.VerifyQuickInfoAt("2", "(type parameter) TT in Foo<TT extends Date>", "")
+    f.VerifyQuickInfoAt("2", "(type parameter) TT in Foo<TT extends Date>", "");
     }
 }

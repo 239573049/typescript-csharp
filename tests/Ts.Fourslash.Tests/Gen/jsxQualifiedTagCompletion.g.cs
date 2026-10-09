@@ -35,9 +35,9 @@ const j = <NS.Foo>Hello!/**/
 
 """;
         using var f = FourslashTest.New(content, fileName: "jsxQualifiedTagCompletion", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("</")
+    f.Insert("</");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -54,6 +54,6 @@ const j = <NS.Foo>Hello!/**/
     ],
         },
         
-    })
+    });
     }
 }

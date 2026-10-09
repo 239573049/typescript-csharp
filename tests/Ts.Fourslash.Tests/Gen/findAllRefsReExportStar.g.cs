@@ -34,8 +34,8 @@ export * from "./a";
 import { /*1*/foo } from "./b";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsReExportStar", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("0", "1")
+    f.VerifyBaselineFindAllReferences("0", "1");
     }
 }

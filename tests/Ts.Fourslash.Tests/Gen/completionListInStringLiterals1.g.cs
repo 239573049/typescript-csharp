@@ -44,6 +44,6 @@ public class CompletionListInStringLiterals1Tests
     ],
         },
         
-    })
+    });
     }
 }

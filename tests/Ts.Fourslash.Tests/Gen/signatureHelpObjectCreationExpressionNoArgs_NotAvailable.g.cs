@@ -30,6 +30,6 @@ class sampleCls { constructor(str: string, num: number) { } }
 var x = new sampleCls/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpObjectCreationExpressionNoArgs_NotAvailable", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("")
+    f.VerifyNoSignatureHelpForMarkers("");
     }
 }

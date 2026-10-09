@@ -31,6 +31,6 @@ let /*2*/world: 'world' = "world";
 let /*3*/helloOrWorld: "hello" | 'world';
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsVarWithStringTypes01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

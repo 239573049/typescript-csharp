@@ -38,8 +38,8 @@ const x = 0;
 const y = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefs_importType_js", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

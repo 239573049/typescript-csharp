@@ -30,6 +30,6 @@ public class CodeFixRequireInTs3Tests
 const { a, b: { c } } = [|require("a")|];
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixRequireInTs3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

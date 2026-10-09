@@ -35,6 +35,6 @@ function n(x: number, /*1*/n: number) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForFunctionParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

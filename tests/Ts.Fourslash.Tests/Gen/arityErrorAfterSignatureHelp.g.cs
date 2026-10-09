@@ -33,18 +33,18 @@ declare function f(x: string, y: number): any;
 /*1*/f/*2*/(/*3*/)
 """;
         using var f = FourslashTest.New(content, fileName: "arityErrorAfterSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  });
 
-    f.Insert("\"")
+    f.Insert("\"");
 
-    f.Insert("\"")
+    f.Insert("\"");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  });
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
 
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
     }
 }

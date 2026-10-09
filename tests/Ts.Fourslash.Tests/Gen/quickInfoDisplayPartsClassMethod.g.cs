@@ -47,6 +47,6 @@ var cInstance = new c();
 /*11*/c./*12*/staticMethod();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsClassMethod", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -32,12 +32,12 @@ const a = <div>
 </div>
 """;
         using var f = FourslashTest.New(content, fileName: "formatTSXWithInlineComment", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     const a = <div>
         // <a />
     </div>
-    """)
+    """);
     }
 }

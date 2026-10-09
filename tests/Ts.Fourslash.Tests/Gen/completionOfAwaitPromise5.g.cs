@@ -60,6 +60,6 @@ async function foo(x: (a: number) => Promise<Foo>) {
     ],
         },
         
-    })
+    });
     }
 }

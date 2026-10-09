@@ -44,6 +44,6 @@ function baz() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsFunctions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

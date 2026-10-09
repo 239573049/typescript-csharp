@@ -58,6 +58,6 @@ export { Event };
     {
     AutoImportFileExcludePatterns = ["src/vs/workbench/workbench.ts"],
     },
-    })
+    });
     }
 }

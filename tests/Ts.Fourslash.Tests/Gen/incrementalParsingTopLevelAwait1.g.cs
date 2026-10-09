@@ -33,16 +33,16 @@ await(1);
 /*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalParsingTopLevelAwait1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("export {};")
+    f.Insert("export {};");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.ReplaceLine(1, "")
+    f.ReplaceLine(1, "");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

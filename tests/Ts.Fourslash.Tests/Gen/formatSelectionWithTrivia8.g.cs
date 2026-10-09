@@ -31,12 +31,12 @@ public class FormatSelectionWithTrivia8Tests
 /*end*/console.log();
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionWithTrivia8", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("begin", "end")
+    f.FormatSelection("begin", "end");
 
     f.VerifyCurrentFileContent("""
     ;
 
     console.log();
-    """)
+    """);
     }
 }

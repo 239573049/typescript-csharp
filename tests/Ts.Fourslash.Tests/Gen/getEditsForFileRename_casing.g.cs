@@ -35,6 +35,6 @@ export const foo = 0;
     f.VerifyWillRenameFilesEdits("/dir", "/newDir", new Dictionary<string, string>
     {
     ["/a.ts"] = "import { foo } from \"./newDir/fOo\";",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

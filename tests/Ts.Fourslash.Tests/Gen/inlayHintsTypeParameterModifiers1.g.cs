@@ -37,6 +37,6 @@ function test1() {
     {
     IncludeInlayFunctionLikeReturnTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

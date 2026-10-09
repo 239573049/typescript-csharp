@@ -106,7 +106,7 @@ ref/**/
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -121,6 +121,6 @@ ref/**/
     import { ref } from "vue";
     ref
     """,
-    })
+    });
     }
 }

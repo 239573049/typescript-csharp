@@ -29,8 +29,8 @@ public class InterfaceExtendsPrimitiveTests
 interface x extends /*1*/string/*2*/ { }
 """;
         using var f = FourslashTest.New(content, fileName: "interfaceExtendsPrimitive", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

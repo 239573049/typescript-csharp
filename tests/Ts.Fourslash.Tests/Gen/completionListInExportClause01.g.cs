@@ -60,7 +60,7 @@ export {foo, bar, baz as b,/*7*/} from "./m1"
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -83,9 +83,9 @@ export {foo, bar, baz as b,/*7*/} from "./m1"
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("5", null)
+    f.VerifyCompletions("5", null);
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -108,8 +108,8 @@ export {foo, bar, baz as b,/*7*/} from "./m1"
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("7", null)
+    f.VerifyCompletions("7", null);
     }
 }

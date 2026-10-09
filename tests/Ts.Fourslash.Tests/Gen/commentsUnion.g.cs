@@ -30,6 +30,6 @@ var a: Array<string> | Array<number>;
 a./*1*/length
 """;
         using var f = FourslashTest.New(content, fileName: "commentsUnion", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) Array<T>.length: number", "Gets or sets the length of the array. This is a number one higher than the highest index in the array.")
+    f.VerifyQuickInfoAt("1", "(property) Array<T>.length: number", "Gets or sets the length of the array. This is a number one higher than the highest index in the array.");
     }
 }

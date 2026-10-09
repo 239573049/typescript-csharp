@@ -54,7 +54,7 @@ const e = 1
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -76,7 +76,7 @@ const e = 1
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", }, new CompletionsExpectedList
     {
@@ -98,6 +98,6 @@ const e = 1
     ],
         },
         
-    })
+    });
     }
 }

@@ -99,6 +99,6 @@ class Foo4 implements IFoo4 {
         }
     }
     """,
-    })
+    });
     }
 }

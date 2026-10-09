@@ -33,6 +33,6 @@ module.exports = class /*1*/A {}
 const /*2*/A = require("./a");
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsExports02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

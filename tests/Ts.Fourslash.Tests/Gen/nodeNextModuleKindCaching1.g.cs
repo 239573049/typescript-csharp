@@ -57,8 +57,8 @@ export function helloWorld() {
 """;
         using var f = FourslashTest.New(content, fileName: "nodeNextModuleKindCaching1", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

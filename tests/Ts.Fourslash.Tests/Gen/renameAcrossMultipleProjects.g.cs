@@ -36,6 +36,6 @@ public class RenameAcrossMultipleProjectsTests
 [|x|]++;
 """;
         using var f = FourslashTest.New(content, fileName: "renameAcrossMultipleProjects", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "x")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "x");
     }
 }

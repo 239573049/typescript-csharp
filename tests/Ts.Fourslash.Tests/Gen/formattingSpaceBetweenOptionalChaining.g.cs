@@ -30,14 +30,14 @@ public class FormattingSpaceBetweenOptionalChainingTests
 /*2*/o    .  m()   ?.   length;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpaceBetweenOptionalChaining", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("a?.b?.c.d;")
+    f.VerifyCurrentLineContent("a?.b?.c.d;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("o.m()?.length;")
+    f.VerifyCurrentLineContent("o.m()?.length;");
     }
 }

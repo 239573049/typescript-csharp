@@ -32,9 +32,9 @@ class n {
 var t = new n(0, 1, '');
 """;
         using var f = FourslashTest.New(content, fileName: "basicClassMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert("t.")
+    f.Insert("t.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -55,6 +55,6 @@ var t = new n(0, 1, '');
     ],
         },
         
-    })
+    });
     }
 }

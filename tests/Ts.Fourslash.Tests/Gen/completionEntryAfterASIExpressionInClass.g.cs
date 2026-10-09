@@ -60,6 +60,6 @@ class ChildTwo extends Parent {
     ],
         },
         
-    })
+    });
     }
 }

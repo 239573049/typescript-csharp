@@ -50,7 +50,7 @@ const f = foo</*3*/, /*4*/,
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -68,7 +68,7 @@ const f = foo</*3*/, /*4*/,
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -86,7 +86,7 @@ const f = foo</*3*/, /*4*/,
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -104,6 +104,6 @@ const f = foo</*3*/, /*4*/,
     ]),
         },
         
-    })
+    });
     }
 }

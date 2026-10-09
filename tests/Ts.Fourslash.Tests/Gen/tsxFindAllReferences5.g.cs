@@ -48,6 +48,6 @@ let opt3 = /*9*/</*10*/Opt wrong />;
 let opt4 = /*11*/</*12*/Opt propx={100} propString="hi" />;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferences5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
     }
 }

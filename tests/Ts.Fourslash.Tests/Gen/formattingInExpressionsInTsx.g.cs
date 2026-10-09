@@ -36,10 +36,10 @@ return true/*1*/
 </div>
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInExpressionsInTsx", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("        return true;")
+    f.VerifyCurrentLineContent("        return true;");
     }
 }

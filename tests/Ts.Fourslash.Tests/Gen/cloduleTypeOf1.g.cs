@@ -66,9 +66,9 @@ namespace C {
     ],
         },
         
-    })
+    });
 
-    f.Insert("foo(1);")
+    f.Insert("foo(1);");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -85,9 +85,9 @@ namespace C {
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("3", "(local var) r: C<number>", "")
+    f.VerifyQuickInfoAt("3", "(local var) r: C<number>", "");
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -104,12 +104,12 @@ namespace C {
     ],
         },
         
-    })
+    });
 
-    f.Insert("x;")
+    f.Insert("x;");
 
-    f.VerifyQuickInfoAt("5", "(local var) r2: number", "")
+    f.VerifyQuickInfoAt("5", "(local var) r2: number", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

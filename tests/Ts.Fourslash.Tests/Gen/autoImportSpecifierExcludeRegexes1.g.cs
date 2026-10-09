@@ -38,52 +38,52 @@ declare module "ambient/utils" {
 x/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportSpecifierExcludeRegexes1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"ambient", "ambient/utils"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"ambient", "ambient/utils"}, null /*preferences*/);
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["utils"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient", "ambient/utils"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["/UTILS/"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["/UTILS/i"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient", "ambient/utils"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["/ambient/utils/"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["/ambient\\/utils/"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["/.*?$"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["^ambient/"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient/utils"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["ambient$"],
-    })
+    });
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"ambient", "ambient/utils"}, new LsUtil.UserPreferences
     {
     AutoImportSpecifierExcludeRegexes = ["oops("],
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -125,7 +125,7 @@ x/**/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -145,6 +145,6 @@ x/**/
     {
     AutoImportSpecifierExcludeRegexes = ["utils"],
     },
-    })
+    });
     }
 }

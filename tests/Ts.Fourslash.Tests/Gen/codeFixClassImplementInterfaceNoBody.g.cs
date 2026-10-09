@@ -32,10 +32,10 @@ interface I {
 class C/*c*/ implements I
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceNoBody", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBeforeMarker("c")
+    f.VerifyErrorExistsBeforeMarker("c");
 
-    f.GoToMarker("c")
+    f.GoToMarker("c");
 
-    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I'"})
+    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I'"});
     }
 }

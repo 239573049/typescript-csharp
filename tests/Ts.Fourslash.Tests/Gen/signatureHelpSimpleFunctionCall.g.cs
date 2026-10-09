@@ -33,9 +33,9 @@ functionCall(/*functionCall1*/);
 functionCall("", /*functionCall2*/1);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSimpleFunctionCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("functionCall1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "str", ParameterSpan = "str: string" })
-    f.GoToMarker("functionCall2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "num", ParameterSpan = "num: number" })
+    f.GoToMarker("functionCall1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "str", ParameterSpan = "str: string" });
+    f.GoToMarker("functionCall2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "num", ParameterSpan = "num: number" });
     }
 }

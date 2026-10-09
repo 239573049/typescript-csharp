@@ -44,6 +44,6 @@ class C extends A {[|
 
     override z: number;
 
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

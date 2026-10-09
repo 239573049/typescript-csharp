@@ -55,11 +55,11 @@ o2./*2*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("__proto__ = 10;")
+    f.Insert("__proto__ = 10;");
 
-    f.VerifyQuickInfoAt("1", "(property) \"__proto__\": number", "")
+    f.VerifyQuickInfoAt("1", "(property) \"__proto__\": number", "");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -80,10 +80,10 @@ o2./*2*/
     ],
         },
         
-    })
+    });
 
-    f.Insert("__proto__ = 10;")
+    f.Insert("__proto__ = 10;");
 
-    f.VerifyQuickInfoAt("2", "(property) __proto__: number", "")
+    f.VerifyQuickInfoAt("2", "(property) __proto__: number", "");
     }
 }

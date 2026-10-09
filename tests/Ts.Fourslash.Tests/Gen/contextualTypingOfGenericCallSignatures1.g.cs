@@ -33,6 +33,6 @@ var f24: {
 var f24 = (/**/x) => { return 1 };
 """;
         using var f = FourslashTest.New(content, fileName: "contextualTypingOfGenericCallSignatures1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("", "(parameter) x: any", "");
     }
 }

@@ -50,9 +50,9 @@ export function MainButton(props: ButtonProps | LinkProps): JSX.Element {
 let e1 = <MainButton/*1*/ /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "tsxSignatureHelp2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2 })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2 });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2 });
     }
 }

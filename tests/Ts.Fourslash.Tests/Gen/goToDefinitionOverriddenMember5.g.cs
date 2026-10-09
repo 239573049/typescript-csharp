@@ -34,6 +34,6 @@ class Foo extends (class {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionOverriddenMember5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

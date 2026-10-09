@@ -35,6 +35,6 @@ public class UnusedImports1FSTests
    }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports1FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("", false, 0, 0);
     }
 }

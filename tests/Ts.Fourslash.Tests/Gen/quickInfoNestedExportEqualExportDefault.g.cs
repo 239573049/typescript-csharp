@@ -32,6 +32,6 @@ export = (state, messages) => {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoNestedExportEqualExportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

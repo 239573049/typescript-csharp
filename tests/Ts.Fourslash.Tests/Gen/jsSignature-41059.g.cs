@@ -32,8 +32,8 @@ public class JsSignature_41059Tests
 a.next(/**/);
 """;
         using var f = FourslashTest.New(content, fileName: "jsSignature-41059", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Generator.next(): IteratorResult<T, TReturn>", OverloadsCount = 2 })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Generator.next(): IteratorResult<T, TReturn>", OverloadsCount = 2 });
     }
 }

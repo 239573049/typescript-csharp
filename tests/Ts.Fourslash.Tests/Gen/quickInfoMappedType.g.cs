@@ -39,10 +39,10 @@ declare const q: Pick<I, "m">;
 q.m/*2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("0", "(property) m: number", "m documentation")
+    f.VerifyQuickInfoAt("0", "(property) m: number", "m documentation");
 
-    f.VerifyQuickInfoAt("1", "(method) m(): void", "m documentation")
+    f.VerifyQuickInfoAt("1", "(method) m(): void", "m documentation");
 
-    f.VerifyQuickInfoAt("2", "(method) m(): void", "m documentation")
+    f.VerifyQuickInfoAt("2", "(method) m(): void", "m documentation");
     }
 }

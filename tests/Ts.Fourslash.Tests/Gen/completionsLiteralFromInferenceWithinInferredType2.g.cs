@@ -92,6 +92,6 @@ createMachine({
     ],
         },
         
-    })
+    });
     }
 }

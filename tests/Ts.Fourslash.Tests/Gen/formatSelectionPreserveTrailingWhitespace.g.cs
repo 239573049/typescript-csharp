@@ -34,9 +34,9 @@ public class FormatSelectionPreserveTrailingWhitespaceTests
 
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionPreserveTrailingWhitespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core.TSFalse })
+    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core.TSFalse });
 
-    f.FormatSelection("begin", "end")
+    f.FormatSelection("begin", "end");
 
     f.VerifyCurrentFileContent("""
 
@@ -45,6 +45,6 @@ public class FormatSelectionPreserveTrailingWhitespaceTests
         
         
 
-    """)
+    """);
     }
 }

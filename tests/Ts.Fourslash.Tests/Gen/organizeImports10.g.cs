@@ -44,7 +44,7 @@ export function fun() { /* ... */ }
     export function fun() { /* ... */ }
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

@@ -35,7 +35,7 @@ function f(p = Foo()): void {}
 f(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForNonlocalTypeDoesNotUseImportType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(p?: Thing): void" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(p?: Thing): void" });
     }
 }

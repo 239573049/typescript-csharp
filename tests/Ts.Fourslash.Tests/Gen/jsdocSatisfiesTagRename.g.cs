@@ -39,6 +39,6 @@ public class JsdocSatisfiesTagRenameTests
 const foo = { a: 1 };
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocSatisfiesTagRename", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

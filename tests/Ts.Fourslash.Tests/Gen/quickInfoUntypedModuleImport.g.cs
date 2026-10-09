@@ -34,20 +34,20 @@ import /*foo*/foo from /*fooModule*/"foo";
 /*fooCall*/foo();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoUntypedModuleImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("a.ts")
+    f.GoToFile("a.ts");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.GoToMarker("fooModule")
+    f.GoToMarker("fooModule");
 
-    f.VerifyQuickInfoIs("", "")
+    f.VerifyQuickInfoIs("", "");
 
-    f.GoToMarker("foo")
+    f.GoToMarker("foo");
 
-    f.VerifyQuickInfoIs("import foo", "")
+    f.VerifyQuickInfoIs("import foo", "");
 
-    f.VerifyBaselineFindAllReferences("foo", "fooModule", "fooCall")
+    f.VerifyBaselineFindAllReferences("foo", "fooModule", "fooCall");
 
-    f.VerifyBaselineGoToDefinition(false, "fooModule", "foo")
+    f.VerifyBaselineGoToDefinition(false, "fooModule", "foo");
     }
 }

@@ -44,7 +44,7 @@ declare global {
 class Foo implements Disposable {}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceWithAmbientSignatures1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("a.ts")
+    f.GoToFile("a.ts");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -57,6 +57,6 @@ class Foo implements Disposable {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

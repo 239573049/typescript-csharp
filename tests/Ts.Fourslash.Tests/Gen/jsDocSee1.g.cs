@@ -46,6 +46,6 @@ const [|/*def3*/d|] = ""
 const e = ""
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocSee1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "use1", "use2", "use3", "use4", "use5")
+    f.VerifyBaselineGoToDefinition(false, "use1", "use2", "use3", "use4", "use5");
     }
 }

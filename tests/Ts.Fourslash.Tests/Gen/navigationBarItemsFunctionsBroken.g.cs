@@ -31,6 +31,6 @@ function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsFunctionsBroken", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -39,6 +39,6 @@ const u/*u*/: Map<string, Apple> = new Map;
 type Foo<T> = Promise/*p*/<T>;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityLibType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["g"] = new[]{0, 1}, ["u"] = new[]{0, 1}, ["p"] = new[]{0}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["g"] = new[]{0, 1}, ["u"] = new[]{0, 1}, ["p"] = new[]{0}});
     }
 }

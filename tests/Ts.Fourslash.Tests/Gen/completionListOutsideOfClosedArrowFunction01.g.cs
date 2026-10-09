@@ -46,6 +46,6 @@ public class CompletionListOutsideOfClosedArrowFunction01Tests
     ],
         },
         
-    })
+    });
     }
 }

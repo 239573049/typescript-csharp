@@ -32,10 +32,10 @@ with (x) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInWithBlock", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "any", "")
+    f.VerifyQuickInfoAt("1", "any", "");
 
-    f.VerifyQuickInfoAt("2", "any", "")
+    f.VerifyQuickInfoAt("2", "any", "");
 
-    f.VerifyQuickInfoAt("3", "any", "")
+    f.VerifyQuickInfoAt("3", "any", "");
     }
 }

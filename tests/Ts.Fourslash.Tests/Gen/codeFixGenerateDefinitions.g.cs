@@ -32,6 +32,6 @@ module.exports = 0;
 import * as foo from "foo";
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixGenerateDefinitions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

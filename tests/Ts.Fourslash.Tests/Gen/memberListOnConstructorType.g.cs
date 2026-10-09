@@ -44,6 +44,6 @@ f./*1*/
             Exact = CompletionFunctionMembersWithPrototype,
         },
         
-    })
+    });
     }
 }

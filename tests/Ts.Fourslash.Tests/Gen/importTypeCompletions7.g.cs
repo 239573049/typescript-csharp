@@ -35,7 +35,7 @@ export = Foo;
 [|import F/**/|]
 """;
         using var f = FourslashTest.New(content, fileName: "importTypeCompletions7", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/test.ts")
+    f.GoToFile("/test.ts");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -76,6 +76,6 @@ export = Foo;
     ],
         },
         
-    })
+    });
     }
 }

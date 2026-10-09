@@ -33,6 +33,6 @@ var y = x;
 y./*4*/add;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForObjectLiteralProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

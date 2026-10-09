@@ -32,10 +32,10 @@ const abc = {};
 ({./*1*/});
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptCompletions22", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(".")
+    f.Insert(".");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
     }
 }

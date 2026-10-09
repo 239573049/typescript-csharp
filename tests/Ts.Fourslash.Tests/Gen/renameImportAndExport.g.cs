@@ -30,6 +30,6 @@ public class RenameImportAndExportTests
 [|export { [|{| "contextRangeIndex": 2 |}a|] };|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameImportAndExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3]);
     }
 }

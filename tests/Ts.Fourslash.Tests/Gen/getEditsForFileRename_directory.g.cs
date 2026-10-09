@@ -74,6 +74,6 @@ export default 0;
     export default 0;
     """,
     ["/tsconfig.json"] = "{ \"files\": [\"a.ts\", \"src/b.ts\", \"src/foo/c.ts\", \"src/new/index.ts\", \"src/new/file.ts\"] }",
-    }, null /*preferences*/)
+    }, null /*preferences*/);
     }
 }

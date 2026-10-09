@@ -44,6 +44,6 @@ b(/*2*/);
 c((/*3*/) => {});
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelp_unionType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

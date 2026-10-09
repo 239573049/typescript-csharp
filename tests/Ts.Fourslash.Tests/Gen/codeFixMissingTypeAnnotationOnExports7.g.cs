@@ -42,6 +42,6 @@ export const c = { foo: foo() };
     } = { foo: foo() };
     """,
         Index = 0,
-    })
+    });
     }
 }

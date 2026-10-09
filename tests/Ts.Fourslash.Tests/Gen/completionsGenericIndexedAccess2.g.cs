@@ -72,6 +72,6 @@ const i = t(null, { name: "addBook", group: "Sample", payload: { /**/ } })
     ],
         },
         
-    })
+    });
     }
 }

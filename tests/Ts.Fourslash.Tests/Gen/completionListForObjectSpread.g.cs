@@ -71,7 +71,7 @@ spreadUndefined./*4*/a;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -102,7 +102,7 @@ spreadUndefined./*4*/a;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", "4", }, new CompletionsExpectedList
     {
@@ -123,6 +123,6 @@ spreadUndefined./*4*/a;
     ],
         },
         
-    })
+    });
     }
 }

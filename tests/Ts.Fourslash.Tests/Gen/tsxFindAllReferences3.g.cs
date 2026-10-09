@@ -43,6 +43,6 @@ class MyClass {
 var x = <MyClass name='hello'/>;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferences3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

@@ -60,6 +60,6 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarPropertyDeclarations", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

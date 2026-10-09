@@ -57,7 +57,7 @@ g<I>("[|/*g*/|]");
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("g", new CompletionsExpectedList
     {
@@ -97,6 +97,6 @@ g<I>("[|/*g*/|]");
     ],
         },
         
-    })
+    });
     }
 }

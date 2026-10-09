@@ -41,10 +41,10 @@ console.log(a, b);
             new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { a, type A, b } from \"foo1\";")
+    f.ReplaceLine(0, "import { a, type A, b } from \"foo1\";");
 
     f.VerifyOrganizeImports(
             """
@@ -57,10 +57,10 @@ console.log(a, b);
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { a, type A, b } from \"foo2\";")
+    f.ReplaceLine(0, "import { a, type A, b } from \"foo2\";");
 
     f.VerifyOrganizeImports(
             """
@@ -73,10 +73,10 @@ console.log(a, b);
     {
     OrganizeImportsIgnoreCase = Core.TSTrue,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
-    f.ReplaceLine(0, "import { a, type A, b } from \"foo3\";")
+    f.ReplaceLine(0, "import { a, type A, b } from \"foo3\";");
 
     f.VerifyOrganizeImports(
             """
@@ -89,7 +89,7 @@ console.log(a, b);
     {
     OrganizeImportsIgnoreCase = Core.TSFalse,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
     }
 }

@@ -30,6 +30,6 @@ console.log(console.log(class Y {}, class X {}), console.log(class B {}, class A
 console.log(class Cls { meth() {} });
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarAnonymousClassAndFunctionExpressions2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

@@ -33,6 +33,6 @@ import { /*2*/x } from "./m";
 const y = x;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

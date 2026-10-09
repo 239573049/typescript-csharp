@@ -31,6 +31,6 @@ x./*1*/someProperty = 5;
 x["/*2*/someProperty"] = 3;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForStringLiteralPropertyNames6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

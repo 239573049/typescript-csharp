@@ -60,9 +60,9 @@ addListener("/*js*/");
     ],
         },
         
-    })
+    });
 
-    f.Insert("drag")
+    f.Insert("drag");
 
     f.VerifyCompletions(new[]{"ts", "tsx", "js", }, new CompletionsExpectedList
     {
@@ -81,6 +81,6 @@ addListener("/*js*/");
     ],
         },
         
-    })
+    });
     }
 }

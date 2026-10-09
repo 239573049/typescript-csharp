@@ -35,8 +35,8 @@ interface ImportMeta {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImportMeta", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "reference")
+    f.VerifyBaselineGoToDefinition(true, "reference");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

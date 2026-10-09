@@ -46,6 +46,6 @@ class /*selfDefinition*/Bar {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionInMemberDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "interfaceReference", "interfaceReferenceInList", "interfaceReferenceInConstructor", "classReference", "classReferenceInInitializer", "enumReference", "enumReferenceInInitializer", "selfReference")
+    f.VerifyBaselineGoToDefinition(true, "interfaceReference", "interfaceReferenceInList", "interfaceReferenceInConstructor", "classReference", "classReferenceInInitializer", "enumReference", "enumReferenceInInitializer", "selfReference");
     }
 }

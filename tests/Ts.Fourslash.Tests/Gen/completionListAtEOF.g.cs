@@ -29,7 +29,7 @@ public class CompletionListAtEOFTests
 var a;
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtEOF", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -46,28 +46,9 @@ var a;
     ],
         },
         
-    })
+    });
 
-    f.InsertLine("")
-
-    f.VerifyCompletions(null, new CompletionsExpectedList
-    {
-        IsIncomplete = false,
-        ItemDefaults = new CompletionsExpectedItemDefaults
-        {
-            CommitCharacters = DefaultCommitCharacters,
-            EditRange = Ignored,
-        },
-        Items = new CompletionsExpectedItems
-        {
-            Includes = [
-    "a",
-    ],
-        },
-        
-    })
-
-    f.InsertLine("")
+    f.InsertLine("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -84,6 +65,25 @@ var a;
     ],
         },
         
-    })
+    });
+
+    f.InsertLine("");
+
+    f.VerifyCompletions(null, new CompletionsExpectedList
+    {
+        IsIncomplete = false,
+        ItemDefaults = new CompletionsExpectedItemDefaults
+        {
+            CommitCharacters = DefaultCommitCharacters,
+            EditRange = Ignored,
+        },
+        Items = new CompletionsExpectedItems
+        {
+            Includes = [
+    "a",
+    ],
+        },
+        
+    });
     }
 }

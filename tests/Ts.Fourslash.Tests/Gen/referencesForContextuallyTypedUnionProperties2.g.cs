@@ -61,6 +61,6 @@ var u1 = { a: 0, b: 0, common: "" };
 var u2 = { b: 0, common: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForContextuallyTypedUnionProperties2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

@@ -33,6 +33,6 @@ class /**/E extends Error {}
 function f() {}
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocThrowsTag_findAllReferences", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

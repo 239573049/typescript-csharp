@@ -33,8 +33,8 @@ public class UpdateSourceFile_jsdocSignatureTests
 let x;
 """;
         using var f = FourslashTest.New(content, fileName: "updateSourceFile_jsdocSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("number")
+    f.Insert("number");
     }
 }

@@ -34,12 +34,12 @@ interface Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalEditInvocationExpressionAboveInterfaceDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("alert(")
+    f.Insert("alert(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "alert(message?: any): void" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "alert(message?: any): void" });
 
-    f.VerifyErrorExistsAfterMarker("1")
+    f.VerifyErrorExistsAfterMarker("1");
     }
 }

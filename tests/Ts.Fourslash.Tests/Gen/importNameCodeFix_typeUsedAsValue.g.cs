@@ -32,7 +32,7 @@ export class ReadonlyArray<T> {}
 [|new ReadonlyArray<string>();|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_typeUsedAsValue", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -40,6 +40,6 @@ export class ReadonlyArray<T> {}
 
     new ReadonlyArray<string>();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

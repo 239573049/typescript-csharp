@@ -56,17 +56,17 @@ let o = { n: 14, m: explicitLiteral };
 o.m(/*6*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" })
-    f.GoToMarker("4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x" })
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x" })
-    f.GoToMarker("6")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" });
+    f.GoToMarker("4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x" });
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x" });
+    f.GoToMarker("6");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "x" });
     }
 }

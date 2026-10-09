@@ -34,6 +34,6 @@ const foo = Symbol();
 foo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoUniqueSymbolJsDoc", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

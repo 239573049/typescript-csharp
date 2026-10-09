@@ -43,6 +43,6 @@ export { foo as default }
 
     foo
     """,
-    })
+    });
     }
 }

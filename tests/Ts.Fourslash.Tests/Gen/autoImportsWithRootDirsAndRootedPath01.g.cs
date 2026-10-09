@@ -40,7 +40,7 @@ public class AutoImportsWithRootDirsAndRootedPath01Tests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportsWithRootDirsAndRootedPath01", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("$")
+    f.GoToMarker("$");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -55,6 +55,6 @@ public class AutoImportsWithRootDirsAndRootedPath01Tests
             
         },
         
-    })
+    });
     }
 }

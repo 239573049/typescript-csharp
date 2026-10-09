@@ -30,9 +30,9 @@ class sampleCls { constructor(str: string, num: number) { } }
 var x = new sampleCls(/*1*/"", /*2*/5);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpConstructExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "sampleCls(str: string, num: number): sampleCls", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "sampleCls(str: string, num: number): sampleCls", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" });
     }
 }

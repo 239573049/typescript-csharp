@@ -36,6 +36,6 @@ export /*1*/default 10;
 export { /*2*/default as /*3*/test } from "./jsDocAliasQuickInfo";
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocAliasQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

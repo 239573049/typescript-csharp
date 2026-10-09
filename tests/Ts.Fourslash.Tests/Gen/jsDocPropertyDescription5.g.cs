@@ -35,6 +35,6 @@ function multiple1Example(e: Multiple1Example) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("multiple1", "any", "")
+    f.VerifyQuickInfoAt("multiple1", "any", "");
     }
 }

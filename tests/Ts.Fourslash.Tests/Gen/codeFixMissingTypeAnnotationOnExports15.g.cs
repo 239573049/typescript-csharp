@@ -48,6 +48,6 @@ export const { x, y = 0 } = foo();
     export const y: 0 | 1 = temp === undefined ? 0 : dest.y;
     """,
         Index = 0,
-    })
+    });
     }
 }

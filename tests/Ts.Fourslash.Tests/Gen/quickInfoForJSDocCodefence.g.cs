@@ -46,6 +46,6 @@ function bo/*2*/o() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForJSDocCodefence", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

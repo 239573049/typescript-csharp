@@ -38,20 +38,20 @@ var c: C;
 c.a;
 """;
         using var f = FourslashTest.New(content, fileName: "deleteExtensionInReopenedInterface", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("del")
+    f.GoToMarker("del");
 
-    f.DeleteAtCaret(9)
+    f.DeleteAtCaret(9);
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.Insert("var a = i.a;")
+    f.Insert("var a = i.a;");
 
-    f.GoToMarker("delImplements")
+    f.GoToMarker("delImplements");
 
-    f.DeleteAtCaret(12)
+    f.DeleteAtCaret(12);
 
-    f.GoToMarker("del")
+    f.GoToMarker("del");
 
-    f.Insert("extends A")
+    f.Insert("extends A");
     }
 }

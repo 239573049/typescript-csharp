@@ -37,8 +37,8 @@ function /**/bar() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "callHierarchyFunctionAmbiguity5", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineCallHierarchy()
+    f.VerifyBaselineCallHierarchy();
     }
 }

@@ -53,7 +53,7 @@ f({ a: 1 }, { /*2*/ });
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -71,6 +71,6 @@ f({ a: 1 }, { /*2*/ });
     ],
         },
         
-    })
+    });
     }
 }

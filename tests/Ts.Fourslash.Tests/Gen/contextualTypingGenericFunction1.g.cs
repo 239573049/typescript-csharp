@@ -36,10 +36,10 @@ var c = new C();
 c.obj = <S>(/*3*/x) => x;
 """;
         using var f = FourslashTest.New(content, fileName: "contextualTypingGenericFunction1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("1", "(parameter) x: any", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("2", "(parameter) x: any", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) x: any", "")
+    f.VerifyQuickInfoAt("3", "(parameter) x: any", "");
     }
 }

@@ -52,7 +52,7 @@ Foo<{ x: /*4*/ }>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -70,7 +70,7 @@ Foo<{ x: /*4*/ }>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -88,7 +88,7 @@ Foo<{ x: /*4*/ }>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -106,7 +106,7 @@ Foo<{ x: /*4*/ }>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -124,6 +124,6 @@ Foo<{ x: /*4*/ }>;
     ],
         },
         
-    })
+    });
     }
 }

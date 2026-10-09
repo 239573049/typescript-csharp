@@ -46,6 +46,6 @@ class A {
             new SemanticToken { Type = "property", Text = "y" },
             new SemanticToken { Type = "property.declaration", Text = "a" },
             new SemanticToken { Type = "parameter.declaration", Text = "v" },
-        })
+        });
     }
 }

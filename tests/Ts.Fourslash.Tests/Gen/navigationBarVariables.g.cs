@@ -35,10 +35,10 @@ let {a: b} = 0;
 const [c] = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("file2.ts")
+    f.GoToFile("file2.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

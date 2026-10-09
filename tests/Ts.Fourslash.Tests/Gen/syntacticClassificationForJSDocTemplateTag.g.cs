@@ -35,6 +35,6 @@ function ident<T>: T {
             new SemanticToken { Type = "function.declaration", Text = "ident" },
             new SemanticToken { Type = "typeParameter.declaration", Text = "T" },
             new SemanticToken { Type = "typeParameter", Text = "T" },
-        })
+        });
     }
 }

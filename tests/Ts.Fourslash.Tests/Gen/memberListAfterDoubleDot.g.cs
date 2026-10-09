@@ -29,6 +29,6 @@ public class MemberListAfterDoubleDotTests
 ../**/
 """;
         using var f = FourslashTest.New(content, fileName: "memberListAfterDoubleDot", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

@@ -115,96 +115,96 @@ var f5_/*e8*/r18 = f5.ofC2;
 var f5_/*e9*/r20 = f5.ofC4;
 """;
         using var f = FourslashTest.New(content, fileName: "genericInterfacePropertyInference1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyQuickInfoAt("a1", "var f_r1: number", "")
+    f.VerifyQuickInfoAt("a1", "var f_r1: number", "");
 
-    f.VerifyQuickInfoAt("a2", "var f_r2: string", "")
+    f.VerifyQuickInfoAt("a2", "var f_r2: string", "");
 
-    f.VerifyQuickInfoAt("a3", "var f_r3: any", "")
+    f.VerifyQuickInfoAt("a3", "var f_r3: any", "");
 
-    f.VerifyQuickInfoAt("a4", "var f_r5: Foo<number>", "")
+    f.VerifyQuickInfoAt("a4", "var f_r5: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("a5", "var f_r8: I", "")
+    f.VerifyQuickInfoAt("a5", "var f_r8: I", "");
 
-    f.VerifyQuickInfoAt("a6", "var f_r12: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("a6", "var f_r12: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("a7", "var f_r14: {\n    x: any;\n}", "")
+    f.VerifyQuickInfoAt("a7", "var f_r14: {\n    x: any;\n}", "");
 
-    f.VerifyQuickInfoAt("a8", "var f_r18: C<number>", "")
+    f.VerifyQuickInfoAt("a8", "var f_r18: C<number>", "");
 
-    f.VerifyQuickInfoAt("a9", "var f_r20: C<{\n    x: any;\n}>", "")
+    f.VerifyQuickInfoAt("a9", "var f_r20: C<{\n    x: any;\n}>", "");
 
-    f.VerifyQuickInfoAt("b1", "var f2_r1: number", "")
+    f.VerifyQuickInfoAt("b1", "var f2_r1: number", "");
 
-    f.VerifyQuickInfoAt("b2", "var f2_r2: string", "")
+    f.VerifyQuickInfoAt("b2", "var f2_r2: string", "");
 
-    f.VerifyQuickInfoAt("b3", "var f2_r3: number", "")
+    f.VerifyQuickInfoAt("b3", "var f2_r3: number", "");
 
-    f.VerifyQuickInfoAt("b4", "var f2_r5: Foo<number>", "")
+    f.VerifyQuickInfoAt("b4", "var f2_r5: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("b5", "var f2_r8: I", "")
+    f.VerifyQuickInfoAt("b5", "var f2_r8: I", "");
 
-    f.VerifyQuickInfoAt("b6", "var f2_r12: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("b6", "var f2_r12: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("b7", "var f2_r14: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("b7", "var f2_r14: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("b8", "var f2_r18: C<number>", "")
+    f.VerifyQuickInfoAt("b8", "var f2_r18: C<number>", "");
 
-    f.VerifyQuickInfoAt("b9", "var f2_r20: C<{\n    x: number;\n}>", "")
+    f.VerifyQuickInfoAt("b9", "var f2_r20: C<{\n    x: number;\n}>", "");
 
-    f.VerifyQuickInfoAt("c1", "var f3_r1: number", "")
+    f.VerifyQuickInfoAt("c1", "var f3_r1: number", "");
 
-    f.VerifyQuickInfoAt("c2", "var f3_r2: string", "")
+    f.VerifyQuickInfoAt("c2", "var f3_r2: string", "");
 
-    f.VerifyQuickInfoAt("c3", "var f3_r3: I", "")
+    f.VerifyQuickInfoAt("c3", "var f3_r3: I", "");
 
-    f.VerifyQuickInfoAt("c4", "var f3_r5: Foo<number>", "")
+    f.VerifyQuickInfoAt("c4", "var f3_r5: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("c5", "var f3_r8: I", "")
+    f.VerifyQuickInfoAt("c5", "var f3_r8: I", "");
 
-    f.VerifyQuickInfoAt("c6", "var f3_r12: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("c6", "var f3_r12: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("c7", "var f3_r14: {\n    x: I;\n}", "")
+    f.VerifyQuickInfoAt("c7", "var f3_r14: {\n    x: I;\n}", "");
 
-    f.VerifyQuickInfoAt("c8", "var f3_r18: C<number>", "")
+    f.VerifyQuickInfoAt("c8", "var f3_r18: C<number>", "");
 
-    f.VerifyQuickInfoAt("c9", "var f3_r20: C<{\n    x: I;\n}>", "")
+    f.VerifyQuickInfoAt("c9", "var f3_r20: C<{\n    x: I;\n}>", "");
 
-    f.VerifyQuickInfoAt("d1", "var f4_r1: number", "")
+    f.VerifyQuickInfoAt("d1", "var f4_r1: number", "");
 
-    f.VerifyQuickInfoAt("d2", "var f4_r2: string", "")
+    f.VerifyQuickInfoAt("d2", "var f4_r2: string", "");
 
-    f.VerifyQuickInfoAt("d3", "var f4_r3: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("d3", "var f4_r3: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("d4", "var f4_r5: Foo<number>", "")
+    f.VerifyQuickInfoAt("d4", "var f4_r5: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("d5", "var f4_r8: I", "")
+    f.VerifyQuickInfoAt("d5", "var f4_r8: I", "");
 
-    f.VerifyQuickInfoAt("d6", "var f4_r12: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("d6", "var f4_r12: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("d7", "var f4_r14: {\n    x: {\n        x: number;\n    };\n}", "")
+    f.VerifyQuickInfoAt("d7", "var f4_r14: {\n    x: {\n        x: number;\n    };\n}", "");
 
-    f.VerifyQuickInfoAt("d8", "var f4_r18: C<number>", "")
+    f.VerifyQuickInfoAt("d8", "var f4_r18: C<number>", "");
 
-    f.VerifyQuickInfoAt("d9", "var f4_r20: C<{\n    x: {\n        x: number;\n    };\n}>", "")
+    f.VerifyQuickInfoAt("d9", "var f4_r20: C<{\n    x: {\n        x: number;\n    };\n}>", "");
 
-    f.VerifyQuickInfoAt("e1", "var f5_r1: number", "")
+    f.VerifyQuickInfoAt("e1", "var f5_r1: number", "");
 
-    f.VerifyQuickInfoAt("e2", "var f5_r2: string", "")
+    f.VerifyQuickInfoAt("e2", "var f5_r2: string", "");
 
-    f.VerifyQuickInfoAt("e3", "var f5_r3: Foo<number>", "")
+    f.VerifyQuickInfoAt("e3", "var f5_r3: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("e4", "var f5_r5: Foo<number>", "")
+    f.VerifyQuickInfoAt("e4", "var f5_r5: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("e5", "var f5_r8: I", "")
+    f.VerifyQuickInfoAt("e5", "var f5_r8: I", "");
 
-    f.VerifyQuickInfoAt("e6", "var f5_r12: {\n    x: number;\n}", "")
+    f.VerifyQuickInfoAt("e6", "var f5_r12: {\n    x: number;\n}", "");
 
-    f.VerifyQuickInfoAt("e7", "var f5_r14: {\n    x: Foo<number>;\n}", "")
+    f.VerifyQuickInfoAt("e7", "var f5_r14: {\n    x: Foo<number>;\n}", "");
 
-    f.VerifyQuickInfoAt("e8", "var f5_r18: C<number>", "")
+    f.VerifyQuickInfoAt("e8", "var f5_r18: C<number>", "");
 
-    f.VerifyQuickInfoAt("e9", "var f5_r20: C<{\n    x: Foo<number>;\n}>", "")
+    f.VerifyQuickInfoAt("e9", "var f5_r20: C<{\n    x: Foo<number>;\n}>", "");
     }
 }

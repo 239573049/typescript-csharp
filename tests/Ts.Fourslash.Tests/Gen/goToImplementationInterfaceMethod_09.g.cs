@@ -52,6 +52,6 @@ class MegaBar implements Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceMethod_09", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call", "element_access")
+    f.VerifyBaselineGoToImplementation("function_call", "element_access");
     }
 }

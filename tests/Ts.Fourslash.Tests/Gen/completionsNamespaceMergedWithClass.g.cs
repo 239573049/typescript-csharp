@@ -55,7 +55,7 @@ D./*value*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("value", new CompletionsExpectedList
     {
@@ -82,6 +82,6 @@ D./*value*/
     ]),
         },
         
-    })
+    });
     }
 }

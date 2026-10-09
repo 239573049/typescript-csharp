@@ -29,6 +29,6 @@ public class FindAllRefsNoSubstitutionTemplateLiteralNoCrash1Tests
 type Test = `T/*1*/`;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsNoSubstitutionTemplateLiteralNoCrash1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

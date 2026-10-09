@@ -29,8 +29,8 @@ public class FormatTemplateStringOnPasteTests
 const x = `${0}/*0*/abc/*1*/`;
 """;
         using var f = FourslashTest.New(content, fileName: "formatTemplateStringOnPaste", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("0", "1")
+    f.FormatSelection("0", "1");
 
-    f.VerifyCurrentFileContent("const x = `${0}abc`;")
+    f.VerifyCurrentFileContent("const x = `${0}abc`;");
     }
 }

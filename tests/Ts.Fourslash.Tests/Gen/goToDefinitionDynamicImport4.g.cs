@@ -31,6 +31,6 @@ export function /*Destination*/bar() { return "bar"; }
 import('./foo').then(({ [|ba/*1*/r|] }) => undefined);
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDynamicImport4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

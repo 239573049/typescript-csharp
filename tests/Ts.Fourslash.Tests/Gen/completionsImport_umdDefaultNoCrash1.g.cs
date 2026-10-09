@@ -86,6 +86,6 @@ public class CompletionsImport_umdDefaultNoCrash1Tests
     ],
         },
         
-    })
+    });
     }
 }

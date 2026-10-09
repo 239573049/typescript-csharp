@@ -31,6 +31,6 @@ cl/*invalidContext*/ass InvalidSignatureHelpLocation { }
 InvalidSignatureHelpLocation(/*validContext*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpNegativeTests", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("insideComment", "invalidContext", "validContext")
+    f.VerifyNoSignatureHelpForMarkers("insideComment", "invalidContext", "validContext");
     }
 }

@@ -85,226 +85,226 @@ public class FormattingOnStatementsWithNoSemicolonTests
          while (0)/*68*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnStatementsWithNoSemicolon", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("do {")
+    f.VerifyCurrentLineContent("do {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    var a")
+    f.VerifyCurrentLineContent("    var a");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("} while (1)")
+    f.VerifyCurrentLineContent("} while (1)");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("function f() {")
+    f.VerifyCurrentLineContent("function f() {");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    var s = 1")
+    f.VerifyCurrentLineContent("    var s = 1");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("switch (t) {")
+    f.VerifyCurrentLineContent("switch (t) {");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    case 1:")
+    f.VerifyCurrentLineContent("    case 1:");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("        {")
+    f.VerifyCurrentLineContent("        {");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("            test")
+    f.VerifyCurrentLineContent("            test");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("        }")
+    f.VerifyCurrentLineContent("        }");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("do { do { do { } while (a !== b) } while (a !== b) } while (a !== b)")
+    f.VerifyCurrentLineContent("do { do { do { } while (a !== b) } while (a !== b) } while (a !== b)");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("do {")
+    f.VerifyCurrentLineContent("do {");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("    do {")
+    f.VerifyCurrentLineContent("    do {");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("        do {")
+    f.VerifyCurrentLineContent("        do {");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("        } while (a !== b)")
+    f.VerifyCurrentLineContent("        } while (a !== b)");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("    } while (a !== b)")
+    f.VerifyCurrentLineContent("    } while (a !== b)");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("} while (a !== b)")
+    f.VerifyCurrentLineContent("} while (a !== b)");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("for (var i = 0; i < 10; i++) {")
+    f.VerifyCurrentLineContent("for (var i = 0; i < 10; i++) {");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("    for (var j = 0; j < 10; j++) {")
+    f.VerifyCurrentLineContent("    for (var j = 0; j < 10; j++) {");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("        j -= i")
+    f.VerifyCurrentLineContent("        j -= i");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("function foo() {")
+    f.VerifyCurrentLineContent("function foo() {");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("    try {")
+    f.VerifyCurrentLineContent("    try {");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("        x += 2")
+    f.VerifyCurrentLineContent("        x += 2");
 
-    f.GoToMarker("28")
+    f.GoToMarker("28");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("29")
+    f.GoToMarker("29");
 
-    f.VerifyCurrentLineContent("    catch (e) {")
+    f.VerifyCurrentLineContent("    catch (e) {");
 
-    f.GoToMarker("30")
+    f.GoToMarker("30");
 
-    f.VerifyCurrentLineContent("        x += 2")
+    f.VerifyCurrentLineContent("        x += 2");
 
-    f.GoToMarker("31")
+    f.GoToMarker("31");
 
-    f.VerifyCurrentLineContent("    } finally {")
+    f.VerifyCurrentLineContent("    } finally {");
 
-    f.GoToMarker("32")
+    f.GoToMarker("32");
 
-    f.VerifyCurrentLineContent("        x += 2")
+    f.VerifyCurrentLineContent("        x += 2");
 
-    f.GoToMarker("33")
+    f.GoToMarker("33");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("34")
+    f.GoToMarker("34");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("35")
+    f.GoToMarker("35");
 
-    f.VerifyCurrentLineContent("do { var a } while (1)")
+    f.VerifyCurrentLineContent("do { var a } while (1)");
 
-    f.GoToMarker("49")
+    f.GoToMarker("49");
 
-    f.VerifyCurrentLineContent("foo(function(file) {")
+    f.VerifyCurrentLineContent("foo(function(file) {");
 
-    f.GoToMarker("50")
+    f.GoToMarker("50");
 
-    f.VerifyCurrentLineContent("    return 0")
+    f.VerifyCurrentLineContent("    return 0");
 
-    f.GoToMarker("51")
+    f.GoToMarker("51");
 
-    f.VerifyCurrentLineContent("}).then(function(doc) {")
+    f.VerifyCurrentLineContent("}).then(function(doc) {");
 
-    f.GoToMarker("52")
+    f.GoToMarker("52");
 
-    f.VerifyCurrentLineContent("    return 1")
+    f.VerifyCurrentLineContent("    return 1");
 
-    f.GoToMarker("53")
+    f.GoToMarker("53");
 
-    f.VerifyCurrentLineContent("});")
+    f.VerifyCurrentLineContent("});");
 
-    f.GoToMarker("54")
+    f.GoToMarker("54");
 
-    f.VerifyCurrentLineContent("if (1)")
+    f.VerifyCurrentLineContent("if (1)");
 
-    f.GoToMarker("55")
+    f.GoToMarker("55");
 
-    f.VerifyCurrentLineContent("    if (1)")
+    f.VerifyCurrentLineContent("    if (1)");
 
-    f.GoToMarker("56")
+    f.GoToMarker("56");
 
-    f.VerifyCurrentLineContent("        x++")
+    f.VerifyCurrentLineContent("        x++");
 
-    f.GoToMarker("57")
+    f.GoToMarker("57");
 
-    f.VerifyCurrentLineContent("    else")
+    f.VerifyCurrentLineContent("    else");
 
-    f.GoToMarker("58")
+    f.GoToMarker("58");
 
-    f.VerifyCurrentLineContent("        if (1)")
+    f.VerifyCurrentLineContent("        if (1)");
 
-    f.GoToMarker("59")
+    f.GoToMarker("59");
 
-    f.VerifyCurrentLineContent("            x += 2")
+    f.VerifyCurrentLineContent("            x += 2");
 
-    f.GoToMarker("60")
+    f.GoToMarker("60");
 
-    f.VerifyCurrentLineContent("        else")
+    f.VerifyCurrentLineContent("        else");
 
-    f.GoToMarker("61")
+    f.GoToMarker("61");
 
-    f.VerifyCurrentLineContent("            x += 2")
+    f.VerifyCurrentLineContent("            x += 2");
 
-    f.GoToMarker("62")
+    f.GoToMarker("62");
 
-    f.VerifyCurrentLineContent("                ;")
+    f.VerifyCurrentLineContent("                ;");
 
-    f.GoToMarker("63")
+    f.GoToMarker("63");
 
-    f.VerifyCurrentLineContent("do do do do")
+    f.VerifyCurrentLineContent("do do do do");
 
-    f.GoToMarker("64")
+    f.GoToMarker("64");
 
-    f.VerifyCurrentLineContent("    test;")
+    f.VerifyCurrentLineContent("    test;");
 
-    f.GoToMarker("65")
+    f.GoToMarker("65");
 
-    f.VerifyCurrentLineContent("while (0)")
+    f.VerifyCurrentLineContent("while (0)");
 
-    f.GoToMarker("66")
+    f.GoToMarker("66");
 
-    f.VerifyCurrentLineContent("while (0)")
+    f.VerifyCurrentLineContent("while (0)");
 
-    f.GoToMarker("67")
+    f.GoToMarker("67");
 
-    f.VerifyCurrentLineContent("while (0)")
+    f.VerifyCurrentLineContent("while (0)");
 
-    f.GoToMarker("68")
+    f.GoToMarker("68");
 
-    f.VerifyCurrentLineContent("while (0)")
+    f.VerifyCurrentLineContent("while (0)");
     }
 }

@@ -66,7 +66,7 @@ create('component-two', { props: { /*2*/ } });
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -89,6 +89,6 @@ create('component-two', { props: { /*2*/ } });
     ],
         },
         
-    })
+    });
     }
 }

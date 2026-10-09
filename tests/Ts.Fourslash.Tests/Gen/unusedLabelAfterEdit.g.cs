@@ -34,22 +34,22 @@ myLabel: while (true) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedLabelAfterEdit", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.GoToMarker("marker")
+    f.GoToMarker("marker");
 
-    f.DeleteAtCaret(14)
+    f.DeleteAtCaret(14);
 
-    f.Insert("break;")
+    f.Insert("break;");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("marker")
+    f.GoToMarker("marker");
 
-    f.DeleteAtCaret(6)
+    f.DeleteAtCaret(6);
 
-    f.Insert("break myLabel;")
+    f.Insert("break myLabel;");
 
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
     }
 }

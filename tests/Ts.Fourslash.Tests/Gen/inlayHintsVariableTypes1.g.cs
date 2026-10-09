@@ -51,6 +51,6 @@ const l = ((({ a: 1, b: 1 })));
     {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

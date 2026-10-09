@@ -33,6 +33,6 @@ declare const rest:
 /**/rest({ a: true, b: true }, "foo", "bar");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSignatureRestParameterFromUnion1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "const rest: (v: {\n    a: true;\n} & {\n    b: true;\n}, ...rest: string[]) => unknown", "")
+    f.VerifyQuickInfoAt("", "const rest: (v: {\n    a: true;\n} & {\n    b: true;\n}, ...rest: string[]) => unknown", "");
     }
 }

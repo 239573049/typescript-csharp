@@ -52,8 +52,8 @@ function getFoo1(): Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "contextuallyTypedObjectLiteralMethodDeclarationParam01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("param1", "(parameter) arg: A", "")
+    f.VerifyQuickInfoAt("param1", "(parameter) arg: A", "");
 
-    f.VerifyQuickInfoAt("param2", "(parameter) arg: B", "")
+    f.VerifyQuickInfoAt("param2", "(parameter) arg: B", "");
     }
 }

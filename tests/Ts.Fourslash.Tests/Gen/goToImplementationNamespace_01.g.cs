@@ -33,6 +33,6 @@ namespace Foo {
 Foo.hell/*reference*/o();
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationNamespace_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

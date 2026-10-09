@@ -48,8 +48,8 @@ console.log(abc, Abc, I, R, M);
     console.log(abc, Abc, I, R, M);
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -63,7 +63,7 @@ console.log(abc, Abc, I, R, M);
     console.log(abc, Abc, I, R, M);
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

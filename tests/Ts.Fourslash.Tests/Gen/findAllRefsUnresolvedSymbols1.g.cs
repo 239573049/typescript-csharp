@@ -34,6 +34,6 @@ let e: /*b1*/Bar./*c1*/X<string>;
 let f: /*b2*/Bar./*d0*/X./*e0*/Y;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsUnresolvedSymbols1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("a0", "a1", "a2", "b0", "b1", "b2", "c0", "c1", "d0", "e0")
+    f.VerifyBaselineFindAllReferences("a0", "a1", "a2", "b0", "b1", "b2", "c0", "c1", "d0", "e0");
     }
 }

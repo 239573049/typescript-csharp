@@ -56,10 +56,10 @@ fo/*referenceInGlobalScope*/o;
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("referenceInsideFunctionExpression", "(local function) foo(): number", "")
+    f.VerifyQuickInfoAt("referenceInsideFunctionExpression", "(local function) foo(): number", "");
 
-    f.VerifyQuickInfoAt("referenceInGlobalScope", "function foo(a: number): string", "")
+    f.VerifyQuickInfoAt("referenceInGlobalScope", "function foo(a: number): string", "");
     }
 }

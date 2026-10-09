@@ -37,6 +37,6 @@ enum E {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "gotoDefinitionLinkTag4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "1")
+    f.VerifyBaselineGoToDefinition(false, "1");
     }
 }

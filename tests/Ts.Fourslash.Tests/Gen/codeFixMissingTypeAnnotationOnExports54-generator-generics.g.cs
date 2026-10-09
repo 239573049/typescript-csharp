@@ -43,6 +43,6 @@ export function foo(x: Generator<number>) {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

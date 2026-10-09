@@ -32,6 +32,6 @@ new class C implements I {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsInClassExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1")
+    f.VerifyBaselineFindAllReferences("0", "1");
     }
 }

@@ -54,6 +54,6 @@ var assi/*14*/gned = /**
 assig/*16*/ned("hey");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCommentsFunctionExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

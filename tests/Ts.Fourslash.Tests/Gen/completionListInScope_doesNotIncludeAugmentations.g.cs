@@ -51,6 +51,6 @@ declare module "a" {
     ],
         },
         
-    })
+    });
     }
 }

@@ -38,8 +38,8 @@ var /*1*/r = utils.fold(c, (s, t) => t, "");
 var /*2*/r2 = utils.fold(c, (s, t) => t);
 """;
         using var f = FourslashTest.New(content, fileName: "genericCallsWithOptionalParams1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r: string", "")
+    f.VerifyQuickInfoAt("1", "var r: string", "");
 
-    f.VerifyQuickInfoAt("2", "var r2: string", "")
+    f.VerifyQuickInfoAt("2", "var r2: string", "");
     }
 }

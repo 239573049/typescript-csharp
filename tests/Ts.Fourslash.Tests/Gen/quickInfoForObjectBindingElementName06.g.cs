@@ -46,6 +46,6 @@ const { isBaz: isBar } = f();
 isBar/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForObjectBindingElementName06", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

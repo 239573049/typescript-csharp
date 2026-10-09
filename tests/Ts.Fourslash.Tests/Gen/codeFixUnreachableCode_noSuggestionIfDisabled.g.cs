@@ -30,6 +30,6 @@ public class CodeFixUnreachableCode_noSuggestionIfDisabledTests
 if (false) [|0;|]
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixUnreachableCode_noSuggestionIfDisabled", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

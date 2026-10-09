@@ -47,6 +47,6 @@ export function foo(): void;
 foo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPackageJsonExportsSpecifierEndsInTs", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"pkg/something.ts"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"pkg/something.ts"}, null /*preferences*/);
     }
 }

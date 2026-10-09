@@ -33,6 +33,6 @@ define('mod1', ['a'], /**/function(a, b) {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "javaScriptModulesError1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
     }
 }

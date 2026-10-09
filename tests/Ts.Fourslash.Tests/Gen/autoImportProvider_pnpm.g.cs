@@ -40,14 +40,14 @@ autorun/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider_pnpm", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { autorun } from "mobx";
-    
+
     autorun
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

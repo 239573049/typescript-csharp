@@ -42,7 +42,7 @@ y.foo(1, 2)
 var z = ""
 """;
         using var f = FourslashTest.New(content, fileName: "inlayHintsInteractiveJsDocParameterNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.js")
+    f.GoToFile("/a.js");
 
     f.VerifyBaselineInlayHints(null /*span*/, new LsUtil.UserPreferences
     {
@@ -50,6 +50,6 @@ var z = ""
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.Literals,
     },
-    })
+    });
     }
 }

@@ -32,6 +32,6 @@ const x: M = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoMappedTypeMethods", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) one: any", "")
+    f.VerifyQuickInfoAt("", "(property) one: any", "");
     }
 }

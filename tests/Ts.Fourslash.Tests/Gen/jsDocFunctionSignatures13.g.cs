@@ -33,8 +33,8 @@ function Multimap(iv) {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures13", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("any", "")
+    f.VerifyQuickInfoIs("any", "");
     }
 }

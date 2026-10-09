@@ -38,6 +38,6 @@ class B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsBindingPatternsInConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

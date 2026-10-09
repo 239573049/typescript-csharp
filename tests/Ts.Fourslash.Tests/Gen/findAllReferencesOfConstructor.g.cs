@@ -60,6 +60,6 @@ new a.C();
 class d extends a.C { constructor() { super(); }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesOfConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
     }
 }

@@ -32,6 +32,6 @@ export function /*1*/f() {}
 import { /*2*/f } from "./a";
 """;
         using var f = FourslashTest.New(content, fileName: "isDefinitionSingleImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

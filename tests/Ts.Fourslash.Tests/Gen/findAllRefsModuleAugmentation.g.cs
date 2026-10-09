@@ -35,8 +35,8 @@ declare module "foo" {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsModuleAugmentation", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

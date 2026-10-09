@@ -38,6 +38,6 @@ export {};
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixTopLevelForAwait_module_missingCompilerOptionsInTsConfig", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixModuleOption")
+    f.VerifyCodeFixNotAvailable("fixModuleOption");
     }
 }

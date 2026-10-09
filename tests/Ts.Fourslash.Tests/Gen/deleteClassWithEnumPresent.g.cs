@@ -30,10 +30,10 @@ enum Foo { a, b, c }
 /**/class Bar { }
 """;
         using var f = FourslashTest.New(content, fileName: "deleteClassWithEnumPresent", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.DeleteAtCaret(13)
+    f.DeleteAtCaret(13);
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

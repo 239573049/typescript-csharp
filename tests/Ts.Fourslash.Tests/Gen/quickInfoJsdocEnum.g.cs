@@ -41,10 +41,10 @@ const E = {
 const x = /*value*/E.A;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsdocEnum", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyQuickInfoAt("type", "type E = number", "Doc")
+    f.VerifyQuickInfoAt("type", "type E = number", "Doc");
 
-    f.VerifyQuickInfoAt("value", "const E: {\n    A: number;\n}", "Doc")
+    f.VerifyQuickInfoAt("value", "const E: {\n    A: number;\n}", "Doc");
     }
 }

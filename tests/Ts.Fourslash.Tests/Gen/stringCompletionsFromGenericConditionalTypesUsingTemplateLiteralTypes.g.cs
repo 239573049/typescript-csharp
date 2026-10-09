@@ -76,7 +76,7 @@ const nestedExpression = parse({ prop: "foo|/*ts2*/" })
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"ts2", }, new CompletionsExpectedList
     {
@@ -95,6 +95,6 @@ const nestedExpression = parse({ prop: "foo|/*ts2*/" })
     ],
         },
         
-    })
+    });
     }
 }

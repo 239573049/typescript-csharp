@@ -30,6 +30,6 @@ var obj;
 for (var /**/p in obj) { }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForIn", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var p: string", "")
+    f.VerifyQuickInfoAt("", "var p: string", "");
     }
 }

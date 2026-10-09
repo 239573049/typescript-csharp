@@ -30,6 +30,6 @@ public class GetOccurrencesIsDefinitionOfTypeAliasTests
 let n: /*3*/Alias = 12;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

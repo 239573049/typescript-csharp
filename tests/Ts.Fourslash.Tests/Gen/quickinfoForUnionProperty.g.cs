@@ -42,10 +42,10 @@ x./*2*/commonProperty;
 x./*3*/commonFunction;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoForUnionProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var x: One | Two", "")
+    f.VerifyQuickInfoAt("1", "var x: One | Two", "");
 
-    f.VerifyQuickInfoAt("2", "(property) commonProperty: string | number", "")
+    f.VerifyQuickInfoAt("2", "(property) commonProperty: string | number", "");
 
-    f.VerifyQuickInfoAt("3", "(method) commonFunction(): number", "")
+    f.VerifyQuickInfoAt("3", "(method) commonFunction(): number", "");
     }
 }

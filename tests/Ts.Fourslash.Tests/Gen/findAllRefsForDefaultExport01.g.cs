@@ -34,6 +34,6 @@ var x: /*3*/DefaultExportedClass;
 var y = new /*4*/DefaultExportedClass;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

@@ -52,7 +52,7 @@ console.log(a, b, c, d)
     console.log(a, b, c, d)
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

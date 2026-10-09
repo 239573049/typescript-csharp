@@ -48,6 +48,6 @@ namespace Foo {     var testing = "";     test/**/ }
     ],
         },
         
-    })
+    });
     }
 }

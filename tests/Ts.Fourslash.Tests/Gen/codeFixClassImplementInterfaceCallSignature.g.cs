@@ -32,6 +32,6 @@ interface I {
 class C implements I {[| |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceCallSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

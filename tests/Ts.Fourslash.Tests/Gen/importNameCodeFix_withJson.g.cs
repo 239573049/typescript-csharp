@@ -34,7 +34,7 @@ import "./anything.json";
 a/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_withJson", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -43,6 +43,6 @@ a/**/
 
     a
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -32,6 +32,6 @@ const foo/*a*/: FooType = 1
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityServer", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["a"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["a"] = new[]{0, 1}});
     }
 }

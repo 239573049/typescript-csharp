@@ -46,6 +46,6 @@ finally {
 throw 10;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesThrow8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

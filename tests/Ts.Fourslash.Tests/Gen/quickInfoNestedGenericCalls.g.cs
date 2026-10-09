@@ -34,10 +34,10 @@ declare const $: <S, T extends S>(s: T) => { $: S }
 type NoInfer<T> = [T][T extends any ? 0 : never];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoNestedGenericCalls", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const m: <\"foo\">(s: {\n    foo: {\n        $: \"foo\";\n    };\n}) => void", "")
+    f.VerifyQuickInfoAt("1", "const m: <\"foo\">(s: {\n    foo: {\n        $: \"foo\";\n    };\n}) => void", "");
 
-    f.VerifyQuickInfoAt("2", "const $: <unknown, string>(s: string) => {\n    $: unknown;\n}", "")
+    f.VerifyQuickInfoAt("2", "const $: <unknown, string>(s: string) => {\n    $: unknown;\n}", "");
 
-    f.VerifyQuickInfoAt("3", "const $: <unknown, string>(s: string) => {\n    $: unknown;\n}", "")
+    f.VerifyQuickInfoAt("3", "const $: <unknown, string>(s: string) => {\n    $: unknown;\n}", "");
     }
 }

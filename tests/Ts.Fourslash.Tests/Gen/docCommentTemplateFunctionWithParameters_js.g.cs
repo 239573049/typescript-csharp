@@ -40,6 +40,6 @@ function f(a, ...b): boolean {}
      * @param {any} a
      * @param {...any} b
      */
-    """, null)
+    """, null);
     }
 }

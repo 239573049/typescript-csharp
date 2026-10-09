@@ -33,6 +33,6 @@ type X = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_objectTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

@@ -73,6 +73,6 @@ defaultExp/**/
     ], false),
         },
         
-    })
+    });
     }
 }

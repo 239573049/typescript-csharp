@@ -30,12 +30,12 @@ f(/*
 /*2*/         */() => { /*1*/ });
 """;
         using var f = FourslashTest.New(content, fileName: "formattingWithMultilineComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("         */() => {")
+    f.VerifyCurrentLineContent("         */() => {");
     }
 }

@@ -32,6 +32,6 @@ function g(a, b) { b; }
 g(1, 2);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixUnusedIdentifier_parameter1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("Remove unused declaration for: 'a'")
+    f.VerifyCodeFixNotAvailable("Remove unused declaration for: 'a'");
     }
 }

@@ -45,6 +45,6 @@ o['num'];
 o[`num`];
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsWriteAccess", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

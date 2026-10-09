@@ -39,6 +39,6 @@ const testString = {
 export { test/**/String };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJSExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(alias) type testString = string\n(alias) const testString: {\n    one: string;\n    two: string;\n}\nexport testString", "")
+    f.VerifyQuickInfoAt("", "(alias) type testString = string\n(alias) const testString: {\n    one: string;\n    two: string;\n}\nexport testString", "");
     }
 }

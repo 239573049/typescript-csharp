@@ -74,6 +74,6 @@ function go/*5*/o() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForJSDocUnknownTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

@@ -51,6 +51,6 @@ func(
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     },
-    })
+    });
     }
 }

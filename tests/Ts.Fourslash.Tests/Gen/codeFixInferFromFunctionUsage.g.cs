@@ -33,6 +33,6 @@ function wrap( [| arr |] ) {
  }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromFunctionUsage", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("arr: { other: (arg0: (a: number, b: number) => -1 | 1) => void; }", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("arr: { other: (arg0: (a: number, b: number) => -1 | 1) => void; }", false, 0, 0);
     }
 }

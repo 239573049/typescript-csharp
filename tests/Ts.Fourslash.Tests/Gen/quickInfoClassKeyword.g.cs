@@ -30,8 +30,8 @@ public class QuickInfoClassKeywordTests
 [1].forEach(cla/*2*/ss OK{});
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoClassKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local class) (Anonymous class)", "")
+    f.VerifyQuickInfoAt("1", "(local class) (Anonymous class)", "");
 
-    f.VerifyQuickInfoAt("2", "(local class) OK", "")
+    f.VerifyQuickInfoAt("2", "(local class) OK", "");
     }
 }

@@ -34,6 +34,6 @@ public class QuickInfoJsdocTypedefMissingTypeTests
 var x;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsdocTypedefMissingType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "type A = any", "")
+    f.VerifyQuickInfoAt("", "type A = any", "");
     }
 }

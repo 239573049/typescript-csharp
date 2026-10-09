@@ -36,7 +36,7 @@ join();
 homedir();
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_all2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/index.ts")
+    f.GoToFile("/index.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -48,6 +48,6 @@ homedir();
     join();
     homedir();
     """,
-    })
+    });
     }
 }

@@ -40,7 +40,7 @@ import { [|a|] } from "./b";
 [|a|]
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion14", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifySuggestionDiagnostics([
     new LsProto.Diagnostic
@@ -57,6 +57,6 @@ import { [|a|] } from "./b";
     Tags = [LsProto.DiagnosticTag.Deprecated],
     Range = f.Ranges()[1].LSRange,
     },
-    ])
+    ]);
     }
 }

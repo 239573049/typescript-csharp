@@ -33,6 +33,6 @@ module.exports = /**/a;
 exports["foo"] = a;
 """;
         using var f = FourslashTest.New(content, fileName: "renameExportCrash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

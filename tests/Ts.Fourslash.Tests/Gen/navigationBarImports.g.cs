@@ -31,6 +31,6 @@ import c = require("m");
 import * as d from "m";
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarImports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

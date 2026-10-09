@@ -39,8 +39,8 @@ class Foo<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoLink3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

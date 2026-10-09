@@ -36,8 +36,8 @@ public class JsDocIndentationPreservation1Tests
 function foo/**/(){}
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocIndentationPreservation1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("function foo(): void", "Does some stuff.\n    Second line.\n\tThird line.")
+    f.VerifyQuickInfoIs("function foo(): void", "Does some stuff.\n    Second line.\n\tThird line.");
     }
 }

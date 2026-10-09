@@ -44,6 +44,6 @@ function doThing(f) {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     },
-    })
+    });
     }
 }

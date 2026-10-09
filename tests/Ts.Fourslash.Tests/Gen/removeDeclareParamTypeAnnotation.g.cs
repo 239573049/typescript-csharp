@@ -31,8 +31,8 @@ declare function parseInt(/**/s:T):T;
 parseInt('2');
 """;
         using var f = FourslashTest.New(content, fileName: "removeDeclareParamTypeAnnotation", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.DeleteAtCaret(3)
+    f.DeleteAtCaret(3);
     }
 }

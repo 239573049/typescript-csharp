@@ -43,7 +43,7 @@ export { g, e, b, c };
     export { g, e, b, c };
     """,
             LsProto.CodeActionKind.SourceRemoveUnusedImports,
-            null,
-        )
+            null
+        );
     }
 }

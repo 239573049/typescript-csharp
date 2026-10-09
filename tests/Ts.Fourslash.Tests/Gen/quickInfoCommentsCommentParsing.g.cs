@@ -229,6 +229,6 @@ class NoQuic/*50q*/kInfoClass {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoCommentsCommentParsing", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

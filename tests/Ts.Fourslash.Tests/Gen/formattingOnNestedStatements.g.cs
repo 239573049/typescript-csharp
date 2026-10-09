@@ -33,18 +33,18 @@ public class FormattingOnNestedStatementsTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnNestedStatements", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("1", "2")
+    f.FormatSelection("1", "2");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    {")
+    f.VerifyCurrentLineContent("    {");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("        test")
+    f.VerifyCurrentLineContent("        test");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
     }
 }

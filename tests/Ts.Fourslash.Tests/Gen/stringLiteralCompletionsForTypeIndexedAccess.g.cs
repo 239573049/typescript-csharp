@@ -48,7 +48,7 @@ type AorB = Foo["a" | "/*2*/"];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -66,6 +66,6 @@ type AorB = Foo["a" | "/*2*/"];
     ],
         },
         
-    })
+    });
     }
 }

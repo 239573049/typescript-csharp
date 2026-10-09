@@ -41,13 +41,13 @@ someExportedVariable;
 """;
         using var f = FourslashTest.New(content, fileName: "renameNamedImport", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/home/src/workspaces/project/lib/index.ts")
+    f.GoToFile("/home/src/workspaces/project/lib/index.ts");
 
-    f.GoToFile("/home/src/workspaces/project/src/index.ts")
+    f.GoToFile("/home/src/workspaces/project/src/index.ts");
 
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    }, "i")
+    }, "i");
     }
 }

@@ -68,9 +68,9 @@ I/**/
             
         },
         
-    })
+    });
 
-    f.Insert("N")
+    f.Insert("N");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -85,6 +85,6 @@ I/**/
             
         },
         
-    })
+    });
     }
 }

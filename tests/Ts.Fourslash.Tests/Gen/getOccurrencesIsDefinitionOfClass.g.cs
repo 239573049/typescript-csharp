@@ -35,6 +35,6 @@ public class GetOccurrencesIsDefinitionOfClassTests
 let c = new /*3*/C();
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

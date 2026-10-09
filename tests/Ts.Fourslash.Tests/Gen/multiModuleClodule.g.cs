@@ -62,7 +62,7 @@ c./*3*/foo = C./*4*/foo;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", "4", }, new CompletionsExpectedList
     {
@@ -99,7 +99,7 @@ c./*3*/foo = C./*4*/foo;
     ]),
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -117,8 +117,8 @@ c./*3*/foo = C./*4*/foo;
     ],
         },
         
-    })
+    });
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

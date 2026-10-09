@@ -32,6 +32,6 @@ someCall(
 );
 """;
         using var f = FourslashTest.New(content, fileName: "formatRangeEndingAfterCommaOfCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("start", "end")
+    f.FormatSelection("start", "end");
     }
 }

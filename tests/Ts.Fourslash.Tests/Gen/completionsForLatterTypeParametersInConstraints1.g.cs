@@ -49,7 +49,7 @@ type A1<K extends /*2*/, L> = K
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ type A1<K extends /*2*/, L> = K
     ],
         },
         
-    })
+    });
     }
 }

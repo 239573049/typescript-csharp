@@ -30,6 +30,6 @@ type /*0*/List</*1*/T> = /*2*/T[]
 type /*3*/List2</*4*/T extends string> = /*5*/T[];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsTypeParameterInTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

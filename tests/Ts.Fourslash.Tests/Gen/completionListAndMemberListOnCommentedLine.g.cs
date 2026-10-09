@@ -30,6 +30,6 @@ public class CompletionListAndMemberListOnCommentedLineTests
 var
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAndMemberListOnCommentedLine", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

@@ -44,6 +44,6 @@ export function foo(x: Map<number, Foo<string>>) {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

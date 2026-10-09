@@ -37,16 +37,16 @@ var f/*5*/5 = new Foo<number>(3);
 var f/*6*/6: Foo<number> = new Foo<number>(3);
 """;
         using var f = FourslashTest.New(content, fileName: "genericTypeParamUnrelatedToArguments1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var f1: Foo<number>", "")
+    f.VerifyQuickInfoAt("1", "var f1: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("2", "var f2: Foo<number>", "")
+    f.VerifyQuickInfoAt("2", "var f2: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("3", "var f3: any", "")
+    f.VerifyQuickInfoAt("3", "var f3: any", "");
 
-    f.VerifyQuickInfoAt("4", "var f4: Foo<number>", "")
+    f.VerifyQuickInfoAt("4", "var f4: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("5", "var f5: any", "")
+    f.VerifyQuickInfoAt("5", "var f5: any", "");
 
-    f.VerifyQuickInfoAt("6", "var f6: Foo<number>", "")
+    f.VerifyQuickInfoAt("6", "var f6: Foo<number>", "");
     }
 }

@@ -30,6 +30,6 @@ declare function f<T>(x: number): T;
 const x/**/ = f();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfo_errorSignatureFillsInTypeParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "const x: unknown", "")
+    f.VerifyQuickInfoAt("", "const x: unknown", "");
     }
 }

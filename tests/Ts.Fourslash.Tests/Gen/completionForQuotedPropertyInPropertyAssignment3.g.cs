@@ -57,7 +57,7 @@ public class CompletionForQuotedPropertyInPropertyAssignment3Tests
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -97,6 +97,6 @@ public class CompletionForQuotedPropertyInPropertyAssignment3Tests
     ],
         },
         
-    })
+    });
     }
 }

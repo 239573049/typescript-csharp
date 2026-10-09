@@ -32,13 +32,13 @@ const foo2 = ["a"]satisfies Foo[];
 const foo3 = ["a"]  satisfies Foo[];
 """;
         using var f = FourslashTest.New(content, fileName: "formatSatisfiesExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     type Foo = "a" | "b" | "c";
     const foo1 = ["a"] satisfies Foo[];
     const foo2 = ["a"] satisfies Foo[];
     const foo3 = ["a"] satisfies Foo[];
-    """)
+    """);
     }
 }

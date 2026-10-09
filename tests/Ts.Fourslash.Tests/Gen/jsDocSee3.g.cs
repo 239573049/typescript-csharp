@@ -35,6 +35,6 @@ function foo ([|/*def1*/a|]: string) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocSee3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "use1")
+    f.VerifyBaselineGoToDefinition(false, "use1");
     }
 }

@@ -43,16 +43,16 @@ export function f(x, y) {
 f/*f*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJSDocBackticks", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("f")
+    f.GoToMarker("f");
 
-    f.VerifyQuickInfoIs("function f(x: string, y: string): string", "`@param` initial at-param is OK in title comment")
+    f.VerifyQuickInfoIs("function f(x: string, y: string): string", "`@param` initial at-param is OK in title comment");
 
-    f.GoToMarker("x")
+    f.GoToMarker("x");
 
-    f.VerifyQuickInfoIs("(parameter) x: string", "hi there `@param`")
+    f.VerifyQuickInfoIs("(parameter) x: string", "hi there `@param`");
 
-    f.GoToMarker("y")
+    f.GoToMarker("y");
 
-    f.VerifyQuickInfoIs("(parameter) y: string", "hi there `@ * param\nthis is the margin")
+    f.VerifyQuickInfoIs("(parameter) y: string", "hi there `@ * param\nthis is the margin");
     }
 }

@@ -35,8 +35,8 @@ declare global {
 /*3*/f();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsGlobalModuleAugmentation", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -72,7 +72,7 @@ import {} from "@reduxjs/toolkit";
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -87,6 +87,6 @@ import {} from "@reduxjs/toolkit";
     import { configureStore } from "@reduxjs/toolkit";
 
     """,
-    })
+    });
     }
 }

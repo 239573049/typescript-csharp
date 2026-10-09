@@ -37,6 +37,6 @@ export const /*2*/SubmissionComp = (submission: SubmissionProps) =>
     <div style={{ fontFamily: "sans-serif" }}></div>;
 """;
         using var f = FourslashTest.New(content, fileName: "findReferencesJSXTagName", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

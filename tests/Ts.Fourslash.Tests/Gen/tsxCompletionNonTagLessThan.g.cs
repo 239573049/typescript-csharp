@@ -55,7 +55,7 @@ var x: Array<numb/*a*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("c", new CompletionsExpectedList
     {
@@ -76,6 +76,6 @@ var x: Array<numb/*a*/;
     ],
         },
         
-    })
+    });
     }
 }

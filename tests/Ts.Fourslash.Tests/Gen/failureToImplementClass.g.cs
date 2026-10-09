@@ -32,8 +32,8 @@ interface IExec {
 class /*1*/NodeExec/*2*/ implements IExec { }
 """;
         using var f = FourslashTest.New(content, fileName: "failureToImplementClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

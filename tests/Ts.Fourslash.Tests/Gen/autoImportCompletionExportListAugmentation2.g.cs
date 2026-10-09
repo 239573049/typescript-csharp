@@ -84,7 +84,7 @@ class PingCommand extends Command {
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -99,6 +99,6 @@ class PingCommand extends Command {
       
     }
     """,
-    })
+    });
     }
 }

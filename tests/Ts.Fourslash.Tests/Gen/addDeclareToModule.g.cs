@@ -31,8 +31,8 @@ public class AddDeclareToModuleTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "addDeclareToModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("declare ")
+    f.Insert("declare ");
     }
 }

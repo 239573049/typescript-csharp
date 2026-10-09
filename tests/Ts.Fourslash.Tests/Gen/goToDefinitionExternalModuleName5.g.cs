@@ -32,6 +32,6 @@ declare module /*2*/[|"external/*1*/"|] {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionExternalModuleName5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

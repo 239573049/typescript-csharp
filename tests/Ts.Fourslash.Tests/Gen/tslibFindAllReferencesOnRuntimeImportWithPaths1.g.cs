@@ -49,6 +49,6 @@ export function __importStar(...args: any): any;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "tslibFindAllReferencesOnRuntimeImportWithPaths1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

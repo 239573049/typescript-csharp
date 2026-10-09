@@ -57,6 +57,6 @@ export = (class Cls {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "navigationItemsExportEqualsExpression2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

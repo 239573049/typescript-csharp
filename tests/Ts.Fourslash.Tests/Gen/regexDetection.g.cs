@@ -29,20 +29,20 @@ public class RegexDetectionTests
  /*1*/15 / /*2*/Math.min(61 / /*3*/42, 32 / 15) / /*4*/15;
 """;
         using var f = FourslashTest.New(content, fileName: "regexDetection", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoIs("var Math: Math", "An intrinsic object that provides basic mathematics functionality and constants.")
+    f.VerifyQuickInfoIs("var Math: Math", "An intrinsic object that provides basic mathematics functionality and constants.");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyNotQuickInfoExists()
+    f.VerifyNotQuickInfoExists();
     }
 }

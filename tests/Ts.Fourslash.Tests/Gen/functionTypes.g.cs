@@ -49,7 +49,7 @@ typeof C.k./*6*/caller === 'function';
 l./*7*/prototype = Object.prototype;
 """;
         using var f = FourslashTest.New(content, fileName: "functionTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
     f.VerifyCompletions(new[]{"1", "2", "3", "4", "5", "6", }, new CompletionsExpectedList
     {
@@ -64,7 +64,7 @@ l./*7*/prototype = Object.prototype;
             Exact = CompletionFunctionMembersWithPrototype,
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -82,6 +82,6 @@ l./*7*/prototype = Object.prototype;
     ]),
         },
         
-    })
+    });
     }
 }

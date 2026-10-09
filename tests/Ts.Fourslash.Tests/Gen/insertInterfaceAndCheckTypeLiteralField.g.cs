@@ -31,12 +31,12 @@ interface G<T, U> { }
 var v2: G<{ a: /*checkParam*/C }, C>;
 """;
         using var f = FourslashTest.New(content, fileName: "insertInterfaceAndCheckTypeLiteralField", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("addC")
+    f.GoToMarker("addC");
 
-    f.Insert("interface C { }")
+    f.Insert("interface C { }");
 
-    f.GoToMarker("checkParam")
+    f.GoToMarker("checkParam");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

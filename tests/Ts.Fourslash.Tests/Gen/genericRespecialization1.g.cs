@@ -91,24 +91,24 @@ class GenericPlanet2<T extends Food, V>{
  /*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "genericRespecialization1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.DeleteAtCaret(6)
+    f.DeleteAtCaret(6);
 
-    f.Insert("any")
+    f.Insert("any");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.InsertLine("var narnia = new GenericPlanet2<Cookie, string>(")
+    f.InsertLine("var narnia = new GenericPlanet2<Cookie, string>(");
     }
 }

@@ -49,9 +49,9 @@ module.exports = {
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_jsModuleExportsAssignment", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" })
+    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -66,9 +66,9 @@ module.exports = {
             
         },
         
-    })
+    });
 
-    f.Insert("d")
+    f.Insert("d");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -100,7 +100,7 @@ module.exports = {
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -116,6 +116,6 @@ module.exports = {
 
     d
     """,
-    })
+    });
     }
 }

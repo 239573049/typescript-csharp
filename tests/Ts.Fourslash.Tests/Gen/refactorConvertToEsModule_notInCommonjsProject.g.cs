@@ -32,6 +32,6 @@ public class RefactorConvertToEsModule_notInCommonjsProjectTests
 exports.x = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "refactorConvertToEsModule_notInCommonjsProject", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

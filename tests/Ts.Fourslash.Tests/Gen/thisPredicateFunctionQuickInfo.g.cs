@@ -85,18 +85,18 @@ function isLeaderGuard(g: RoyalGuard) {
 let checked/*14*/LeaderStatus = isLeader/*15*/Guard(a);
 """;
         using var f = FourslashTest.New(content, fileName: "thisPredicateFunctionQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(method) RoyalGuard.isLeader(): this is LeadGuard", "")
+    f.VerifyQuickInfoAt("1", "(method) RoyalGuard.isLeader(): this is LeadGuard", "");
 
-    f.VerifyQuickInfoAt("3", "(method) RoyalGuard.isFollower(): this is FollowerGuard", "")
+    f.VerifyQuickInfoAt("3", "(method) RoyalGuard.isFollower(): this is FollowerGuard", "");
 
-    f.VerifyQuickInfoAt("5", "(method) GuardInterface.isLeader(): this is LeadGuard", "")
+    f.VerifyQuickInfoAt("5", "(method) GuardInterface.isLeader(): this is LeadGuard", "");
 
-    f.VerifyQuickInfoAt("7", "(method) GuardInterface.isFollower(): this is FollowerGuard", "")
+    f.VerifyQuickInfoAt("7", "(method) GuardInterface.isFollower(): this is FollowerGuard", "");
 
-    f.VerifyQuickInfoAt("13", "let leaderStatus: boolean", "")
+    f.VerifyQuickInfoAt("13", "let leaderStatus: boolean", "");
 
-    f.VerifyQuickInfoAt("14", "let checkedLeaderStatus: boolean", "")
+    f.VerifyQuickInfoAt("14", "let checkedLeaderStatus: boolean", "");
 
-    f.VerifyQuickInfoAt("15", "function isLeaderGuard(g: RoyalGuard): g is LeadGuard", "")
+    f.VerifyQuickInfoAt("15", "function isLeaderGuard(g: RoyalGuard): g is LeadGuard", "");
     }
 }

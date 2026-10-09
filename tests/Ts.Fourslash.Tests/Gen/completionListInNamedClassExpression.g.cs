@@ -54,7 +54,7 @@ var x = class myClass {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -69,6 +69,6 @@ var x = class myClass {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

@@ -48,24 +48,24 @@ var c/*5*/cc = _(aaa).map(xx => xx.length);  // Should not error, should be any[
 var d/*6*/dd = aaa.map(xx => xx.length);     // should not error, should be any[]
 """;
         using var f = FourslashTest.New(content, fileName: "genericMapTyping1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyQuickInfoAt("1", "var bb: number[]", "")
+    f.VerifyQuickInfoAt("1", "var bb: number[]", "");
 
-    f.VerifyQuickInfoAt("2", "var cc: number[]", "")
+    f.VerifyQuickInfoAt("2", "var cc: number[]", "");
 
-    f.VerifyQuickInfoAt("3", "var dd: number[]", "")
+    f.VerifyQuickInfoAt("3", "var dd: number[]", "");
 
-    f.VerifyQuickInfoAt("4", "var bbb: any[]", "")
+    f.VerifyQuickInfoAt("4", "var bbb: any[]", "");
 
-    f.VerifyQuickInfoAt("5", "var ccc: any[]", "")
+    f.VerifyQuickInfoAt("5", "var ccc: any[]", "");
 
-    f.VerifyQuickInfoAt("6", "var ddd: any[]", "")
+    f.VerifyQuickInfoAt("6", "var ddd: any[]", "");
 
-    f.VerifyQuickInfoAt("7", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("7", "(parameter) xx: string", "");
 
-    f.VerifyQuickInfoAt("8", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("8", "(parameter) xx: string", "");
 
-    f.VerifyQuickInfoAt("9", "(parameter) xx: string", "")
+    f.VerifyQuickInfoAt("9", "(parameter) xx: string", "");
     }
 }

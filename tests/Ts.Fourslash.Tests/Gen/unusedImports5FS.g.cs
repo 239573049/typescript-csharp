@@ -47,6 +47,6 @@ export function test2() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "unusedImports5FS", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("import {Calculator, test} from \"./file1\"", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("import {Calculator, test} from \"./file1\"", false, 0, 0);
     }
 }

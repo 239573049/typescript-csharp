@@ -35,6 +35,6 @@ export import e = require("a");
 export * from "a"; // no bindings here
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsExports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

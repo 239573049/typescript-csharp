@@ -36,6 +36,6 @@ foo(1, 2);
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.None,
     },
-    })
+    });
     }
 }

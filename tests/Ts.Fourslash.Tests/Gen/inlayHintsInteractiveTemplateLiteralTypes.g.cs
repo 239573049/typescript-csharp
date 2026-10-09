@@ -42,6 +42,6 @@ const lit4 = getTemplateLiteral4();
     {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

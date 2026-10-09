@@ -35,6 +35,6 @@ abstract class A {
 class C extends A {[| |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassExtendAbstractPrivateProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

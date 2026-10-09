@@ -47,8 +47,8 @@ x/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportRelativePathToMonorepoPackage", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyImportFixModuleSpecifiers("", new[]{"./packages/utils/dist/index.js"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"./packages/utils/dist/index.js"}, null /*preferences*/);
     }
 }

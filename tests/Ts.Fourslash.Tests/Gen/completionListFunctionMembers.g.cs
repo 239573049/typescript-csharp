@@ -48,6 +48,6 @@ fnc1./**/
             Exact = CompletionFunctionMembersWithPrototype,
         },
         
-    })
+    });
     }
 }

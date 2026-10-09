@@ -35,6 +35,6 @@ a12./*2*/a;
 a1./*3*/a;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForObjectSpread", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

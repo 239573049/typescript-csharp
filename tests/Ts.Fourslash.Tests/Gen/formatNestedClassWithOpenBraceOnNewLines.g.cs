@@ -33,13 +33,13 @@ module A
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatNestedClassWithOpenBraceOnNewLines", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSTrue });
 
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core.TSTrue });
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("}")
+    f.Insert("}");
 
     f.VerifyCurrentFileContent("""
     module A
@@ -48,6 +48,6 @@ module A
         {
         }
     }
-    """)
+    """);
     }
 }

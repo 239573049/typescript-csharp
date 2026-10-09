@@ -30,6 +30,6 @@ public class JsxElementExtendsNoCrash2Tests
 <T extends/>
 """;
         using var f = FourslashTest.New(content, fileName: "jsxElementExtendsNoCrash2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

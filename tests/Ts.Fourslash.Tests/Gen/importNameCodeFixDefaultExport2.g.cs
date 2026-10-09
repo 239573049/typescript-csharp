@@ -33,7 +33,7 @@ export default Base;
 [|class Derived extends Base { }|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixDefaultExport2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/test.ts")
+    f.GoToFile("/test.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -41,6 +41,6 @@ export default Base;
 
     class Derived extends Base { }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

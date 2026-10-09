@@ -29,6 +29,6 @@ public class GoToDefinitionAwait2Tests
 [|/*start*/await|] Promise.resolve(0);
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionAwait2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

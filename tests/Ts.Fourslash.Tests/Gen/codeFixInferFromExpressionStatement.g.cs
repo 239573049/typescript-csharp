@@ -32,6 +32,6 @@ function inferVoid( [| app |] ) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromExpressionStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("app: { use: (arg0: string) => void; }", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("app: { use: (arg0: string) => void; }", false, 0, 0);
     }
 }

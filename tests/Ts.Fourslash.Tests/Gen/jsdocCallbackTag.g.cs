@@ -55,20 +55,20 @@ t(/*4*/"!", /*5*/12, /*6*/false);
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocCallbackTag", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoIs("var t: FooHandler", "")
+    f.VerifyQuickInfoIs("var t: FooHandler", "");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyQuickInfoIs("var t2: FooHandler2", "")
+    f.VerifyQuickInfoIs("var t2: FooHandler2", "");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyQuickInfoIs("type FooHandler2 = (eventName?: string | undefined, eventName2?: string) => any", "- What, another one?")
+    f.VerifyQuickInfoIs("type FooHandler2 = (eventName?: string | undefined, eventName2?: string) => any", "- What, another one?");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyQuickInfoIs("type FooHandler = (eventName: string, eventName2: number | string, eventName3: any) => number", "- A kind of magic")
+    f.VerifyQuickInfoIs("type FooHandler = (eventName: string, eventName2: number | string, eventName3: any) => number", "- A kind of magic");
     }
 }

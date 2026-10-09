@@ -58,6 +58,6 @@ var /*12*/QType;
 var /*13*/SOrN;
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocTypeTagQuickInfo1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

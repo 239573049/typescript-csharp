@@ -32,6 +32,6 @@ async function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingMember21", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("fixMissingMember")
+    f.VerifyCodeFixNotAvailable("fixMissingMember");
     }
 }

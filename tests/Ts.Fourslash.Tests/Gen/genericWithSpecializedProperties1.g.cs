@@ -38,12 +38,12 @@ var /*3*/x2 = f2.x;
 var /*4*/y2 = f2.y;
 """;
         using var f = FourslashTest.New(content, fileName: "genericWithSpecializedProperties1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var xx: Foo<string>", "")
+    f.VerifyQuickInfoAt("1", "var xx: Foo<string>", "");
 
-    f.VerifyQuickInfoAt("2", "var yy: Foo<number>", "")
+    f.VerifyQuickInfoAt("2", "var yy: Foo<number>", "");
 
-    f.VerifyQuickInfoAt("3", "var x2: Foo<string>", "")
+    f.VerifyQuickInfoAt("3", "var x2: Foo<string>", "");
 
-    f.VerifyQuickInfoAt("4", "var y2: Foo<number>", "")
+    f.VerifyQuickInfoAt("4", "var y2: Foo<number>", "");
     }
 }

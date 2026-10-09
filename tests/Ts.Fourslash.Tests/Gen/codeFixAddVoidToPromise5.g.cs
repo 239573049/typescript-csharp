@@ -32,6 +32,6 @@ public class CodeFixAddVoidToPromise5Tests
 const p4: Promise<number> = new Promise(resolve => resolve());
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddVoidToPromise5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

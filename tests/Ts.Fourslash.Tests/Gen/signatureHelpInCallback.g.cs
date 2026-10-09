@@ -32,9 +32,9 @@ forEach(/*1*/() => {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInCallback", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "forEach(f: () => void): any" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "forEach(f: () => void): any" });
 
-    f.VerifyNoSignatureHelpForMarkers("2")
+    f.VerifyNoSignatureHelpForMarkers("2");
     }
 }

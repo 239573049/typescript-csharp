@@ -35,6 +35,6 @@ const { /*x1*/x, /*y1*/y } = new Test();
 /*x2*/x; /*y2*/y;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsDestructureGetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("x0", "x1", "x2", "y0", "y1", "y2")
+    f.VerifyBaselineFindAllReferences("x0", "x1", "x2", "y0", "y1", "y2");
     }
 }

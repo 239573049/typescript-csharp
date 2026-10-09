@@ -39,6 +39,6 @@ class Derived extends Base {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "superInsideInnerClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("1")
+    f.VerifyNoSignatureHelpForMarkers("1");
     }
 }

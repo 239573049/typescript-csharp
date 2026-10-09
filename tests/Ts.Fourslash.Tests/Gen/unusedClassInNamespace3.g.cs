@@ -51,6 +51,6 @@ public class UnusedClassInNamespace3Tests
         export class c2 {
         }
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

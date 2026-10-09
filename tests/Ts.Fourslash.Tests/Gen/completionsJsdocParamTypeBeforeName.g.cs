@@ -44,7 +44,7 @@ function toString(obj) {}
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
 
     f.VerifyCompletions("name1", new CompletionsExpectedList
     {
@@ -61,7 +61,7 @@ function toString(obj) {}
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("name2", new CompletionsExpectedList
     {
@@ -78,6 +78,6 @@ function toString(obj) {}
     ],
         },
         
-    })
+    });
     }
 }

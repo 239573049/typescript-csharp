@@ -68,7 +68,7 @@ function foo2(aOrb) {
 var x = fo/*15*/o2;
 """;
         using var f = FourslashTest.New(content, fileName: "commentsVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var myVariable: number", "This is my variable")
+    f.VerifyQuickInfoAt("1", "var myVariable: number", "This is my variable");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -94,7 +94,7 @@ var x = fo/*15*/o2;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -130,7 +130,7 @@ var x = fo/*15*/o2;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -166,17 +166,17 @@ var x = fo/*15*/o2;
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment" })
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment" });
 
-    f.VerifyQuickInfoAt("5q", "function foo(): void", "foos comment")
+    f.VerifyQuickInfoAt("5q", "function foo(): void", "foos comment");
 
-    f.GoToMarker("6")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment" })
+    f.GoToMarker("6");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment" });
 
-    f.VerifyQuickInfoAt("6q", "var fooVar: () => void", "fooVar comment")
+    f.VerifyQuickInfoAt("6q", "var fooVar: () => void", "fooVar comment");
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -212,19 +212,19 @@ var x = fo/*15*/o2;
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment" })
+    f.GoToMarker("8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment" });
 
-    f.VerifyQuickInfoAt("8q", "function foo(): void", "foos comment")
+    f.VerifyQuickInfoAt("8q", "function foo(): void", "foos comment");
 
-    f.GoToMarker("9")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment" })
+    f.GoToMarker("9");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment" });
 
-    f.VerifyQuickInfoAt("9q", "var fooVar: () => void", "fooVar comment")
+    f.VerifyQuickInfoAt("9q", "var fooVar: () => void", "fooVar comment");
 
-    f.VerifyQuickInfoAt("9aq", "var fooVar: () => void", "fooVar comment")
+    f.VerifyQuickInfoAt("9aq", "var fooVar: () => void", "fooVar comment");
 
     f.VerifyCompletions("10", new CompletionsExpectedList
     {
@@ -250,7 +250,7 @@ var x = fo/*15*/o2;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("11", new CompletionsExpectedList
     {
@@ -276,14 +276,14 @@ var x = fo/*15*/o2;
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("12", "var fooVar: () => void", "fooVar comment")
+    f.VerifyQuickInfoAt("12", "var fooVar: () => void", "fooVar comment");
 
-    f.VerifyQuickInfoAt("13", "var fooVar: () => void", "fooVar comment")
+    f.VerifyQuickInfoAt("13", "var fooVar: () => void", "fooVar comment");
 
-    f.VerifyQuickInfoAt("14", "function foo(): void", "foos comment")
+    f.VerifyQuickInfoAt("14", "function foo(): void", "foos comment");
 
-    f.VerifyQuickInfoAt("15", "function foo2(a: number): void (+1 overload)", "")
+    f.VerifyQuickInfoAt("15", "function foo2(a: number): void (+1 overload)", "");
     }
 }

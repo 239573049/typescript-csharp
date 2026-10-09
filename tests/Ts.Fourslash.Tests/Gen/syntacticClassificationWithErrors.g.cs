@@ -35,6 +35,6 @@ c =
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "class.declaration", Text = "A" },
             new SemanticToken { Type = "property.declaration", Text = "a" },
-        })
+        });
     }
 }

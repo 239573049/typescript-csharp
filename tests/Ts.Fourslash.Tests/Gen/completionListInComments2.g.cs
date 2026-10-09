@@ -29,6 +29,6 @@ public class CompletionListInComments2Tests
 // */{| "name" : "1" |}
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInComments2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("1", null)
+    f.VerifyCompletions("1", null);
     }
 }

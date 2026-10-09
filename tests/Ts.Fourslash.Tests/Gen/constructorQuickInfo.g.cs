@@ -33,10 +33,10 @@ var x/*2*/2 = new SS();
 var x/*3*/3 = new SS;
 """;
         using var f = FourslashTest.New(content, fileName: "constructorQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var x1: SS<number>", "")
+    f.VerifyQuickInfoAt("1", "var x1: SS<number>", "");
 
-    f.VerifyQuickInfoAt("2", "var x2: SS<unknown>", "")
+    f.VerifyQuickInfoAt("2", "var x2: SS<unknown>", "");
 
-    f.VerifyQuickInfoAt("3", "var x3: SS<unknown>", "")
+    f.VerifyQuickInfoAt("3", "var x3: SS<unknown>", "");
     }
 }

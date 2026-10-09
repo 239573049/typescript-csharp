@@ -51,6 +51,6 @@ function foo(x: string, y: number, z: boolean) {
     ],
         },
         
-    })
+    });
     }
 }

@@ -66,7 +66,7 @@ fo/**/
     ], true),
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -78,6 +78,6 @@ fo/**/
 
     fo
     """,
-    })
+    });
     }
 }

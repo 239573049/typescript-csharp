@@ -41,6 +41,6 @@ o./*methodReference*/method;
 o./*es6StyleMethodReference*/es6StyleMethod;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionObjectLiteralProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "valueReference", "getterReference", "setterReference", "methodReference", "es6StyleMethodReference")
+    f.VerifyBaselineGoToDefinition(false, "valueReference", "getterReference", "setterReference", "methodReference", "es6StyleMethodReference");
     }
 }

@@ -30,6 +30,6 @@ var foo = '';
 ( // f/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("", null)
+    f.VerifyCompletions("", null);
     }
 }

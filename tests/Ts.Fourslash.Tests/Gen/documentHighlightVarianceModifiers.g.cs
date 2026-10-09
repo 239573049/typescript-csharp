@@ -30,6 +30,6 @@ type TFoo<Value> = { value: Value };
 type TBar<[|in|] [|out|] Value> = TFoo<Value>;
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightVarianceModifiers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

@@ -32,8 +32,8 @@ function apply<T, U extends Date>(source: T[], selector: (x: T) => U) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "genericCombinatorWithConstraints1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(local var) xs: U[]", "")
+    f.VerifyQuickInfoAt("1", "(local var) xs: U[]", "");
 
-    f.VerifyQuickInfoAt("2", "(local var) xs2: U[]", "")
+    f.VerifyQuickInfoAt("2", "(local var) xs2: U[]", "");
     }
 }

@@ -38,6 +38,6 @@ declare module /*2b*/"*.css" {
 import styles from [|/*1*/"./index.css"|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionCSSPatternAmbientModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

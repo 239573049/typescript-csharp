@@ -30,6 +30,6 @@ type /*definition*/T = string;
 const x: /*reference*/T;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

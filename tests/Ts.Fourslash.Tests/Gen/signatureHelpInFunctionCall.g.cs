@@ -32,6 +32,6 @@ items.forEach(item => {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInFunctionCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("")
+    f.VerifyNoSignatureHelpForMarkers("");
     }
 }

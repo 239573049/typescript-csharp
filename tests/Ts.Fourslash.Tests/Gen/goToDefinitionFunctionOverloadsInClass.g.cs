@@ -38,6 +38,6 @@ class clsInOverload {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionFunctionOverloadsInClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "staticFunctionOverload", "functionOverload")
+    f.VerifyBaselineGoToDefinition(true, "staticFunctionOverload", "functionOverload");
     }
 }

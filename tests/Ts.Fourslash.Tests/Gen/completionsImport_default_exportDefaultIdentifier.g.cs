@@ -34,7 +34,7 @@ export default foo;
 f/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_default_exportDefaultIdentifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -65,7 +65,7 @@ f/**/;
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -77,6 +77,6 @@ f/**/;
 
     f;
     """,
-    })
+    });
     }
 }

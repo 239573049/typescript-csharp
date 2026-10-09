@@ -31,6 +31,6 @@ f[/*0*/"x"] = 0;
 f[[|/*1*/"x"|]] = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionExpandoElementAccess", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

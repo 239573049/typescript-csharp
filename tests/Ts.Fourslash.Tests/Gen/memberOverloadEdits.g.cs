@@ -39,12 +39,12 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "memberOverloadEdits", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("public m(n: number) { return 0; }")
+    f.Insert("public m(n: number) { return 0; }");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

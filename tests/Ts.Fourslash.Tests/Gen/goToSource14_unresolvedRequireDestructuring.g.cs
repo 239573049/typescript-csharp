@@ -33,6 +33,6 @@ const { blah/**/ } = require("unresolved");
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource14_unresolvedRequireDestructuring", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("")
+    f.VerifyBaselineGoToSourceDefinition("");
     }
 }

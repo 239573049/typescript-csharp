@@ -29,6 +29,6 @@ public class ErrorInIncompleteMethodInObjectLiteralTests
 var x: { f(): string } = { f( }
 """;
         using var f = FourslashTest.New(content, fileName: "errorInIncompleteMethodInObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

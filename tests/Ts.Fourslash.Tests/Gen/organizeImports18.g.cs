@@ -45,7 +45,7 @@ export { bFuncB } from "./B";
 export { bFuncA } from "./A";
 """;
         using var f = FourslashTest.New(content, fileName: "organizeImports18", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/test.ts")
+    f.GoToFile("/test.ts");
 
     f.VerifyOrganizeImports(
             """
@@ -59,7 +59,7 @@ export { bFuncA } from "./A";
 
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

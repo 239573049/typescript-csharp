@@ -30,16 +30,16 @@ foo(a,(b))/*1*/
 foo(a,(<b>c).d)/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpaceAfterCommaBeforeOpenParen", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("foo(a, (b));")
+    f.VerifyCurrentLineContent("foo(a, (b));");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("foo(a, (<b>c).d);")
+    f.VerifyCurrentLineContent("foo(a, (<b>c).d);");
     }
 }

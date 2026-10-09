@@ -46,6 +46,6 @@ class rem2fooCls implements /*remoteInterfaceReference*/rem2Int { }
 var rem2fooVar = /*remoteModuleReference*/rem2Mod.foo;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDifferentFileIndirectly", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "remoteVariableReference", "remoteFunctionReference", "remoteClassReference", "remoteInterfaceReference", "remoteModuleReference")
+    f.VerifyBaselineGoToDefinition(false, "remoteVariableReference", "remoteFunctionReference", "remoteClassReference", "remoteInterfaceReference", "remoteModuleReference");
     }
 }

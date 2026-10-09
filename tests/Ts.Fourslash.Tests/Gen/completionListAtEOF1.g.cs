@@ -29,7 +29,7 @@ public class CompletionListAtEOF1Tests
 if(0 === ''.
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtEOF1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -46,6 +46,6 @@ if(0 === ''.
     ],
         },
         
-    })
+    });
     }
 }

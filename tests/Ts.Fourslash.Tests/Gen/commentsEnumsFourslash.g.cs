@@ -37,19 +37,19 @@ var /*4*/x = /*5*/Colors./*6*/Cornflower;
 x = Colors./*7*/FancyPink;
 """;
         using var f = FourslashTest.New(content, fileName: "commentsEnumsFourslash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "enum Colors", "Enum of colors")
+    f.VerifyQuickInfoAt("1", "enum Colors", "Enum of colors");
 
-    f.VerifyQuickInfoAt("2", "(enum member) Colors.Cornflower = 0", "Fancy name for 'blue'")
+    f.VerifyQuickInfoAt("2", "(enum member) Colors.Cornflower = 0", "Fancy name for 'blue'");
 
-    f.VerifyQuickInfoAt("3", "(enum member) Colors.FancyPink = 1", "Fancy name for 'pink'")
+    f.VerifyQuickInfoAt("3", "(enum member) Colors.FancyPink = 1", "Fancy name for 'pink'");
 
-    f.VerifyQuickInfoAt("4", "var x: Colors", "")
+    f.VerifyQuickInfoAt("4", "var x: Colors", "");
 
-    f.VerifyQuickInfoAt("5", "enum Colors", "Enum of colors")
+    f.VerifyQuickInfoAt("5", "enum Colors", "Enum of colors");
 
-    f.VerifyQuickInfoAt("6", "(enum member) Colors.Cornflower = 0", "Fancy name for 'blue'")
+    f.VerifyQuickInfoAt("6", "(enum member) Colors.Cornflower = 0", "Fancy name for 'blue'");
 
-    f.VerifyQuickInfoAt("7", "(enum member) Colors.FancyPink = 1", "Fancy name for 'pink'")
+    f.VerifyQuickInfoAt("7", "(enum member) Colors.FancyPink = 1", "Fancy name for 'pink'");
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -75,7 +75,7 @@ x = Colors./*7*/FancyPink;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"6", "7", }, new CompletionsExpectedList
     {
@@ -111,6 +111,6 @@ x = Colors./*7*/FancyPink;
     ],
         },
         
-    })
+    });
     }
 }

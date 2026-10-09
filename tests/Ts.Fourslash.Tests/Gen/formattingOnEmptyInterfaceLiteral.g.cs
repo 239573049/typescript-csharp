@@ -38,30 +38,30 @@ public class FormattingOnEmptyInterfaceLiteralTests
 /*6*/                                                    }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnEmptyInterfaceLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("function foo(x: {}) { }")
+    f.VerifyCurrentLineContent("function foo(x: {}) { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("foo({});")
+    f.VerifyCurrentLineContent("foo({});");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("interface bar {")
+    f.VerifyCurrentLineContent("interface bar {");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    x: {};")
+    f.VerifyCurrentLineContent("    x: {};");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    y: () => {};")
+    f.VerifyCurrentLineContent("    y: () => {};");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
     }
 }

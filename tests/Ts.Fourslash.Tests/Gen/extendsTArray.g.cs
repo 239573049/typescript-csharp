@@ -38,8 +38,8 @@ var /**/y = x(undefined); // Typeof y should be Date[]
 y.length;
 """;
         using var f = FourslashTest.New(content, fileName: "extendsTArray", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var y: Date[]", "")
+    f.VerifyQuickInfoAt("", "var y: Date[]", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

@@ -41,6 +41,6 @@ im/*1*/port.me/*2*/ta;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoImportMeta", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

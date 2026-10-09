@@ -34,7 +34,7 @@ public class DocCommentTemplateFunctionWithParametersTests
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
         using var f = FourslashTest.New(content, fileName: "docCommentTemplateFunctionWithParameters", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
     f.VerifyJSDocCompletion("0", 7, """
     /**
@@ -42,7 +42,7 @@ public class DocCommentTemplateFunctionWithParametersTests
      * @param x
      * @param y
      */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("1", 0, """
     /**
@@ -50,6 +50,6 @@ public class DocCommentTemplateFunctionWithParametersTests
          * @param x
          * @param y
          */
-    """, null)
+    """, null);
     }
 }

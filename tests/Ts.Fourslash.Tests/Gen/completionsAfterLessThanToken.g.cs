@@ -31,7 +31,7 @@ function f() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "completionsAfterLessThanToken", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ function f() {
     ],
         },
         
-    })
+    });
     }
 }

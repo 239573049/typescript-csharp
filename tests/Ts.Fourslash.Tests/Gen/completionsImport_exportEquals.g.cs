@@ -67,7 +67,7 @@ let x: b/*1*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -96,7 +96,7 @@ let x: b/*1*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("1", new ApplyCodeActionFromCompletionOptions
     {
@@ -109,7 +109,7 @@ let x: b/*1*/;
     a;
     let x: b;
     """,
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("0", new ApplyCodeActionFromCompletionOptions
     {
@@ -123,6 +123,6 @@ let x: b/*1*/;
     a;
     let x: b;
     """,
-    })
+    });
     }
 }

@@ -32,6 +32,6 @@ for (var of in of) { }
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "variable.declaration", Text = "of" },
             new SemanticToken { Type = "variable", Text = "of" },
-        })
+        });
     }
 }

@@ -55,114 +55,114 @@ var x={    };/*26*/
 var y = {};/*27*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var x = {")
+    f.VerifyCurrentLineContent("var x = {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    foo: 1,")
+    f.VerifyCurrentLineContent("    foo: 1,");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    bar: \"tt\",")
+    f.VerifyCurrentLineContent("    bar: \"tt\",");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    boo: 1 + 5")
+    f.VerifyCurrentLineContent("    boo: 1 + 5");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("};")
+    f.VerifyCurrentLineContent("};");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("var x2 = {")
+    f.VerifyCurrentLineContent("var x2 = {");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    foo: 1,")
+    f.VerifyCurrentLineContent("    foo: 1,");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    bar: \"tt\", boo: 1 + 5")
+    f.VerifyCurrentLineContent("    bar: \"tt\", boo: 1 + 5");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("};")
+    f.VerifyCurrentLineContent("};");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("function Foo() {")
+    f.VerifyCurrentLineContent("function Foo() {");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("    var typeICalc = {")
+    f.VerifyCurrentLineContent("    var typeICalc = {");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("        clear: {")
+    f.VerifyCurrentLineContent("        clear: {");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("            \"()\": [1, 2, 3]")
+    f.VerifyCurrentLineContent("            \"()\": [1, 2, 3]");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("        }")
+    f.VerifyCurrentLineContent("        }");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("// Rule for object literal members for the \"value\" of the memebr to follow the indent")
+    f.VerifyCurrentLineContent("// Rule for object literal members for the \"value\" of the memebr to follow the indent");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("// of the member, i.e. the relative position of the value is maintained when the member")
+    f.VerifyCurrentLineContent("// of the member, i.e. the relative position of the value is maintained when the member");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("// is indented.")
+    f.VerifyCurrentLineContent("// is indented.");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("var x2 = {")
+    f.VerifyCurrentLineContent("var x2 = {");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("    foo:")
+    f.VerifyCurrentLineContent("    foo:");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("        3,")
+    f.VerifyCurrentLineContent("        3,");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("    'bar':")
+    f.VerifyCurrentLineContent("    'bar':");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("        { a: 1, b: 2 }")
+    f.VerifyCurrentLineContent("        { a: 1, b: 2 }");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("};")
+    f.VerifyCurrentLineContent("};");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("var x = {};")
+    f.VerifyCurrentLineContent("var x = {};");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("var y = {};")
+    f.VerifyCurrentLineContent("var y = {};");
     }
 }

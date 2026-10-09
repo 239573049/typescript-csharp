@@ -39,6 +39,6 @@ fn(...foo, 3, 4);
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     },
-    })
+    });
     }
 }

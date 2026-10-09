@@ -33,9 +33,9 @@ interface Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatTypeAnnotation1", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceBeforeTypeAnnotation = Core.TSTrue })
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceBeforeTypeAnnotation = Core.TSTrue });
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function foo(x : number, y ?: string) : number { }
@@ -43,6 +43,6 @@ interface Foo {
         x : number;
         y ?: number;
     }
-    """)
+    """);
     }
 }

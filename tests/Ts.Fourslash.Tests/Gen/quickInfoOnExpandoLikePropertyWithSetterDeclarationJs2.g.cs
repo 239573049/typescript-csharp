@@ -42,6 +42,6 @@ Object.defineProperty(obj, "a", {
 obj.a/**/ = 100;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnExpandoLikePropertyWithSetterDeclarationJs2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) obj.a: any", "")
+    f.VerifyQuickInfoAt("", "(property) obj.a: any", "");
     }
 }

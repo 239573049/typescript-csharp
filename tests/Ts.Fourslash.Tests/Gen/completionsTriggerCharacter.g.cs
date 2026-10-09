@@ -67,9 +67,9 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("comment", null)
+    f.VerifyCompletions("comment", null);
 
     f.VerifyCompletions("openQuote", new CompletionsExpectedList
     {
@@ -109,9 +109,9 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("closeQuote", null)
+    f.VerifyCompletions("closeQuote", null);
 
     f.VerifyCompletions("openSingleQuote", new CompletionsExpectedList
     {
@@ -151,9 +151,9 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("closeSingleQuote", null)
+    f.VerifyCompletions("closeSingleQuote", null);
 
     f.VerifyCompletions("openTemplate", new CompletionsExpectedList
     {
@@ -193,13 +193,13 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("closeTemplate", null)
+    f.VerifyCompletions("closeTemplate", null);
 
-    f.VerifyCompletions("quoteInComment", null)
+    f.VerifyCompletions("quoteInComment", null);
 
-    f.VerifyCompletions("lessInComment", null)
+    f.VerifyCompletions("lessInComment", null);
 
     f.VerifyCompletions("openTag", new CompletionsExpectedList
     {
@@ -216,9 +216,9 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("lessThan", null)
+    f.VerifyCompletions("lessThan", null);
 
     f.VerifyCompletions("closeTag", new CompletionsExpectedList
     {
@@ -235,7 +235,7 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("path", new CompletionsExpectedList
     {
@@ -252,8 +252,8 @@ const divide = 1 //*divide*/
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions("divide", null)
+    f.VerifyCompletions("divide", null);
     }
 }

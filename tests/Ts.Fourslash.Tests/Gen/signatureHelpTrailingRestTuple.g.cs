@@ -34,11 +34,11 @@ leading(false, /*2*/);
 leading(false, "ok", /*3*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpTrailingRestTuple", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "leading(allCaps: boolean, ...names: string[]): void", ParameterCount = 2, ParameterName = "allCaps", ParameterSpan = "allCaps: boolean", OverloadsCount = 1, IsVariadic = true, IsVariadicSet = true })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "leading(allCaps: boolean, ...names: string[]): void", ParameterCount = 2, ParameterName = "names", ParameterSpan = "...names: string[]", OverloadsCount = 1, IsVariadic = true, IsVariadicSet = true })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "leading(allCaps: boolean, ...names: string[]): void", ParameterCount = 2, ParameterName = "names", ParameterSpan = "...names: string[]", OverloadsCount = 1, IsVariadic = true, IsVariadicSet = true })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "leading(allCaps: boolean, ...names: string[]): void", ParameterCount = 2, ParameterName = "allCaps", ParameterSpan = "allCaps: boolean", OverloadsCount = 1, IsVariadic = true, IsVariadicSet = true });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "leading(allCaps: boolean, ...names: string[]): void", ParameterCount = 2, ParameterName = "names", ParameterSpan = "...names: string[]", OverloadsCount = 1, IsVariadic = true, IsVariadicSet = true });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "leading(allCaps: boolean, ...names: string[]): void", ParameterCount = 2, ParameterName = "names", ParameterSpan = "...names: string[]", OverloadsCount = 1, IsVariadic = true, IsVariadicSet = true });
     }
 }

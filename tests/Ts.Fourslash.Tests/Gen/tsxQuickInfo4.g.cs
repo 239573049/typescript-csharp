@@ -65,14 +65,14 @@ function buildSomeElement2(): JSX.Element {
 let componenet = <MainButton onClick={()=>{}} ext/*5*/ra-prop>GO</MainButton>;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxQuickInfo4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function MainButton(linkProps: LinkProps): JSX.Element (+1 overload)", "")
+    f.VerifyQuickInfoAt("1", "function MainButton(linkProps: LinkProps): JSX.Element (+1 overload)", "");
 
-    f.VerifyQuickInfoAt("2", "(property) LinkProps.to: string", "")
+    f.VerifyQuickInfoAt("2", "(property) LinkProps.to: string", "");
 
-    f.VerifyQuickInfoAt("3", "function MainButton(buttonProps: ButtonProps): JSX.Element (+1 overload)", "")
+    f.VerifyQuickInfoAt("3", "function MainButton(buttonProps: ButtonProps): JSX.Element (+1 overload)", "");
 
-    f.VerifyQuickInfoAt("4", "(method) ButtonProps.onClick(event?: React.MouseEvent<HTMLButtonElement>): void", "")
+    f.VerifyQuickInfoAt("4", "(method) ButtonProps.onClick(event?: React.MouseEvent<HTMLButtonElement>): void", "");
 
-    f.VerifyQuickInfoAt("5", "(property) extra-prop: true", "")
+    f.VerifyQuickInfoAt("5", "(property) extra-prop: true", "");
     }
 }

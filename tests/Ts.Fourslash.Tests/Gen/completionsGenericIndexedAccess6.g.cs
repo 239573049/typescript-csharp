@@ -61,6 +61,6 @@ const c = <Component /**/ kind="component-one" />
     ],
         },
         
-    })
+    });
     }
 }

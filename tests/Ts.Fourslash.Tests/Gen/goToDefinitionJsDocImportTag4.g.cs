@@ -36,6 +36,6 @@ export interface /*2*/A { }
  */
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsDocImportTag4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

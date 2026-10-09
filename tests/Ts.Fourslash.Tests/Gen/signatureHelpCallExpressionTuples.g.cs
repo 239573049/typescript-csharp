@@ -38,23 +38,23 @@ var fnNoParamsWrapped = wrap(fnNoParams);
 fnNoParamsWrapped/*7*/(/*8*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCallExpressionTuples", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("3", "var fnWrapped: (str: string, num: number) => void", "")
+    f.VerifyQuickInfoAt("3", "var fnWrapped: (str: string, num: number) => void", "");
 
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnWrapped(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnWrapped(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" });
 
-    f.VerifyQuickInfoAt("4", "var fnVariadicWrapped: (str: string, ...num: number[]) => void", "")
+    f.VerifyQuickInfoAt("4", "var fnVariadicWrapped: (str: string, ...num: number[]) => void", "");
 
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnVariadicWrapped(str: string, ...num: number[]): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string", IsVariadic = true, IsVariadicSet = true })
-    f.GoToMarker("6")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "...num: number[]", IsVariadic = true, IsVariadicSet = true })
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnVariadicWrapped(str: string, ...num: number[]): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string", IsVariadic = true, IsVariadicSet = true });
+    f.GoToMarker("6");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "...num: number[]", IsVariadic = true, IsVariadicSet = true });
 
-    f.VerifyQuickInfoAt("7", "var fnNoParamsWrapped: () => void", "")
+    f.VerifyQuickInfoAt("7", "var fnNoParamsWrapped: () => void", "");
 
-    f.GoToMarker("8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnNoParamsWrapped(): void", ParameterCount = 0 })
+    f.GoToMarker("8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnNoParamsWrapped(): void", ParameterCount = 0 });
     }
 }

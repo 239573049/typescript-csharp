@@ -38,6 +38,6 @@ var iInstance: I;
 var /*8*/anotherInstance = new /*9*/iInstance();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsInterfaceMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

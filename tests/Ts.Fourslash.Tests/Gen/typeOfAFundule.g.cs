@@ -34,6 +34,6 @@ function foo13() {
 var /**/r13 = foo13();
 """;
         using var f = FourslashTest.New(content, fileName: "typeOfAFundule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var r13: typeof m1", "")
+    f.VerifyQuickInfoAt("", "var r13: typeof m1", "");
     }
 }

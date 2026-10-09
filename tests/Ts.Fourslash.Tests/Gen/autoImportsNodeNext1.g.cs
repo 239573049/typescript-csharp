@@ -45,9 +45,9 @@ import { fromMain } from "pack";
 fromUnreachable/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportsNodeNext1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyImportFixAtPosition([], null /*preferences*/)
+    f.VerifyImportFixAtPosition([], null /*preferences*/);
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -64,6 +64,6 @@ fromUnreachable/**/
     ],
         },
         
-    })
+    });
     }
 }

@@ -44,8 +44,8 @@ for ([|{ skills: { [|{| "contextRangeIndex": 6 |}primary|], secondary } } of mul
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameDestructuringAssignmentNestedInForOf", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5], f.Ranges()[3], f.Ranges()[7], f.Ranges()[8])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[5], f.Ranges()[3], f.Ranges()[7], f.Ranges()[8]);
     }
 }

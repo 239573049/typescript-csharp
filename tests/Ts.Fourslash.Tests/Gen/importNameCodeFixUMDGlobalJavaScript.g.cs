@@ -45,6 +45,6 @@ export as namespace bar1;
     export function test() { };
     bar1.bar;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

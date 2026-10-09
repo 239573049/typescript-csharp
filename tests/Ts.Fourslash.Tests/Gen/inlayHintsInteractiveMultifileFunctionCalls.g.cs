@@ -40,7 +40,7 @@ export function helperB(bParam: string) {
 export function helperC(cParam: string) {}
 """;
         using var f = FourslashTest.New(content, fileName: "inlayHintsInteractiveMultifileFunctionCalls", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("./aaa.mts")
+    f.GoToFile("./aaa.mts");
 
     f.VerifyBaselineInlayHints(null /*span*/, new LsUtil.UserPreferences
     {
@@ -48,6 +48,6 @@ export function helperC(cParam: string) {}
     {
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     },
-    })
+    });
     }
 }

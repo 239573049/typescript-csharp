@@ -35,6 +35,6 @@ var x = E.value2;
 /*reference*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinitionEnumMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference")
+    f.VerifyBaselineGoToTypeDefinition("reference");
     }
 }

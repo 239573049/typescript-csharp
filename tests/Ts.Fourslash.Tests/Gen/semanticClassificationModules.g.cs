@@ -47,6 +47,6 @@ var y = /*5*/M;
             new SemanticToken { Type = "variable.local", Text = "v" },
             new SemanticToken { Type = "variable.declaration", Text = "y" },
             new SemanticToken { Type = "namespace", Text = "M" },
-        })
+        });
     }
 }

@@ -32,6 +32,6 @@ interface C {
 C(/*1*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpWithInterfaceAsIdentifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("1")
+    f.VerifyNoSignatureHelpForMarkers("1");
     }
 }

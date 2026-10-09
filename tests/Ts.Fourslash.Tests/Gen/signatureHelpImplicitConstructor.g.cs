@@ -31,7 +31,7 @@ class ImplicitConstructor {
 var implicitConstructor = new ImplicitConstructor(/**/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpImplicitConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ImplicitConstructor(): ImplicitConstructor", ParameterCount = 0 })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ImplicitConstructor(): ImplicitConstructor", ParameterCount = 0 });
     }
 }

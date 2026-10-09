@@ -93,12 +93,12 @@ export class Lib11 {}
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider9", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyImportFixModuleSpecifiers("", [], null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", [], null /*preferences*/);
 
-    f.VerifyImportFixModuleSpecifiers("", [], null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", [], null /*preferences*/);
 
-    f.InsertLine("import {} from 'lib2';")
+    f.InsertLine("import {} from 'lib2';");
 
-    f.VerifyImportFixModuleSpecifiers("", new[]{"lib1"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"lib1"}, null /*preferences*/);
     }
 }

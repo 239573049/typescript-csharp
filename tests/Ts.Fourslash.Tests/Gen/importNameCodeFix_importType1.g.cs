@@ -40,22 +40,22 @@ import someValue from "./exports.js";
 interface MoreProps extends /*b*/ComponentProps {}
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_importType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("a")
+    f.GoToMarker("a");
 
     f.VerifyImportFixAtPosition([
     """
     import { Component, type ComponentProps } from "./exports.js";
     interface MoreProps extends ComponentProps {}
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToMarker("b")
+    f.GoToMarker("b");
 
     f.VerifyImportFixAtPosition([
     """
     import someValue, { type ComponentProps } from "./exports.js";
     interface MoreProps extends ComponentProps {}
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

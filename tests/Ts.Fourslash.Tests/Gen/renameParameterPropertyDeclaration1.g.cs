@@ -34,6 +34,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameParameterPropertyDeclaration1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "privateParam")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "privateParam");
     }
 }

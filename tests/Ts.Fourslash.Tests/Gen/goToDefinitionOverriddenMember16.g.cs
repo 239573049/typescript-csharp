@@ -40,6 +40,6 @@ export class C extends CompletelyUndefined {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionOverriddenMember16", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

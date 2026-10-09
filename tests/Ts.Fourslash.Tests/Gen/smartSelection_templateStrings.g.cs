@@ -31,6 +31,6 @@ public class SmartSelection_templateStringsTests
 } d`
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_templateStrings", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

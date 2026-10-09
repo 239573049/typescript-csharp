@@ -34,6 +34,6 @@ var v: interface1;
 v.[|propName|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameInheritedProperties3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "propName")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "propName");
     }
 }

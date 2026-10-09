@@ -35,12 +35,12 @@ function foo(x: A) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesAfterEdit", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1");
 
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1");
     }
 }

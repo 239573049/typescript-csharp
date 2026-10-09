@@ -59,13 +59,13 @@ import './';
 export const x = <div aria-label="label text" />;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports47", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
         Description = "Add annotation of type 'JSX.Element'",
         NewFileContent = "export const x: JSX.Element = <div aria-label=\"label text\" />;",
         Index = 0,
-    })
+    });
     }
 }

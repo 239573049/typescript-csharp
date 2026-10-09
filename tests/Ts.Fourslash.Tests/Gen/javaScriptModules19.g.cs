@@ -37,9 +37,9 @@ var x = require('./myMod');
 /**/;
 """;
         using var f = FourslashTest.New(content, fileName: "javaScriptModules19", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("consumer.js")
+    f.GoToFile("consumer.js");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -63,9 +63,9 @@ var x = require('./myMod');
     ],
         },
         
-    })
+    });
 
-    f.Insert("x.")
+    f.Insert("x.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -86,9 +86,9 @@ var x = require('./myMod');
     ],
         },
         
-    })
+    });
 
-    f.Insert("a.")
+    f.Insert("a.");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -109,6 +109,6 @@ var x = require('./myMod');
     ],
         },
         
-    })
+    });
     }
 }

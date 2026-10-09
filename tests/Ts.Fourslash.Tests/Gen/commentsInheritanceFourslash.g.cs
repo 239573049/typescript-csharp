@@ -336,42 +336,42 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("1iq", "var i1_i: i1", "")
+    f.VerifyQuickInfoAt("1iq", "var i1_i: i1", "");
 
-    f.VerifyQuickInfoAt("2q", "(method) i1.i1_f1(): void", "i1_f1")
+    f.VerifyQuickInfoAt("2q", "(method) i1.i1_f1(): void", "i1_f1");
 
-    f.VerifyQuickInfoAt("3q", "(method) i1.i1_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("3q", "(method) i1.i1_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("4q", "(method) i1.f1(): void", "")
+    f.VerifyQuickInfoAt("4q", "(method) i1.f1(): void", "");
 
-    f.VerifyQuickInfoAt("5q", "(method) i1.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("5q", "(method) i1.nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("l2q", "(property) i1.i1_l1: () => void", "i1_l1")
+    f.VerifyQuickInfoAt("l2q", "(property) i1.i1_l1: () => void", "i1_l1");
 
-    f.VerifyQuickInfoAt("l3q", "(property) i1.i1_nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l3q", "(property) i1.i1_nc_l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l4q", "(property) i1.l1: () => void", "")
+    f.VerifyQuickInfoAt("l4q", "(property) i1.l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l5q", "(property) i1.nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l5q", "(property) i1.nc_l1: () => void", "");
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -492,42 +492,42 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("7")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" })
-    f.GoToMarker("9")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_f1" })
-    f.GoToMarker("10")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_f1" })
-    f.GoToMarker("l9")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_l1" })
-    f.GoToMarker("l10")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_l1" })
-    f.GoToMarker("8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l7")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("7");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" });
+    f.GoToMarker("9");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_f1" });
+    f.GoToMarker("10");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_f1" });
+    f.GoToMarker("l9");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_l1" });
+    f.GoToMarker("l10");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_l1" });
+    f.GoToMarker("8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l7");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("6iq", "var c1_i: c1", "")
+    f.VerifyQuickInfoAt("6iq", "var c1_i: c1", "");
 
-    f.VerifyQuickInfoAt("7q", "(method) c1.i1_f1(): void", "i1_f1")
+    f.VerifyQuickInfoAt("7q", "(method) c1.i1_f1(): void", "i1_f1");
 
-    f.VerifyQuickInfoAt("8q", "(method) c1.i1_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("8q", "(method) c1.i1_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("9q", "(method) c1.f1(): void", "c1_f1")
+    f.VerifyQuickInfoAt("9q", "(method) c1.f1(): void", "c1_f1");
 
-    f.VerifyQuickInfoAt("10q", "(method) c1.nc_f1(): void", "c1_nc_f1")
+    f.VerifyQuickInfoAt("10q", "(method) c1.nc_f1(): void", "c1_nc_f1");
 
-    f.VerifyQuickInfoAt("l7q", "(property) c1.i1_l1: () => void", "i1_l1")
+    f.VerifyQuickInfoAt("l7q", "(property) c1.i1_l1: () => void", "i1_l1");
 
-    f.VerifyQuickInfoAt("l8q", "(property) c1.i1_nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l8q", "(property) c1.i1_nc_l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l9q", "(property) c1.l1: () => void", "c1_l1")
+    f.VerifyQuickInfoAt("l9q", "(property) c1.l1: () => void", "c1_l1");
 
-    f.VerifyQuickInfoAt("l10q", "(property) c1.nc_l1: () => void", "c1_nc_l1")
+    f.VerifyQuickInfoAt("l10q", "(property) c1.nc_l1: () => void", "c1_nc_l1");
 
     f.VerifyCompletions("11", new CompletionsExpectedList
     {
@@ -618,40 +618,40 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("12")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" })
-    f.GoToMarker("13")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("14")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("15")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l12")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l13")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l14")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l15")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("12");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" });
+    f.GoToMarker("13");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("14");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("15");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l12");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l13");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l14");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l15");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("12q", "(method) i1.i1_f1(): void", "i1_f1")
+    f.VerifyQuickInfoAt("12q", "(method) i1.i1_f1(): void", "i1_f1");
 
-    f.VerifyQuickInfoAt("13q", "(method) i1.i1_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("13q", "(method) i1.i1_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("14q", "(method) i1.f1(): void", "")
+    f.VerifyQuickInfoAt("14q", "(method) i1.f1(): void", "");
 
-    f.VerifyQuickInfoAt("15q", "(method) i1.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("15q", "(method) i1.nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("l12q", "(property) i1.i1_l1: () => void", "i1_l1")
+    f.VerifyQuickInfoAt("l12q", "(property) i1.i1_l1: () => void", "i1_l1");
 
-    f.VerifyQuickInfoAt("l13q", "(property) i1.i1_nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l13q", "(property) i1.i1_nc_l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l14q", "(property) i1.l1: () => void", "")
+    f.VerifyQuickInfoAt("l14q", "(property) i1.l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l15q", "(property) i1.nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l15q", "(property) i1.nc_l1: () => void", "");
 
     f.VerifyCompletions("16", new CompletionsExpectedList
     {
@@ -685,7 +685,7 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("16i", new CompletionsExpectedList
     {
@@ -711,26 +711,26 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("17iq", "var c2_i: c2", "")
+    f.VerifyQuickInfoAt("17iq", "var c2_i: c2", "");
 
-    f.VerifyQuickInfoAt("18iq", "var c3_i: c3", "")
+    f.VerifyQuickInfoAt("18iq", "var c3_i: c3", "");
 
-    f.GoToMarker("17")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor" })
-    f.GoToMarker("18")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("17");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor" });
+    f.GoToMarker("18");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("18sq", "constructor c2(a: number): c2", "c2 constructor")
+    f.VerifyQuickInfoAt("18sq", "constructor c2(a: number): c2", "c2 constructor");
 
-    f.VerifyQuickInfoAt("18spropq", "class c2", "")
+    f.VerifyQuickInfoAt("18spropq", "class c2", "");
 
-    f.VerifyQuickInfoAt("18spropProp", "(property) c2.c2_p1: number", "c2 c2_p1")
+    f.VerifyQuickInfoAt("18spropProp", "(property) c2.c2_p1: number", "c2 c2_p1");
 
-    f.VerifyQuickInfoAt("17q", "constructor c2(a: number): c2", "c2 constructor")
+    f.VerifyQuickInfoAt("17q", "constructor c2(a: number): c2", "c2 constructor");
 
-    f.VerifyQuickInfoAt("18q", "constructor c3(): c3", "")
+    f.VerifyQuickInfoAt("18q", "constructor c3(): c3", "");
 
     f.VerifyCompletions(new[]{"19", "29", }, new CompletionsExpectedList
     {
@@ -836,24 +836,24 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("20")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" })
-    f.GoToMarker("22")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1" })
-    f.GoToMarker("21")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("23")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("20");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" });
+    f.GoToMarker("22");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1" });
+    f.GoToMarker("21");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("23");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("20q", "(method) c2.c2_f1(): void", "c2 c2_f1")
+    f.VerifyQuickInfoAt("20q", "(method) c2.c2_f1(): void", "c2 c2_f1");
 
-    f.VerifyQuickInfoAt("21q", "(method) c2.c2_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("21q", "(method) c2.c2_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("22q", "(method) c2.f1(): void", "c2 f1")
+    f.VerifyQuickInfoAt("22q", "(method) c2.f1(): void", "c2 f1");
 
-    f.VerifyQuickInfoAt("23q", "(method) c2.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("23q", "(method) c2.nc_f1(): void", "");
 
     f.VerifyCompletions("24", new CompletionsExpectedList
     {
@@ -959,48 +959,48 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("25")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" })
-    f.GoToMarker("27")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c3 f1" })
-    f.GoToMarker("26")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("28")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("25");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" });
+    f.GoToMarker("27");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c3 f1" });
+    f.GoToMarker("26");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("28");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("25q", "(method) c2.c2_f1(): void", "c2 c2_f1")
+    f.VerifyQuickInfoAt("25q", "(method) c2.c2_f1(): void", "c2 c2_f1");
 
-    f.VerifyQuickInfoAt("26q", "(method) c2.c2_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("26q", "(method) c2.c2_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("27q", "(method) c3.f1(): void", "c3 f1")
+    f.VerifyQuickInfoAt("27q", "(method) c3.f1(): void", "c3 f1");
 
-    f.VerifyQuickInfoAt("28q", "(method) c3.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("28q", "(method) c3.nc_f1(): void", "");
 
-    f.GoToMarker("30")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" })
-    f.GoToMarker("32")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1" })
-    f.GoToMarker("31")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("33")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("30");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" });
+    f.GoToMarker("32");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1" });
+    f.GoToMarker("31");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("33");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("30q", "(method) c2.c2_f1(): void", "c2 c2_f1")
+    f.VerifyQuickInfoAt("30q", "(method) c2.c2_f1(): void", "c2 c2_f1");
 
-    f.VerifyQuickInfoAt("31q", "(method) c2.c2_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("31q", "(method) c2.c2_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("32q", "(method) c2.f1(): void", "c2 f1")
+    f.VerifyQuickInfoAt("32q", "(method) c2.f1(): void", "c2 f1");
 
-    f.VerifyQuickInfoAt("33q", "(method) c2.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("33q", "(method) c2.nc_f1(): void", "");
 
-    f.GoToMarker("34")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor" })
+    f.GoToMarker("34");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor" });
 
-    f.VerifyQuickInfoAt("34iq", "var c4_i: c4", "")
+    f.VerifyQuickInfoAt("34iq", "var c4_i: c4", "");
 
-    f.VerifyQuickInfoAt("34q", "constructor c4(a: number): c4", "c2 constructor")
+    f.VerifyQuickInfoAt("34q", "constructor c4(a: number): c4", "c2 constructor");
 
     f.VerifyCompletions("35", new CompletionsExpectedList
     {
@@ -1046,7 +1046,7 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"36", "46", }, new CompletionsExpectedList
     {
@@ -1152,44 +1152,44 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("37")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" })
-    f.GoToMarker("39")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1" })
-    f.GoToMarker("38")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("40")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l37")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l37")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l39")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l40")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("37");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" });
+    f.GoToMarker("39");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1" });
+    f.GoToMarker("38");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("40");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l37");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l37");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l39");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l40");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("36iq", "var i2_i: i2", "")
+    f.VerifyQuickInfoAt("36iq", "var i2_i: i2", "");
 
-    f.VerifyQuickInfoAt("37iq", "var i3_i: i3", "")
+    f.VerifyQuickInfoAt("37iq", "var i3_i: i3", "");
 
-    f.VerifyQuickInfoAt("37q", "(method) i2.i2_f1(): void", "i2_f1")
+    f.VerifyQuickInfoAt("37q", "(method) i2.i2_f1(): void", "i2_f1");
 
-    f.VerifyQuickInfoAt("38q", "(method) i2.i2_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("38q", "(method) i2.i2_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("39q", "(method) i2.f1(): void", "i2 f1")
+    f.VerifyQuickInfoAt("39q", "(method) i2.f1(): void", "i2 f1");
 
-    f.VerifyQuickInfoAt("40q", "(method) i2.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("40q", "(method) i2.nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("l37q", "(property) i2.i2_l1: () => void", "i2_l1")
+    f.VerifyQuickInfoAt("l37q", "(property) i2.i2_l1: () => void", "i2_l1");
 
-    f.VerifyQuickInfoAt("l38q", "(property) i2.i2_nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l38q", "(property) i2.i2_nc_l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l39q", "(property) i2.l1: () => void", "i2 l1")
+    f.VerifyQuickInfoAt("l39q", "(property) i2.l1: () => void", "i2 l1");
 
-    f.VerifyQuickInfoAt("l40q", "(property) i2.nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l40q", "(property) i2.nc_l1: () => void", "");
 
     f.VerifyCompletions("41", new CompletionsExpectedList
     {
@@ -1295,40 +1295,40 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("42")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" })
-    f.GoToMarker("44")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i3 f1" })
-    f.GoToMarker("43")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("45")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l42")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l43")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l44")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l45")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("42");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" });
+    f.GoToMarker("44");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i3 f1" });
+    f.GoToMarker("43");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("45");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l42");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l43");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l44");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l45");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("42q", "(method) i2.i2_f1(): void", "i2_f1")
+    f.VerifyQuickInfoAt("42q", "(method) i2.i2_f1(): void", "i2_f1");
 
-    f.VerifyQuickInfoAt("43q", "(method) i2.i2_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("43q", "(method) i2.i2_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("44q", "(method) i3.f1(): void", "i3 f1")
+    f.VerifyQuickInfoAt("44q", "(method) i3.f1(): void", "i3 f1");
 
-    f.VerifyQuickInfoAt("45q", "(method) i3.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("45q", "(method) i3.nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("l42q", "(property) i2.i2_l1: () => void", "i2_l1")
+    f.VerifyQuickInfoAt("l42q", "(property) i2.i2_l1: () => void", "i2_l1");
 
-    f.VerifyQuickInfoAt("l43q", "(property) i2.i2_nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l43q", "(property) i2.i2_nc_l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l44q", "(property) i3.l1: () => void", "i3 l1")
+    f.VerifyQuickInfoAt("l44q", "(property) i3.l1: () => void", "i3 l1");
 
-    f.VerifyQuickInfoAt("l45q", "(property) i3.nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l45q", "(property) i3.nc_l1: () => void", "");
 
     f.VerifyCompletions("46", new CompletionsExpectedList
     {
@@ -1434,38 +1434,38 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("47")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" })
-    f.GoToMarker("49")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1" })
-    f.GoToMarker("48")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l47")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l48")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l49")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
-    f.GoToMarker("l50")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" })
+    f.GoToMarker("47");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" });
+    f.GoToMarker("49");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1" });
+    f.GoToMarker("48");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l47");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l48");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l49");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.GoToMarker("l50");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
 
-    f.VerifyQuickInfoAt("47q", "(method) i2.i2_f1(): void", "i2_f1")
+    f.VerifyQuickInfoAt("47q", "(method) i2.i2_f1(): void", "i2_f1");
 
-    f.VerifyQuickInfoAt("48q", "(method) i2.i2_nc_f1(): void", "")
+    f.VerifyQuickInfoAt("48q", "(method) i2.i2_nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("49q", "(method) i2.f1(): void", "i2 f1")
+    f.VerifyQuickInfoAt("49q", "(method) i2.f1(): void", "i2 f1");
 
-    f.VerifyQuickInfoAt("50q", "(method) i2.nc_f1(): void", "")
+    f.VerifyQuickInfoAt("50q", "(method) i2.nc_f1(): void", "");
 
-    f.VerifyQuickInfoAt("l47q", "(property) i2.i2_l1: () => void", "i2_l1")
+    f.VerifyQuickInfoAt("l47q", "(property) i2.i2_l1: () => void", "i2_l1");
 
-    f.VerifyQuickInfoAt("l48q", "(property) i2.i2_nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l48q", "(property) i2.i2_nc_l1: () => void", "");
 
-    f.VerifyQuickInfoAt("l49q", "(property) i2.l1: () => void", "i2 l1")
+    f.VerifyQuickInfoAt("l49q", "(property) i2.l1: () => void", "i2 l1");
 
-    f.VerifyQuickInfoAt("l40q", "(property) i2.nc_l1: () => void", "")
+    f.VerifyQuickInfoAt("l40q", "(property) i2.nc_l1: () => void", "");
 
     f.VerifyCompletions("51", new CompletionsExpectedList
     {
@@ -1495,7 +1495,7 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("51i", new CompletionsExpectedList
     {
@@ -1521,18 +1521,18 @@ class c6 extends c5 {
     ],
         },
         
-    })
+    });
 
-    f.VerifyQuickInfoAt("52", "constructor c5(): c5", "c5 class")
+    f.VerifyQuickInfoAt("52", "constructor c5(): c5", "c5 class");
 
-    f.VerifyQuickInfoAt("53", "class c5", "c5 class")
+    f.VerifyQuickInfoAt("53", "class c5", "c5 class");
 
-    f.VerifyQuickInfoAt("54", "(property) c5.b: number", "")
+    f.VerifyQuickInfoAt("54", "(property) c5.b: number", "");
 
-    f.VerifyQuickInfoAt("55", "constructor c2(a: number): c2", "c2 constructor")
+    f.VerifyQuickInfoAt("55", "constructor c2(a: number): c2", "c2 constructor");
 
-    f.VerifyQuickInfoAt("56", "constructor c3(): c3", "")
+    f.VerifyQuickInfoAt("56", "constructor c3(): c3", "");
 
-    f.VerifyQuickInfoAt("57", "constructor c6(): c6", "")
+    f.VerifyQuickInfoAt("57", "constructor c6(): c6", "");
     }
 }

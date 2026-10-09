@@ -38,21 +38,21 @@ useMemo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPackageJsonFilterExistingImport2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyImportFixAtPosition([], null /*preferences*/)
+    f.VerifyImportFixAtPosition([], null /*preferences*/);
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.InsertLine("import { useState } from \"react\";")
+    f.InsertLine("import { useState } from \"react\";");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { useMemo, useState } from "react";
     useMemo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

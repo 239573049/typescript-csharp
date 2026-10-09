@@ -44,7 +44,7 @@ module A./*moduleName2*/
             Exact = CompletionGlobals,
         },
         
-    })
+    });
 
     f.VerifyCompletions("moduleName2", new CompletionsExpectedList
     {
@@ -60,6 +60,6 @@ module A./*moduleName2*/
     ],
         },
         
-    })
+    });
     }
 }

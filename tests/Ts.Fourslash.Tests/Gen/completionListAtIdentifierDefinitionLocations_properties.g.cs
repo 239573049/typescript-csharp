@@ -63,6 +63,6 @@ class A7 {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

@@ -29,10 +29,10 @@ public class FormattingOfChainedLambdaTests
 var fn = (x: string) => ()=> alert(x)/**/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOfChainedLambda", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("var fn = (x: string) => () => alert(x);")
+    f.VerifyCurrentLineContent("var fn = (x: string) => () => alert(x);");
     }
 }

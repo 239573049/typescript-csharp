@@ -30,6 +30,6 @@ const foo = { [|0|]: true };
 foo[[|0|]];
 """;
         using var f = FourslashTest.New(content, fileName: "renameNumericalIndex", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "0")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "0");
     }
 }

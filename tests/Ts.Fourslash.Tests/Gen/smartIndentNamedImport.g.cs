@@ -32,22 +32,22 @@ import {/*0*/
 } from '@bykov/basics';/*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "smartIndentNamedImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("0")
+    f.GoToMarker("0");
 
-    f.VerifyCurrentLineContent("import {")
+    f.VerifyCurrentLineContent("import {");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("    numbers as bn,")
+    f.VerifyCurrentLineContent("    numbers as bn,");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    list")
+    f.VerifyCurrentLineContent("    list");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("} from '@bykov/basics';")
+    f.VerifyCurrentLineContent("} from '@bykov/basics';");
     }
 }

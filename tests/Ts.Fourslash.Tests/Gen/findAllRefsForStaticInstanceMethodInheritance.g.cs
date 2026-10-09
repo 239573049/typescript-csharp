@@ -49,6 +49,6 @@ Y.foo();
 Z.foo();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForStaticInstanceMethodInheritance", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

@@ -46,9 +46,9 @@ goodbye
             </div>
         )
     }
-    """)
+    """);
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function foo() {
@@ -59,6 +59,6 @@ goodbye
             </div>
         )
     }
-    """)
+    """);
     }
 }

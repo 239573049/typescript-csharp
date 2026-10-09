@@ -48,6 +48,6 @@ export const { x, y = 0} = foo(), z= 42;
     export const z = 42;
     """,
         Index = 0,
-    })
+    });
     }
 }

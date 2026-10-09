@@ -30,12 +30,12 @@ class D { }
 D();
 """;
         using var f = FourslashTest.New(content, fileName: "toggleDuplicateFunctionDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.Insert("declare function D();")
+    f.Insert("declare function D();");
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.DeleteAtCaret(21)
+    f.DeleteAtCaret(21);
     }
 }

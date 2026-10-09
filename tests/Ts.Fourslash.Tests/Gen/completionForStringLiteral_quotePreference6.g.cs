@@ -55,6 +55,6 @@ const t: T = /**/
     {
     QuotePreference = "double",
     },
-    })
+    });
     }
 }

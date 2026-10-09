@@ -29,6 +29,6 @@ public class CodeFixAwaitShouldNotCrashIfNotInFunctionTests
 await a
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAwaitShouldNotCrashIfNotInFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("addMissingAwait")
+    f.VerifyCodeFixNotAvailable("addMissingAwait");
     }
 }

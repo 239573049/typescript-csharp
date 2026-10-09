@@ -47,6 +47,6 @@ class Bar extends mod./**/
     ],
         },
         
-    })
+    });
     }
 }

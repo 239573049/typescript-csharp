@@ -34,8 +34,8 @@ var v: Z;
 }
 """;
         using var f = FourslashTest.New(content, fileName: "aliasToVarUsedAsType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(" ")
+    f.Insert(" ");
     }
 }

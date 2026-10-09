@@ -40,7 +40,7 @@ Foo;
 module.exports = {};
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_require_UMD", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("index.js")
+    f.GoToFile("index.js");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -52,6 +52,6 @@ module.exports = {};
     module.exports = {};
     """,
         Index = 0,
-    })
+    });
     }
 }

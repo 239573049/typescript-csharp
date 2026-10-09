@@ -32,8 +32,8 @@ public class AddFunctionAboveMultiLineLambdaExpressionTests
 0;
 """;
         using var f = FourslashTest.New(content, fileName: "addFunctionAboveMultiLineLambdaExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("function Foo() { }")
+    f.Insert("function Foo() { }");
     }
 }

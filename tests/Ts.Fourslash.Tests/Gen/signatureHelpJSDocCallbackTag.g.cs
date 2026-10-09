@@ -54,6 +54,6 @@ t(/*4*/"!", /*5*/12, /*6*/false);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpJSDocCallbackTag", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

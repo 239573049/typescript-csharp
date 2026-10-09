@@ -37,20 +37,20 @@ var xs /*1*/ = [(x: A) => { return x.foo; }, (x: C) => { return x.foo; }];
 xs.forEach(y => y(new /*2*/A()));
 """;
         using var f = FourslashTest.New(content, fileName: "consistentContextualTypeErrorsAfterEdits", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(0)
+    f.VerifyNumberOfErrorsInCurrentFile(0);
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(": {}[]")
+    f.Insert(": {}[]");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.DeleteAtCaret(1)
+    f.DeleteAtCaret(1);
 
-    f.Insert("C")
+    f.Insert("C");
 
-    f.VerifyNumberOfErrorsInCurrentFile(1)
+    f.VerifyNumberOfErrorsInCurrentFile(1);
     }
 }

@@ -122,346 +122,346 @@ public class FormattingOnInvalidCodesTests
 /*85*/    } ) ;
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnInvalidCodes", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var a; var c, b; var $d")
+    f.VerifyCurrentLineContent("var a; var c, b; var $d");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("var $e")
+    f.VerifyCurrentLineContent("var $e");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("var f")
+    f.VerifyCurrentLineContent("var f");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("a++; b++;")
+    f.VerifyCurrentLineContent("a++; b++;");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("function f() {")
+    f.VerifyCurrentLineContent("function f() {");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    for (i = 0; i < 10; i++) {")
+    f.VerifyCurrentLineContent("    for (i = 0; i < 10; i++) {");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("        k = abc + 123 ^ d;")
+    f.VerifyCurrentLineContent("        k = abc + 123 ^ d;");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("        a = XYZ[m(a[b[c][d]])];")
+    f.VerifyCurrentLineContent("        a = XYZ[m(a[b[c][d]])];");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("        break;")
+    f.VerifyCurrentLineContent("        break;");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("        switch (variable) {")
+    f.VerifyCurrentLineContent("        switch (variable) {");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("            case 1: abc += 425;")
+    f.VerifyCurrentLineContent("            case 1: abc += 425;");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("                break;")
+    f.VerifyCurrentLineContent("                break;");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("            case 404: a[x-- / 2] %= 3;")
+    f.VerifyCurrentLineContent("            case 404: a[x-- / 2] %= 3;");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("                break;")
+    f.VerifyCurrentLineContent("                break;");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("            case vari: v[--x] *= ++y * (m + n / k[z]);")
+    f.VerifyCurrentLineContent("            case vari: v[--x] *= ++y * (m + n / k[z]);");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("                for (a in b) {")
+    f.VerifyCurrentLineContent("                for (a in b) {");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("                    for (a = 0; a < 10; ++a) {")
+    f.VerifyCurrentLineContent("                    for (a = 0; a < 10; ++a) {");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("                        a++; --a;")
+    f.VerifyCurrentLineContent("                        a++; --a;");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("                        if (a == b) {")
+    f.VerifyCurrentLineContent("                        if (a == b) {");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("                            a++; b--;")
+    f.VerifyCurrentLineContent("                            a++; b--;");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("                        }")
+    f.VerifyCurrentLineContent("                        }");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("                        else")
+    f.VerifyCurrentLineContent("                        else");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("                            if (a == c) {")
+    f.VerifyCurrentLineContent("                            if (a == c) {");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("                                ++a;")
+    f.VerifyCurrentLineContent("                                ++a;");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("                                (--c) += d;")
+    f.VerifyCurrentLineContent("                                (--c) += d;");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("                                $c = $a + --$b;")
+    f.VerifyCurrentLineContent("                                $c = $a + --$b;");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("                            }")
+    f.VerifyCurrentLineContent("                            }");
 
-    f.GoToMarker("28")
+    f.GoToMarker("28");
 
-    f.VerifyCurrentLineContent("                        if (a == b)")
+    f.VerifyCurrentLineContent("                        if (a == b)");
 
-    f.GoToMarker("29")
+    f.GoToMarker("29");
 
-    f.VerifyCurrentLineContent("                            if (a != b) {")
+    f.VerifyCurrentLineContent("                            if (a != b) {");
 
-    f.GoToMarker("30")
+    f.GoToMarker("30");
 
-    f.VerifyCurrentLineContent("                                if (a !== b)")
+    f.VerifyCurrentLineContent("                                if (a !== b)");
 
-    f.GoToMarker("31")
+    f.GoToMarker("31");
 
-    f.VerifyCurrentLineContent("                                    if (a === b)")
+    f.VerifyCurrentLineContent("                                    if (a === b)");
 
-    f.GoToMarker("32")
+    f.GoToMarker("32");
 
-    f.VerifyCurrentLineContent("                                        --a;")
+    f.VerifyCurrentLineContent("                                        --a;");
 
-    f.GoToMarker("33")
+    f.GoToMarker("33");
 
-    f.VerifyCurrentLineContent("                                    else")
+    f.VerifyCurrentLineContent("                                    else");
 
-    f.GoToMarker("34")
+    f.GoToMarker("34");
 
-    f.VerifyCurrentLineContent("                                        --a;")
+    f.VerifyCurrentLineContent("                                        --a;");
 
-    f.GoToMarker("35")
+    f.GoToMarker("35");
 
-    f.VerifyCurrentLineContent("                                else {")
+    f.VerifyCurrentLineContent("                                else {");
 
-    f.GoToMarker("36")
+    f.GoToMarker("36");
 
-    f.VerifyCurrentLineContent("                                    a--; ++b;")
+    f.VerifyCurrentLineContent("                                    a--; ++b;");
 
-    f.GoToMarker("37")
+    f.GoToMarker("37");
 
-    f.VerifyCurrentLineContent("                                    a++")
+    f.VerifyCurrentLineContent("                                    a++");
 
-    f.GoToMarker("38")
+    f.GoToMarker("38");
 
-    f.VerifyCurrentLineContent("                                }")
+    f.VerifyCurrentLineContent("                                }");
 
-    f.GoToMarker("39")
+    f.GoToMarker("39");
 
-    f.VerifyCurrentLineContent("                            }")
+    f.VerifyCurrentLineContent("                            }");
 
-    f.GoToMarker("40")
+    f.GoToMarker("40");
 
-    f.VerifyCurrentLineContent("                    }")
+    f.VerifyCurrentLineContent("                    }");
 
-    f.GoToMarker("41")
+    f.GoToMarker("41");
 
-    f.VerifyCurrentLineContent("                    for (x in y) {")
+    f.VerifyCurrentLineContent("                    for (x in y) {");
 
-    f.GoToMarker("42")
+    f.GoToMarker("42");
 
-    f.VerifyCurrentLineContent("                        m -= m;")
+    f.VerifyCurrentLineContent("                        m -= m;");
 
-    f.GoToMarker("43")
+    f.GoToMarker("43");
 
-    f.VerifyCurrentLineContent("                        k = 1 + 2 + 3 + 4;")
+    f.VerifyCurrentLineContent("                        k = 1 + 2 + 3 + 4;");
 
-    f.GoToMarker("44")
+    f.GoToMarker("44");
 
-    f.VerifyCurrentLineContent("                    }")
+    f.VerifyCurrentLineContent("                    }");
 
-    f.GoToMarker("45")
+    f.GoToMarker("45");
 
-    f.VerifyCurrentLineContent("                }")
+    f.VerifyCurrentLineContent("                }");
 
-    f.GoToMarker("46")
+    f.GoToMarker("46");
 
-    f.VerifyCurrentLineContent("                break;")
+    f.VerifyCurrentLineContent("                break;");
 
-    f.GoToMarker("47")
+    f.GoToMarker("47");
 
-    f.VerifyCurrentLineContent("        }")
+    f.VerifyCurrentLineContent("        }");
 
-    f.GoToMarker("48")
+    f.GoToMarker("48");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
 
-    f.GoToMarker("49")
+    f.GoToMarker("49");
 
-    f.VerifyCurrentLineContent("    var a = { b: function() { } };")
+    f.VerifyCurrentLineContent("    var a = { b: function() { } };");
 
-    f.GoToMarker("50")
+    f.GoToMarker("50");
 
-    f.VerifyCurrentLineContent("    return { a: 1, b: 2 }")
+    f.VerifyCurrentLineContent("    return { a: 1, b: 2 }");
 
-    f.GoToMarker("51")
+    f.GoToMarker("51");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("52")
+    f.GoToMarker("52");
 
-    f.VerifyCurrentLineContent("var z = 1;")
+    f.VerifyCurrentLineContent("var z = 1;");
 
-    f.GoToMarker("53")
+    f.GoToMarker("53");
 
-    f.VerifyCurrentLineContent("for (i = 0; i < 10; i++)")
+    f.VerifyCurrentLineContent("for (i = 0; i < 10; i++)");
 
-    f.GoToMarker("54")
+    f.GoToMarker("54");
 
-    f.VerifyCurrentLineContent("    for (j = 0; j < 10; j++)")
+    f.VerifyCurrentLineContent("    for (j = 0; j < 10; j++)");
 
-    f.GoToMarker("55")
+    f.GoToMarker("55");
 
-    f.VerifyCurrentLineContent("        for (k = 0; k < 10; ++k) {")
+    f.VerifyCurrentLineContent("        for (k = 0; k < 10; ++k) {");
 
-    f.GoToMarker("56")
+    f.GoToMarker("56");
 
-    f.VerifyCurrentLineContent("            z++;")
+    f.VerifyCurrentLineContent("            z++;");
 
-    f.GoToMarker("57")
+    f.GoToMarker("57");
 
-    f.VerifyCurrentLineContent("        }")
+    f.VerifyCurrentLineContent("        }");
 
-    f.GoToMarker("58")
+    f.GoToMarker("58");
 
-    f.VerifyCurrentLineContent("for (k = 0; k < 10; k += 2) {")
+    f.VerifyCurrentLineContent("for (k = 0; k < 10; k += 2) {");
 
-    f.GoToMarker("59")
+    f.GoToMarker("59");
 
-    f.VerifyCurrentLineContent("    z++;")
+    f.VerifyCurrentLineContent("    z++;");
 
-    f.GoToMarker("60")
+    f.GoToMarker("60");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("61")
+    f.GoToMarker("61");
 
-    f.VerifyCurrentLineContent("$(document).ready();")
+    f.VerifyCurrentLineContent("$(document).ready();");
 
-    f.GoToMarker("62")
+    f.GoToMarker("62");
 
-    f.VerifyCurrentLineContent("function pageLoad() {")
+    f.VerifyCurrentLineContent("function pageLoad() {");
 
-    f.GoToMarker("63")
+    f.GoToMarker("63");
 
-    f.VerifyCurrentLineContent("    $('#TextBox1').unbind();")
+    f.VerifyCurrentLineContent("    $('#TextBox1').unbind();");
 
-    f.GoToMarker("64")
+    f.GoToMarker("64");
 
-    f.VerifyCurrentLineContent("    $('#TextBox1').datepicker();")
+    f.VerifyCurrentLineContent("    $('#TextBox1').datepicker();");
 
-    f.GoToMarker("65")
+    f.GoToMarker("65");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("66")
+    f.GoToMarker("66");
 
-    f.VerifyCurrentLineContent("function pageLoad() {")
+    f.VerifyCurrentLineContent("function pageLoad() {");
 
-    f.GoToMarker("67")
+    f.GoToMarker("67");
 
-    f.VerifyCurrentLineContent("    var webclass = [")
+    f.VerifyCurrentLineContent("    var webclass = [");
 
-    f.GoToMarker("68")
+    f.GoToMarker("68");
 
-    f.VerifyCurrentLineContent("        {")
+    f.VerifyCurrentLineContent("        {");
 
-    f.GoToMarker("69")
+    f.GoToMarker("69");
 
-    f.VerifyCurrentLineContent("            'student':")
+    f.VerifyCurrentLineContent("            'student':");
 
-    f.GoToMarker("70")
+    f.GoToMarker("70");
 
-    f.VerifyCurrentLineContent("                { 'id': '1', 'name': 'Linda Jones', 'legacySkill': 'Access, VB 5.0' }")
+    f.VerifyCurrentLineContent("                { 'id': '1', 'name': 'Linda Jones', 'legacySkill': 'Access, VB 5.0' }");
 
-    f.GoToMarker("71")
+    f.GoToMarker("71");
 
-    f.VerifyCurrentLineContent("        },")
+    f.VerifyCurrentLineContent("        },");
 
-    f.GoToMarker("72")
+    f.GoToMarker("72");
 
-    f.VerifyCurrentLineContent("        {")
+    f.VerifyCurrentLineContent("        {");
 
-    f.GoToMarker("73")
+    f.GoToMarker("73");
 
-    f.VerifyCurrentLineContent("            'student':")
+    f.VerifyCurrentLineContent("            'student':");
 
-    f.GoToMarker("74")
+    f.GoToMarker("74");
 
-    f.VerifyCurrentLineContent("                { 'id': '2', 'name': 'Adam Davidson', 'legacySkill': 'Cobol,MainFrame' }")
+    f.VerifyCurrentLineContent("                { 'id': '2', 'name': 'Adam Davidson', 'legacySkill': 'Cobol,MainFrame' }");
 
-    f.GoToMarker("75")
+    f.GoToMarker("75");
 
-    f.VerifyCurrentLineContent("        },")
+    f.VerifyCurrentLineContent("        },");
 
-    f.GoToMarker("76")
+    f.GoToMarker("76");
 
-    f.VerifyCurrentLineContent("        {")
+    f.VerifyCurrentLineContent("        {");
 
-    f.GoToMarker("77")
+    f.GoToMarker("77");
 
-    f.VerifyCurrentLineContent("            'student':")
+    f.VerifyCurrentLineContent("            'student':");
 
-    f.GoToMarker("78")
+    f.GoToMarker("78");
 
-    f.VerifyCurrentLineContent("                { 'id': '3', 'name': 'Charles Boyer', 'legacySkill': 'HTML, XML' }")
+    f.VerifyCurrentLineContent("                { 'id': '3', 'name': 'Charles Boyer', 'legacySkill': 'HTML, XML' }");
 
-    f.GoToMarker("79")
+    f.GoToMarker("79");
 
-    f.VerifyCurrentLineContent("        }")
+    f.VerifyCurrentLineContent("        }");
 
-    f.GoToMarker("80")
+    f.GoToMarker("80");
 
-    f.VerifyCurrentLineContent("    ];")
+    f.VerifyCurrentLineContent("    ];");
 
-    f.GoToMarker("81")
+    f.GoToMarker("81");
 
-    f.VerifyCurrentLineContent("    $create(Sys.UI.DataView, { data: webclass }, null, null, $get('SList'));")
+    f.VerifyCurrentLineContent("    $create(Sys.UI.DataView, { data: webclass }, null, null, $get('SList'));");
 
-    f.GoToMarker("82")
+    f.GoToMarker("82");
 
-    f.VerifyCurrentLineContent("}")
+    f.VerifyCurrentLineContent("}");
 
-    f.GoToMarker("83")
+    f.GoToMarker("83");
 
-    f.VerifyCurrentLineContent("$(document).ready(function() {")
+    f.VerifyCurrentLineContent("$(document).ready(function() {");
 
-    f.GoToMarker("84")
+    f.GoToMarker("84");
 
-    f.VerifyCurrentLineContent("    alert('hello');")
+    f.VerifyCurrentLineContent("    alert('hello');");
 
-    f.GoToMarker("85")
+    f.GoToMarker("85");
 
-    f.VerifyCurrentLineContent("});")
+    f.VerifyCurrentLineContent("});");
     }
 }

@@ -33,6 +33,6 @@ while (true) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForLabel2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

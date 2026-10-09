@@ -33,8 +33,8 @@ export const x = 0;
 import { x } from 'foo';
 """;
         using var f = FourslashTest.New(content, fileName: "getEditsForFileRename_symlink", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyWillRenameFilesEdits("/user.ts", "/luser.ts", new Dictionary<string, string>(), null /*preferences*/)
+    f.VerifyWillRenameFilesEdits("/user.ts", "/luser.ts", new Dictionary<string, string>(), null /*preferences*/);
     }
 }

@@ -31,6 +31,6 @@ function f(/*1*/x: number) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

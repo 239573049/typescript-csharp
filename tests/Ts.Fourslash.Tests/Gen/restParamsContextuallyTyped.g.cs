@@ -29,10 +29,10 @@ public class RestParamsContextuallyTypedTests
 var foo: Function = function (/*1*/a, /*2*/b, /*3*/c) { };
 """;
         using var f = FourslashTest.New(content, fileName: "restParamsContextuallyTyped", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) a: any", "")
+    f.VerifyQuickInfoAt("1", "(parameter) a: any", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) b: any", "")
+    f.VerifyQuickInfoAt("2", "(parameter) b: any", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) c: any", "")
+    f.VerifyQuickInfoAt("3", "(parameter) c: any", "");
     }
 }

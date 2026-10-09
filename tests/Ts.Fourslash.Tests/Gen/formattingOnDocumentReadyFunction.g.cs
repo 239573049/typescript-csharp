@@ -31,18 +31,18 @@ public class FormattingOnDocumentReadyFunctionTests
 /*3*/           }                 );
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnDocumentReadyFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("$(document).ready(function() {")
+    f.VerifyCurrentLineContent("$(document).ready(function() {");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    alert('i am ready');")
+    f.VerifyCurrentLineContent("    alert('i am ready');");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("});")
+    f.VerifyCurrentLineContent("});");
     }
 }

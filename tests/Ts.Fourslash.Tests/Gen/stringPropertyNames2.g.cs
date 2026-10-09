@@ -33,6 +33,6 @@ var a: Album<number>;
 var /**/x = a['artist']; 
 """;
         using var f = FourslashTest.New(content, fileName: "stringPropertyNames2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var x: number", "")
+    f.VerifyQuickInfoAt("", "var x: number", "");
     }
 }

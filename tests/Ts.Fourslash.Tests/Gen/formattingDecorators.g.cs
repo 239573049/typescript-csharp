@@ -72,134 +72,134 @@ public class FormattingDecoratorsTests
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingDecorators", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("@decorator1")
+    f.VerifyCurrentLineContent("@decorator1");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("@decorator2")
+    f.VerifyCurrentLineContent("@decorator2");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("@decorator3")
+    f.VerifyCurrentLineContent("@decorator3");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("@decorator4 @decorator5")
+    f.VerifyCurrentLineContent("@decorator4 @decorator5");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("class C {")
+    f.VerifyCurrentLineContent("class C {");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("    @decorator6")
+    f.VerifyCurrentLineContent("    @decorator6");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    @decorator7")
+    f.VerifyCurrentLineContent("    @decorator7");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    @decorator8")
+    f.VerifyCurrentLineContent("    @decorator8");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("    method1() { }")
+    f.VerifyCurrentLineContent("    method1() { }");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("    @decorator9 @decorator10 @decorator11 method2() { }")
+    f.VerifyCurrentLineContent("    @decorator9 @decorator10 @decorator11 method2() { }");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("        @decorator12")
+    f.VerifyCurrentLineContent("        @decorator12");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("        @decorator13")
+    f.VerifyCurrentLineContent("        @decorator13");
 
-    f.GoToMarker("13")
+    f.GoToMarker("13");
 
-    f.VerifyCurrentLineContent("        @decorator14")
+    f.VerifyCurrentLineContent("        @decorator14");
 
-    f.GoToMarker("14")
+    f.GoToMarker("14");
 
-    f.VerifyCurrentLineContent("        x) { }")
+    f.VerifyCurrentLineContent("        x) { }");
 
-    f.GoToMarker("15")
+    f.GoToMarker("15");
 
-    f.VerifyCurrentLineContent("        @decorator15 @decorator16 @decorator17 x) { }")
+    f.VerifyCurrentLineContent("        @decorator15 @decorator16 @decorator17 x) { }");
 
-    f.GoToMarker("16")
+    f.GoToMarker("16");
 
-    f.VerifyCurrentLineContent("    @decorator18")
+    f.VerifyCurrentLineContent("    @decorator18");
 
-    f.GoToMarker("17")
+    f.GoToMarker("17");
 
-    f.VerifyCurrentLineContent("    @decorator19")
+    f.VerifyCurrentLineContent("    @decorator19");
 
-    f.GoToMarker("18")
+    f.GoToMarker("18");
 
-    f.VerifyCurrentLineContent("    @decorator20")
+    f.VerifyCurrentLineContent("    @decorator20");
 
-    f.GoToMarker("19")
+    f.GoToMarker("19");
 
-    f.VerifyCurrentLineContent("    [\"computed1\"]() { }")
+    f.VerifyCurrentLineContent("    [\"computed1\"]() { }");
 
-    f.GoToMarker("20")
+    f.GoToMarker("20");
 
-    f.VerifyCurrentLineContent("    @decorator21 @decorator22 @decorator23 [\"computed2\"]() { }")
+    f.VerifyCurrentLineContent("    @decorator21 @decorator22 @decorator23 [\"computed2\"]() { }");
 
-    f.GoToMarker("21")
+    f.GoToMarker("21");
 
-    f.VerifyCurrentLineContent("    @decorator24")
+    f.VerifyCurrentLineContent("    @decorator24");
 
-    f.GoToMarker("22")
+    f.GoToMarker("22");
 
-    f.VerifyCurrentLineContent("    @decorator25")
+    f.VerifyCurrentLineContent("    @decorator25");
 
-    f.GoToMarker("23")
+    f.GoToMarker("23");
 
-    f.VerifyCurrentLineContent("    @decorator26")
+    f.VerifyCurrentLineContent("    @decorator26");
 
-    f.GoToMarker("24")
+    f.GoToMarker("24");
 
-    f.VerifyCurrentLineContent("    get accessor1() { }")
+    f.VerifyCurrentLineContent("    get accessor1() { }");
 
-    f.GoToMarker("25")
+    f.GoToMarker("25");
 
-    f.VerifyCurrentLineContent("    @decorator27 @decorator28 @decorator29 get accessor2() { }")
+    f.VerifyCurrentLineContent("    @decorator27 @decorator28 @decorator29 get accessor2() { }");
 
-    f.GoToMarker("26")
+    f.GoToMarker("26");
 
-    f.VerifyCurrentLineContent("    @decorator30")
+    f.VerifyCurrentLineContent("    @decorator30");
 
-    f.GoToMarker("27")
+    f.GoToMarker("27");
 
-    f.VerifyCurrentLineContent("    @decorator31")
+    f.VerifyCurrentLineContent("    @decorator31");
 
-    f.GoToMarker("28")
+    f.GoToMarker("28");
 
-    f.VerifyCurrentLineContent("    @decorator32")
+    f.VerifyCurrentLineContent("    @decorator32");
 
-    f.GoToMarker("29")
+    f.GoToMarker("29");
 
-    f.VerifyCurrentLineContent("    property1;")
+    f.VerifyCurrentLineContent("    property1;");
 
-    f.GoToMarker("30")
+    f.GoToMarker("30");
 
-    f.VerifyCurrentLineContent("    @decorator33 @decorator34 @decorator35 property2;")
+    f.VerifyCurrentLineContent("    @decorator33 @decorator34 @decorator35 property2;");
 
-    f.GoToMarker("31")
+    f.GoToMarker("31");
 
-    f.VerifyCurrentLineContent("function test(@decorator36 @decorator37 param) { };")
+    f.VerifyCurrentLineContent("function test(@decorator36 @decorator37 param) { };");
 
-    f.GoToMarker("32")
+    f.GoToMarker("32");
 
-    f.VerifyCurrentLineContent("function test2(@decorator38() @decorator39() param) { };")
+    f.VerifyCurrentLineContent("function test2(@decorator38() @decorator39() param) { };");
     }
 }

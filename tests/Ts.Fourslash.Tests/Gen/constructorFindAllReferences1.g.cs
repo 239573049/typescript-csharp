@@ -34,6 +34,6 @@ export class C {
 new C().foo();
 """;
         using var f = FourslashTest.New(content, fileName: "constructorFindAllReferences1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

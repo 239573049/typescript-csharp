@@ -42,7 +42,7 @@ const b = (
 
 """;
         using var f = FourslashTest.New(content, fileName: "formatTsxClosingAfterJsxText", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
 
@@ -58,6 +58,6 @@ const b = (
         </div>
     )
 
-    """)
+    """);
     }
 }

@@ -34,18 +34,18 @@ var x = 0/*innermost*/
 }
 """;
         using var f = FourslashTest.New(content, fileName: "semicolonFormattingNestedStatements", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("innermost")
+    f.GoToMarker("innermost");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("        var x = 0;")
+    f.VerifyCurrentLineContent("        var x = 0;");
 
-    f.GoToMarker("directParent")
+    f.GoToMarker("directParent");
 
-    f.VerifyCurrentLineContent("    if (true)")
+    f.VerifyCurrentLineContent("    if (true)");
 
-    f.GoToMarker("parentOutsideBlock")
+    f.GoToMarker("parentOutsideBlock");
 
-    f.VerifyCurrentLineContent("if (true)")
+    f.VerifyCurrentLineContent("if (true)");
     }
 }

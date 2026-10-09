@@ -36,6 +36,6 @@ let x: Foo = [|class { constructor (a: number) {} }|];
 let y = <Foo> [|class { constructor (a: number) {} }|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_06", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("interface_definition")
+    f.VerifyBaselineGoToImplementation("interface_definition");
     }
 }

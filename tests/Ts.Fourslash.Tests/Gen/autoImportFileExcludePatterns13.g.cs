@@ -67,6 +67,6 @@ declare module './thing' {
     {
     AutoImportFileExcludePatterns = ["src/thing.ts"],
     },
-    })
+    });
     }
 }

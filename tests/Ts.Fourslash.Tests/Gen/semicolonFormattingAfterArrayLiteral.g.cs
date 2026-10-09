@@ -29,10 +29,10 @@ public class SemicolonFormattingAfterArrayLiteralTests
 [1,2]/**/
 """;
         using var f = FourslashTest.New(content, fileName: "semicolonFormattingAfterArrayLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("[1, 2];")
+    f.VerifyCurrentLineContent("[1, 2];");
     }
 }

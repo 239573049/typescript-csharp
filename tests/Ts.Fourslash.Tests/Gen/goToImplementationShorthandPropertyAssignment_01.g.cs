@@ -69,6 +69,6 @@ var y = class Foo {
 createBarUsingClassDeclaration().Fo/*reference*/o;
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationShorthandPropertyAssignment_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference")
+    f.VerifyBaselineGoToImplementation("reference");
     }
 }

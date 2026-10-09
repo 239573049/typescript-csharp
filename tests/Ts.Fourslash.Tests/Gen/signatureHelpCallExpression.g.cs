@@ -30,9 +30,9 @@ function fnTest(str: string, num: number) { }
 fnTest(/*1*/'', /*2*/5);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCallExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnTest(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnTest(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" });
     }
 }

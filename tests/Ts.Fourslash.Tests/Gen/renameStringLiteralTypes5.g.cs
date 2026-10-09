@@ -35,6 +35,6 @@ declare const fn: <K extends keyof T>(p: K) => void
 fn("Prop 1"/**/)
 """;
         using var f = FourslashTest.New(content, fileName: "renameStringLiteralTypes5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

@@ -42,8 +42,8 @@ declare namespace JSX {
 [|<[|{| "contextRangeIndex": 7 |}div|]> </[|{| "contextRangeIndex": 7 |}div|]>|]
 """;
         using var f = FourslashTest.New(content, fileName: "tsxRename4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "MyClass", "div")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "MyClass", "div");
     }
 }

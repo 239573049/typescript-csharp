@@ -29,6 +29,6 @@ public class SmartSelection_punctuationPriorityTests
 console/**/.log();
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_punctuationPriority", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

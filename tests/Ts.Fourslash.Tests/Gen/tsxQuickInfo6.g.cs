@@ -38,8 +38,8 @@ function Bar<T extends {prop: number}>(arg: T) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "tsxQuickInfo6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function ComponentSpecific<number>(l: {\n    prop: number;\n}): JSX.Element", "")
+    f.VerifyQuickInfoAt("1", "function ComponentSpecific<number>(l: {\n    prop: number;\n}): JSX.Element", "");
 
-    f.VerifyQuickInfoAt("2", "function ComponentSpecific<never>(l: {\n    prop: never;\n}): JSX.Element", "")
+    f.VerifyQuickInfoAt("2", "function ComponentSpecific<never>(l: {\n    prop: never;\n}): JSX.Element", "");
     }
 }

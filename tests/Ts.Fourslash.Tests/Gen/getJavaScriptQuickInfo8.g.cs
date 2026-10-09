@@ -46,9 +46,9 @@ var y = new Foo();
 y.b/*2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptQuickInfo8", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -69,13 +69,13 @@ y.b/*2*/;
     ],
         },
         
-    })
+    });
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -96,6 +96,6 @@ y.b/*2*/;
     ],
         },
         
-    })
+    });
     }
 }

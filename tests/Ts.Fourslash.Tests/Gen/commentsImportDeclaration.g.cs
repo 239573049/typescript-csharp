@@ -50,9 +50,9 @@ extMod./*6*/m1./*7*/fooEx/*8q*/port(/*8*/);
 var new/*9*/Var = new extMod.m1.m2./*10*/c();
 """;
         using var f = FourslashTest.New(content, fileName: "commentsImportDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("2", "namespace m1", "NamespaceComment")
+    f.VerifyQuickInfoAt("2", "namespace m1", "NamespaceComment");
 
-    f.VerifyQuickInfoAt("3", "import extMod = require(\"./commentsImportDeclaration_file0\")", "Import declaration")
+    f.VerifyQuickInfoAt("3", "import extMod = require(\"./commentsImportDeclaration_file0\")", "Import declaration");
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -78,7 +78,7 @@ var new/*9*/Var = new extMod.m1.m2./*10*/c();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -124,14 +124,14 @@ var new/*9*/Var = new extMod.m1.m2./*10*/c();
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" })
+    f.GoToMarker("8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" });
 
-    f.VerifyQuickInfoAt("8q", "function extMod.m1.fooExport(): number", "exported function")
+    f.VerifyQuickInfoAt("8q", "function extMod.m1.fooExport(): number", "exported function");
 
-    f.VerifyQuickInfoAt("9", "var newVar: extMod.m1.m2.c", "")
+    f.VerifyQuickInfoAt("9", "var newVar: extMod.m1.m2.c", "");
 
     f.VerifyCompletions("10", new CompletionsExpectedList
     {
@@ -167,6 +167,6 @@ var new/*9*/Var = new extMod.m1.m2./*10*/c();
     ],
         },
         
-    })
+    });
     }
 }

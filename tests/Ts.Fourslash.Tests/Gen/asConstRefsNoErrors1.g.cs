@@ -31,8 +31,8 @@ class Tex {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "asConstRefsNoErrors1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "")
+    f.VerifyBaselineGoToDefinition(true, "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

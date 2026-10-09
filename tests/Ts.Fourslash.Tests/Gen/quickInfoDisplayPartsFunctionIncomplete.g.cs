@@ -32,6 +32,6 @@ public class QuickInfoDisplayPartsFunctionIncompleteTests
 }\
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsFunctionIncomplete", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

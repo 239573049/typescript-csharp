@@ -52,34 +52,34 @@ var x3: IList<number>;
 var y2 = x./*15*/method(x2, [x3, x3]);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoGenerics", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "class Container<T>", "")
+    f.VerifyQuickInfoAt("1", "class Container<T>", "");
 
-    f.VerifyQuickInfoAt("2", "(type parameter) T in IList<T>", "")
+    f.VerifyQuickInfoAt("2", "(type parameter) T in IList<T>", "");
 
-    f.VerifyQuickInfoAt("3", "(type parameter) T in IList<T>", "")
+    f.VerifyQuickInfoAt("3", "(type parameter) T in IList<T>", "");
 
-    f.VerifyQuickInfoAt("4", "(type parameter) T in List2<T extends IList<number>>", "")
+    f.VerifyQuickInfoAt("4", "(type parameter) T in List2<T extends IList<number>>", "");
 
-    f.VerifyQuickInfoAt("5", "(type parameter) T in List2<T extends IList<number>>", "")
+    f.VerifyQuickInfoAt("5", "(type parameter) T in List2<T extends IList<number>>", "");
 
-    f.VerifyQuickInfoAt("6", "(property) List2<T extends IList<number>>.__item: T[]", "")
+    f.VerifyQuickInfoAt("6", "(property) List2<T extends IList<number>>.__item: T[]", "");
 
-    f.VerifyQuickInfoAt("7", "(method) List2<T extends IList<number>>.getItem(i: number): T", "")
+    f.VerifyQuickInfoAt("7", "(method) List2<T extends IList<number>>.getItem(i: number): T", "");
 
-    f.VerifyQuickInfoAt("8", "(method) List2<T extends IList<number>>.method<S extends IList<T>>(s: S, p: T[]): S", "")
+    f.VerifyQuickInfoAt("8", "(method) List2<T extends IList<number>>.method<S extends IList<T>>(s: S, p: T[]): S", "");
 
-    f.VerifyQuickInfoAt("9", "(type parameter) S in List2<T extends IList<number>>.method<S extends IList<T>>(s: S, p: T[]): S", "")
+    f.VerifyQuickInfoAt("9", "(type parameter) S in List2<T extends IList<number>>.method<S extends IList<T>>(s: S, p: T[]): S", "");
 
-    f.VerifyQuickInfoAt("10", "(type parameter) T in List2<T extends IList<number>>", "")
+    f.VerifyQuickInfoAt("10", "(type parameter) T in List2<T extends IList<number>>", "");
 
-    f.VerifyQuickInfoAt("11", "(type parameter) T in foo4<T extends Date>(test: T): T", "")
+    f.VerifyQuickInfoAt("11", "(type parameter) T in foo4<T extends Date>(test: T): T", "");
 
-    f.VerifyQuickInfoAt("12", "(type parameter) S in foo4<S extends string>(test: S): S", "")
+    f.VerifyQuickInfoAt("12", "(type parameter) S in foo4<S extends string>(test: S): S", "");
 
-    f.VerifyQuickInfoAt("13", "(type parameter) T in foo4<T extends Date>(test: any): any", "")
+    f.VerifyQuickInfoAt("13", "(type parameter) T in foo4<T extends Date>(test: any): any", "");
 
-    f.VerifyQuickInfoAt("14", "(method) List2<IList<number>>.getItem(i: number): IList<number>", "")
+    f.VerifyQuickInfoAt("14", "(method) List2<IList<number>>.getItem(i: number): IList<number>", "");
 
-    f.VerifyQuickInfoAt("15", "(method) List2<IList<number>>.method<IList<IList<number>>>(s: IList<IList<number>>, p: IList<number>[]): IList<IList<number>>", "")
+    f.VerifyQuickInfoAt("15", "(method) List2<IList<number>>.method<IList<IList<number>>>(s: IList<IList<number>>, p: IList<number>[]): IList<IList<number>>", "");
     }
 }

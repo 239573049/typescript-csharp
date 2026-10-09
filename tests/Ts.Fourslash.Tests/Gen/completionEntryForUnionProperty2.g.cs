@@ -89,7 +89,7 @@ x.anotherProperty./*2*/;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -109,6 +109,6 @@ x.anotherProperty./*2*/;
     ],
         },
         
-    })
+    });
     }
 }

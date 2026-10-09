@@ -42,6 +42,6 @@ export * from "./utils";
 util/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportBundlerBlockRelativeNodeModulesPaths", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"dep"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"dep"}, null /*preferences*/);
     }
 }

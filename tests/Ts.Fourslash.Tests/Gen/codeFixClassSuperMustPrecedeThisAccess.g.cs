@@ -43,6 +43,6 @@ class C extends Base{
             super();
             this.a = 12;
         
-    """, true, 0, 0)
+    """, true, 0, 0);
     }
 }

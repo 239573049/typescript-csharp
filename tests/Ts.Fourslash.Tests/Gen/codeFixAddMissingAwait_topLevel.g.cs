@@ -34,8 +34,8 @@ while (true) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddMissingAwait_topLevel", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("addMissingAwait")
+    f.VerifyCodeFixNotAvailable("addMissingAwait");
 
-    f.VerifyCodeFixNotAvailable("addMissingAwaitToInitializer")
+    f.VerifyCodeFixNotAvailable("addMissingAwaitToInitializer");
     }
 }

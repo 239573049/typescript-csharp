@@ -38,6 +38,6 @@ public class QuickInfoPropertyTagTests
 const obj = { /**/x: 10 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoPropertyTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) x: number", "Doc\nMore doc")
+    f.VerifyQuickInfoAt("", "(property) x: number", "Doc\nMore doc");
     }
 }

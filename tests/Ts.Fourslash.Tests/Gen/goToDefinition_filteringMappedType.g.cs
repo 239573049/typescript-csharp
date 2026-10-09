@@ -31,6 +31,6 @@ const filtered: { [P in keyof typeof obj as P extends 'b' ? never : P]: 0; } = {
 filtered.[|/*ref*/a|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinition_filteringMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "ref")
+    f.VerifyBaselineGoToDefinition(true, "ref");
     }
 }

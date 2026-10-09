@@ -37,40 +37,40 @@ new /*Csig*/C("");
 new /*Dsig*/D<string>();
 """;
         using var f = FourslashTest.New(content, fileName: "automaticConstructorToggling", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("B")
+    f.GoToMarker("B");
 
-    f.Insert("constructor(val: T) { }")
+    f.Insert("constructor(val: T) { }");
 
-    f.VerifyQuickInfoAt("Asig", "constructor A<string>(): A<string>", "")
+    f.VerifyQuickInfoAt("Asig", "constructor A<string>(): A<string>", "");
 
-    f.VerifyQuickInfoAt("Bsig", "constructor B<string>(val: string): B<string>", "")
+    f.VerifyQuickInfoAt("Bsig", "constructor B<string>(val: string): B<string>", "");
 
-    f.VerifyQuickInfoAt("Csig", "constructor C<string>(val: string): C<string>", "")
+    f.VerifyQuickInfoAt("Csig", "constructor C<string>(val: string): C<string>", "");
 
-    f.VerifyQuickInfoAt("Dsig", "constructor D<string>(val: string): D<string>", "")
+    f.VerifyQuickInfoAt("Dsig", "constructor D<string>(val: string): D<string>", "");
 
-    f.GoToMarker("C")
+    f.GoToMarker("C");
 
-    f.DeleteAtCaret(23)
+    f.DeleteAtCaret(23);
 
-    f.VerifyQuickInfoAt("Asig", "constructor A<string>(): A<string>", "")
+    f.VerifyQuickInfoAt("Asig", "constructor A<string>(): A<string>", "");
 
-    f.VerifyQuickInfoAt("Bsig", "constructor B<string>(val: string): B<string>", "")
+    f.VerifyQuickInfoAt("Bsig", "constructor B<string>(val: string): B<string>", "");
 
-    f.VerifyQuickInfoAt("Csig", "constructor C<unknown>(): C<unknown>", "")
+    f.VerifyQuickInfoAt("Csig", "constructor C<unknown>(): C<unknown>", "");
 
-    f.VerifyQuickInfoAt("Dsig", "constructor D<string>(val: string): D<string>", "")
+    f.VerifyQuickInfoAt("Dsig", "constructor D<string>(val: string): D<string>", "");
 
-    f.GoToMarker("D")
+    f.GoToMarker("D");
 
-    f.DeleteAtCaret(6)
+    f.DeleteAtCaret(6);
 
-    f.VerifyQuickInfoAt("Asig", "constructor A<string>(): A<string>", "")
+    f.VerifyQuickInfoAt("Asig", "constructor A<string>(): A<string>", "");
 
-    f.VerifyQuickInfoAt("Bsig", "constructor B<string>(val: string): B<string>", "")
+    f.VerifyQuickInfoAt("Bsig", "constructor B<string>(val: string): B<string>", "");
 
-    f.VerifyQuickInfoAt("Csig", "constructor C<unknown>(): C<unknown>", "")
+    f.VerifyQuickInfoAt("Csig", "constructor C<unknown>(): C<unknown>", "");
 
-    f.VerifyQuickInfoAt("Dsig", "constructor D<string>(): D<string>", "")
+    f.VerifyQuickInfoAt("Dsig", "constructor D<string>(): D<string>", "");
     }
 }

@@ -36,6 +36,6 @@ var /*4*/y = function () {
 })();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsFunctionExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

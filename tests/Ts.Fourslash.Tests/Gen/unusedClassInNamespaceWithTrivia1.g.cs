@@ -38,6 +38,6 @@ public class UnusedClassInNamespaceWithTrivia1Tests
     namespace greeter {
        /* comment1 */
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

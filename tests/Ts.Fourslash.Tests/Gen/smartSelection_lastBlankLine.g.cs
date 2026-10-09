@@ -30,6 +30,6 @@ class C {}
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_lastBlankLine", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

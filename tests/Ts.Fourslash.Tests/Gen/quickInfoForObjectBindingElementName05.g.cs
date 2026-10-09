@@ -41,6 +41,6 @@ function f({ a }: A | B) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForObjectBindingElementName05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

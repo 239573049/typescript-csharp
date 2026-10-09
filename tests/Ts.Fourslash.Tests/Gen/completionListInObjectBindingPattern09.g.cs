@@ -54,6 +54,6 @@ var { property1: { propertyOfI_1, }, /**/ } = foo;
     ],
         },
         
-    })
+    });
     }
 }

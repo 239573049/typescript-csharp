@@ -30,6 +30,6 @@ function f(cb: (x: number) => void) {}
 f(function(this: any, /**/x) {});
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoParameter_skipThisParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("", "(parameter) x: number", "");
     }
 }

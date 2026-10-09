@@ -33,6 +33,6 @@ class A {
 class B implements A {[| |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfacePropertyFromParentConstructorFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

@@ -30,14 +30,14 @@ public class FormattingOnConstructorSignatureTests
 /*2*/type Stylet = { new   () {} }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnConstructorSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("interface Gourai { new() { } }")
+    f.VerifyCurrentLineContent("interface Gourai { new() { } }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("type Stylet = { new() { } }")
+    f.VerifyCurrentLineContent("type Stylet = { new() { } }");
     }
 }

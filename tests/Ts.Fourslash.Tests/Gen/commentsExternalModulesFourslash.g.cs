@@ -57,9 +57,9 @@ import ex/*9*/tMod = require("./commentsExternalModules_file0");
 var new/*14*/Var = new extMod.m1.m2./*15*/c();
 """;
         using var f = FourslashTest.New(content, fileName: "commentsExternalModulesFourslash", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("commentsExternalModules_file0.ts")
+    f.GoToFile("commentsExternalModules_file0.ts");
 
-    f.VerifyQuickInfoAt("1", "namespace m1", "Namespace comment")
+    f.VerifyQuickInfoAt("1", "namespace m1", "Namespace comment");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -95,12 +95,12 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo's comment" })
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo's comment" });
 
-    f.VerifyQuickInfoAt("3q", "function foo(): number", "foo's comment")
+    f.VerifyQuickInfoAt("3q", "function foo(): number", "foo's comment");
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -126,7 +126,7 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -172,14 +172,14 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("6")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" })
+    f.GoToMarker("6");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" });
 
-    f.VerifyQuickInfoAt("6q", "function m1.fooExport(): number", "exported function")
+    f.VerifyQuickInfoAt("6q", "function m1.fooExport(): number", "exported function");
 
-    f.VerifyQuickInfoAt("7", "var myvar: m1.m2.c", "")
+    f.VerifyQuickInfoAt("7", "var myvar: m1.m2.c", "");
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -215,11 +215,11 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
-    f.GoToFile("commentsExternalModules_file1.ts")
+    f.GoToFile("commentsExternalModules_file1.ts");
 
-    f.VerifyQuickInfoAt("9", "import extMod = require(\"./commentsExternalModules_file0\")", "This is on import declaration")
+    f.VerifyQuickInfoAt("9", "import extMod = require(\"./commentsExternalModules_file0\")", "This is on import declaration");
 
     f.VerifyCompletions("10", new CompletionsExpectedList
     {
@@ -245,7 +245,7 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("11", new CompletionsExpectedList
     {
@@ -271,7 +271,7 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("12", new CompletionsExpectedList
     {
@@ -317,14 +317,14 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
 
-    f.GoToMarker("13")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" })
+    f.GoToMarker("13");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" });
 
-    f.VerifyQuickInfoAt("13q", "function extMod.m1.fooExport(): number", "exported function")
+    f.VerifyQuickInfoAt("13q", "function extMod.m1.fooExport(): number", "exported function");
 
-    f.VerifyQuickInfoAt("14", "var newVar: extMod.m1.m2.c", "")
+    f.VerifyQuickInfoAt("14", "var newVar: extMod.m1.m2.c", "");
 
     f.VerifyCompletions("15", new CompletionsExpectedList
     {
@@ -360,6 +360,6 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     ],
         },
         
-    })
+    });
     }
 }

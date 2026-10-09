@@ -30,8 +30,8 @@ var x = <div id="foo" master="bar"></div>;
 var y = /**/x;
 """;
         using var f = FourslashTest.New(content, fileName: "tsxParsing", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

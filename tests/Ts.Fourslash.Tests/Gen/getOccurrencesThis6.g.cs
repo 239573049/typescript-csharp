@@ -203,6 +203,6 @@ var x = {
 
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesThis6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

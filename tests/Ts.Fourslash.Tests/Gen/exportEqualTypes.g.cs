@@ -43,11 +43,11 @@ var /*2*/r1 = t(); // Should return a Date
 var /*3*/r2 = t./*4*/foo; // t should have 'foo' in dropdown list and be of type 'string'
 """;
         using var f = FourslashTest.New(content, fileName: "exportEqualTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(alias) interface test\nimport test = require('./exportEqualTypes_file0')", "")
+    f.VerifyQuickInfoAt("1", "(alias) interface test\nimport test = require('./exportEqualTypes_file0')", "");
 
-    f.VerifyQuickInfoAt("2", "var r1: Date", "")
+    f.VerifyQuickInfoAt("2", "var r1: Date", "");
 
-    f.VerifyQuickInfoAt("3", "var r2: string", "")
+    f.VerifyQuickInfoAt("3", "var r2: string", "");
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -65,8 +65,8 @@ var /*3*/r2 = t./*4*/foo; // t should have 'foo' in dropdown list and be of type
     ]),
         },
         
-    })
+    });
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

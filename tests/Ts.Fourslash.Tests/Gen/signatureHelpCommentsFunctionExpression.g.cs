@@ -54,6 +54,6 @@ var assigned = /**
 assigned(/*18*/"hey");
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCommentsFunctionExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

@@ -40,7 +40,7 @@ async function main () {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "inlayHintsInteractiveMultifile1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyBaselineInlayHints(null /*span*/, new LsUtil.UserPreferences
     {
@@ -49,6 +49,6 @@ async function main () {
     IncludeInlayVariableTypeHints = Core.TSTrue,
     IncludeInlayFunctionLikeReturnTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

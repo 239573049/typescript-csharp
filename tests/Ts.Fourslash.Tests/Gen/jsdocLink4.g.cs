@@ -42,6 +42,6 @@ f/*3*/()
 type Pos = [number, number]
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocLink4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

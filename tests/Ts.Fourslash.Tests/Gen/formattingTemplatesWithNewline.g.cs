@@ -31,10 +31,10 @@ public class FormattingTemplatesWithNewlineTests
 `;/**/1
 """;
         using var f = FourslashTest.New(content, fileName: "formattingTemplatesWithNewline", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.VerifyCurrentLineContent("1")
+    f.VerifyCurrentLineContent("1");
     }
 }

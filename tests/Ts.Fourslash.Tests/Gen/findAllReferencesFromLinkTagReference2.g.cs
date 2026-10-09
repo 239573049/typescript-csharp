@@ -36,6 +36,6 @@ interface Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesFromLinkTagReference2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

@@ -41,6 +41,6 @@ function f(obj) { return 0; }
 function f2(obj) { return 0; }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsDocTypeDef_js", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

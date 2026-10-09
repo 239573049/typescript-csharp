@@ -29,6 +29,6 @@ public class SmartSelection_templateStrings2Tests
 `a ${b} /**/c`
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_templateStrings2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

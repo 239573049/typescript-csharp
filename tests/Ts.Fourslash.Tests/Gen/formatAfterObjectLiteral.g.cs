@@ -29,10 +29,10 @@ public class FormatAfterObjectLiteralTests
 /**/namespace Default{var x= ( { } ) ;}
 """;
         using var f = FourslashTest.New(content, fileName: "formatAfterObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("namespace Default { var x = ({}); }")
+    f.VerifyCurrentLineContent("namespace Default { var x = ({}); }");
     }
 }

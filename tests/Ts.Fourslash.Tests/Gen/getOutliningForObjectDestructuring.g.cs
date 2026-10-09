@@ -62,6 +62,6 @@ const[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningForObjectDestructuring", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

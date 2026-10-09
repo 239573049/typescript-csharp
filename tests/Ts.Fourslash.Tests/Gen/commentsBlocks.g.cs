@@ -54,54 +54,54 @@ else {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "commentsBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("// 1")
+    f.VerifyCurrentLineContent("// 1");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    // 2")
+    f.VerifyCurrentLineContent("    // 2");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("    /* %3 */")
+    f.VerifyCurrentLineContent("    /* %3 */");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("// 4")
+    f.VerifyCurrentLineContent("// 4");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("    // 5")
+    f.VerifyCurrentLineContent("    // 5");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("        // 6")
+    f.VerifyCurrentLineContent("        // 6");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("    // 7")
+    f.VerifyCurrentLineContent("    // 7");
 
-    f.GoToMarker("8")
+    f.GoToMarker("8");
 
-    f.VerifyCurrentLineContent("    // 8")
+    f.VerifyCurrentLineContent("    // 8");
 
-    f.GoToMarker("9")
+    f.GoToMarker("9");
 
-    f.VerifyCurrentLineContent("// 9")
+    f.VerifyCurrentLineContent("// 9");
 
-    f.GoToMarker("10")
+    f.GoToMarker("10");
 
-    f.VerifyCurrentLineContent("    // 10")
+    f.VerifyCurrentLineContent("    // 10");
 
-    f.GoToMarker("11")
+    f.GoToMarker("11");
 
-    f.VerifyCurrentLineContent("// 11")
+    f.VerifyCurrentLineContent("// 11");
 
-    f.GoToMarker("12")
+    f.GoToMarker("12");
 
-    f.VerifyCurrentLineContent("    // 12")
+    f.VerifyCurrentLineContent("    // 12");
     }
 }

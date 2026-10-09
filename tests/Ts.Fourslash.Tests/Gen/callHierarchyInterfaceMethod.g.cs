@@ -35,8 +35,8 @@ const obj: I = { foo() {} };
 obj.foo();
 """;
         using var f = FourslashTest.New(content, fileName: "callHierarchyInterfaceMethod", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyBaselineCallHierarchy()
+    f.VerifyBaselineCallHierarchy();
     }
 }

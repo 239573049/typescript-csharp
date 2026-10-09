@@ -36,6 +36,6 @@ import type { SyntaxKind } from './b';
 let kind: [|/*2*/SyntaxKind|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionTypeOnlyImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "2")
+    f.VerifyBaselineGoToDefinition(true, "2");
     }
 }

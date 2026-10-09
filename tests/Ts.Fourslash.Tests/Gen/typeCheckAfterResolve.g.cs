@@ -33,18 +33,18 @@ public class TypeCheckAfterResolveTests
 }/*end*/
 """;
         using var f = FourslashTest.New(content, fileName: "typeCheckAfterResolve", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.VerifyQuickInfoAt("IPointRef", "any", "")
+    f.VerifyQuickInfoAt("IPointRef", "any", "");
 
-    f.VerifyErrorExistsAfterMarker("IPointRef")
+    f.VerifyErrorExistsAfterMarker("IPointRef");
 
-    f.GoToEOF()
+    f.GoToEOF();
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.VerifyErrorExistsAfterMarker("IPointRef")
+    f.VerifyErrorExistsAfterMarker("IPointRef");
     }
 }

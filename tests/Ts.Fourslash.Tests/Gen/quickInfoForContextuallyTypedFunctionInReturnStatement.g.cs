@@ -42,6 +42,6 @@ function makeAccumulator(): Accumulator {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForContextuallyTypedFunctionInReturnStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) value: number", "")
+    f.VerifyQuickInfoAt("", "(parameter) value: number", "");
     }
 }

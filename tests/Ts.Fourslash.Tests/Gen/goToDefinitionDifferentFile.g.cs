@@ -40,6 +40,6 @@ class fooCls implements /*remoteInterfaceReference*/remoteInterface { }
 var fooVar = /*remoteModuleReference*/remoteModule.foo;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDifferentFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "remoteVariableReference", "remoteFunctionReference", "remoteClassReference", "remoteInterfaceReference", "remoteModuleReference")
+    f.VerifyBaselineGoToDefinition(false, "remoteVariableReference", "remoteFunctionReference", "remoteClassReference", "remoteInterfaceReference", "remoteModuleReference");
     }
 }

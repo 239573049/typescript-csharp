@@ -35,30 +35,30 @@ public class FormattingVoidTests
 /*7*/  b=void(c=1,d=2);
 """;
         using var f = FourslashTest.New(content, fileName: "formattingVoid", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("var x: () => void;")
+    f.VerifyCurrentLineContent("var x: () => void;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("var y: void;")
+    f.VerifyCurrentLineContent("var y: void;");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("function test(a: void, b: string) { }")
+    f.VerifyCurrentLineContent("function test(a: void, b: string) { }");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("void a;")
+    f.VerifyCurrentLineContent("void a;");
 
-    f.GoToMarker("6")
+    f.GoToMarker("6");
 
-    f.VerifyCurrentLineContent("void (0);")
+    f.VerifyCurrentLineContent("void (0);");
 
-    f.GoToMarker("7")
+    f.GoToMarker("7");
 
-    f.VerifyCurrentLineContent("b = void (c = 1, d = 2);")
+    f.VerifyCurrentLineContent("b = void (c = 1, d = 2);");
     }
 }

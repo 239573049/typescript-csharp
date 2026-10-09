@@ -35,6 +35,6 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "intellisenseInObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var x: number", "")
+    f.VerifyQuickInfoAt("", "var x: number", "");
     }
 }

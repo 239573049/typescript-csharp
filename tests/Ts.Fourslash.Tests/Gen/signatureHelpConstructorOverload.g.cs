@@ -31,9 +31,9 @@ var x = new clsOverload(/*1*/);
 var y = new clsOverload(/*2*/'');
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpConstructorOverload", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(): clsOverload", ParameterCount = 0, OverloadsCount = 2 })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(test: string): clsOverload", ParameterCount = 1, ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(): clsOverload", ParameterCount = 0, OverloadsCount = 2 });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(test: string): clsOverload", ParameterCount = 1, ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 });
     }
 }

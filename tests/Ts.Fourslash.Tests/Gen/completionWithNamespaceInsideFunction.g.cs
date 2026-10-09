@@ -71,7 +71,7 @@ function f2() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("11", new CompletionsExpectedList
     {
@@ -102,7 +102,7 @@ function f2() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("22", new CompletionsExpectedList
     {
@@ -131,7 +131,7 @@ function f2() {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("33", new CompletionsExpectedList
     {
@@ -156,6 +156,6 @@ function f2() {
     ],
         },
         
-    })
+    });
     }
 }

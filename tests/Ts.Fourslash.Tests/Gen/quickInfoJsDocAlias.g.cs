@@ -38,6 +38,6 @@ import { A } from "./a";
 A/**/()
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

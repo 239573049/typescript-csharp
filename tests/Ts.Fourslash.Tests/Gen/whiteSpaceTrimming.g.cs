@@ -31,15 +31,15 @@ if (true) {
    /*err*/}
 """;
         using var f = FourslashTest.New(content, fileName: "whiteSpaceTrimming", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("err")
+    f.GoToMarker("err");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
     f.VerifyCurrentFileContent("""
     if (true) {     
       //    
 
     }
-    """)
+    """);
     }
 }

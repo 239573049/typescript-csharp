@@ -34,6 +34,6 @@ public class GetOutliningSpansForUnbalancedEndRegionTests
 // #endregion unmatched
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansForUnbalancedEndRegion", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Region)
+    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Region);
     }
 }

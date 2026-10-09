@@ -31,12 +31,12 @@ class foo { };
 function foo() { /**/ }
 """;
         using var f = FourslashTest.New(content, fileName: "insertReturnStatementInDuplicateIdentifierFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyNumberOfErrorsInCurrentFile(2)
+    f.VerifyNumberOfErrorsInCurrentFile(2);
 
-    f.Insert("return null;")
+    f.Insert("return null;");
 
-    f.VerifyNumberOfErrorsInCurrentFile(2)
+    f.VerifyNumberOfErrorsInCurrentFile(2);
     }
 }

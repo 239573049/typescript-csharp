@@ -39,20 +39,20 @@ module.exports = 0;
 module.exports = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "refactorConvertToEsModule_module_node12", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.js")
+    f.GoToFile("/a.js");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
 
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
 
-    f.GoToFile("/c.cjs")
+    f.GoToFile("/c.cjs");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
 
-    f.GoToFile("/d.cts")
+    f.GoToFile("/d.cts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

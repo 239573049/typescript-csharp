@@ -33,6 +33,6 @@ export const x = 0;
 /*3*/const y: typeof import("/*4*/./a") = { x: 0 };
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefs_importType_typeofImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

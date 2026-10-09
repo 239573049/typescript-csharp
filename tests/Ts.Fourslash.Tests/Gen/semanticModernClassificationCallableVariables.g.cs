@@ -56,6 +56,6 @@ var t: { (): string; foo: string};
             new SemanticToken { Type = "interface.defaultLibrary", Text = "String" },
             new SemanticToken { Type = "variable.declaration", Text = "t" },
             new SemanticToken { Type = "property.declaration", Text = "foo" },
-        })
+        });
     }
 }

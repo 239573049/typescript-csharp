@@ -36,26 +36,26 @@ function a(
 /*5*/var x       =
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSkippedTokens", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("foo(): Bar { }")
+    f.VerifyCurrentLineContent("foo(): Bar { }");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("function Foo() #   { }")
+    f.VerifyCurrentLineContent("function Foo() #   { }");
 
-    f.GoToMarker("3")
+    f.GoToMarker("3");
 
-    f.VerifyCurrentLineContent("4 +: 5")
+    f.VerifyCurrentLineContent("4 +: 5");
 
-    f.GoToMarker("4")
+    f.GoToMarker("4");
 
-    f.VerifyCurrentLineContent("    : T) { }")
+    f.VerifyCurrentLineContent("    : T) { }");
 
-    f.GoToMarker("5")
+    f.GoToMarker("5");
 
-    f.VerifyCurrentLineContent("var x =")
+    f.VerifyCurrentLineContent("var x =");
     }
 }

@@ -31,6 +31,6 @@ class Contai/**/ner<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnGenericClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "class Container<T>", "")
+    f.VerifyQuickInfoAt("", "class Container<T>", "");
     }
 }

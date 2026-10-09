@@ -36,6 +36,6 @@ var var = "c";
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics02", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

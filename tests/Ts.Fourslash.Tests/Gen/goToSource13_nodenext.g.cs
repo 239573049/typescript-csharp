@@ -57,6 +57,6 @@ import leftPad = require("left-pad");
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource13_nodenext", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
     }
 }

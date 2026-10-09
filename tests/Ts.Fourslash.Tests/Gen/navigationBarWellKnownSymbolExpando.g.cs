@@ -30,6 +30,6 @@ function f() {}
 f[Symbol.iterator] = function() {}
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarWellKnownSymbolExpando", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

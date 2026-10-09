@@ -32,6 +32,6 @@ function wat([|b |]) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageCall", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("b: () => void", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("b: () => void", false, 0, 0);
     }
 }

@@ -31,8 +31,8 @@ interface G<T, U> { }
 var v1: G<A, C>;
 """;
         using var f = FourslashTest.New(content, fileName: "removeInterfaceUsedAsGenericTypeArgument", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.DeleteAtCaret(26)
+    f.DeleteAtCaret(26);
     }
 }

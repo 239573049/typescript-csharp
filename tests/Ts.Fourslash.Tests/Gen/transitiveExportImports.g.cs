@@ -38,18 +38,18 @@ public class TransitiveExportImportsTests
 var a = new /*4*/[|b|]./**/[|b|]();
 """;
         using var f = FourslashTest.New(content, fileName: "transitiveExportImports", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[3]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5], f.Ranges()[9])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[5], f.Ranges()[9]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7], f.Ranges()[8]);
     }
 }

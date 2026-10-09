@@ -68,7 +68,7 @@ create('component-one', { props: { /*3*/ } });
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -91,7 +91,7 @@ create('component-one', { props: { /*3*/ } });
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -114,6 +114,6 @@ create('component-one', { props: { /*3*/ } });
     ],
         },
         
-    })
+    });
     }
 }

@@ -34,6 +34,6 @@ verify.quickInfoIs("RegExp");
 verify.not.errorExistsAfterMarker("1");
 """;
         using var f = FourslashTest.New(content, fileName: "regexErrorRecovery", cancellationToken: TestContext.Current.CancellationToken);
-    f.Insert("(")
+    f.Insert("(");
     }
 }

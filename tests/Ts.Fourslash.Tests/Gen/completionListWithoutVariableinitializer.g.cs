@@ -56,7 +56,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"2", }, new CompletionsExpectedList
     {
@@ -76,7 +76,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", }, new CompletionsExpectedList
     {
@@ -97,7 +97,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", }, new CompletionsExpectedList
     {
@@ -117,7 +117,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"5", }, new CompletionsExpectedList
     {
@@ -138,7 +138,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"6", }, new CompletionsExpectedList
     {
@@ -159,7 +159,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"7", }, new CompletionsExpectedList
     {
@@ -181,7 +181,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"8", }, new CompletionsExpectedList
     {
@@ -203,7 +203,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"9", }, new CompletionsExpectedList
     {
@@ -225,7 +225,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"10", }, new CompletionsExpectedList
     {
@@ -242,7 +242,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"11", }, new CompletionsExpectedList
     {
@@ -259,7 +259,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"12", }, new CompletionsExpectedList
     {
@@ -276,7 +276,7 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"13", }, new CompletionsExpectedList
     {
@@ -293,6 +293,6 @@ const [ a4 ] = fn([a/*13*/]);
     ],
         },
         
-    })
+    });
     }
 }

@@ -33,6 +33,6 @@ class List<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarItemsPropertiesDefinedInConstructors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

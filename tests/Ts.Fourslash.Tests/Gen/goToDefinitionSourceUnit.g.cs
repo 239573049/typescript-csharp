@@ -42,6 +42,6 @@ public class GoToDefinitionSourceUnitTests
 /*fileB*/
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSourceUnit", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "unknownFile", "knownFile")
+    f.VerifyBaselineGoToDefinition(true, "unknownFile", "knownFile");
     }
 }

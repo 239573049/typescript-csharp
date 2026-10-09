@@ -32,6 +32,6 @@ namespace shdModule {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionShadowVariableInsideModule", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "shadowVariableReference")
+    f.VerifyBaselineGoToDefinition(false, "shadowVariableReference");
     }
 }

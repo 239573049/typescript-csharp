@@ -36,6 +36,6 @@ function /*7*/foo2</*8*/U extends string>(/*9*/a: /*10*/U) {
 /*12*/foo2("hello");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsTypeParameterInFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

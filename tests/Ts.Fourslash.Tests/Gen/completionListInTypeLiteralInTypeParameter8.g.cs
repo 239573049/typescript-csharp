@@ -67,7 +67,7 @@ var foobar: Bar<{
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("0", new CompletionsExpectedList
     {
@@ -83,7 +83,7 @@ var foobar: Bar<{
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -100,6 +100,6 @@ var foobar: Bar<{
     ],
         },
         
-    })
+    });
     }
 }

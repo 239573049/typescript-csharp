@@ -39,6 +39,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionFunctionType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "constReference", "cbReference", "propReference")
+    f.VerifyBaselineGoToDefinition(false, "constReference", "cbReference", "propReference");
     }
 }

@@ -98,8 +98,8 @@ gen(function* () {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "issue57585-2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "const b: number", "")
+    f.VerifyQuickInfoAt("1", "const b: number", "");
 
-    f.VerifyNonSuggestionDiagnostics([])
+    f.VerifyNonSuggestionDiagnostics([]);
     }
 }

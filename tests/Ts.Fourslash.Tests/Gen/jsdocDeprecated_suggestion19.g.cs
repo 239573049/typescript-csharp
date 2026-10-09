@@ -46,6 +46,6 @@ foo.[|x|];
     Tags = [LsProto.DiagnosticTag.Deprecated],
     Range = f.Ranges()[0].LSRange,
     },
-    ])
+    ]);
     }
 }

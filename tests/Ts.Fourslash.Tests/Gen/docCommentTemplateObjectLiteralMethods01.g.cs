@@ -50,7 +50,7 @@ var x = {
          * 
          * @returns
          */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("1", 11, """
     /**
@@ -59,14 +59,14 @@ var x = {
          * @param y
          * @param z
          */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("2", 11, """
     /**
          * 
          * @param a
          */
-    """, null)
+    """, null);
 
     f.VerifyJSDocCompletion("3", 11, """
     /**
@@ -74,6 +74,6 @@ var x = {
          * @param a
          * @param b
          */
-    """, null)
+    """, null);
     }
 }

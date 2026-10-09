@@ -33,6 +33,6 @@ interface I4 {
 class C implements I {[|  |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceIndexSignaturesNoFix", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

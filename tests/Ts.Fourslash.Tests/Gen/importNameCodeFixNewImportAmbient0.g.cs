@@ -40,6 +40,6 @@ declare module "ambient-module" {
 
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

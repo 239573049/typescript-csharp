@@ -58,8 +58,8 @@ console.log(A, a, B, b, c, C, d, D);
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -80,7 +80,7 @@ console.log(A, a, B, b, c, C, d, D);
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    },
-        )
+    }
+        );
     }
 }

@@ -37,6 +37,6 @@ import Foo from './foo';
 const a = <[|/*use*/Foo|] />
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionJsxNotSet", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use")
+    f.VerifyBaselineGoToDefinition(true, "use");
     }
 }

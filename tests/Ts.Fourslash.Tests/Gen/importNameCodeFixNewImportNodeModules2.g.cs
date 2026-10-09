@@ -47,6 +47,6 @@ module.exports = {
 
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

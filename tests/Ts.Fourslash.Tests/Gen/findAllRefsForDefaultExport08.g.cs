@@ -37,8 +37,8 @@ namespace /*1*/DefaultExportedClass {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport08", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

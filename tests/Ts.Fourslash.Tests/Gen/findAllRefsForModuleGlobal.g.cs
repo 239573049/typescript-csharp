@@ -34,8 +34,8 @@ import { x } from "/*1*/foo";
 declare module "foo" {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForModuleGlobal", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

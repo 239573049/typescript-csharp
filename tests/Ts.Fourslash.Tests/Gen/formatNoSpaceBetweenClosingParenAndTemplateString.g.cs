@@ -31,12 +31,12 @@ bar()`def`;
 baz()`a${x}b`;
 """;
         using var f = FourslashTest.New(content, fileName: "formatNoSpaceBetweenClosingParenAndTemplateString", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     foo()`abc`;
     bar()`def`;
     baz()`a${x}b`;
-    """)
+    """);
     }
 }

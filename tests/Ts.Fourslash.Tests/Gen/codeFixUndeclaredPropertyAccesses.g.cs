@@ -41,6 +41,6 @@ let t: T<number>;
 t.x;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixUndeclaredPropertyAccesses", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(null)
+    f.VerifyCodeFixAvailable(null);
     }
 }

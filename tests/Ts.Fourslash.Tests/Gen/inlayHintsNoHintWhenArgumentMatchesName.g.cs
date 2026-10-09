@@ -42,6 +42,6 @@ foo(v.c, v.c);
     IncludeInlayParameterNameHints = IncludeInlayParameterNameHints.All,
     IncludeInlayParameterNameHintsWhenArgumentMatchesName = Core.TSFalse,
     },
-    })
+    });
     }
 }

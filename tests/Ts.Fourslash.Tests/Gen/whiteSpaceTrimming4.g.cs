@@ -29,13 +29,13 @@ public class WhiteSpaceTrimming4Tests
 var re = /\w+   /*1*//;
 """;
         using var f = FourslashTest.New(content, fileName: "whiteSpaceTrimming4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
     f.VerifyCurrentFileContent("""
     var re = /\w+
         /;
-    """)
+    """);
     }
 }

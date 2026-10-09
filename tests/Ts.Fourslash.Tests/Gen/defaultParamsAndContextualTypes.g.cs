@@ -40,8 +40,8 @@ var o: Foo = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "defaultParamsAndContextualTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) xy: string", "")
+    f.VerifyQuickInfoAt("1", "(parameter) xy: string", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) options: FooOptions", "")
+    f.VerifyQuickInfoAt("2", "(parameter) options: FooOptions", "");
     }
 }

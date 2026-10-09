@@ -31,6 +31,6 @@ function foo() {}
 /*1*/%PrepareFunctionForOptimization(foo)/*2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "formatV8Directive", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("1", "2")
+    f.FormatSelection("1", "2");
     }
 }

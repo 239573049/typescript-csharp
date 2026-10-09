@@ -38,7 +38,7 @@ export const foo = 1;
 fo/**/
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_multipleWithSameName", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -92,7 +92,7 @@ fo/**/
     ], true),
         },
         
-    })
+    });
 
     f.VerifyApplyCodeActionFromCompletion("", new ApplyCodeActionFromCompletionOptions
     {
@@ -104,6 +104,6 @@ fo/**/
 
     fo
     """,
-    })
+    });
     }
 }

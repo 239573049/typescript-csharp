@@ -31,8 +31,8 @@ function map(fn: (variab/*1*/le1: string) => void) {
 var x = <{ (fn: (va/*2*/riable2: string) => void, a: string): void; }> () => { };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInFunctionTypeReference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) variable1: string", "")
+    f.VerifyQuickInfoAt("1", "(parameter) variable1: string", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) variable2: string", "")
+    f.VerifyQuickInfoAt("2", "(parameter) variable2: string", "");
     }
 }

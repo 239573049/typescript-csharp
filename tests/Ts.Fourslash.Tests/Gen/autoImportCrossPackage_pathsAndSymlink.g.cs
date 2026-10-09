@@ -60,8 +60,8 @@ Tooltip/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportCrossPackage_pathsAndSymlink", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyImportFixModuleSpecifiers("", new[]{"@company/common"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"@company/common"}, null /*preferences*/);
     }
 }

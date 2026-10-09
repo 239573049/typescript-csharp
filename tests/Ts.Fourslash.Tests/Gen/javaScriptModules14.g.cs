@@ -66,6 +66,6 @@ var x = require('myMod');
     ],
         },
         
-    })
+    });
     }
 }

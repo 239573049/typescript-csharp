@@ -30,6 +30,6 @@ function f</**/
 x
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkers("")
+    f.VerifyNoSignatureHelpForMarkers("");
     }
 }

@@ -37,8 +37,8 @@ const o = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsPropertyAssignedAfterMethodDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(method) test(): void", "")
+    f.VerifyQuickInfoAt("1", "(method) test(): void", "");
 
-    f.VerifyQuickInfoAt("2", "(method) test(): void", "")
+    f.VerifyQuickInfoAt("2", "(method) test(): void", "");
     }
 }

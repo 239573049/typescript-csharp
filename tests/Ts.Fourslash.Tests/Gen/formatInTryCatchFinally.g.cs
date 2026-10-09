@@ -35,10 +35,10 @@ catch (e)
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatInTryCatchFinally", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("    var x = 1;")
+    f.VerifyCurrentLineContent("    var x = 1;");
     }
 }

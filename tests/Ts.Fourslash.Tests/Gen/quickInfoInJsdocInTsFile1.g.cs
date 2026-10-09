@@ -60,20 +60,20 @@ if (stuff.quantity) {}
 function test2(a: string) {}
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInJsdocInTsFile1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "", "")
+    f.VerifyQuickInfoAt("1", "", "");
 
-    f.VerifyQuickInfoAt("2", "", "")
+    f.VerifyQuickInfoAt("2", "", "");
 
-    f.VerifyQuickInfoAt("3", "", "")
+    f.VerifyQuickInfoAt("3", "", "");
 
-    f.VerifyQuickInfoAt("4", "type SomeObj = {\n    bar: string;\n}", "")
+    f.VerifyQuickInfoAt("4", "type SomeObj = {\n    bar: string;\n}", "");
 
-    f.VerifyQuickInfoAt("5", "(parameter) stuff: {\n    quantity: number;\n}", "Stuff to do stuff with")
+    f.VerifyQuickInfoAt("5", "(parameter) stuff: {\n    quantity: number;\n}", "Stuff to do stuff with");
 
-    f.VerifyQuickInfoAt("6", "(parameter) stuff: {\n    quantity: number;\n}", "Stuff to do stuff with")
+    f.VerifyQuickInfoAt("6", "(parameter) stuff: {\n    quantity: number;\n}", "Stuff to do stuff with");
 
-    f.VerifyQuickInfoAt("7", "function doStuffWithStuff(stuff: {\n    quantity: number;\n}): void", "")
+    f.VerifyQuickInfoAt("7", "function doStuffWithStuff(stuff: {\n    quantity: number;\n}): void", "");
 
-    f.VerifyQuickInfoAt("8", "", "")
+    f.VerifyQuickInfoAt("8", "", "");
     }
 }

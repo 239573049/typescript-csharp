@@ -38,7 +38,7 @@ b;
 c;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_add_all_missing_imports", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/main.ts")
+    f.GoToFile("/main.ts");
 
     f.VerifyCodeFixAll(new VerifyCodeFixAllOptions
     {
@@ -52,6 +52,6 @@ c;
     b;
     c;
     """,
-    })
+    });
     }
 }

@@ -38,22 +38,22 @@ import "node:fs/promises";
 writeFile/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_uriStyleNodeCoreModules2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
 
-    f.GoToFile("/other.ts")
+    f.GoToFile("/other.ts");
 
-    f.ReplaceLine(0, "\n")
+    f.ReplaceLine(0, "\n");
 
-    f.GoToFile("/index.ts")
+    f.GoToFile("/index.ts");
 
-    f.VerifyImportFixModuleSpecifiers("", new[]{"fs", "fs/promises", "node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"fs", "fs/promises", "node:fs", "node:fs/promises"}, null /*preferences*/);
 
-    f.GoToFile("/other.ts")
+    f.GoToFile("/other.ts");
 
-    f.ReplaceLine(0, "import \"node:fs/promises\";\n")
+    f.ReplaceLine(0, "import \"node:fs/promises\";\n");
 
-    f.GoToFile("/index.ts")
+    f.GoToFile("/index.ts");
 
-    f.VerifyImportFixModuleSpecifiers("", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"node:fs", "node:fs/promises"}, null /*preferences*/);
     }
 }

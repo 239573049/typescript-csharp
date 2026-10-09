@@ -40,12 +40,12 @@ let instance = new C();
 instance./*setterUse*/myValue = instance./*getterUse*/myValue;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoGetterSetter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("getterUse", "(property) C.myValue: Promise<string>", "")
+    f.VerifyQuickInfoAt("getterUse", "(property) C.myValue: Promise<string>", "");
 
-    f.VerifyQuickInfoAt("getterDef", "(getter) C.myValue: Promise<string>", "")
+    f.VerifyQuickInfoAt("getterDef", "(getter) C.myValue: Promise<string>", "");
 
-    f.VerifyQuickInfoAt("setterUse", "(property) C.myValue: string | Promise<string>", "")
+    f.VerifyQuickInfoAt("setterUse", "(property) C.myValue: string | Promise<string>", "");
 
-    f.VerifyQuickInfoAt("setterDef", "(setter) C.myValue: string | Promise<string>", "")
+    f.VerifyQuickInfoAt("setterDef", "(setter) C.myValue: string | Promise<string>", "");
     }
 }

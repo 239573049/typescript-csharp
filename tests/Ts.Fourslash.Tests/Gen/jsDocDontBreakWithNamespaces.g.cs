@@ -45,6 +45,6 @@ function zee() { }
 zee(''/*zee*/);
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocDontBreakWithNamespaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

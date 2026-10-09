@@ -89,7 +89,7 @@ export class MyClass {
     }
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

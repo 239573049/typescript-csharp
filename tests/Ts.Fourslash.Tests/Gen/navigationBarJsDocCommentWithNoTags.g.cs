@@ -30,6 +30,6 @@ public class NavigationBarJsDocCommentWithNoTagsTests
 export const Test = {}
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarJsDocCommentWithNoTags", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

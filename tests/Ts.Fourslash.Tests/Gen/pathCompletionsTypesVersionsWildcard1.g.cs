@@ -65,9 +65,9 @@ import { } from "foo//**/";
     ],
         },
         
-    })
+    });
 
-    f.Insert("subfolder/")
+    f.Insert("subfolder/");
 
     f.VerifyCompletions("", new CompletionsExpectedList
     {
@@ -84,6 +84,6 @@ import { } from "foo//**/";
     ],
         },
         
-    })
+    });
     }
 }

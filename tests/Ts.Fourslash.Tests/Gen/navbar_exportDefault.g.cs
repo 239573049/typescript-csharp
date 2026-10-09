@@ -36,20 +36,20 @@ export default function { }
 export default function Func { }
 """;
         using var f = FourslashTest.New(content, fileName: "navbar_exportDefault", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("a.ts")
+    f.GoToFile("a.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("b.ts")
+    f.GoToFile("b.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("c.ts")
+    f.GoToFile("c.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
 
-    f.GoToFile("d.ts")
+    f.GoToFile("d.ts");
 
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

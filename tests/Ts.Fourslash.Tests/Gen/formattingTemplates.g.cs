@@ -30,16 +30,16 @@ String.call `${123}`/*1*/
 String.call `${123} ${456}`/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingTemplates", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("String.call`${123}`;")
+    f.VerifyCurrentLineContent("String.call`${123}`;");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.Insert(";")
+    f.Insert(";");
 
-    f.VerifyCurrentLineContent("String.call`${123} ${456}`;")
+    f.VerifyCurrentLineContent("String.call`${123} ${456}`;");
     }
 }

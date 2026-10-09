@@ -44,7 +44,7 @@ const path = require('path');
 new Blah
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_require_importVsRequire_importWins", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("addToExisting.js")
+    f.GoToFile("addToExisting.js");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -56,9 +56,9 @@ new Blah
     new Blah
     """,
         Index = 0,
-    })
+    });
 
-    f.GoToFile("newImport.js")
+    f.GoToFile("newImport.js");
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -71,6 +71,6 @@ new Blah
     new Blah
     """,
         Index = 0,
-    })
+    });
     }
 }

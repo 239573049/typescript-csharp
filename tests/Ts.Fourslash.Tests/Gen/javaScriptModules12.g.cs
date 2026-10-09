@@ -74,7 +74,7 @@ var b = '';
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -104,7 +104,7 @@ var b = '';
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -130,7 +130,7 @@ var b = '';
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -156,7 +156,7 @@ var b = '';
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"5", }, new CompletionsExpectedList
     {
@@ -186,6 +186,6 @@ var b = '';
     ],
         },
         
-    })
+    });
     }
 }

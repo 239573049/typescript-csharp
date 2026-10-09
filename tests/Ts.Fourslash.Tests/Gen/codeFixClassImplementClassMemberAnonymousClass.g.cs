@@ -38,6 +38,6 @@ class A {
 class C implements A {[| |]}
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementClassMemberAnonymousClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

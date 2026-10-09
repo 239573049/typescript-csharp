@@ -41,6 +41,6 @@ exports.foo = (a) => {};
      * 
      * @param {any} a
      */
-    """, null)
+    """, null);
     }
 }

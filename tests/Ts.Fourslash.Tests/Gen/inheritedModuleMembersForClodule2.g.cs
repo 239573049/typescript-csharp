@@ -40,10 +40,10 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "inheritedModuleMembersForClodule2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
 
-    f.VerifyNumberOfErrorsInCurrentFile(4)
+    f.VerifyNumberOfErrorsInCurrentFile(4);
     }
 }

@@ -39,7 +39,7 @@ import { func } from "foo";
 func({/*1*/});
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForSignatureWithUnreachableType", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "func(param: {}): void", OverloadsCount = 2 })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "func(param: {}): void", OverloadsCount = 2 });
     }
 }

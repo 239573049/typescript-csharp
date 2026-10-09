@@ -66,7 +66,7 @@ j[|./*j*/|];
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("j", new CompletionsExpectedList
     {
@@ -96,6 +96,6 @@ j[|./*j*/|];
     ],
         },
         
-    })
+    });
     }
 }

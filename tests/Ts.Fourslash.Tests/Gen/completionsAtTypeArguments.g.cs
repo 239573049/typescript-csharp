@@ -50,6 +50,6 @@ interface T2 extends Pick<I, "/*2*/"> {}
     ],
         },
         
-    })
+    });
     }
 }

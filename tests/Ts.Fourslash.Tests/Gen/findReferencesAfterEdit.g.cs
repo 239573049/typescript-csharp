@@ -38,12 +38,12 @@ function foo(x: A) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findReferencesAfterEdit", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("\n")
+    f.Insert("\n");
 
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

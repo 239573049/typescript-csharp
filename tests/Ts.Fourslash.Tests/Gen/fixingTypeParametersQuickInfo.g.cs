@@ -31,12 +31,12 @@ declare function f<T>(x: T, y: (p: T) => T, z: (p: T) => T): T;
 var /*1*/result = /*2*/f(0, /*3*/x => null, /*4*/x => x.blahblah);
 """;
         using var f = FourslashTest.New(content, fileName: "fixingTypeParametersQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var result: number", "")
+    f.VerifyQuickInfoAt("1", "var result: number", "");
 
-    f.VerifyQuickInfoAt("2", "function f<number>(x: number, y: (p: number) => number, z: (p: number) => number): number", "")
+    f.VerifyQuickInfoAt("2", "function f<number>(x: number, y: (p: number) => number, z: (p: number) => number): number", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("3", "(parameter) x: number", "");
 
-    f.VerifyQuickInfoAt("4", "(parameter) x: number", "")
+    f.VerifyQuickInfoAt("4", "(parameter) x: number", "");
     }
 }

@@ -30,7 +30,7 @@ class C/*a*/ /*b*/ { }
 class C e/*c*/ {}
 """;
         using var f = FourslashTest.New(content, fileName: "completionsKeywordsExtends", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("a", null)
+    f.VerifyCompletions("a", null);
 
     f.VerifyCompletions(new[]{"b", "c", }, new CompletionsExpectedList
     {
@@ -51,6 +51,6 @@ class C e/*c*/ {}
     ],
         },
         
-    })
+    });
     }
 }

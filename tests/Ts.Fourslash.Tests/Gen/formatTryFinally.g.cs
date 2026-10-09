@@ -33,7 +33,7 @@ if (true) try  {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatTryFinally", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     if (true) try {
@@ -41,6 +41,6 @@ if (true) try  {
     } finally {
         // ...
     }
-    """)
+    """);
     }
 }

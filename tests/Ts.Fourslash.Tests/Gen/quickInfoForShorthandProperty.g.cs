@@ -34,16 +34,16 @@ var id2 = 10000;
 var /*obj2*/obj2 = {/*name2*/name2, /*id2*/id2};
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForShorthandProperty", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("obj1", "var obj1: {\n    name1: any;\n    id1: any;\n}", "")
+    f.VerifyQuickInfoAt("obj1", "var obj1: {\n    name1: any;\n    id1: any;\n}", "");
 
-    f.VerifyQuickInfoAt("name1", "(property) name1: any", "")
+    f.VerifyQuickInfoAt("name1", "(property) name1: any", "");
 
-    f.VerifyQuickInfoAt("id1", "(property) id1: any", "")
+    f.VerifyQuickInfoAt("id1", "(property) id1: any", "");
 
-    f.VerifyQuickInfoAt("obj2", "var obj2: {\n    name2: string;\n    id2: number;\n}", "")
+    f.VerifyQuickInfoAt("obj2", "var obj2: {\n    name2: string;\n    id2: number;\n}", "");
 
-    f.VerifyQuickInfoAt("name2", "(property) name2: string", "")
+    f.VerifyQuickInfoAt("name2", "(property) name2: string", "");
 
-    f.VerifyQuickInfoAt("id2", "(property) id2: number", "")
+    f.VerifyQuickInfoAt("id2", "(property) id2: number", "");
     }
 }

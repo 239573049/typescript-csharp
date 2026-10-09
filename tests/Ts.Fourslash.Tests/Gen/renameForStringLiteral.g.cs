@@ -38,6 +38,6 @@ const obj: Foo = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameForStringLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "")
+    f.VerifyBaselineRename(null /*preferences*/, "");
     }
 }

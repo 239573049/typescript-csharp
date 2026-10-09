@@ -39,6 +39,6 @@ let x = new Person(100);
 x.canVote/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "getJavaScriptSyntacticDiagnostics24", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(property) Person.canVote: number | boolean", "")
+    f.VerifyQuickInfoAt("", "(property) Person.canVote: number | boolean", "");
     }
 }

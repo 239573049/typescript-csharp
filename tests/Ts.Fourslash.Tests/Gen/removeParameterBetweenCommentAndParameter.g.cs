@@ -29,8 +29,8 @@ public class RemoveParameterBetweenCommentAndParameterTests
 function fn(/* comment! */ /**/a: number, c) { }
 """;
         using var f = FourslashTest.New(content, fileName: "removeParameterBetweenCommentAndParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.DeleteAtCaret(10)
+    f.DeleteAtCaret(10);
     }
 }

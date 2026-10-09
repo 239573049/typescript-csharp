@@ -53,12 +53,12 @@ function q<T extends { name: string }>(x: T): T["name"] {
 foof/*4*/(o => ({ value: o.name, func: x => 'foo' }), new Error(), "name");
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForContextuallyTypedParameters", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) o: Error", "")
+    f.VerifyQuickInfoAt("1", "(parameter) o: Error", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) o: Error", "")
+    f.VerifyQuickInfoAt("2", "(parameter) o: Error", "");
 
-    f.VerifyQuickInfoAt("3", "function foof<T, \"name\">(settings: (row: T) => {\n    value: T[\"name\"];\n    func?: Function;\n}, obj: T, key: \"name\"): \"name\"", "")
+    f.VerifyQuickInfoAt("3", "function foof<T, \"name\">(settings: (row: T) => {\n    value: T[\"name\"];\n    func?: Function;\n}, obj: T, key: \"name\"): \"name\"", "");
 
-    f.VerifyQuickInfoAt("4", "function foof<Error, \"name\">(settings: (row: Error) => {\n    value: string;\n    func?: Function;\n}, obj: Error, key: \"name\"): \"name\"", "")
+    f.VerifyQuickInfoAt("4", "function foof<Error, \"name\">(settings: (row: Error) => {\n    value: string;\n    func?: Function;\n}, obj: Error, key: \"name\"): \"name\"", "");
     }
 }

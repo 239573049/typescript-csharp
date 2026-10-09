@@ -37,7 +37,7 @@ declare module "foo" {
 [|foo|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixNewImportExportEqualsESNextInteropOn", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/index.ts")
+    f.GoToFile("/index.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -45,6 +45,6 @@ declare module "foo" {
 
     foo
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

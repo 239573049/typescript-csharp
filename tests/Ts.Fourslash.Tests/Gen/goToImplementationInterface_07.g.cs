@@ -52,6 +52,6 @@ function isFoo(a: any): a is Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_07", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("interface_definition")
+    f.VerifyBaselineGoToImplementation("interface_definition");
     }
 }

@@ -81,6 +81,6 @@ namespace Foo/*8*/ {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityInterface2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1}, ["3"] = new[]{0, 1, 2}, ["4"] = new[]{0, 1}, ["5"] = new[]{0, 1, 2}, ["6"] = new[]{0, 1}, ["7"] = new[]{0, 1}, ["8"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["1"] = new[]{0, 1}, ["2"] = new[]{0, 1}, ["3"] = new[]{0, 1, 2}, ["4"] = new[]{0, 1}, ["5"] = new[]{0, 1, 2}, ["6"] = new[]{0, 1}, ["7"] = new[]{0, 1}, ["8"] = new[]{0, 1}});
     }
 }

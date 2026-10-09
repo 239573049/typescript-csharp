@@ -45,7 +45,7 @@ class C {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -60,6 +60,6 @@ class C {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

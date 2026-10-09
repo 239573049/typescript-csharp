@@ -31,7 +31,7 @@ let foo = 5 as const /*1*/
 /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionAfterNewline2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("1", null)
+    f.VerifyCompletions("1", null);
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -52,6 +52,6 @@ let foo = 5 as const /*1*/
     ], false),
         },
         
-    })
+    });
     }
 }

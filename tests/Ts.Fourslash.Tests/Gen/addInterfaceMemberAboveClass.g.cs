@@ -37,12 +37,12 @@ class /*className*/Sphere {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "addInterfaceMemberAboveClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("className", "class Sphere", "")
+    f.VerifyQuickInfoAt("className", "class Sphere", "");
 
-    f.GoToMarker("insertHere")
+    f.GoToMarker("insertHere");
 
-    f.Insert("ray: Ray;")
+    f.Insert("ray: Ray;");
 
-    f.VerifyQuickInfoAt("className", "class Sphere", "")
+    f.VerifyQuickInfoAt("className", "class Sphere", "");
     }
 }

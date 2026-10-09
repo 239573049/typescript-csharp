@@ -44,8 +44,8 @@ namespace TypeScript {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "updateToClassStatics", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.Insert("someNewProperty = 0;")
+    f.Insert("someNewProperty = 0;");
     }
 }

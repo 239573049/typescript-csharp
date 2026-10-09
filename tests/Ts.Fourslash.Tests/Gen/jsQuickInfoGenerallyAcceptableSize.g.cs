@@ -235,8 +235,8 @@ var doSome/*1*/thing = function (dataTable) {
 var anotherThing/*2*/ = function(a, b) {}
 """;
         using var f = FourslashTest.New(content, fileName: "jsQuickInfoGenerallyAcceptableSize", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var doSomething: (dataTable: DataTableThing) => void", "Do something")
+    f.VerifyQuickInfoAt("1", "var doSomething: (dataTable: DataTableThing) => void", "Do something");
 
-    f.VerifyQuickInfoAt("2", "var anotherThing: SomeCallback", "Another thing")
+    f.VerifyQuickInfoAt("2", "var anotherThing: SomeCallback", "Another thing");
     }
 }

@@ -39,6 +39,6 @@ class C implements I1,I2 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceMultipleImplementsIntersection2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

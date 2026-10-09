@@ -33,6 +33,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "navigationBarClassStaticBlock", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentSymbol()
+    f.VerifyBaselineDocumentSymbol();
     }
 }

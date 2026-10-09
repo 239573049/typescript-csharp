@@ -40,6 +40,6 @@ declare function f<T>(a: T): T;
 f(2, /*b*/);
 """;
         using var f = FourslashTest.New(content, fileName: "trailingCommaSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

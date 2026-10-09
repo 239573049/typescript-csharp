@@ -46,6 +46,6 @@ public class JsdocPropertyTagCompletionTests
             Exact = CompletionGlobalTypes,
         },
         
-    })
+    });
     }
 }

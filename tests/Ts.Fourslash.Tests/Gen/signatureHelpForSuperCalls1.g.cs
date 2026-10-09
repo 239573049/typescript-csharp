@@ -44,9 +44,9 @@ class C2 extends B2 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForSuperCalls1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(): B" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(x: number): B2" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(): B" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(x: number): B2" });
     }
 }

@@ -37,6 +37,6 @@ function decorator(target) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesOfDecorators", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1");
     }
 }

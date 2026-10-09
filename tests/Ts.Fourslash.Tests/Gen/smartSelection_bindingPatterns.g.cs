@@ -29,6 +29,6 @@ public class SmartSelection_bindingPatternsTests
 const { /*1*/x, y: /*2*/a, .../*3*/zs = {} } = {};
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_bindingPatterns", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

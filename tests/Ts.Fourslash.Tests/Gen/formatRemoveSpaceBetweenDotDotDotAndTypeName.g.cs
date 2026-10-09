@@ -31,12 +31,12 @@ let b: [...   number[]];
 let c: [...     string[]];
 """;
         using var f = FourslashTest.New(content, fileName: "formatRemoveSpaceBetweenDotDotDotAndTypeName", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     let a: [...any[]];
     let b: [...number[]];
     let c: [...string[]];
-    """)
+    """);
     }
 }

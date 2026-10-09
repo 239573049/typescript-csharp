@@ -38,6 +38,6 @@ let x;
 x./*3*/p;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsTypedef", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -29,6 +29,6 @@ public class CompletionListNewIdentifierVariableDeclarationTests
 var y : (s:string, list/*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListNewIdentifierVariableDeclaration", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions("2", null)
+    f.VerifyCompletions("2", null);
     }
 }

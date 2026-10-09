@@ -31,10 +31,10 @@ function foo() {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "tabbingAfterNewlineInsertedBeforeWhile", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.VerifyCurrentLineContent("    while (true) { }")
+    f.VerifyCurrentLineContent("    while (true) { }");
     }
 }

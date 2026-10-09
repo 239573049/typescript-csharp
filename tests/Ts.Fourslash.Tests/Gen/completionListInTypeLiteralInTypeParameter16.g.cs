@@ -70,7 +70,7 @@ b<{/*3*/}>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -88,7 +88,7 @@ b<{/*3*/}>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -108,7 +108,7 @@ b<{/*3*/}>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -124,6 +124,6 @@ b<{/*3*/}>;
     ],
         },
         
-    })
+    });
     }
 }

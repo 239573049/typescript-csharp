@@ -32,6 +32,6 @@ class X {
 var x = new X();
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsOfConstructor_withModifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0")
+    f.VerifyBaselineFindAllReferences("0");
     }
 }

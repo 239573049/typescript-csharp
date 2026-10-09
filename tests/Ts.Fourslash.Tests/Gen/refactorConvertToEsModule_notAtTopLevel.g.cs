@@ -34,6 +34,6 @@ public class RefactorConvertToEsModule_notAtTopLevelTests
 })();
 """;
         using var f = FourslashTest.New(content, fileName: "refactorConvertToEsModule_notAtTopLevel", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

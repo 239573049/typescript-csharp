@@ -49,6 +49,6 @@ var x : One | Two;
 x.common./*x*/a;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForUnionProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("one", "base", "x")
+    f.VerifyBaselineFindAllReferences("one", "base", "x");
     }
 }

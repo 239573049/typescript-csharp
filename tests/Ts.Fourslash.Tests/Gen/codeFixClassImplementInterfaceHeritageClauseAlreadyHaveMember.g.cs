@@ -67,6 +67,6 @@ class C extends D implements I { }
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

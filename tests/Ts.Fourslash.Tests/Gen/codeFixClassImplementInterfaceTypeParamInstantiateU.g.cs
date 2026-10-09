@@ -40,6 +40,6 @@ class C<U> implements I<U> {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

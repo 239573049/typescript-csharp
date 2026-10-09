@@ -33,6 +33,6 @@ interface A/**/ {}
 declare const a: A
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocLink_findAllReferences1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

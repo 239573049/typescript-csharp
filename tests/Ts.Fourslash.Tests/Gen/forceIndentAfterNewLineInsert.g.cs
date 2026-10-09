@@ -38,7 +38,7 @@ return 0;
 }}
 """;
         using var f = FourslashTest.New(content, fileName: "forceIndentAfterNewLineInsert", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     function f1() { return 0; }
@@ -50,6 +50,6 @@ return 0;
             return 0;
         }
     }
-    """)
+    """);
     }
 }

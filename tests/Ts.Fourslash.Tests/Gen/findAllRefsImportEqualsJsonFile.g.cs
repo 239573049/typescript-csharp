@@ -40,8 +40,8 @@ const /*3*/j = require("/*4*/./j.json");
 /*6*/{ "x": 0 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsImportEqualsJsonFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("0", "2", "1", "4", "3", "5", "6")
+    f.VerifyBaselineFindAllReferences("0", "2", "1", "4", "3", "5", "6");
     }
 }

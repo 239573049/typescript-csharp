@@ -38,12 +38,12 @@ class MyElement {}
 var z = <My/*3*/Element></My/*4*/Element>
 """;
         using var f = FourslashTest.New(content, fileName: "tsxQuickInfo2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) JSX.IntrinsicElements.div: any", "")
+    f.VerifyQuickInfoAt("1", "(property) JSX.IntrinsicElements.div: any", "");
 
-    f.VerifyQuickInfoAt("2", "(property) JSX.IntrinsicElements.div: any", "")
+    f.VerifyQuickInfoAt("2", "(property) JSX.IntrinsicElements.div: any", "");
 
-    f.VerifyQuickInfoAt("3", "class MyElement", "")
+    f.VerifyQuickInfoAt("3", "class MyElement", "");
 
-    f.VerifyQuickInfoAt("4", "class MyElement", "")
+    f.VerifyQuickInfoAt("4", "class MyElement", "");
     }
 }

@@ -33,7 +33,7 @@ declare function ctx(callback: (this: A) => string): string;
 ctx(function () { return th/*1*/is./*2*/a });
 """;
         using var f = FourslashTest.New(content, fileName: "memberListOnContextualThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "this: A", "")
+    f.VerifyQuickInfoAt("1", "this: A", "");
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -54,6 +54,6 @@ ctx(function () { return th/*1*/is./*2*/a });
     ],
         },
         
-    })
+    });
     }
 }

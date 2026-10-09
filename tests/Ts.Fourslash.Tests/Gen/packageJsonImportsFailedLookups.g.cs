@@ -42,6 +42,6 @@ import { add } from "#utils";
 """;
         using var f = FourslashTest.New(content, fileName: "packageJsonImportsFailedLookups", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/a/b/c/d/e/index.ts")
+    f.GoToFile("/a/b/c/d/e/index.ts");
     }
 }

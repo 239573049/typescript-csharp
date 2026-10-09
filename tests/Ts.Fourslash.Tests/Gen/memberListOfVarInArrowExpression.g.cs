@@ -40,7 +40,7 @@ each(categories, category => {
 function each<T>(items: T[], handler: (item: T) => void) { }
 """;
         using var f = FourslashTest.New(content, fileName: "memberListOfVarInArrowExpression", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) a1: string", "")
+    f.VerifyQuickInfoAt("1", "(property) a1: string", "");
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -61,6 +61,6 @@ function each<T>(items: T[], handler: (item: T) => void) { }
     ],
         },
         
-    })
+    });
     }
 }

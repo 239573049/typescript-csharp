@@ -34,6 +34,6 @@ public class FindAllRefsPrimitiveJsDocTests
 function f(n: /*3*/number): /*4*/number {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsPrimitiveJsDoc", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

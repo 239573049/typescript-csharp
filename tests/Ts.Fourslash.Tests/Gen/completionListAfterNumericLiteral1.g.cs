@@ -49,6 +49,6 @@ public class CompletionListAfterNumericLiteral1Tests
     ],
         },
         
-    })
+    });
     }
 }

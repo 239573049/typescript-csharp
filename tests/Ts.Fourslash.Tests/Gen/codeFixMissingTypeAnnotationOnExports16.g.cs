@@ -53,6 +53,6 @@ export const { x: a , y: { [foo3()]: {dd: e} } } = foo();
     export const e: string = (dest.y)[_a].dd;
     """,
         Index = 0,
-    })
+    });
     }
 }

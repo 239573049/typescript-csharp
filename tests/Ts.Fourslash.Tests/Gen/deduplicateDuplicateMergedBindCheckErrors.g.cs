@@ -36,6 +36,6 @@ class X {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "deduplicateDuplicateMergedBindCheckErrors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNumberOfErrorsInCurrentFile(2)
+    f.VerifyNumberOfErrorsInCurrentFile(2);
     }
 }

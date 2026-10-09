@@ -38,6 +38,6 @@ class B extends A implements I {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionOverriddenMember9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

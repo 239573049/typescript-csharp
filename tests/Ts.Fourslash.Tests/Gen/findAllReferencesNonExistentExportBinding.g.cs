@@ -34,6 +34,6 @@ import { Foo/**/ } from "./foo";
 export { Foo }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesNonExistentExportBinding", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

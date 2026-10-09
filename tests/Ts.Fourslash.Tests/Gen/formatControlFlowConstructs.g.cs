@@ -31,10 +31,10 @@ if (true)/**/
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatControlFlowConstructs", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyCurrentLineContent("if (true) {")
+    f.VerifyCurrentLineContent("if (true) {");
     }
 }

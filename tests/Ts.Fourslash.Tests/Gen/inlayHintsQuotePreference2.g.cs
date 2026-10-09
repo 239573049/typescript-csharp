@@ -38,6 +38,6 @@ export function fn(a = a1, b = b1) {}
     {
     IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
     },
-    })
+    });
     }
 }

@@ -30,6 +30,6 @@ interface X { value: -1 | 0 | 1; }
 class Y implements X { }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceWithNegativeNumber", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Implement interface 'X'"})
+    f.VerifyCodeFixAvailable(new[]{"Implement interface 'X'"});
     }
 }

@@ -54,8 +54,8 @@ declare function addListener<K extends keyof Events>(type: K, listener: (ev: Eve
     ],
         },
         
-    })
+    });
 
-    f.VerifyErrorExistsBetweenMarkers("1", "2")
+    f.VerifyErrorExistsBetweenMarkers("1", "2");
     }
 }

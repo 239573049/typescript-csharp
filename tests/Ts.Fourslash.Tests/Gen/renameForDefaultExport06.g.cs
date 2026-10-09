@@ -38,8 +38,8 @@ var x: DefaultExportedClass;
 var y = new /**/[|DefaultExportedClass|];
 """;
         using var f = FourslashTest.New(content, fileName: "renameForDefaultExport06", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyRenameSucceeded(null /*preferences*/)
+    f.VerifyRenameSucceeded(null /*preferences*/);
     }
 }

@@ -167,6 +167,6 @@ var x = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesThisNegatives2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Markers()]);
     }
 }

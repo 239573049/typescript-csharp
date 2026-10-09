@@ -32,6 +32,6 @@ var b: /*boolean*/boolean;
 var v: /*void*/void;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionBuiltInTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, [.. f.MarkerNames()])
+    f.VerifyBaselineGoToDefinition(true, [.. f.MarkerNames()]);
     }
 }

@@ -36,12 +36,12 @@ class /*className*/Sphere {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "classInterfaceInsert", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("className", "class Sphere", "")
+    f.VerifyQuickInfoAt("className", "class Sphere", "");
 
-    f.GoToMarker("interfaceGoesHere")
+    f.GoToMarker("interfaceGoesHere");
 
-    f.Insert("\ninterface Surface {\n    reflect: () => number;\n}\n")
+    f.Insert("\ninterface Surface {\n    reflect: () => number;\n}\n");
 
-    f.VerifyQuickInfoAt("className", "class Sphere", "")
+    f.VerifyQuickInfoAt("className", "class Sphere", "");
     }
 }

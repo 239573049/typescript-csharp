@@ -44,6 +44,6 @@ function func1({ a/*parameter1*/
 function func2({ a, b/*parameter2*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListAtIdentifierDefinitionLocations_destructuring", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

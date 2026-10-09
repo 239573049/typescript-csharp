@@ -36,6 +36,6 @@ public class UnusedClassInNamespace1Tests
     f.VerifyRangeAfterCodeFix("""
     namespace greeter {
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

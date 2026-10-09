@@ -39,6 +39,6 @@ let [|A|]: [|A|] = 1;
 export type { [|A|] as [|B|] };
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightInTypeExport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

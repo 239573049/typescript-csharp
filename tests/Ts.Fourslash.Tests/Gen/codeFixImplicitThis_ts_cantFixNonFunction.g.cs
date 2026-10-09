@@ -30,6 +30,6 @@ public class CodeFixImplicitThis_ts_cantFixNonFunctionTests
 this;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixImplicitThis_ts_cantFixNonFunction", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

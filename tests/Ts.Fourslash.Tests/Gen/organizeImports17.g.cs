@@ -40,7 +40,7 @@ import { aa, CaseInsensitively, sorted } from "aardvark";
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSUnknown,
-    },
-        )
+    }
+        );
     }
 }

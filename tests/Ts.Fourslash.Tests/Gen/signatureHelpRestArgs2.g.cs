@@ -40,6 +40,6 @@ const promisify = function (thisArg, fnName) {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpRestArgs2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

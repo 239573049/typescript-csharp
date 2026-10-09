@@ -34,6 +34,6 @@ module.exports = 0;
 type T = import("./a")./*3*/N;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsImportType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

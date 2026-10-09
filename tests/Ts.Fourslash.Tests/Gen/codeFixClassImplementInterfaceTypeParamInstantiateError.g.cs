@@ -33,6 +33,6 @@ interface I<T extends string> {
 class C implements I<number> { }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixClassImplementInterfaceTypeParamInstantiateError", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I<number>'"})
+    f.VerifyCodeFixAvailable(new[]{"Implement interface 'I<number>'"});
     }
 }

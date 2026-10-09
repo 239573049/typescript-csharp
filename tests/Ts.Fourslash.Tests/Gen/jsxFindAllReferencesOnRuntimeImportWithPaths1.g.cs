@@ -55,6 +55,6 @@ export {}
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsxFindAllReferencesOnRuntimeImportWithPaths1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

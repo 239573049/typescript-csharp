@@ -57,7 +57,7 @@ var foo3 = require("./dir//*require2*/
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"import_as2", "import_equals2", "require2", }, new CompletionsExpectedList
     {
@@ -75,6 +75,6 @@ var foo3 = require("./dir//*require2*/
     ],
         },
         
-    })
+    });
     }
 }

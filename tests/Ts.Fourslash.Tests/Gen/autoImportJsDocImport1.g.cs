@@ -49,7 +49,7 @@ public class AutoImportJsDocImport1Tests
 export function f(a, b, c, d) { }
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportJsDocImport1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -65,6 +65,6 @@ export function f(a, b, c, d) { }
      */
     export function f(a, b, c, d) { }
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

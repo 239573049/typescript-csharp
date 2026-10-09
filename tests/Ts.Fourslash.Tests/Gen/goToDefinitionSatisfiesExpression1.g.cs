@@ -34,6 +34,6 @@ const STRINGS = {
 STRINGS.[|/*usage*/title|]
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSatisfiesExpression1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "definition", "usage")
+    f.VerifyBaselineGoToDefinition(true, "definition", "usage");
     }
 }

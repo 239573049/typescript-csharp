@@ -32,24 +32,24 @@ declare function bar<U>(x: U, y: U): U;
 foo(bar/*1*/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpWithTriggers02", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("(")
+    f.Insert("(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar(x: unknown, y: unknown): unknown" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar(x: unknown, y: unknown): unknown" });
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.Insert("<")
+    f.Insert("<");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar<U>(x: U, y: U): U" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar<U>(x: U, y: U): U" });
 
-    f.Backspace(1)
+    f.Backspace(1);
 
-    f.Insert(",")
+    f.Insert(",");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: <U>(x: U, y: U) => U, y: <U>(x: U, y: U) => U): <U>(x: U, y: U) => U" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: <U>(x: U, y: U) => U, y: <U>(x: U, y: U) => U): <U>(x: U, y: U) => U" });
 
-    f.Backspace(1)
+    f.Backspace(1);
     }
 }

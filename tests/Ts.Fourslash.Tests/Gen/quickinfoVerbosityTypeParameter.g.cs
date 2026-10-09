@@ -35,6 +35,6 @@ const y/*y*/: <T extends FooType>(x: T) => void = fn;
 type MixinCtor<A> = new () => A/*a*/ & { constructor: MixinCtor<A> };
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityTypeParameter", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x"] = new[]{0, 1, 2}, ["y"] = new[]{0, 1, 2}, ["a"] = new[]{0}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x"] = new[]{0, 1, 2}, ["y"] = new[]{0, 1, 2}, ["a"] = new[]{0}});
     }
 }

@@ -32,13 +32,13 @@ if (true) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionWithTrivia5", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatSelection("begin", "end")
+    f.FormatSelection("begin", "end");
 
     f.VerifyCurrentFileContent("""
     if (true) {
         // test comment
         console.log();
     }
-    """)
+    """);
     }
 }

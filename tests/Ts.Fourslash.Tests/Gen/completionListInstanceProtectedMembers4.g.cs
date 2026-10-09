@@ -67,6 +67,6 @@ class C1 extends Base {
     ],
         },
         
-    })
+    });
     }
 }

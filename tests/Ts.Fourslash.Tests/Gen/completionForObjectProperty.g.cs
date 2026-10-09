@@ -73,7 +73,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -102,7 +102,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -131,7 +131,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("4", new CompletionsExpectedList
     {
@@ -160,7 +160,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("5", new CompletionsExpectedList
     {
@@ -189,7 +189,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -218,7 +218,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -235,7 +235,7 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("8", new CompletionsExpectedList
     {
@@ -256,6 +256,6 @@ const test8: { foo: string } = { foo/*8*/ }
     ],
         },
         
-    })
+    });
     }
 }

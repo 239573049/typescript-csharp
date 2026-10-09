@@ -65,7 +65,7 @@ const f =
           </div>
 """;
         using var f = FourslashTest.New(content, fileName: "formattingJsxTexts2", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     const a = (
@@ -104,6 +104,6 @@ const f =
             {foobar}
             bar
         </div>
-    """)
+    """);
     }
 }

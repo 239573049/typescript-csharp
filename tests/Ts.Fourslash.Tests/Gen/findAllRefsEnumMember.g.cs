@@ -30,6 +30,6 @@ enum E { /*1*/A, B }
 const e: E./*2*/A = E./*3*/A;
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsEnumMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

@@ -29,6 +29,6 @@ public class AssertContextualTypeTests
 <(aa: number) =>void >(function myFn(b/**/b) { });
 """;
         using var f = FourslashTest.New(content, fileName: "assertContextualType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(parameter) bb: number", "")
+    f.VerifyQuickInfoAt("", "(parameter) bb: number", "");
     }
 }

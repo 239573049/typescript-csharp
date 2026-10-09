@@ -38,8 +38,8 @@ function stringExample(e: StringExample) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("property", "(property) StringExample.property: number", "Something specific")
+    f.VerifyQuickInfoAt("property", "(property) StringExample.property: number", "Something specific");
 
-    f.VerifyQuickInfoAt("string", "(index) StringExample[string]: any", "Something generic")
+    f.VerifyQuickInfoAt("string", "(index) StringExample[string]: any", "Something generic");
     }
 }

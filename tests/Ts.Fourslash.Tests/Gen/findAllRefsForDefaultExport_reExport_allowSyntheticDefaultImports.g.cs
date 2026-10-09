@@ -37,8 +37,8 @@ export { /*2*/default } from "./export";
 import /*3*/fooDefault from "./re-export";
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForDefaultExport_reExport_allowSyntheticDefaultImports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("0", "1", "2", "3")
+    f.VerifyBaselineFindAllReferences("0", "1", "2", "3");
     }
 }

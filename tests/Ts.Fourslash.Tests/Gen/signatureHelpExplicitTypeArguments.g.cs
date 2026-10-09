@@ -44,25 +44,25 @@ h<number>(/*9*/);
 j<number>(/*10*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpExplicitTypeArguments", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: number, y: string): number" })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: boolean, y: string): boolean" })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: number, y: string): number" })
-    f.GoToMarker("4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: number, y: string): number" })
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "g(x: unknown, y: unknown, z: B): unknown" })
-    f.GoToMarker("6")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "h(x: unknown, y: unknown, z: A): unknown" })
-    f.GoToMarker("7")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "j(x: unknown, y: unknown, z: B): unknown" })
-    f.GoToMarker("8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "g(x: number, y: unknown, z: B): number" })
-    f.GoToMarker("9")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "h(x: number, y: unknown, z: A): number" })
-    f.GoToMarker("10")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "j(x: number, y: unknown, z: B): number" })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: number, y: string): number" });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: boolean, y: string): boolean" });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: number, y: string): number" });
+    f.GoToMarker("4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(x: number, y: string): number" });
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "g(x: unknown, y: unknown, z: B): unknown" });
+    f.GoToMarker("6");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "h(x: unknown, y: unknown, z: A): unknown" });
+    f.GoToMarker("7");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "j(x: unknown, y: unknown, z: B): unknown" });
+    f.GoToMarker("8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "g(x: number, y: unknown, z: B): number" });
+    f.GoToMarker("9");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "h(x: number, y: unknown, z: A): number" });
+    f.GoToMarker("10");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "j(x: number, y: unknown, z: B): number" });
     }
 }

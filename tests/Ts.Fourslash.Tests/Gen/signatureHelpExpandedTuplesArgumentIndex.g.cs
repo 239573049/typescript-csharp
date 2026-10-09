@@ -37,21 +37,21 @@ foo(123/*4*/, ""/*5*/, )
 foo(123/*6*/, ""/*7*/, ""/*8*/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpExpandedTuplesArgumentIndex", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_0", ParameterSpan = "args_0: number", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: string, args_1: string): void", ParameterCount = 2, ParameterName = "args_0", ParameterSpan = "args_0: string", OverloadsCount = 2, OverrideSelectedItemIndex = 0, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: string, args_1: string): void", ParameterCount = 2, ParameterName = "args_1", ParameterSpan = "args_1: string", OverloadsCount = 2, OverrideSelectedItemIndex = 0, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_0", ParameterSpan = "args_0: number", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_1", ParameterSpan = "args_1: string", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("6")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_0", ParameterSpan = "args_0: number", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("7")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_1", ParameterSpan = "args_1: string", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true })
-    f.GoToMarker("8")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_2", ParameterSpan = "args_2: string", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true })
+    f.GoToMarker("1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_0", ParameterSpan = "args_0: number", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: string, args_1: string): void", ParameterCount = 2, ParameterName = "args_0", ParameterSpan = "args_0: string", OverloadsCount = 2, OverrideSelectedItemIndex = 0, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: string, args_1: string): void", ParameterCount = 2, ParameterName = "args_1", ParameterSpan = "args_1: string", OverloadsCount = 2, OverrideSelectedItemIndex = 0, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_0", ParameterSpan = "args_0: number", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_1", ParameterSpan = "args_1: string", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("6");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_0", ParameterSpan = "args_0: number", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("7");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_1", ParameterSpan = "args_1: string", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true });
+    f.GoToMarker("8");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(args_0: number, args_1: string, args_2: string): void", ParameterCount = 3, ParameterName = "args_2", ParameterSpan = "args_2: string", OverloadsCount = 2, OverrideSelectedItemIndex = 1, IsVariadic = false, IsVariadicSet = true });
     }
 }

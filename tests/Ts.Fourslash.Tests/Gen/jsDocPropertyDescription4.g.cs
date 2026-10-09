@@ -35,6 +35,6 @@ function multipleExample(e: MultipleExample) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocPropertyDescription4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("multiple", "(index) MultipleExample[string | number | symbol]: string", "Something generic")
+    f.VerifyQuickInfoAt("multiple", "(index) MultipleExample[string | number | symbol]: string", "Something generic");
     }
 }

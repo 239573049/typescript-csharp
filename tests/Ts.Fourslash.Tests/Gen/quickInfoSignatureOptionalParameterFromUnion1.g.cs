@@ -34,6 +34,6 @@ declare const optionals:
 /**/optionals();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSignatureOptionalParameterFromUnion1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "const optionals: (arg0?: {\n    a: true;\n} & {\n    b: true;\n}) => unknown", "")
+    f.VerifyQuickInfoAt("", "const optionals: (arg0?: {\n    a: true;\n} & {\n    b: true;\n}) => unknown", "");
     }
 }

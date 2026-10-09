@@ -37,13 +37,13 @@ import type { SomeInterface } from "./exports.js";
 new SomePig/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_importType4", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { SomePig, type SomeInterface } from "./exports.js";
     new SomePig
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -40,6 +40,6 @@ x.[|alpha/*src1*/|];
 x.[|beta/*src2*/|];
 """;
         using var f = FourslashTest.New(content, fileName: "javaScriptClass3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "src1", "src2")
+    f.VerifyBaselineGoToDefinition(true, "src1", "src2");
     }
 }

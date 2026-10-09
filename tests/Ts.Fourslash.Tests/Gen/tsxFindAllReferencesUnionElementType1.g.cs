@@ -45,6 +45,6 @@ function SFC2(prop: { x: boolean }) {
 /*3*/</*4*/SFCComp x={ "hi" } />
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferencesUnionElementType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

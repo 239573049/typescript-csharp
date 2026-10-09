@@ -46,6 +46,6 @@ const z = fo/**/
     const y = 1
     const z = fo
     """,
-    })
+    });
     }
 }

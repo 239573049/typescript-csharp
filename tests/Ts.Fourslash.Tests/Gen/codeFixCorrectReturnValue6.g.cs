@@ -31,6 +31,6 @@ function Foo (): undefined {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixCorrectReturnValue6", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

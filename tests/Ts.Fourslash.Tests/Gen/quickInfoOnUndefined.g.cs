@@ -35,8 +35,8 @@ var x = {
 x./*2*/undefined = 30;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnUndefined", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var undefined", "")
+    f.VerifyQuickInfoAt("1", "var undefined", "");
 
-    f.VerifyQuickInfoAt("2", "(property) undefined: number", "")
+    f.VerifyQuickInfoAt("2", "(property) undefined: number", "");
     }
 }

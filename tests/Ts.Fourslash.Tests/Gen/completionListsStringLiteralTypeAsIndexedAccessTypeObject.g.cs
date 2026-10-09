@@ -38,7 +38,7 @@ let fifthCase: Foo["b/*case_5*/"]
 let sixthCase: Foo["qu/*case_6*/"]
 """;
         using var f = FourslashTest.New(content, fileName: "completionListsStringLiteralTypeAsIndexedAccessTypeObject", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(new[]{"case_1", "case_2", "case_3", "case_4", }, null)
+    f.VerifyCompletions(new[]{"case_1", "case_2", "case_3", "case_4", }, null);
 
     f.VerifyCompletions("case_5", new CompletionsExpectedList
     {
@@ -58,7 +58,7 @@ let sixthCase: Foo["qu/*case_6*/"]
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("case_6", new CompletionsExpectedList
     {
@@ -78,6 +78,6 @@ let sixthCase: Foo["qu/*case_6*/"]
     ],
         },
         
-    })
+    });
     }
 }

@@ -30,6 +30,6 @@ function f(a: number, b: number) {}
 f();
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixAddOptionalParam15", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("addOptionalParam")
+    f.VerifyCodeFixNotAvailable("addOptionalParam");
     }
 }

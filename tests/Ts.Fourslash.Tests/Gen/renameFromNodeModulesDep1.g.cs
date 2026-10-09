@@ -40,20 +40,20 @@ export interface Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameFromNodeModulesDep1", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("okWithAlias")
+    f.GoToMarker("okWithAlias");
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSTrue,
-    })
+    });
 
     f.VerifyRenameFailed(new LsUtil.UserPreferences
     {
     UseAliasesForRename = Core.TSFalse,
-    })
+    });
 
-    f.GoToMarker("notOk")
+    f.GoToMarker("notOk");
 
-    f.VerifyRenameFailed(null /*preferences*/)
+    f.VerifyRenameFailed(null /*preferences*/);
     }
 }

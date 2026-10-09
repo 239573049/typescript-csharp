@@ -33,6 +33,6 @@ class /*2*/c { }
  var n = new [|c/*3*/|]();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionSimple", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1", "3")
+    f.VerifyBaselineGoToDefinition(true, "1", "3");
     }
 }

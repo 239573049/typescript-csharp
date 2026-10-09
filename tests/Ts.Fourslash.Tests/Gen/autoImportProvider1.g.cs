@@ -39,9 +39,9 @@ PatternValidator/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportProvider1", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" })
+    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
 
     f.VerifyImportFixAtPosition([
     """
@@ -49,6 +49,6 @@ PatternValidator/**/
 
     PatternValidator
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

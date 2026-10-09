@@ -29,10 +29,10 @@ public class AsOperatorFormattingTests
 /**/var x = 3   as  number;
 """;
         using var f = FourslashTest.New(content, fileName: "asOperatorFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentLineContent("var x = 3 as number;")
+    f.VerifyCurrentLineContent("var x = 3 as number;");
     }
 }

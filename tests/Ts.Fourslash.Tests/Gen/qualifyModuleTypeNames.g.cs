@@ -31,7 +31,7 @@ function x(arg: m.c) { return arg; }
 x(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "qualifyModuleTypeNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(arg: m.c): m.c" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(arg: m.c): m.c" });
     }
 }

@@ -58,6 +58,6 @@ class Sub extends Base {
     ],
         },
         
-    })
+    });
     }
 }

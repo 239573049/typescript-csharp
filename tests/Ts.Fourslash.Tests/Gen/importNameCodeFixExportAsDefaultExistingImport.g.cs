@@ -38,6 +38,6 @@ export const v3 = 5;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixExportAsDefaultExistingImport", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyImportFixAtPosition([
     "v4, { v1, v2, v3 }",
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

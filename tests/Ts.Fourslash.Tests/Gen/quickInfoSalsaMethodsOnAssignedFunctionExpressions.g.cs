@@ -40,6 +40,6 @@ var x = new C();
 x/*1*/.m();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoSalsaMethodsOnAssignedFunctionExpressions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

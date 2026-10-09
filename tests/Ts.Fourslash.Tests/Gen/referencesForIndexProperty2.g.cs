@@ -30,6 +30,6 @@ var a;
 a["/*1*/blah"];
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForIndexProperty2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1")
+    f.VerifyBaselineFindAllReferences("1");
     }
 }

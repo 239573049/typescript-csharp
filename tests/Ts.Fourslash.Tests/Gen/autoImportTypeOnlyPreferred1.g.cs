@@ -82,6 +82,6 @@ export interface VFS {
       getSourceFile(path: string): ts
     }
     """,
-    })
+    });
     }
 }

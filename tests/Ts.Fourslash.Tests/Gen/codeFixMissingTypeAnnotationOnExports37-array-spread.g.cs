@@ -98,6 +98,6 @@ export const All = [
     ] as const;
     """,
         Index = 1,
-    })
+    });
     }
 }

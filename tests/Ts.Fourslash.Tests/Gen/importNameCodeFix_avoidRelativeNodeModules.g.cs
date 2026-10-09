@@ -41,7 +41,7 @@ import { a } from "a";
 a;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_avoidRelativeNodeModules", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/c/foo.ts")
+    f.GoToFile("/c/foo.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -49,6 +49,6 @@ a;|]
     import { b } from "b";
     a;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

@@ -37,6 +37,6 @@ namespace Foo {
 import a3 = Foo./*3*/Bar.Baz;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForMergedDeclarations8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

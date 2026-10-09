@@ -54,19 +54,19 @@ class Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnNarrowedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(parameter) strOrNum: string | number", "")
+    f.VerifyQuickInfoAt("1", "(parameter) strOrNum: string | number", "");
 
-    f.VerifyQuickInfoAt("2", "(parameter) strOrNum: number", "")
+    f.VerifyQuickInfoAt("2", "(parameter) strOrNum: number", "");
 
-    f.VerifyQuickInfoAt("3", "(parameter) strOrNum: string", "")
+    f.VerifyQuickInfoAt("3", "(parameter) strOrNum: string", "");
 
-    f.VerifyQuickInfoAt("4", "let s: string | undefined", "")
+    f.VerifyQuickInfoAt("4", "let s: string | undefined", "");
 
-    f.VerifyQuickInfoAt("5", "let s: string | undefined", "")
+    f.VerifyQuickInfoAt("5", "let s: string | undefined", "");
 
-    f.VerifyQuickInfoAt("6", "let s: string", "")
+    f.VerifyQuickInfoAt("6", "let s: string", "");
 
-    f.VerifyQuickInfoAt("7", "(property) Foo.#privateProperty: string[]", "")
+    f.VerifyQuickInfoAt("7", "(property) Foo.#privateProperty: string[]", "");
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -87,7 +87,7 @@ class Foo {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -108,7 +108,7 @@ class Foo {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -129,7 +129,7 @@ class Foo {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", "5", }, new CompletionsExpectedList
     {
@@ -150,7 +150,7 @@ class Foo {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("6", new CompletionsExpectedList
     {
@@ -171,7 +171,7 @@ class Foo {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("7", new CompletionsExpectedList
     {
@@ -192,6 +192,6 @@ class Foo {
     ],
         },
         
-    })
+    });
     }
 }

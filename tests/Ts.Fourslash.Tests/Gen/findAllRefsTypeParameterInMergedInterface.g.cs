@@ -30,6 +30,6 @@ interface I</*1*/T> { a: /*2*/T }
 interface I</*3*/T> { b: /*4*/T }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsTypeParameterInMergedInterface", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

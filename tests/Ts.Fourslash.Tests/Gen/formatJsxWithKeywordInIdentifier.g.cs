@@ -30,8 +30,8 @@ public class FormatJsxWithKeywordInIdentifierTests
 <div module-layout=""></div>
 """;
         using var f = FourslashTest.New(content, fileName: "formatJsxWithKeywordInIdentifier", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.VerifyCurrentFileContent("<div module-layout=\"\"></div>")
+    f.VerifyCurrentFileContent("<div module-layout=\"\"></div>");
     }
 }

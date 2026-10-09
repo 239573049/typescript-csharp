@@ -32,6 +32,6 @@ class Foo {
 var f/*A*/ff = new Foo();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoFromEmptyBlockComment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("A", "var fff: Foo", "")
+    f.VerifyQuickInfoAt("A", "var fff: Foo", "");
     }
 }

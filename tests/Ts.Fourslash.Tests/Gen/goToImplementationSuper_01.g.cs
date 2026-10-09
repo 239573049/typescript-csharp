@@ -37,6 +37,6 @@ class Bar extends Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationSuper_01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("super_call")
+    f.VerifyBaselineGoToImplementation("super_call");
     }
 }

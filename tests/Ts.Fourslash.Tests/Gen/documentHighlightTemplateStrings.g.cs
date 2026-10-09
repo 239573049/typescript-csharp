@@ -41,6 +41,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightTemplateStrings", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[2])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, f.Ranges()[2]);
     }
 }

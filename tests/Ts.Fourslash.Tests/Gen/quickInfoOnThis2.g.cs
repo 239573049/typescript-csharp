@@ -36,8 +36,8 @@ class Bar<T> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnThis2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "this: this", "")
+    f.VerifyQuickInfoAt("1", "this: this", "");
 
-    f.VerifyQuickInfoAt("2", "this: Bar<T>", "")
+    f.VerifyQuickInfoAt("2", "this: Bar<T>", "");
     }
 }

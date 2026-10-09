@@ -31,6 +31,6 @@ public class CompletionListInTemplateLiteralPartsNegatives1Tests
 `asdasd$/*7*/{ 2 + 1.1 }/*8*/ 12312 /*9*/{/*10*/
 """;
         using var f = FourslashTest.New(content, fileName: "completionListInTemplateLiteralPartsNegatives1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

@@ -33,7 +33,7 @@ export default a;
 const b = { /**/a };
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_shorthandPropertyAssignment2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -41,6 +41,6 @@ const b = { /**/a };
 
     const b = { a };
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

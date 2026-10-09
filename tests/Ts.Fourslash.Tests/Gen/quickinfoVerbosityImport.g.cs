@@ -53,6 +53,6 @@ import Foo/*d*/ from "./3";
 const f/*e*/ = new Foo/*f*/();
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityImport", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["b"] = new[]{0, 1, 2}, ["a"] = new[]{0, 1}, ["c"] = new[]{0, 1}, ["d"] = new[]{0}, ["e"] = new[]{0, 1}, ["f"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["b"] = new[]{0, 1, 2}, ["a"] = new[]{0, 1}, ["c"] = new[]{0, 1}, ["d"] = new[]{0}, ["e"] = new[]{0, 1}, ["f"] = new[]{0, 1}});
     }
 }

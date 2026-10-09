@@ -35,6 +35,6 @@ public class SyntacticClassificationsMergeConflictMarker1Tests
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsMergeConflictMarker1", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifySemanticTokens(new[]{
             
-        })
+        });
     }
 }

@@ -62,10 +62,10 @@ export const x: number;
     ],
         },
         
-    })
+    });
 
-    f.ReplaceLine(0, "import { x } from 'dep'; x;")
+    f.ReplaceLine(0, "import { x } from 'dep'; x;");
 
-    f.VerifyNonSuggestionDiagnostics([])
+    f.VerifyNonSuggestionDiagnostics([]);
     }
 }

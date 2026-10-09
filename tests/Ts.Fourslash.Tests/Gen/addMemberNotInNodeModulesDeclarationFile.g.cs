@@ -38,8 +38,8 @@ declare const resp: Response
 resp.test()
 """;
         using var f = FourslashTest.New(content, fileName: "addMemberNotInNodeModulesDeclarationFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/foo.ts")
+    f.GoToFile("/foo.ts");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

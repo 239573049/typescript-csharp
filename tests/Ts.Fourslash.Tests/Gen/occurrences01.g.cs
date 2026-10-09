@@ -39,6 +39,6 @@ foo: [|switch|] (10) {
 """;
         using var f = FourslashTest.New(content, fileName: "occurrences01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

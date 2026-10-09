@@ -88,36 +88,36 @@ var /*15*/r15 = ty2[1];
 var /*16*/r16 = ty2['1'];
 """;
         using var f = FourslashTest.New(content, fileName: "indexerReturnTypes1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "var r1: Date", "")
+    f.VerifyQuickInfoAt("1", "var r1: Date", "");
 
-    f.VerifyQuickInfoAt("2", "var r2: Date", "")
+    f.VerifyQuickInfoAt("2", "var r2: Date", "");
 
-    f.VerifyQuickInfoAt("3", "var r3: RegExp", "")
+    f.VerifyQuickInfoAt("3", "var r3: RegExp", "");
 
-    f.VerifyQuickInfoAt("4", "var r4: RegExp", "")
+    f.VerifyQuickInfoAt("4", "var r4: RegExp", "");
 
-    f.VerifyQuickInfoAt("5", "var r5: Date", "")
+    f.VerifyQuickInfoAt("5", "var r5: Date", "");
 
-    f.VerifyQuickInfoAt("6", "var r6: Date", "")
+    f.VerifyQuickInfoAt("6", "var r6: Date", "");
 
-    f.VerifyQuickInfoAt("7", "var r7: RegExp", "")
+    f.VerifyQuickInfoAt("7", "var r7: RegExp", "");
 
-    f.VerifyQuickInfoAt("8", "var r8: RegExp", "")
+    f.VerifyQuickInfoAt("8", "var r8: RegExp", "");
 
-    f.VerifyQuickInfoAt("9", "var r9: Date", "")
+    f.VerifyQuickInfoAt("9", "var r9: Date", "");
 
-    f.VerifyQuickInfoAt("10", "var r10: Date", "")
+    f.VerifyQuickInfoAt("10", "var r10: Date", "");
 
-    f.VerifyQuickInfoAt("11", "var r11: Date", "")
+    f.VerifyQuickInfoAt("11", "var r11: Date", "");
 
-    f.VerifyQuickInfoAt("12", "var r12: Date", "")
+    f.VerifyQuickInfoAt("12", "var r12: Date", "");
 
-    f.VerifyQuickInfoAt("13", "var r13: Ty<Date>", "")
+    f.VerifyQuickInfoAt("13", "var r13: Ty<Date>", "");
 
-    f.VerifyQuickInfoAt("14", "var r14: Ty<Date>", "")
+    f.VerifyQuickInfoAt("14", "var r14: Ty<Date>", "");
 
-    f.VerifyQuickInfoAt("15", "var r15: {\n    [x: number]: Date;\n}", "")
+    f.VerifyQuickInfoAt("15", "var r15: {\n    [x: number]: Date;\n}", "");
 
-    f.VerifyQuickInfoAt("16", "var r16: {\n    [x: number]: Date;\n}", "")
+    f.VerifyQuickInfoAt("16", "var r16: {\n    [x: number]: Date;\n}", "");
     }
 }

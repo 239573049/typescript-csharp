@@ -56,6 +56,6 @@ let opt = [|<[|{| "contextRangeIndex": 23 |}MainButton|] [|[|{| "contextRangeInd
 let opt = [|<[|{| "contextRangeIndex": 27 |}MainButton|] [|wrong|] />|];
 """;
         using var f = FourslashTest.New(content, fileName: "tsxRename9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "onClick", "goTo", "MainButton", "ignore-prop", "wrong")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "onClick", "goTo", "MainButton", "ignore-prop", "wrong");
     }
 }

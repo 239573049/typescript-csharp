@@ -68,6 +68,6 @@ const[| [
 ]|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningForArrayDestructuring", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

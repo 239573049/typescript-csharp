@@ -32,6 +32,6 @@ class /*2*/Bar implements Foo {}
 """;
         using var f = FourslashTest.New(content, fileName: "implementation01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToImplementation("1")
+    f.VerifyBaselineGoToImplementation("1");
     }
 }

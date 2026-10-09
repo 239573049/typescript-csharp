@@ -41,8 +41,8 @@ var zz = c();
 x/*B*/x = y/*C*/y;
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnCircularTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("B", "var xx: B", "")
+    f.VerifyQuickInfoAt("B", "var xx: B", "");
 
-    f.VerifyQuickInfoAt("C", "var yy: C", "")
+    f.VerifyQuickInfoAt("C", "var yy: C", "");
     }
 }

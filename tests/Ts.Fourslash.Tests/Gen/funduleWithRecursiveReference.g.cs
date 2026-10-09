@@ -34,8 +34,8 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "funduleWithRecursiveReference", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var M.C.C: typeof M.C", "")
+    f.VerifyQuickInfoAt("", "var M.C.C: typeof M.C", "");
 
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
     }
 }

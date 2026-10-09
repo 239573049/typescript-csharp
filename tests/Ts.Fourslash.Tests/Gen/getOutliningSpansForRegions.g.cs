@@ -26,14 +26,13 @@ public class GetOutliningSpansForRegionsTests
     {
         SkipIfFailing.Check();
         const string content = """
-// @lib: es5
 // region without label
 [|// #region
 
 // #endregion|]
 
 // region without label with trailing spaces
-[|// #region
+[|// #region  
 
 // #endregion|]
 
@@ -76,7 +75,6 @@ test // #endregion
 */
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningSpansForRegions", cancellationToken: TestContext.Current.CancellationToken);
-        f.MarkTestAsStradaServer();
-    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Region)
+    f.VerifyOutliningSpans(LsProto.FoldingRangeKind.Region);
     }
 }

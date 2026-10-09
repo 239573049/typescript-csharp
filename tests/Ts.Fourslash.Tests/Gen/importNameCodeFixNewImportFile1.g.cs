@@ -43,6 +43,6 @@ var x = 5;/*dummy*/
 
     f1();
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

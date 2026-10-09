@@ -32,6 +32,6 @@ var obj = function f<T>(a: T) {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "genericFunctionWithGenericParams1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(local var) xx: T", "")
+    f.VerifyQuickInfoAt("", "(local var) xx: T", "");
     }
 }

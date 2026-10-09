@@ -33,6 +33,6 @@ import { TypeAlias } from "./def";
 const c: T/*ref*/ypeAlias = [|{ P: 2 }|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationTypeAlias_00", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("ref")
+    f.VerifyBaselineGoToImplementation("ref");
     }
 }

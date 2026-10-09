@@ -32,6 +32,6 @@ public class GetOccurrencesIsDefinitionOfNamespaceTests
 let x = /*3*/Numbers.n + 1;
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesIsDefinitionOfNamespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3")
+    f.VerifyBaselineFindAllReferences("1", "2", "3");
     }
 }

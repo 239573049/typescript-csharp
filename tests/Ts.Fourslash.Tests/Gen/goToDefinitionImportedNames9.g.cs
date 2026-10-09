@@ -37,6 +37,6 @@ const { Class } = require("./a");
  [|/*classAliasDefinition*/Class|];
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImportedNames9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "classAliasDefinition")
+    f.VerifyBaselineGoToDefinition(true, "classAliasDefinition");
     }
 }

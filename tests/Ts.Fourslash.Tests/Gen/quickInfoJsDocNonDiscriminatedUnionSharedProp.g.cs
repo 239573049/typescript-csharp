@@ -70,6 +70,6 @@ const options: EntriesOptions[] = [
 ];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoJsDocNonDiscriminatedUnionSharedProp", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "(property) Entries.output?: string", "Output info...")
+    f.VerifyQuickInfoAt("1", "(property) Entries.output?: string", "Output info...");
     }
 }

@@ -70,6 +70,6 @@ public class CompletionListAfterStringLiteral1Tests
     ],
         },
         
-    })
+    });
     }
 }

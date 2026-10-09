@@ -46,6 +46,6 @@ const foo = (o: Pos) => o.x + o.y;
             new SemanticToken { Type = "property", Text = "x" },
             new SemanticToken { Type = "parameter", Text = "o" },
             new SemanticToken { Type = "property", Text = "y" },
-        })
+        });
     }
 }

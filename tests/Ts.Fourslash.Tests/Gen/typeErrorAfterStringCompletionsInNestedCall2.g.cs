@@ -77,9 +77,9 @@ createMachine({
 });
 """;
         using var f = FourslashTest.New(content, fileName: "typeErrorAfterStringCompletionsInNestedCall2", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("x")
+    f.Insert("x");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -97,8 +97,8 @@ createMachine({
     ],
         },
         
-    })
+    });
 
-    f.VerifyBaselineNonSuggestionDiagnostics()
+    f.VerifyBaselineNonSuggestionDiagnostics();
     }
 }

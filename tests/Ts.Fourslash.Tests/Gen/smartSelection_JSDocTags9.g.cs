@@ -33,6 +33,6 @@ const Foo = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_JSDocTags9", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

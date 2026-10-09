@@ -32,8 +32,8 @@ export const fooooooooo = 1;
 import {[|fooooooooa|]} from "./f1"; fooooooooa;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixSpelling5", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("f2.ts")
+    f.GoToFile("f2.ts");
 
-    f.VerifyRangeAfterCodeFix("fooooooooo", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("fooooooooo", false, 0, 0);
     }
 }

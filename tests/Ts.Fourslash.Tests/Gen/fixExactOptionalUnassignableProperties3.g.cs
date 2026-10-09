@@ -43,6 +43,6 @@ export interface INodeModules {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "fixExactOptionalUnassignableProperties3", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

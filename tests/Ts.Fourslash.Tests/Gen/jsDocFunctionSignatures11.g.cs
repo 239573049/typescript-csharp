@@ -34,8 +34,8 @@ public class JsDocFunctionSignatures11Tests
 const vari/**/ables = {};
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocFunctionSignatures11", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("const variables: {\n    [name: string]: string;\n}", "")
+    f.VerifyQuickInfoIs("const variables: {\n    [name: string]: string;\n}", "");
     }
 }

@@ -39,8 +39,8 @@ public class FindAllRefsClassWithStaticThisAccessTests
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsClassWithStaticThisAccess", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("0", "1", "2")
+    f.VerifyBaselineFindAllReferences("0", "1", "2");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1]);
     }
 }

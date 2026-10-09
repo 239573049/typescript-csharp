@@ -32,15 +32,15 @@ const [] = [Math.min(./*marker*/)]
 
 """;
         using var f = FourslashTest.New(content, fileName: "completionsWritingSpreadArgument", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("marker")
+    f.GoToMarker("marker");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.Insert(".")
+    f.Insert(".");
 
-    f.VerifyCompletions(null, null)
+    f.VerifyCompletions(null, null);
 
-    f.Insert(".")
+    f.Insert(".");
 
     f.VerifyCompletions(null, new CompletionsExpectedList
     {
@@ -55,6 +55,6 @@ const [] = [Math.min(./*marker*/)]
             Exact = CompletionGlobals,
         },
         
-    })
+    });
     }
 }

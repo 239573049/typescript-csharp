@@ -41,7 +41,7 @@ import * as AnotherThingElse from "someotherpath";
     f.VerifyOrganizeImports(
             "",
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
     }
 }

@@ -40,15 +40,15 @@ new testClass<,,/*constructor4*/>(null, null, null)
 new testClass<IFoo,/*constructor5*/IFoo,IFoo>(null, null, null)
 """;
         using var f = FourslashTest.New(content, fileName: "genericParameterHelpConstructorCalls", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("constructor1")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>(a: T, b: U, c: M): testClass<T, U, M>", ParameterName = "T", ParameterSpan = "T extends IFoo" })
-    f.GoToMarker("constructor2")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" })
-    f.GoToMarker("constructor3")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "T", ParameterSpan = "T extends IFoo" })
-    f.GoToMarker("constructor4")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" })
-    f.GoToMarker("constructor5")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" })
+    f.GoToMarker("constructor1");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>(a: T, b: U, c: M): testClass<T, U, M>", ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.GoToMarker("constructor2");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" });
+    f.GoToMarker("constructor3");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.GoToMarker("constructor4");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" });
+    f.GoToMarker("constructor5");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" });
     }
 }

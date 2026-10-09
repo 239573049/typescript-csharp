@@ -34,12 +34,12 @@ namespace me {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnEnterInComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.InsertLine("")
+    f.InsertLine("");
 
-    f.GoToMarker("2")
+    f.GoToMarker("2");
 
-    f.VerifyCurrentLineContent("    }")
+    f.VerifyCurrentLineContent("    }");
     }
 }

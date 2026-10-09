@@ -31,9 +31,9 @@ namespace c/*2*/5b { export var y = 2; } // should be ok
 /*3*/
 """;
         using var f = FourslashTest.New(content, fileName: "augmentedTypesClass3Fourslash", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "class c5b\nnamespace c5b", "")
+    f.VerifyQuickInfoAt("1", "class c5b\nnamespace c5b", "");
 
-    f.VerifyQuickInfoAt("2", "class c5b\nnamespace c5b", "")
+    f.VerifyQuickInfoAt("2", "class c5b\nnamespace c5b", "");
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -54,6 +54,6 @@ namespace c/*2*/5b { export var y = 2; } // should be ok
     ],
         },
         
-    })
+    });
     }
 }

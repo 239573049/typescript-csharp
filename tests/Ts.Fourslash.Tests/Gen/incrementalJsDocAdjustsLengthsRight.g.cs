@@ -35,8 +35,8 @@ public class IncrementalJsDocAdjustsLengthsRightTests
  * @param {Number} wid/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "incrementalJsDocAdjustsLengthsRight", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.Insert("th\n@")
+    f.Insert("th\n@");
     }
 }

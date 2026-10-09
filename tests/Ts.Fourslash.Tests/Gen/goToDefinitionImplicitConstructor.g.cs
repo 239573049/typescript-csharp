@@ -31,6 +31,6 @@ class /*constructorDefinition*/ImplicitConstructor {
 var implicitConstructor = new /*constructorReference*/ImplicitConstructor();
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionImplicitConstructor", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "constructorReference")
+    f.VerifyBaselineGoToDefinition(false, "constructorReference");
     }
 }

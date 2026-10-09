@@ -86,6 +86,6 @@ foo.method5();
 foo.newMet
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpJSDocTags", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

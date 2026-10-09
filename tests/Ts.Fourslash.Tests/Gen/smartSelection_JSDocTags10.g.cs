@@ -34,6 +34,6 @@ class A extends B {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_JSDocTags10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

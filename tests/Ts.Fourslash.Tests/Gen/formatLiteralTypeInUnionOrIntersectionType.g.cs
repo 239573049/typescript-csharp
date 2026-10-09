@@ -44,7 +44,7 @@ type Complexed =
     Baz;
 """;
         using var f = FourslashTest.New(content, fileName: "formatLiteralTypeInUnionOrIntersectionType", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     type NumberAndString = {
@@ -63,6 +63,6 @@ type Complexed =
         Foo &
         Bar |
         Baz;
-    """)
+    """);
     }
 }

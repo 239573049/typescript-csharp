@@ -55,6 +55,6 @@ class Bar implements Foo<manyprops> {
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

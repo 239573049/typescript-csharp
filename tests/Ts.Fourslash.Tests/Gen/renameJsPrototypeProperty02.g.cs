@@ -35,6 +35,6 @@ var t = new bar();
 [|t.[|{| "contextRangeIndex": 2 |}x|] = 11;|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameJsPrototypeProperty02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "x")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "x");
     }
 }

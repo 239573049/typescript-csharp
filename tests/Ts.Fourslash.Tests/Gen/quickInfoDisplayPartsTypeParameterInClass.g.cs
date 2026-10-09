@@ -48,6 +48,6 @@ var /*36*/cVal2 = /*37*/c2;
 /*38*/cInstance1./*39*/method(/*40*/cInstance, /*41*/cInstance);
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsTypeParameterInClass", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

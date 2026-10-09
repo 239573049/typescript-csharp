@@ -40,6 +40,6 @@ public class FindAllReferencesJsDocTypeLiteralTests
  function f(o) { return o.nested./*2*/great; }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllReferencesJsDocTypeLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

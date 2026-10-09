@@ -63,11 +63,11 @@ export function saveMe() {
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportCrossProject_paths_toDist2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToFile("/home/src/workspaces/project/web/src/Helper.ts")
+    f.GoToFile("/home/src/workspaces/project/web/src/Helper.ts");
 
     f.VerifyImportFixModuleSpecifiers("", new[]{"@common/MyModule"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
-    })
+    });
     }
 }

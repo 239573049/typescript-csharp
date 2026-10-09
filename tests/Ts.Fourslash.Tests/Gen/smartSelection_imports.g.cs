@@ -32,6 +32,6 @@ import { b } from './';
 console.log(1);
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_imports", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

@@ -30,11 +30,11 @@ var y: import("./c2").mytype;
 var z: import ("./c2").mytype;
 """;
         using var f = FourslashTest.New(content, fileName: "importTypeFormatting", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
     f.VerifyCurrentFileContent("""
     var y: import("./c2").mytype;
     var z: import("./c2").mytype;
-    """)
+    """);
     }
 }

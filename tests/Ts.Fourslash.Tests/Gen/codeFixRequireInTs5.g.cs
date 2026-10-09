@@ -32,6 +32,6 @@ const b = 2;
 const foo = require(`foo${a}${b}`);
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixRequireInTs5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

@@ -104,7 +104,7 @@ var v8;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"3", "15", "16", }, new CompletionsExpectedList
     {
@@ -120,7 +120,7 @@ var v8;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"4", "5", "8", }, new CompletionsExpectedList
     {
@@ -141,9 +141,9 @@ var v8;
     ],
         },
         
-    })
+    });
 
-    f.VerifyCompletions(new[]{"6", "7", "14", }, null)
+    f.VerifyCompletions(new[]{"6", "7", "14", }, null);
 
     f.VerifyCompletions(new[]{"9", "10", "11", "12", "13", }, new CompletionsExpectedList
     {
@@ -161,7 +161,7 @@ var v8;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions(new[]{"17", }, new CompletionsExpectedList
     {
@@ -179,6 +179,6 @@ var v8;
     ],
         },
         
-    })
+    });
     }
 }

@@ -40,6 +40,6 @@ public class ReferencesForModifiersTests
 [|/*exportModifier*/export /*defaultModifier*/default class C2 {}|]
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForModifiers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("declareModifier", "abstractModifier", "staticModifier", "readonlyModifier", "publicModifier", "protectedModifier", "privateModifier", "constModifier", "asyncModifier", "exportModifier", "defaultModifier")
+    f.VerifyBaselineFindAllReferences("declareModifier", "abstractModifier", "staticModifier", "readonlyModifier", "publicModifier", "protectedModifier", "privateModifier", "constModifier", "asyncModifier", "exportModifier", "defaultModifier");
     }
 }

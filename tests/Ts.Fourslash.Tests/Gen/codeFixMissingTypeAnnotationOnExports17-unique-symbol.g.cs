@@ -37,6 +37,6 @@ export const a = Symbol();
         Description = "Add annotation of type 'unique symbol'",
         NewFileContent = "export const a: unique symbol = Symbol();",
         Index = 0,
-    })
+    });
     }
 }

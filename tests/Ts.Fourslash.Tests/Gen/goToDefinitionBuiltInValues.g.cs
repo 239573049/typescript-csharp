@@ -33,6 +33,6 @@ var t = /*true*/true;
 var f = /*false*/false;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionBuiltInValues", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, [.. f.MarkerNames()])
+    f.VerifyBaselineGoToDefinition(true, [.. f.MarkerNames()]);
     }
 }

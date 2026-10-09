@@ -583735,6 +583735,6 @@ namespace /*1*/Foo {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "reallyLargeFile", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "1")
+    f.VerifyBaselineGoToDefinition(false, "1");
     }
 }

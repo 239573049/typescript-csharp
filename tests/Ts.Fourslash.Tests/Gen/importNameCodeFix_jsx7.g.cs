@@ -36,8 +36,8 @@ public class ImportNameCodeFix_jsx7Tests
 <[|Text|]></Text>;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_jsx7", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
-    f.VerifyCodeFixNotAvailable()
+    f.VerifyCodeFixNotAvailable();
     }
 }

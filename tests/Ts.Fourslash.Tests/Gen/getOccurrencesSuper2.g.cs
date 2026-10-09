@@ -77,6 +77,6 @@ class SubType extends SuperType {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesSuper2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

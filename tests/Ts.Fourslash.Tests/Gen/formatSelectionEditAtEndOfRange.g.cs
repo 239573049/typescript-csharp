@@ -30,13 +30,13 @@ public class FormatSelectionEditAtEndOfRangeTests
 void 0;
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionEditAtEndOfRange", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { Semicolons = "remove" })
+    f.ConfigureFormat(new FormatCodeSettings { Semicolons = "remove" });
 
-    f.FormatSelection("1", "2")
+    f.FormatSelection("1", "2");
 
     f.VerifyCurrentFileContent("""
     var x = 1
     void 0;
-    """)
+    """);
     }
 }

@@ -44,8 +44,8 @@ import { a } from 'foo/a';
 """;
         using var f = FourslashTest.New(content, fileName: "goToSource6_sameAsGoToDef2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToSourceDefinition("start")
+    f.VerifyBaselineGoToSourceDefinition("start");
 
-    f.VerifyBaselineGoToDefinition(true, "start")
+    f.VerifyBaselineGoToDefinition(true, "start");
     }
 }

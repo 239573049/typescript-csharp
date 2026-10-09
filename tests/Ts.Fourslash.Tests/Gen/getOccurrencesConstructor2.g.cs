@@ -45,6 +45,6 @@ class D {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesConstructor2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

@@ -29,6 +29,6 @@ public class SmartSelection_comment2Tests
 const a = 1; //a b/**/c d
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_comment2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

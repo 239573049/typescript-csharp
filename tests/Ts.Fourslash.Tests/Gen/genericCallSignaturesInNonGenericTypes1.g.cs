@@ -37,6 +37,6 @@ var a: number[];
 var /**/b = _(a); 
 """;
         using var f = FourslashTest.New(content, fileName: "genericCallSignaturesInNonGenericTypes1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "var b: WrappedArray<number>", "")
+    f.VerifyQuickInfoAt("", "var b: WrappedArray<number>", "");
     }
 }

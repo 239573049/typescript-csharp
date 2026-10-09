@@ -46,6 +46,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "renameStringLiteralTypes2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "a")
+    f.VerifyBaselineRenameAtRangesWithText(null /*preferences*/, "a");
     }
 }

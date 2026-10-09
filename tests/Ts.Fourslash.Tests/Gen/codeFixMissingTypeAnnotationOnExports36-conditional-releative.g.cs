@@ -34,7 +34,7 @@ const B = "B"
 export const AB = Math.random()? A: B;
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixMissingTypeAnnotationOnExports36-conditional-releative", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixAvailable(new[]{"Add annotation of type '\"A\" | \"B\"'", "Add annotation of type 'typeof A | typeof B'", "Add annotation of type 'string'", "Add satisfies and an inline type assertion with '\"A\" | \"B\"'", "Add satisfies and an inline type assertion with 'typeof A | typeof B'", "Add satisfies and an inline type assertion with 'string'"})
+    f.VerifyCodeFixAvailable(new[]{"Add annotation of type '\"A\" | \"B\"'", "Add annotation of type 'typeof A | typeof B'", "Add annotation of type 'string'", "Add satisfies and an inline type assertion with '\"A\" | \"B\"'", "Add satisfies and an inline type assertion with 'typeof A | typeof B'", "Add satisfies and an inline type assertion with 'string'"});
 
     f.VerifyCodeFix(new VerifyCodeFixOptions
     {
@@ -45,6 +45,6 @@ export const AB = Math.random()? A: B;
     export const AB = (Math.random() ? A : B) satisfies typeof A | typeof B as typeof A | typeof B;
     """,
         Index = 4,
-    })
+    });
     }
 }

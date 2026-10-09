@@ -43,6 +43,6 @@ type B =[| [
 ]|]
 """;
         using var f = FourslashTest.New(content, fileName: "getOutliningForTupleType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

@@ -36,10 +36,10 @@ function Baz<T,U>(key1: T, value: U) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "tsxQuickInfo5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("1", "function ComponentWithTwoAttributes<T, U>(l: {\n    key1: T;\n    value: U;\n}): JSX.Element", "")
+    f.VerifyQuickInfoAt("1", "function ComponentWithTwoAttributes<T, U>(l: {\n    key1: T;\n    value: U;\n}): JSX.Element", "");
 
-    f.VerifyQuickInfoAt("2", "(property) key1: T", "")
+    f.VerifyQuickInfoAt("2", "(property) key1: T", "");
 
-    f.VerifyQuickInfoAt("3", "(property) value: U", "")
+    f.VerifyQuickInfoAt("3", "(property) value: U", "");
     }
 }

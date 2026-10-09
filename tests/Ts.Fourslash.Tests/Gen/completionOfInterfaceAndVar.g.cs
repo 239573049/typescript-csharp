@@ -56,6 +56,6 @@ declare var AnalyserNode: {
     ],
         },
         
-    })
+    });
     }
 }

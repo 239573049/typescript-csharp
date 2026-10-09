@@ -76,8 +76,8 @@ console.log(func1, func2, func3, func4, func5, func6, func7, func8, func9);
     console.log(func1, func2, func3, func4, func5, func6, func7, func8, func9);
     """,
             LsProto.CodeActionKind.SourceOrganizeImports,
-            null,
-        )
+            null
+        );
 
     f.VerifyOrganizeImports(
             """
@@ -108,7 +108,7 @@ console.log(func1, func2, func3, func4, func5, func6, func7, func8, func9);
             new LsUtil.UserPreferences
     {
     OrganizeImportsIgnoreCase = Core.TSTrue,
-    },
-        )
+    }
+        );
     }
 }

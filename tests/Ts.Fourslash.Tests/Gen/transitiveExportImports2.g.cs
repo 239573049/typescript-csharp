@@ -37,14 +37,14 @@ public class TransitiveExportImports2Tests
 [|import { /*C*/[|{| "isWriteAccess": true, "isDefinition": true, "contextRangeIndex": 6 |}B|] } from "./b";|]
 """;
         using var f = FourslashTest.New(content, fileName: "transitiveExportImports2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoErrors()
+    f.VerifyNoErrors();
 
-    f.VerifyBaselineFindAllReferences("A", "B", "C")
+    f.VerifyBaselineFindAllReferences("A", "B", "C");
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[4])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[1], f.Ranges()[4]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3], f.Ranges()[5])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[3], f.Ranges()[5]);
 
-    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7])
+    f.VerifyBaselineRename(null /*preferences*/, f.Ranges()[7]);
     }
 }

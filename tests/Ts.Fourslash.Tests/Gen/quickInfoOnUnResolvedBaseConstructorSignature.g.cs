@@ -37,8 +37,8 @@ class classInheritingSpecializedClass extends genericBaseClassInheritingConstruc
 new class/*1*/InheritingSpecializedClass();
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnUnResolvedBaseConstructorSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyQuickInfoExists()
+    f.VerifyQuickInfoExists();
     }
 }

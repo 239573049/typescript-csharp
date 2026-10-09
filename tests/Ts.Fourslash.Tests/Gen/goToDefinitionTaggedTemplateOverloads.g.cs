@@ -34,6 +34,6 @@ function f(strs: TemplateStringsArray, x: number | boolean) {}
 [|/*useFBool*/f|]`${false}`;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionTaggedTemplateOverloads", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "useFNumber", "useFBool")
+    f.VerifyBaselineGoToDefinition(true, "useFNumber", "useFBool");
     }
 }

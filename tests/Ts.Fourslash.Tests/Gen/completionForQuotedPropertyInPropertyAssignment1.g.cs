@@ -53,7 +53,7 @@ files = {
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -93,6 +93,6 @@ files = {
     ],
         },
         
-    })
+    });
     }
 }

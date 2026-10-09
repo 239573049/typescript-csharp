@@ -33,6 +33,6 @@ function inferAny( [| app |] ) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromCallInAssignment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("app: { use: (arg0: string) => any }", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("app: { use: (arg0: string) => any }", false, 0, 0);
     }
 }

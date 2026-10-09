@@ -34,6 +34,6 @@ enum e {
 var enumMember = e.[|/*1*/thirdMember|];
 """;
         using var f = FourslashTest.New(content, fileName: "definitionNameOnEnumMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(false, "1")
+    f.VerifyBaselineGoToDefinition(false, "1");
     }
 }

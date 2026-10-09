@@ -33,6 +33,6 @@ export class /*2*/Foo {}
  var x = new [|/*1*/n|].Foo();
 """;
         using var f = FourslashTest.New(content, fileName: "goToModuleAliasDefinition", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

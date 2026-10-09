@@ -34,6 +34,6 @@ type BothType = FooType | BarType;
 const both/*b*/: BothType = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosity2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["b"] = new[]{0, 1, 2, 3}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["b"] = new[]{0, 1, 2, 3}});
     }
 }

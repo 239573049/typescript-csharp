@@ -35,6 +35,6 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixInferFromUsageMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyRangeAfterCodeFix("p: number[];", false, 0, 0)
+    f.VerifyRangeAfterCodeFix("p: number[];", false, 0, 0);
     }
 }

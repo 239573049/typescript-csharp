@@ -38,6 +38,6 @@ namespace ObjectLiterals {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "noCompletionListOnCommentsInsideObjectLiterals", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCompletions(f.Markers(), null)
+    f.VerifyCompletions(f.Markers(), null);
     }
 }

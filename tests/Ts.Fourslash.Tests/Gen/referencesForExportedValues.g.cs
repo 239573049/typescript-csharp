@@ -37,6 +37,6 @@ namespace M {
 M./*4*/variable
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForExportedValues", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

@@ -33,6 +33,6 @@ function /*3*/Foo() { }
 export = /*4*/Foo;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForMergedDeclarations5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

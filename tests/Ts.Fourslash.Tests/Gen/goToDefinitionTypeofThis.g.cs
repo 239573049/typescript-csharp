@@ -35,6 +35,6 @@ class /*cls*/C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionTypeofThis", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "fnUse", "clsUse", "getterUse")
+    f.VerifyBaselineGoToDefinition(true, "fnUse", "clsUse", "getterUse");
     }
 }

@@ -35,6 +35,6 @@ try[| {
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "correuptedTryExpressionsDontCrashGettingOutlineSpans", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyOutliningSpans()
+    f.VerifyOutliningSpans();
     }
 }

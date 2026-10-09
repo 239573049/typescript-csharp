@@ -91,6 +91,6 @@ class C5 implements I6 {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

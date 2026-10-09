@@ -41,6 +41,6 @@ function /*decoratorFactoryDefinition*/decoratorFactory(...args) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionDecorator", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "decoratorUse", "decoratorFactoryUse")
+    f.VerifyBaselineGoToDefinition(true, "decoratorUse", "decoratorFactoryUse");
     }
 }

@@ -39,6 +39,6 @@ export function something(name: string): any;
 something/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPackageJsonImportsLength2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyImportFixModuleSpecifiers("", new[]{"#a/b/c/something"}, null /*preferences*/)
+    f.VerifyImportFixModuleSpecifiers("", new[]{"#a/b/c/something"}, null /*preferences*/);
     }
 }

@@ -40,6 +40,6 @@ export class [|C|] implements B {
 export class [|D|] extends C { }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterface_10", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("def")
+    f.VerifyBaselineGoToImplementation("def");
     }
 }

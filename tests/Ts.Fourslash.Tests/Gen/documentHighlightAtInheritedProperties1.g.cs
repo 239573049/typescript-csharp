@@ -33,6 +33,6 @@ interface interface1 extends interface1 {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlightAtInheritedProperties1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()])
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, [.. f.Ranges()]);
     }
 }

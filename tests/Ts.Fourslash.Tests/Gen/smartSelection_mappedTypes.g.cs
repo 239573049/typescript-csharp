@@ -29,6 +29,6 @@ public class SmartSelection_mappedTypesTests
 type M = { /*1*/-re/*2*/adonly /*3*/[K in ke/*4*/yof any]/*5*/-/*6*/?: any };
 """;
         using var f = FourslashTest.New(content, fileName: "smartSelection_mappedTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSelectionRanges()
+    f.VerifyBaselineSelectionRanges();
     }
 }

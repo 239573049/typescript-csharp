@@ -46,8 +46,8 @@ export interface ChainedArray<T> extends ChainedObject<Array<T>> {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "underscoreTypings02", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToPosition(0)
+    f.GoToPosition(0);
 
-    f.VerifyNumberOfErrorsInCurrentFile(2)
+    f.VerifyNumberOfErrorsInCurrentFile(2);
     }
 }

@@ -38,6 +38,6 @@ const foo: {
 [|foo|](1, 1);
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocDeprecated_suggestion22", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySuggestionDiagnostics([])
+    f.VerifySuggestionDiagnostics([]);
     }
 }

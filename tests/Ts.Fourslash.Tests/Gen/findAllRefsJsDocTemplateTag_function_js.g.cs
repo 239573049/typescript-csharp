@@ -35,6 +35,6 @@ public class FindAllRefsJsDocTemplateTag_function_jsTests
 function f() {}
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsJsDocTemplateTag_function_js", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2")
+    f.VerifyBaselineFindAllReferences("1", "2");
     }
 }

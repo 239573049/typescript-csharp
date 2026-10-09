@@ -33,6 +33,6 @@ export const class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "getOccurrencesConst04", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1", "2", "3")
+    f.VerifyBaselineDocumentHighlights(null /*preferences*/, "1", "2", "3");
     }
 }

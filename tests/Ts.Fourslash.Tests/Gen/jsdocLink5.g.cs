@@ -36,6 +36,6 @@ function f(x) {
 f/*3*/()
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocLink5", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

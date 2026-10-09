@@ -53,7 +53,7 @@ const Component2 = <T extends 'one' | 'two'>() => <></>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {
@@ -71,7 +71,7 @@ const Component2 = <T extends 'one' | 'two'>() => <></>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -89,7 +89,7 @@ const Component2 = <T extends 'one' | 'two'>() => <></>;
     ],
         },
         
-    })
+    });
 
     f.VerifyCompletions("3", new CompletionsExpectedList
     {
@@ -107,6 +107,6 @@ const Component2 = <T extends 'one' | 'two'>() => <></>;
     ],
         },
         
-    })
+    });
     }
 }

@@ -38,7 +38,7 @@ import {
 new SomePig/**/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_importType7", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
@@ -48,7 +48,7 @@ new SomePig/**/
     } from "./exports.js";
     new SomePig
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
     f.VerifyImportFixAtPosition([
     """
@@ -61,7 +61,7 @@ new SomePig/**/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Last,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -74,7 +74,7 @@ new SomePig/**/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
-    })
+    });
 
     f.VerifyImportFixAtPosition([
     """
@@ -87,6 +87,6 @@ new SomePig/**/
     ], new LsUtil.UserPreferences
     {
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.First,
-    })
+    });
     }
 }

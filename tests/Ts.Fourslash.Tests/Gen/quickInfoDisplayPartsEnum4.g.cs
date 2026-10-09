@@ -34,6 +34,6 @@ Foo[/*1*/"\t"]
 Foo[/*2*/"\u007f"]
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoDisplayPartsEnum4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHover()
+    f.VerifyBaselineHover();
     }
 }

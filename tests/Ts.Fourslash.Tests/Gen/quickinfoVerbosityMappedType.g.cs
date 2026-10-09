@@ -43,6 +43,6 @@ type G<T> = {
 const z: G/*G*/<Bar> = { banana: 'hello', apple: true };
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityMappedType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x"] = new[]{0, 1}, ["y"] = new[]{0}, ["F"] = new[]{0, 1}, ["G"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["x"] = new[]{0, 1}, ["y"] = new[]{0}, ["F"] = new[]{0, 1}, ["G"] = new[]{0, 1}});
     }
 }

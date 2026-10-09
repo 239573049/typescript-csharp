@@ -38,6 +38,6 @@ const obj: Foo = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "findAllRefsForStringLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("")
+    f.VerifyBaselineFindAllReferences("");
     }
 }

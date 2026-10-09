@@ -40,6 +40,6 @@ function find(l, x) {
 find(''/**/);
 """;
         using var f = FourslashTest.New(content, fileName: "jsdocReturnsTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

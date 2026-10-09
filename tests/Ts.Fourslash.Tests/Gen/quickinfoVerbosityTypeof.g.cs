@@ -41,6 +41,6 @@ class Banana {
 const c/*c*/: typeof Banana = Banana;
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityTypeof", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["b"] = new[]{0, 1}, ["c"] = new[]{0, 1}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["b"] = new[]{0, 1}, ["c"] = new[]{0, 1}});
     }
 }

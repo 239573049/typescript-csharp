@@ -34,6 +34,6 @@ public class ReferencesForExternalModuleNamesTests
 /*3*/import f = require("/*4*/foo");
 """;
         using var f = FourslashTest.New(content, fileName: "referencesForExternalModuleNames", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

@@ -40,21 +40,21 @@ readFile/**/
 """;
         using var f = FourslashTest.New(content, fileName: "autoImportPackageJsonFilterExistingImport3", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyImportFixAtPosition([], null /*preferences*/)
+    f.VerifyImportFixAtPosition([], null /*preferences*/);
 
-    f.GoToBOF()
+    f.GoToBOF();
 
-    f.InsertLine("import { writeFile } from \"node:fs\";")
+    f.InsertLine("import { writeFile } from \"node:fs\";");
 
-    f.GoToMarker("")
+    f.GoToMarker("");
 
     f.VerifyImportFixAtPosition([
     """
     import { readFile, writeFile } from "node:fs";
     readFile
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

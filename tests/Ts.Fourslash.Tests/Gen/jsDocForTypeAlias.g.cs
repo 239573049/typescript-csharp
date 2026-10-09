@@ -30,8 +30,8 @@ public class JsDocForTypeAliasTests
 type /**/T = number
 """;
         using var f = FourslashTest.New(content, fileName: "jsDocForTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
+    f.GoToMarker("");
 
-    f.VerifyQuickInfoIs("type T = number", "DOC")
+    f.VerifyQuickInfoIs("type T = number", "DOC");
     }
 }

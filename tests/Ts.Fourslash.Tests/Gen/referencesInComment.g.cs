@@ -32,6 +32,6 @@ class foo { }
 var bar = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "referencesInComment", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

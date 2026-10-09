@@ -40,6 +40,6 @@ let x1 = Foo.B/*reference2*/az;
 let y1 = Bar.B/*reference3*/az;
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationNamespace_05", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("reference0", "reference1", "reference2", "reference3")
+    f.VerifyBaselineGoToImplementation("reference0", "reference1", "reference2", "reference3");
     }
 }

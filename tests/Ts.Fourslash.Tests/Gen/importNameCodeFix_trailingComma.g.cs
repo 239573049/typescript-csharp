@@ -49,6 +49,6 @@ export type T3 = 0;
 
     const x: T3
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

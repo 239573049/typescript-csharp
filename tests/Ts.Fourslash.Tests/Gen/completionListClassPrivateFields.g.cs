@@ -48,6 +48,6 @@ class B extends A {
             Exact = CompletionClassElementKeywords,
         },
         
-    })
+    });
     }
 }

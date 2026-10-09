@@ -30,6 +30,6 @@ public class CodeFixUseBigIntLiteralWithNumericSeparatorsTests
 0x16_BE_EC_CA_73_00_00; // 18! < 2 ** 53
 """;
         using var f = FourslashTest.New(content, fileName: "codeFixUseBigIntLiteralWithNumericSeparators", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyCodeFixNotAvailable("useBigintLiteral")
+    f.VerifyCodeFixNotAvailable("useBigintLiteral");
     }
 }

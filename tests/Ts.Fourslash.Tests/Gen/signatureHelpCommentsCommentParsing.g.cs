@@ -229,6 +229,6 @@ class NoQuickInfoClass {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpCommentsCommentParsing", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineSignatureHelp()
+    f.VerifyBaselineSignatureHelp();
     }
 }

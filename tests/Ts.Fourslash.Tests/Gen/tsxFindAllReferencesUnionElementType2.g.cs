@@ -44,6 +44,6 @@ class RC2 extends React.Component<{}, {}> {
 /*3*/</*4*/RCComp />
 """;
         using var f = FourslashTest.New(content, fileName: "tsxFindAllReferencesUnionElementType2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineFindAllReferences("1", "2", "3", "4")
+    f.VerifyBaselineFindAllReferences("1", "2", "3", "4");
     }
 }

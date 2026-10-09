@@ -44,6 +44,6 @@ add/*imports*/;
     f.VerifyImportFixModuleSpecifiers("imports", new[]{"#src/add.ts"}, new LsUtil.UserPreferences
     {
     ImportModuleSpecifierPreference = new ImportModuleSpecifierPreference("non-relative"),
-    })
+    });
     }
 }

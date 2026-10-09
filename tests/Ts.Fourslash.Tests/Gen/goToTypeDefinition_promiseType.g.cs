@@ -35,6 +35,6 @@ const /*reference2*/promisedBob = getUser()
 export {}
 """;
         using var f = FourslashTest.New(content, fileName: "goToTypeDefinition_promiseType", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToTypeDefinition("reference", "reference2")
+    f.VerifyBaselineGoToTypeDefinition("reference", "reference2");
     }
 }

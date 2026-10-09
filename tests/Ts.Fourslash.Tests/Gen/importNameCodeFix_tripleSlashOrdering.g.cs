@@ -66,7 +66,7 @@ const y = x + 1;
 const y = x + 1;
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_tripleSlashOrdering", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/b.ts")
+    f.GoToFile("/b.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -78,9 +78,9 @@ const y = x + 1;
 
     const y = x + 1;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/c.ts")
+    f.GoToFile("/c.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -92,9 +92,9 @@ const y = x + 1;
 
     const y = x + 1;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/d.ts")
+    f.GoToFile("/d.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -106,9 +106,9 @@ const y = x + 1;
 
     const y = x + 1;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/f.ts")
+    f.GoToFile("/f.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -120,9 +120,9 @@ const y = x + 1;
 
     const y = x + 1;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/g.ts")
+    f.GoToFile("/g.ts");
 
     f.VerifyImportFixAtPosition([
     """
@@ -134,6 +134,6 @@ const y = x + 1;
 
     const y = x + 1;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

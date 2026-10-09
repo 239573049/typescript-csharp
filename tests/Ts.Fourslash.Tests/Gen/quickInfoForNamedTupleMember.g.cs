@@ -29,6 +29,6 @@ public class QuickInfoForNamedTupleMemberTests
 type foo = [/**/x: string];
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoForNamedTupleMember", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "string", "")
+    f.VerifyQuickInfoAt("", "string", "");
     }
 }

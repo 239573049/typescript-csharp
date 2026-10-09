@@ -35,6 +35,6 @@ var x = new n.Foo();
 """;
         using var f = FourslashTest.New(content, fileName: "definition01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.VerifyBaselineGoToDefinition(true, "1")
+    f.VerifyBaselineGoToDefinition(true, "1");
     }
 }

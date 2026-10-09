@@ -29,6 +29,6 @@ public class QuickInfoInInvalidIndexSignatureTests
 function method() { var /**/dictionary = <{ [index]: string; }>{}; }
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoInInvalidIndexSignature", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("", "(local var) dictionary: {\n    [x: number]: string;\n}", "")
+    f.VerifyQuickInfoAt("", "(local var) dictionary: {\n    [x: number]: string;\n}", "");
     }
 }

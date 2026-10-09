@@ -41,6 +41,6 @@ public class UnusedClassInNamespaceWithTrivia2Tests
     namespace greeter {
        // Do not remove
     }
-    """, false, 0, 0)
+    """, false, 0, 0);
     }
 }

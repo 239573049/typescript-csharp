@@ -48,9 +48,9 @@ r./*2*/
     ],
         },
         
-    })
+    });
 
-    f.Backspace(4)
+    f.Backspace(4);
 
     f.VerifyCompletions("2", new CompletionsExpectedList
     {
@@ -71,6 +71,6 @@ r./*2*/
     ],
         },
         
-    })
+    });
     }
 }

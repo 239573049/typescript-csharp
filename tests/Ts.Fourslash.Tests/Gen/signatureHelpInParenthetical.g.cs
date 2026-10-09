@@ -30,11 +30,11 @@ class base { constructor (public n: number, public y: string) { } }
 (new base(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInParenthetical", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToMarker("")
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" })
+    f.GoToMarker("");
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" });
 
-    f.Insert("0, ")
+    f.Insert("0, ");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "y" })
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "y" });
     }
 }

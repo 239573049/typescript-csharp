@@ -59,6 +59,6 @@ declare class C implements A {}
     }
     """,
         Index = 0,
-    })
+    });
     }
 }

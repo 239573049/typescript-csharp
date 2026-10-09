@@ -33,6 +33,6 @@ function foo(p1) {}
     f.VerifySemanticTokens(new[]{
             new SemanticToken { Type = "function.declaration", Text = "foo" },
             new SemanticToken { Type = "parameter.declaration", Text = "p1" },
-        })
+        });
     }
 }

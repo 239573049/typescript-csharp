@@ -30,6 +30,6 @@ console.log()
 /**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpAtEOF2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyNoSignatureHelpForMarkersWithContext(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.Invoked }, "")
+    f.VerifyNoSignatureHelpForMarkersWithContext(new LsProto.SignatureHelpContext { TriggerKind = LsProto.SignatureHelpTriggerKind.Invoked }, "");
     }
 }

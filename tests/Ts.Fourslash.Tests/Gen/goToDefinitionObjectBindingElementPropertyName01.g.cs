@@ -35,6 +35,6 @@ var foo: I;
 var { [|/*use*/property1|]: prop1 } = foo;
 """;
         using var f = FourslashTest.New(content, fileName: "goToDefinitionObjectBindingElementPropertyName01", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToDefinition(true, "use")
+    f.VerifyBaselineGoToDefinition(true, "use");
     }
 }

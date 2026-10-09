@@ -34,6 +34,6 @@ var x = 1
 var /*0*/A = 0;
 """;
         using var f = FourslashTest.New(content, fileName: "renameJSDocNamepath", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, "0")
+    f.VerifyBaselineRename(null /*preferences*/, "0");
     }
 }

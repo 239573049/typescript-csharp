@@ -29,10 +29,10 @@ public class FormattingDoubleLessThanTests
 /*1*/if (<number>foo < <number>bar) {}
 """;
         using var f = FourslashTest.New(content, fileName: "formattingDoubleLessThan", cancellationToken: TestContext.Current.CancellationToken);
-    f.FormatDocument("")
+    f.FormatDocument("");
 
-    f.GoToMarker("1")
+    f.GoToMarker("1");
 
-    f.VerifyCurrentLineContent("if (<number>foo < <number>bar) { }")
+    f.VerifyCurrentLineContent("if (<number>foo < <number>bar) { }");
     }
 }

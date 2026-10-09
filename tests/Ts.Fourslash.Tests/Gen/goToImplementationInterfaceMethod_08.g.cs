@@ -43,6 +43,6 @@ class SubBar extends Bar {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "goToImplementationInterfaceMethod_08", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineGoToImplementation("function_call")
+    f.VerifyBaselineGoToImplementation("function_call");
     }
 }

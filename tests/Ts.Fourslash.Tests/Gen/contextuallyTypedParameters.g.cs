@@ -65,40 +65,40 @@ foo(function(a, b, c, ...args) {
 });
 """;
         using var f = FourslashTest.New(content, fileName: "contextuallyTypedParameters", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyQuickInfoAt("10", "(parameter) a: number", "")
+    f.VerifyQuickInfoAt("10", "(parameter) a: number", "");
 
-    f.VerifyQuickInfoAt("11", "(parameter) args: [y: string, z: boolean]", "")
+    f.VerifyQuickInfoAt("11", "(parameter) args: [y: string, z: boolean]", "");
 
-    f.VerifyQuickInfoAt("20", "(parameter) a: number", "")
+    f.VerifyQuickInfoAt("20", "(parameter) a: number", "");
 
-    f.VerifyQuickInfoAt("21", "(parameter) b: string", "")
+    f.VerifyQuickInfoAt("21", "(parameter) b: string", "");
 
-    f.VerifyQuickInfoAt("22", "(parameter) args: [z: boolean]", "")
+    f.VerifyQuickInfoAt("22", "(parameter) args: [z: boolean]", "");
 
-    f.VerifyQuickInfoAt("30", "(parameter) a: number", "")
+    f.VerifyQuickInfoAt("30", "(parameter) a: number", "");
 
-    f.VerifyQuickInfoAt("31", "(parameter) b: string", "")
+    f.VerifyQuickInfoAt("31", "(parameter) b: string", "");
 
-    f.VerifyQuickInfoAt("32", "(parameter) c: boolean", "")
+    f.VerifyQuickInfoAt("32", "(parameter) c: boolean", "");
 
-    f.VerifyQuickInfoAt("33", "(parameter) args: []", "")
+    f.VerifyQuickInfoAt("33", "(parameter) args: []", "");
 
-    f.VerifyQuickInfoAt("40", "(parameter) a: number", "")
+    f.VerifyQuickInfoAt("40", "(parameter) a: number", "");
 
-    f.VerifyQuickInfoAt("41", "(parameter) args: [y: string, z: boolean]", "")
+    f.VerifyQuickInfoAt("41", "(parameter) args: [y: string, z: boolean]", "");
 
-    f.VerifyQuickInfoAt("50", "(parameter) a: number", "")
+    f.VerifyQuickInfoAt("50", "(parameter) a: number", "");
 
-    f.VerifyQuickInfoAt("51", "(parameter) b: string", "")
+    f.VerifyQuickInfoAt("51", "(parameter) b: string", "");
 
-    f.VerifyQuickInfoAt("52", "(parameter) args: [z: boolean]", "")
+    f.VerifyQuickInfoAt("52", "(parameter) args: [z: boolean]", "");
 
-    f.VerifyQuickInfoAt("60", "(parameter) a: number", "")
+    f.VerifyQuickInfoAt("60", "(parameter) a: number", "");
 
-    f.VerifyQuickInfoAt("61", "(parameter) b: string", "")
+    f.VerifyQuickInfoAt("61", "(parameter) b: string", "");
 
-    f.VerifyQuickInfoAt("62", "(parameter) c: boolean", "")
+    f.VerifyQuickInfoAt("62", "(parameter) c: boolean", "");
 
-    f.VerifyQuickInfoAt("63", "(parameter) args: []", "")
+    f.VerifyQuickInfoAt("63", "(parameter) args: []", "");
     }
 }

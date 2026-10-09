@@ -50,7 +50,7 @@ export class MyMap extends Component { }
 <></>;|]
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFixUMDGlobalReact0", cancellationToken: TestContext.Current.CancellationToken);
-    f.GoToFile("/a.tsx")
+    f.GoToFile("/a.tsx");
 
     f.VerifyImportFixAtPosition([
     """
@@ -59,9 +59,9 @@ export class MyMap extends Component { }
     export class MyMap extends Component { }
     <MyMap/>;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
 
-    f.GoToFile("/b.tsx")
+    f.GoToFile("/b.tsx");
 
     f.VerifyImportFixAtPosition([
     """
@@ -69,6 +69,6 @@ export class MyMap extends Component { }
     import { Component } from "react";
     <></>;
     """,
-    ], null /*preferences*/)
+    ], null /*preferences*/);
     }
 }

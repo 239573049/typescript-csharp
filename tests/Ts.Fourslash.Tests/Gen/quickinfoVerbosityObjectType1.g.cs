@@ -35,6 +35,6 @@ const obj1/*o1*/: Obj = { foo: 1, bar: true, str: "3"};
 const obj2/*o2*/: { foo: FooType, bar: BarType, str: Str } = { foo: 1, bar: true, str: "3"};
 """;
         using var f = FourslashTest.New(content, fileName: "quickinfoVerbosityObjectType1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1, 2, 3}, ["o2"] = new[]{0, 1, 2}})
+    f.VerifyBaselineHoverWithVerbosity(new Dictionary<string, int[]>{["o1"] = new[]{0, 1, 2, 3}, ["o2"] = new[]{0, 1, 2}});
     }
 }
