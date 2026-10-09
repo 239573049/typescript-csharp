@@ -159,6 +159,15 @@ public sealed class UserPreferences
         return global::Ts.ModuleSpecifiers.ModuleSpecifierUtil.IsExcludedByRegex(moduleSpecifier, AutoImportSpecifierExcludeRegexes);
     }
 
+    // PORT-NOTE: Go's UserPreferences is a value struct, so assignment/parameter passing/
+    // returns copy it; the C# port is a class, so Clone() supplies the struct-copy semantics.
+    // Shallow on purpose — it mirrors Go exactly: slices (string[]) share backing arrays,
+    // and the nested CodeLens/InlayHints structs copy by value.
+    public UserPreferences Clone()
+    {
+        return (UserPreferences)MemberwiseClone();
+    }
+
     // userpreferences.go:15-35 — NewDefaultUserPreferences (completion-relevant subset).
     public static UserPreferences NewDefaultUserPreferences() => new()
     {

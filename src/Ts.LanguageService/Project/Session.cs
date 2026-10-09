@@ -332,11 +332,13 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
     }
 
     // session.go:264-269 — Config gets a copy of current configuration.
+    // (Go's lsutil.UserPreferences is a value struct, so the return copies it; the C#
+    // class needs the explicit Clone to give callers an isolated copy.)
     public global::Ts.Ls.UserPreferences Config()
     {
         lock (userConfigRWMu)
         {
-            return workspaceUserPreferences;
+            return workspaceUserPreferences.Clone();
         }
     }
 
