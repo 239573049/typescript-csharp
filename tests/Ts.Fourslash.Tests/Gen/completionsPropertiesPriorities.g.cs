@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -57,7 +54,7 @@ const i: I = {
     new LsProto.CompletionItem
     {
     Label = "d",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     Kind = LsProto.CompletionItemKind.Field,
     },
     new LsProto.CompletionItem
@@ -65,13 +62,13 @@ const i: I = {
     Label = "c?",
     InsertText = "c",
     FilterText = "c",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     Kind = LsProto.CompletionItemKind.Field,
     },
     new LsProto.CompletionItem
     {
     Label = "a",
-    SortText = Ls.SortTextMemberDeclaredBySpreadAssignment,
+    SortText = Ls_.SortTextMemberDeclaredBySpreadAssignment,
     Kind = LsProto.CompletionItemKind.Field,
     },
     new LsProto.CompletionItem
@@ -79,7 +76,7 @@ const i: I = {
     Label = "B?",
     InsertText = "B",
     FilterText = "B",
-    SortText = Ls.SortTextMemberDeclaredBySpreadAssignment,
+    SortText = Ls_.SortTextMemberDeclaredBySpreadAssignment,
     Kind = LsProto.CompletionItemKind.Field,
     },
     ],

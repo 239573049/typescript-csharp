@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -55,7 +52,7 @@ var x = require('./myMod');
     new LsProto.CompletionItem
     {
     Label = "y",
-    SortText = Ls.SortTextGlobalsOrKeywords,
+    SortText = Ls_.SortTextGlobalsOrKeywords,
     },
     ],
     Excludes = [

@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -63,7 +60,7 @@ create('component-one', { props: { /*3*/ } });
     Label = "foo?",
     InsertText = "foo",
     FilterText = "foo",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },
@@ -86,7 +83,7 @@ create('component-one', { props: { /*3*/ } });
     Label = "bar?",
     InsertText = "bar",
     FilterText = "bar",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },
@@ -109,7 +106,7 @@ create('component-one', { props: { /*3*/ } });
     Label = "foo?",
     InsertText = "foo",
     FilterText = "foo",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },

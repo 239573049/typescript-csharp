@@ -7,6 +7,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The emitted corpus spells the Go package qualifiers `Core.X` / `Ls.X` (core.TSTrue,
+         ls.SortText*) in every generated file. Go resolves those through the util.go
+         dot-import plus the core/ls package names; C# has no ambient `Core`/`Ls` type, so the
+         two qualifiers are declared compilation-wide here, under the alias names the generator
+         emits (Core_/Ls_ — a plain `Core` alias cannot be declared at all: inside the util's
+         own namespace the alias RHS binds to the namespace and yields CS0234, and a per-file
+         alias for it collides with these global ones as CS1537).
+         The `using static` supplies the util.go members the corpus names unqualified
+         (AnyTextEdits, Ignored, DefaultCommitCharacters); it does not shadow the aliases. -->
+    <Using Include="Ts.Fourslash.Tests.FourslashTestUtil" Static="true" />
+    <Using Include="Ts.Fourslash.Tests.FourslashTestUtil" Alias="Core_" />
+    <Using Include="Ts.Fourslash.Tests.FourslashTestUtil" Alias="Ls_" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

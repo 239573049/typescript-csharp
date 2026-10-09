@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -87,27 +84,27 @@ D./*2*/
     new LsProto.CompletionItem
     {
     Label = "bar",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "bar2",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "baz",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "prototype",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "x",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     ]),
         },

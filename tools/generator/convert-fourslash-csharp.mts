@@ -18,7 +18,7 @@
 //   tests/Ts.Fourslash.Tests/FourslashTestUtil.g.cs
 //       — port of internal/fourslash/tests/util/util.go (the dot-imported helper package the
 //         Go corpus references): completion constant lists + the Core/Ls constant shims the
-//         emitted fragments reference (Core.TSTrue, Ls.SortText*, Ls.DeprecateSortText).
+//         emitted fragments reference (Core_.TSTrue, Ls_.SortText*, Ls_.DeprecateSortText).
 //   tests/Ts.Fourslash.Tests/Scripts/unparsedTests.txt
 //       — the negative-space report, same format as Go's.
 //
@@ -686,7 +686,7 @@ function parseFormatStatement(funcName: string, args: readonly ts.Expression[]):
             // Go emits three statements (GetOptions / field assign / Configure). The C#
             // UserPreferences does not carry a FormatCodeSettings field yet, so the C#
             // emission is the equivalent single ConfigureFormat call (see file header).
-            const formattedValue = optValue === "true" || optValue === "false" || optValue.startsWith("Core.TS")
+            const formattedValue = optValue === "true" || optValue === "false" || optValue.startsWith("Core.TS") || optValue.startsWith("Core_.TS")
                 ? optValue
                 : csStringLiteral(JSON.parse(optValue));
             return [{
@@ -1392,7 +1392,7 @@ function parseExpectedCompletionItem(expr: ts.Expression, codeActionArgs?: Verif
                 case "sortText":
                     const sortText = parseSortText(init);
                     itemProps.push(`SortText = ${sortText.expression},`);
-                    if (sortText.expression === "Ls.SortTextOptionalMember") {
+                    if (sortText.expression === "Ls_.SortTextOptionalMember") {
                         isOptional = true;
                     }
                     if (sortText.deprecated) {
@@ -2414,11 +2414,11 @@ function parseCodeFixAllArgs(args: readonly ts.Expression[]): [VerifyCodeFixAllC
 function stringToTristate(s: string): string {
     switch (s) {
         case "true":
-            return "Core.TSTrue";
+            return "Core_.TSTrue";
         case "false":
-            return "Core.TSFalse";
+            return "Core_.TSFalse";
         default:
-            return "Core.TSUnknown";
+            return "Core_.TSUnknown";
     }
 }
 
@@ -2713,7 +2713,7 @@ function getRangesByTextArg(arg: ts.CallExpression): string | undefined {
 
 /**
  * Handles `.filter(r => !(r.marker && r.marker.data.KEY))` patterns on range arrays.
- * Converts to `[.. Core.Filter(source, (RangeMarker r) => ...)]`
+ * Converts to `[.. Core_.Filter(source, (RangeMarker r) => ...)]`
  */
 function parseFilterExpression(arg: ts.CallExpression): string | undefined {
     if (!ts.isPropertyAccessExpression(arg.expression) || arg.expression.name.text !== "filter") {
@@ -2753,7 +2753,7 @@ function parseFilterExpression(arg: ts.CallExpression): string | undefined {
         return undefined;
     }
 
-    return `[.. Core.Filter(${sourceGo}, ${predicate})]`;
+    return `[.. Core_.Filter(${sourceGo}, ${predicate})]`;
 }
 
 function parseFilterPredicate(arrow: ts.ArrowFunction): string | undefined {
@@ -3004,13 +3004,13 @@ function parseOrganizeImportsArgs(args: readonly ts.Expression[]): [VerifyOrgani
 
             if (propName === "organizeImportsIgnoreCase") {
                 if (ts.isStringLiteral(propValue) && propValue.text === "auto") {
-                    prefsFields.push(`${goFieldName} = Core.TSUnknown`);
+                    prefsFields.push(`${goFieldName} = Core_.TSUnknown`);
                 }
                 else if (propValue.kind === ts.SyntaxKind.TrueKeyword) {
-                    prefsFields.push(`${goFieldName} = Core.TSTrue`);
+                    prefsFields.push(`${goFieldName} = Core_.TSTrue`);
                 }
                 else if (propValue.kind === ts.SyntaxKind.FalseKeyword) {
-                    prefsFields.push(`${goFieldName} = Core.TSFalse`);
+                    prefsFields.push(`${goFieldName} = Core_.TSFalse`);
                 }
                 else {
                     throw new Error(`Unsupported value for organizeImportsIgnoreCase: ${propValue.getText()}`);
@@ -3101,10 +3101,10 @@ function parseOrganizeImportsArgs(args: readonly ts.Expression[]): [VerifyOrgani
             // Boolean fields that are now Tristate
             else if (propName === "organizeImportsNumericCollation" || propName === "organizeImportsAccentCollation") {
                 if (propValue.kind === ts.SyntaxKind.TrueKeyword) {
-                    prefsFields.push(`${goFieldName} = Core.TSTrue`);
+                    prefsFields.push(`${goFieldName} = Core_.TSTrue`);
                 }
                 else if (propValue.kind === ts.SyntaxKind.FalseKeyword) {
-                    prefsFields.push(`${goFieldName} = Core.TSFalse`);
+                    prefsFields.push(`${goFieldName} = Core_.TSFalse`);
                 }
                 else {
                     throw new Error(`Expected boolean for ${propName}, got ${propValue.getText()}`);
@@ -3124,10 +3124,10 @@ function parseOrganizeImportsArgs(args: readonly ts.Expression[]): [VerifyOrgani
                 prefsFields.push(`${goFieldName} = ${csStringLiteral(propValue.text)}`);
             }
             else if (propValue.kind === ts.SyntaxKind.TrueKeyword) {
-                prefsFields.push(`${goFieldName} = Core.TSTrue`);
+                prefsFields.push(`${goFieldName} = Core_.TSTrue`);
             }
             else if (propValue.kind === ts.SyntaxKind.FalseKeyword) {
-                prefsFields.push(`${goFieldName} = Core.TSFalse`);
+                prefsFields.push(`${goFieldName} = Core_.TSFalse`);
             }
             else {
                 prefsFields.push(`${goFieldName} = ${propValue.getText()}`);
@@ -3656,7 +3656,7 @@ function parseSortText(expr: ts.Expression): ParsedSortText {
     if (ts.isCallExpression(expr) && expr.expression.getText() === "completion.SortText.Deprecated") {
         const inner = parseSortText(expr.arguments[0]);
         return {
-            expression: `Ls.DeprecateSortText(${inner.expression})`,
+            expression: `Ls_.DeprecateSortText(${inner.expression})`,
             deprecated: true,
         };
     }
@@ -3667,23 +3667,23 @@ function parseSortText(expr: ts.Expression): ParsedSortText {
 function parseSortTextExpression(text: string): string {
     switch (text) {
         case "completion.SortText.LocalDeclarationPriority":
-            return "Ls.SortTextLocalDeclarationPriority";
+            return "Ls_.SortTextLocalDeclarationPriority";
         case "completion.SortText.LocationPriority":
-            return "Ls.SortTextLocationPriority";
+            return "Ls_.SortTextLocationPriority";
         case "completion.SortText.OptionalMember":
-            return "Ls.SortTextOptionalMember";
+            return "Ls_.SortTextOptionalMember";
         case "completion.SortText.MemberDeclaredBySpreadAssignment":
-            return "Ls.SortTextMemberDeclaredBySpreadAssignment";
+            return "Ls_.SortTextMemberDeclaredBySpreadAssignment";
         case "completion.SortText.SuggestedClassMembers":
-            return "Ls.SortTextSuggestedClassMembers";
+            return "Ls_.SortTextSuggestedClassMembers";
         case "completion.SortText.GlobalsOrKeywords":
-            return "Ls.SortTextGlobalsOrKeywords";
+            return "Ls_.SortTextGlobalsOrKeywords";
         case "completion.SortText.AutoImportSuggestions":
-            return "Ls.SortTextAutoImportSuggestions";
+            return "Ls_.SortTextAutoImportSuggestions";
         case "completion.SortText.ClassMemberSnippets":
-            return "Ls.SortTextClassMemberSnippets";
+            return "Ls_.SortTextClassMemberSnippets";
         case "completion.SortText.JavascriptIdentifiers":
-            return "Ls.SortTextJavascriptIdentifiers";
+            return "Ls_.SortTextJavascriptIdentifiers";
         default:
             throw new Error(`Unrecognized sort text: ${text}`); // !!! support deprecated/obj literal prop/etc
     }
@@ -3745,7 +3745,7 @@ function parseVerifyNavigateToArg(arg: ts.Expression): string {
             }
             case "excludeLibFiles": {
                 if (prop.initializer.kind === ts.SyntaxKind.FalseKeyword) {
-                    prefs = `new LsUtil.UserPreferences\n{\nExcludeLibrarySymbolsInNavTo = Core.TSFalse,\n}`;
+                    prefs = `new LsUtil.UserPreferences\n{\nExcludeLibrarySymbolsInNavTo = Core_.TSFalse,\n}`;
                 }
             }
         }
@@ -4744,11 +4744,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -4981,16 +4978,29 @@ function getInitializer(name: ts.Identifier): ts.Expression | undefined {
 function emitFourslashTestUtil(): void {
     const goRoot = goUtilGoPath();
     const utilGoPath = path.join(goRoot, "internal", "fourslash", "tests", "util", "util.go");
-    const utilSource = fs.readFileSync(utilGoPath, "utf-8");
+    // A transcription patch would otherwise leak CRLF into the emitted C# (the Go source can
+    // be checked out with autocrlf); the whole corpus is LF-normalized (see
+    // csMultiLineStringLiteral), so normalize here too.
+    const utilSource = normalizeLineEndings(fs.readFileSync(utilGoPath, "utf-8"));
 
     const data = translateUtilGo(utilSource);
 
     const out = `// <auto-generated>convert-fourslash-csharp (emitFourslashTestUtil); DO NOT EDIT.
 // Port of tsgo internal/fourslash/tests/util/util.go (the helper package the Go corpus
 // dot-imports), regenerated by: npm run convert:fourslash
-// plus the Core/Ls constant shims the emitted test fragments reference (Core.TSTrue,
-// Ls.SortText*, Ls.DeprecateSortText) — Go typed constants that have no public C# surface yet
+// plus the Core/Ls constant shims the emitted test fragments reference (Core_.TSTrue,
+// Ls_.SortText*, Ls_.DeprecateSortText) — Go typed constants that have no public C# surface yet
 // (the Ts.Ls values are internal; see Fourslash.Stubs.cs for the runtime stubs).
+//
+// The corpus spells those qualifiers as bare Core. / Ls. C# cannot reproduce that with a
+// using-alias inside this namespace (CS0234: the alias binds to the namespace itself), so the
+// two aliases are declared compilation-wide by Ts.Fourslash.Tests.csproj Using items
+// (named Core_/Ls_ because a bare Core/Ls alias cannot be declared at all).
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Ts.LsProto;
 
 // ReSharper disable InconsistentNaming
 namespace Ts.Fourslash.Tests;
@@ -5018,6 +5028,11 @@ public static class FourslashTestUtil
 
     // util.go:14-16.
     public static readonly object Ignored = new();
+
+    // fourslash.go:2449 — AnyTextEdits is the "any non-nil edits" sentinel the emitted
+    // expected-completion items use for AdditionalTextEdits (Go: an untyped nil *[]*TextEdit
+    // pointer, a non-nil interface holding a nil pointer).
+    public static readonly object AnyTextEdits = new();
 
     public static readonly string[] DefaultCommitCharacters = [".", ",", ";"];
 
@@ -5215,9 +5230,11 @@ function translateUtilGo(source: string): { singleItems: string; lists: string; 
                     throw new Error(`util.go: unrecognized SortText: ${rawValue}`);
                 }
                 case "Tags": {
-                    const tagMatch = rawValue.match(/^&\[\]lsproto\.CompletionItemTag\{(lsproto\.[A-Za-z]+)\}$/);
+                    const tagMatch = rawValue.match(/^&\[\]lsproto\.CompletionItemTag\{(lsproto\.CompletionItemTag[A-Za-z]+)\}$/);
                     if (!tagMatch) throw new Error(`util.go: unrecognized Tags: ${rawValue}`);
-                    props.push(`Tags = [LsProto.${goEnumSuffix(tagMatch[1])}]`);
+                    // `lsproto.CompletionItemTagDeprecated` → `LsProto.CompletionItemTag.Deprecated`
+                    // (goEnumSuffix's anchor does not skip a leading package qualifier).
+                    props.push(`Tags = [LsProto.CompletionItemTag.${goEnumSuffix(tagMatch[1].replace(/^lsproto\./, ""))}]`);
                     break;
                 }
                 default:

@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -97,7 +94,7 @@ f4({
     Label = "world?",
     InsertText = "world",
     FilterText = "world",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },
@@ -120,14 +117,14 @@ f4({
     Label = "autoIncrement?",
     InsertText = "autoIncrement",
     FilterText = "autoIncrement",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     new LsProto.CompletionItem
     {
     Label = "keyPath?",
     InsertText = "keyPath",
     FilterText = "keyPath",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },
@@ -169,7 +166,7 @@ f4({
     Label = "a?",
     InsertText = "a",
     FilterText = "a",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },
@@ -192,7 +189,7 @@ f4({
     Label = "x?",
     InsertText = "x",
     FilterText = "x",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },

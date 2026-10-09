@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -55,21 +52,21 @@ class Sub implements Base {
     Label = "a",
     InsertText = "a: string;",
     FilterText = "a",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "b",
     InsertText = "b(a: string): void {\n}",
     FilterText = "b",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "c",
     InsertText = "c(a: string): string;\nc(a: number): number;\nc(a: unknown): string | number {\n}",
     FilterText = "c",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     ],
         },

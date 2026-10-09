@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -64,14 +61,14 @@ testFunc({
     Label = "a?",
     InsertText = "a",
     FilterText = "a",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     new LsProto.CompletionItem
     {
     Label = "b?",
     InsertText = "b",
     FilterText = "b",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },

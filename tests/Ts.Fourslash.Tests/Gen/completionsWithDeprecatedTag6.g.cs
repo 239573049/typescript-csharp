@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -48,7 +45,7 @@ Foo./**/
     {
     Label = "foo",
     Kind = LsProto.CompletionItemKind.Variable,
-    SortText = Ls.DeprecateSortText(Ls.SortTextLocationPriority),
+    SortText = Ls_.DeprecateSortText(Ls_.SortTextLocationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
     ],

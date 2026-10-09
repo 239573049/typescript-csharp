@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -59,7 +56,7 @@ const el1 = <div className={class/*1*/}>foo</div>;
     {
     Label = "classNames",
     AdditionalTextEdits = AnyTextEdits,
-    SortText = Ls.SortTextGlobalsOrKeywords,
+    SortText = Ls_.SortTextGlobalsOrKeywords,
     },
     ],
         },

@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -104,14 +101,14 @@ declare namespace JSX {
     InsertText = "prop_h=\"$1\"",
     FilterText = "prop_h",
     InsertTextFormat = LsProto.InsertTextFormat.Snippet,
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     new LsProto.CompletionItem
     {
     Label = "prop_i?",
     InsertText = "prop_i",
     FilterText = "prop_i",
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     new LsProto.CompletionItem
     {
@@ -119,7 +116,7 @@ declare namespace JSX {
     InsertText = "prop_j={$1}",
     FilterText = "prop_j",
     InsertTextFormat = LsProto.InsertTextFormat.Snippet,
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     new LsProto.CompletionItem
     {
@@ -127,7 +124,7 @@ declare namespace JSX {
     InsertText = "prop_string_literal_union=\"$1\"",
     FilterText = "prop_string_literal_union",
     InsertTextFormat = LsProto.InsertTextFormat.Snippet,
-    SortText = Ls.SortTextOptionalMember,
+    SortText = Ls_.SortTextOptionalMember,
     },
     ],
         },

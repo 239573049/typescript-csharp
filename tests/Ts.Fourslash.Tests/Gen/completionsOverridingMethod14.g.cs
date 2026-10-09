@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -53,7 +50,7 @@ class Foo implements IFoo {
     Label = "foo",
     InsertText = "foo(arg: string): number {\n}",
     FilterText = "foo",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     ],
         },

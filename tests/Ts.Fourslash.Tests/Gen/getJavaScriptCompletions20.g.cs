@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -62,17 +59,17 @@ Person.getNa/**/ = 10;
     new LsProto.CompletionItem
     {
     Label = "Person",
-    SortText = Ls.SortTextJavascriptIdentifiers,
+    SortText = Ls_.SortTextJavascriptIdentifiers,
     },
     new LsProto.CompletionItem
     {
     Label = "name",
-    SortText = Ls.SortTextJavascriptIdentifiers,
+    SortText = Ls_.SortTextJavascriptIdentifiers,
     },
     new LsProto.CompletionItem
     {
     Label = "age",
-    SortText = Ls.SortTextJavascriptIdentifiers,
+    SortText = Ls_.SortTextJavascriptIdentifiers,
     },
     ]),
         },

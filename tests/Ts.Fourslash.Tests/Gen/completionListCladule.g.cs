@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -57,17 +54,17 @@ f/*c3*/;
     new LsProto.CompletionItem
     {
     Label = "x",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "prototype",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "staticMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     ],
         },

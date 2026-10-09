@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -79,22 +76,22 @@ c./*3*/foo = C./*4*/foo;
     new LsProto.CompletionItem
     {
     Label = "boo",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "foo",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "prototype",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "x",
-    SortText = Ls.SortTextLocationPriority,
+    SortText = Ls_.SortTextLocationPriority,
     },
     ]),
         },

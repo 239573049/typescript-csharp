@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -63,7 +60,7 @@ fooba/*5*/;
     {
     Label = "Foo",
     Kind = LsProto.CompletionItemKind.Interface,
-    SortText = Ls.DeprecateSortText(Ls.SortTextLocationPriority),
+    SortText = Ls_.DeprecateSortText(Ls_.SortTextLocationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
     ],
@@ -86,7 +83,7 @@ fooba/*5*/;
     {
     Label = "bar",
     Kind = LsProto.CompletionItemKind.Method,
-    SortText = Ls.DeprecateSortText(Ls.SortTextLocationPriority),
+    SortText = Ls_.DeprecateSortText(Ls_.SortTextLocationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
     ],
@@ -109,7 +106,7 @@ fooba/*5*/;
     {
     Label = "prop",
     Kind = LsProto.CompletionItemKind.Field,
-    SortText = Ls.DeprecateSortText(Ls.SortTextLocationPriority),
+    SortText = Ls_.DeprecateSortText(Ls_.SortTextLocationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
     ],
@@ -132,7 +129,7 @@ fooba/*5*/;
     {
     Label = "foobar",
     Kind = LsProto.CompletionItemKind.Function,
-    SortText = Ls.DeprecateSortText(Ls.SortTextLocationPriority),
+    SortText = Ls_.DeprecateSortText(Ls_.SortTextLocationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
     ],
@@ -155,7 +152,7 @@ fooba/*5*/;
     {
     Label = "foobar",
     Kind = LsProto.CompletionItemKind.Variable,
-    SortText = Ls.DeprecateSortText(Ls.SortTextLocationPriority),
+    SortText = Ls_.DeprecateSortText(Ls_.SortTextLocationPriority),
     Tags = [LsProto.CompletionItemTag.Deprecated],
     },
     ],

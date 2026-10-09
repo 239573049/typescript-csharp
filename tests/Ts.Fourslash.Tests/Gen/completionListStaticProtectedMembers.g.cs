@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -66,42 +63,42 @@ class C1 extends Base {
     new LsProto.CompletionItem
     {
     Label = "privateMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "privateProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "protectedMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "protectedProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "publicMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "publicProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "protectedOverriddenMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "protectedOverriddenProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     ],
         },
@@ -122,32 +119,32 @@ class C1 extends Base {
     new LsProto.CompletionItem
     {
     Label = "privateMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "privateProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "protectedMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "protectedProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "publicMethod",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     new LsProto.CompletionItem
     {
     Label = "publicProperty",
-    SortText = Ls.SortTextLocalDeclarationPriority,
+    SortText = Ls_.SortTextLocalDeclarationPriority,
     },
     ],
     Excludes = [

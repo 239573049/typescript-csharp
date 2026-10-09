@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -81,7 +78,7 @@ fooB/*1*/
     Detail = "(property) export=: 0",
     Kind = LsProto.CompletionItemKind.Field,
     AdditionalTextEdits = AnyTextEdits,
-    SortText = Ls.SortTextAutoImportSuggestions,
+    SortText = Ls_.SortTextAutoImportSuggestions,
     },
     ], true),
         },

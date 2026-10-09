@@ -11,11 +11,8 @@ using Ts.Ls;
 using Ts.ModuleSpecifiers;
 using Ts.TestUtil.Fourslash;
 using Xunit;
-using Core = Ts.Fourslash.Tests.FourslashTestUtil;
-using Ls = Ts.Fourslash.Tests.FourslashTestUtil;
 using LsProto = Ts.LsProto;
 using LsUtil = Ts.Ls;
-using static Ts.Fourslash.Tests.FourslashTestUtil;
 
 namespace Ts.Fourslash.Tests.Gen;
 
@@ -57,7 +54,7 @@ i[|./**/|];
     {
     Label = "M",
     InsertText = "[M]",
-    SortText = Ls.SortTextGlobalsOrKeywords,
+    SortText = Ls_.SortTextGlobalsOrKeywords,
     TextEdit = new LsProto.TextEditOrInsertReplaceEdit
                 {
                     TextEdit = new LsProto.TextEdit
