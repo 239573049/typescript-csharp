@@ -1135,9 +1135,10 @@ public partial class Checker
             // We have reached 100 recursive type instantiations, or 5M type instantiations caused by the same statement
             // or expression. There is a very high likelihood we're dealing with a combination of infinite generic types
             // that perpetually generate new type identities, so we stop the recursion here by yielding the error type.
-            // PORT-NOTE: the `tr.Instant(tracing.PhaseCheckTypes, "instantiateType_DepthLimit", …)` trace event
-            // (checker.go:22020-22022) is deferred to the tracer.go wave (phase 9); the Tracer shell has no Instant
-            // yet and the event has no observable effect on the depth-guard behavior below.
+            if (tracer is { } tr)
+            {
+                tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "instantiateType_DepthLimit", new Dictionary<string, object?> { ["typeId"] = t!.id.Value, ["instantiationDepth"] = instantiationDepth, ["instantiationCount"] = instantiationCount });
+            }
             Error(currentNode, Diag.Type_instantiation_is_excessively_deep_and_possibly_infinite);
             return errorType!;
         }

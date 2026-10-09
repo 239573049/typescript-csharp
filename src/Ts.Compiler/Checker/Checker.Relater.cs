@@ -6,8 +6,6 @@
 //
 // The Relater structural engine lives in Checker.Relater.Engine.cs; supporting types and small free
 // functions in Checker.Relater.Support.cs. §1.5: diagnostics via the `Diag` alias.
-//
-// PORT-NOTE: tracing.* (Instant/Push) omitted (--generateTrace is phase 9; Tracer shell has no surface).
 
 using System;
 using System.Collections.Generic;
@@ -287,6 +285,10 @@ public partial class Checker
         {
             var (id, _) = GetRelationKey(source, target, IntersectionState.None, relation == identityRelation, false);
             relation.Set(id, RelationComparisonResult.Failed | (r.relationCount <= 0 ? RelationComparisonResult.ComplexityOverflow : RelationComparisonResult.StackDepthOverflow));
+            if (tracer is { } tr)
+            {
+                tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "checkTypeRelatedTo_DepthLimit", new Dictionary<string, object?> { ["sourceId"] = source.id.Value, ["targetId"] = target.id.Value, ["depth"] = r.sourceStack.Count, ["targetDepth"] = r.targetStack.Count });
+            }
             var message = r.relationCount <= 0 ? Diag.Excessive_complexity_comparing_types_0_and_1 : Diag.Excessive_stack_depth_comparing_types_0_and_1;
             errorNode ??= currentNode;
             ReportDiagnostic(NewDiagnosticForNode(errorNode, message, TypeToString(source), TypeToString(target)), diagnosticOutput);
@@ -1423,71 +1425,97 @@ public partial class Checker
     // relater.go:1332-1334
     internal VarianceFlags[] GetAliasVariances(Symbol symbol) => GetVariancesWorker(symbol, typeAliasLinks.Get(symbol).typeParameters);
 
-    // relater.go:1341-1411 — PORT-NOTE: tracing.Push/defer formatting omitted (phase 9).
+    // relater.go:1341-1411
     internal VarianceFlags[] GetVariancesWorker(Symbol? symbol, Type[]? typeParameters)
     {
         var links = varianceLinks.Get(symbol!);
         if (links.variances == null)
         {
-            var oldVarianceComputation = inVarianceComputation;
-            var saveResolutionStart = resolutionStart;
-            if (!inVarianceComputation)
+            // relater.go:1344-1356 — Go `defer func() { traceArgs["variances"] = formatted; popFn() }()`
+            // → try/finally; the end event carries the formatted variances.
+            Dictionary<string, object?>? traceArgs = null;
+            Action? popFn = null;
+            if (tracer is { } tr)
             {
-                inVarianceComputation = true;
-                resolutionStart = typeResolutions.Count;
+                traceArgs = new Dictionary<string, object?> { ["arity"] = typeParameters.Len(), ["id"] = GetDeclaredTypeOfSymbol(symbol!).id.Value };
+                popFn = tr.Push(global::Ts.Tracing.Phase.CheckTypes, "getVariancesWorker", traceArgs, true);
             }
-            links.variances = [];
-            var variances = new VarianceFlags[typeParameters.Len()];
-            for (int i = 0; i < typeParameters.Len(); i++)
+            try
             {
-                var tp = typeParameters![i];
-                var modifiers = GetTypeParameterModifiers(tp);
-                VarianceFlags variance;
-                if ((modifiers & ModifierFlags.Out) != 0)
+                var oldVarianceComputation = inVarianceComputation;
+                var saveResolutionStart = resolutionStart;
+                if (!inVarianceComputation)
                 {
-                    if ((modifiers & ModifierFlags.In) != 0)
+                    inVarianceComputation = true;
+                    resolutionStart = typeResolutions.Count;
+                }
+                links.variances = [];
+                var variances = new VarianceFlags[typeParameters.Len()];
+                for (int i = 0; i < typeParameters.Len(); i++)
+                {
+                    var tp = typeParameters![i];
+                    var modifiers = GetTypeParameterModifiers(tp);
+                    VarianceFlags variance;
+                    if ((modifiers & ModifierFlags.Out) != 0)
                     {
-                        variance = VarianceFlags.Invariant;
+                        if ((modifiers & ModifierFlags.In) != 0)
+                        {
+                            variance = VarianceFlags.Invariant;
+                        }
+                        else
+                        {
+                            variance = VarianceFlags.Covariant;
+                        }
+                    }
+                    else if ((modifiers & ModifierFlags.In) != 0)
+                    {
+                        variance = VarianceFlags.Contravariant;
                     }
                     else
                     {
-                        variance = VarianceFlags.Covariant;
+                        var saveReliabilityFlags = reliabilityFlags;
+                        reliabilityFlags = 0;
+                        var typeWithSuper = CreateMarkerType(symbol!, tp, markerSuperType!);
+                        var typeWithSub = CreateMarkerType(symbol!, tp, markerSubType!);
+                        variance = (IsTypeAssignableTo(typeWithSub, typeWithSuper) ? VarianceFlags.Covariant : 0) |
+                            (IsTypeAssignableTo(typeWithSuper, typeWithSub) ? VarianceFlags.Contravariant : 0);
+                        if (variance == VarianceFlags.Bivariant && IsTypeAssignableTo(CreateMarkerType(symbol!, tp, markerOtherType!), typeWithSuper))
+                        {
+                            variance = VarianceFlags.Independent;
+                        }
+                        if ((reliabilityFlags & RelationComparisonResult.ReportsUnmeasurable) != 0)
+                        {
+                            variance |= VarianceFlags.Unmeasurable;
+                        }
+                        if ((reliabilityFlags & RelationComparisonResult.ReportsUnreliable) != 0)
+                        {
+                            variance |= VarianceFlags.Unreliable;
+                        }
+                        reliabilityFlags = saveReliabilityFlags;
                     }
+                    variances[i] = variance;
                 }
-                else if ((modifiers & ModifierFlags.In) != 0)
+                if (!oldVarianceComputation)
                 {
-                    variance = VarianceFlags.Contravariant;
+                    inVarianceComputation = false;
+                    resolutionStart = saveResolutionStart;
                 }
-                else
-                {
-                    var saveReliabilityFlags = reliabilityFlags;
-                    reliabilityFlags = 0;
-                    var typeWithSuper = CreateMarkerType(symbol!, tp, markerSuperType!);
-                    var typeWithSub = CreateMarkerType(symbol!, tp, markerSubType!);
-                    variance = (IsTypeAssignableTo(typeWithSub, typeWithSuper) ? VarianceFlags.Covariant : 0) |
-                        (IsTypeAssignableTo(typeWithSuper, typeWithSub) ? VarianceFlags.Contravariant : 0);
-                    if (variance == VarianceFlags.Bivariant && IsTypeAssignableTo(CreateMarkerType(symbol!, tp, markerOtherType!), typeWithSuper))
-                    {
-                        variance = VarianceFlags.Independent;
-                    }
-                    if ((reliabilityFlags & RelationComparisonResult.ReportsUnmeasurable) != 0)
-                    {
-                        variance |= VarianceFlags.Unmeasurable;
-                    }
-                    if ((reliabilityFlags & RelationComparisonResult.ReportsUnreliable) != 0)
-                    {
-                        variance |= VarianceFlags.Unreliable;
-                    }
-                    reliabilityFlags = saveReliabilityFlags;
-                }
-                variances[i] = variance;
+                links.variances = variances;
             }
-            if (!oldVarianceComputation)
+            finally
             {
-                inVarianceComputation = false;
-                resolutionStart = saveResolutionStart;
+                if (popFn != null)
+                {
+                    var linkVariances = links.variances ?? [];
+                    var formatted = new string[linkVariances.Length];
+                    for (int i = 0; i < linkVariances.Length; i++)
+                    {
+                        formatted[i] = linkVariances[i].ToVarianceString();
+                    }
+                    traceArgs!["variances"] = formatted;
+                    popFn();
+                }
             }
-            links.variances = variances;
         }
         return links.variances;
     }

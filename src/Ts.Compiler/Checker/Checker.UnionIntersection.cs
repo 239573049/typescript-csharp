@@ -473,7 +473,10 @@ public partial class Checker
                             var estimatedCount = (count / (length - i)) * length;
                             if (estimatedCount > 1000000)
                             {
-                                // PORT-NOTE: tracer.Instant telemetry deferred to the phase-9 tracer wave.
+                                if (tracer is { } tr)
+                                {
+                                    tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "removeSubtypes_DepthLimit", new Dictionary<string, object?> { ["estimatedCount"] = estimatedCount });
+                                }
                                 Error(currentNode, global::Ts.Diagnostics.Diagnostics.Expression_produces_a_union_type_that_is_too_complex_to_represent);
                                 return null;
                             }
@@ -1177,7 +1180,10 @@ public partial class Checker
         var size = GetCrossProductUnionSize(types);
         if (size >= 100_000)
         {
-            // PORT-NOTE: tracer.Instant telemetry deferred to the phase-9 tracer wave.
+            if (tracer is { } tr)
+            {
+                tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "checkCrossProductUnion_DepthLimit", new Dictionary<string, object?> { ["size"] = size });
+            }
             Error(currentNode, global::Ts.Diagnostics.Diagnostics.Expression_produces_a_union_type_that_is_too_complex_to_represent);
             return false;
         }

@@ -127,6 +127,23 @@ internal static class TraceJson
             case float f:
                 writer.WriteNumberValue(f);
                 break;
+            case string[] strings:
+                // Go []string args (e.g. relater.go:1408 traceArgs["variances"]) marshal as a JSON array.
+                writer.WriteStartArray();
+                foreach (string item in strings)
+                {
+                    writer.WriteStringValue(item);
+                }
+                writer.WriteEndArray();
+                break;
+            case object?[] items:
+                writer.WriteStartArray();
+                foreach (object? item in items)
+                {
+                    WriteAny(writer, item);
+                }
+                writer.WriteEndArray();
+                break;
             default:
                 // PORT-NOTE: Go's map[string]any only ever holds the primitives the
                 // callers pass (strings, ints, bools). Any other shape is stringified
