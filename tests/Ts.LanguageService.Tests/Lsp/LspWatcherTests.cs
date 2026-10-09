@@ -141,14 +141,6 @@ public sealed class LspWatcherTests : IDisposable
                 return false;
             }, "update event");
 
-            // PORT-NOTE (timing only; assertions unchanged): on macOS the CoreFX
-            // FileSystemWatcher emits spurious Changed+Created events immediately
-            // before a Deleted one. If the delete lands in the same fswatch
-            // debounce batch as those phantoms, the eventList's Go-faithful
-            // create+delete cancellation drops it (Go's own backends produce no
-            // phantoms). Letting the create batch settle (> Debounce.MaxWaitTime
-            // = 500ms) before deleting keeps this real-backend test stable.
-            Thread.Sleep(600);
             File.Delete(file);
             LspWatcherTestUtil.WaitFor(() =>
             {
