@@ -97,7 +97,10 @@ public static class DiscoverTypingsApi
         packageNameToTypingLocation.Range((name, typing) =>
         {
             Dictionary<string, string>? registryEntry = typesRegistry.GetValueOrDefault(name);
-            if (!inferredTypings.ContainsKey(name) && registryEntry != null && IsTypingUpToDate(typing, registryEntry))
+            // Go: inferredTypings[name] == "" — the zero-value read is true both for names
+            // absent from the map and for names inferred earlier with no location yet ("");
+            // the cached location must fill the latter (05-conventions.md §7.1).
+            if (inferredTypings.GetValueOrDefault(name) == "" && registryEntry != null && IsTypingUpToDate(typing, registryEntry))
             {
                 inferredTypings[name] = typing.TypingsLocation;
             }

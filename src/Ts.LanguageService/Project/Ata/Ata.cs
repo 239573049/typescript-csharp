@@ -523,10 +523,14 @@ public sealed class TypingsInstaller
                 // map-iter: 序无关 — each dev dependency is cached independently.
                 foreach (string key in npmConfig.DevDependencies.Keys)
                 {
-                    bool npmLockValueExists = npmLock.Packages!.TryGetValue("node_modules/" + key, out NpmDependencyEntry? npmLockValue);
+                    // Go: npmLock.Packages["node_modules/"+key] — a read on a nil map is a
+                    // safe zero-value miss in Go; only one of Packages/Dependencies is
+                    // populated depending on the lockfile version (05-conventions.md §7.2).
+                    NpmDependencyEntry? npmLockValue = null;
+                    bool npmLockValueExists = npmLock.Packages != null && npmLock.Packages.TryGetValue("node_modules/" + key, out npmLockValue);
                     if (!npmLockValueExists)
                     {
-                        npmLockValueExists = npmLock.Dependencies!.TryGetValue(key, out npmLockValue);
+                        npmLockValueExists = npmLock.Dependencies != null && npmLock.Dependencies.TryGetValue(key, out npmLockValue);
                     }
                     if (!npmLockValueExists)
                     {
