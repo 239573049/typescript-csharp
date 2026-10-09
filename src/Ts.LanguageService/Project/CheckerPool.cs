@@ -84,7 +84,7 @@ internal sealed class CheckerPool : global::Ts.Checker.ICheckerPool
     internal bool persistentHeld;
 
     private readonly SemaphoreSlim diagSem;
-    private readonly SemaphoreSlim querySem;
+    internal readonly SemaphoreSlim querySem;
     private readonly SemaphoreSlim persistentSem;
 
     private readonly Action<string> log;

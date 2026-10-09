@@ -36,7 +36,9 @@ public sealed partial class Registry
         }
         builder.UpdateBucketAndDirectoryExistence(change, logger);
         builder.MarkBucketsDirty(change, logger);
-        if (change.RequestedFile.Value.Length != 0)
+        // registry.go:402 — change.RequestedFile != "". (IsNullOrEmpty: a default Path has
+        // Value == null in C#, not "".)
+        if (!string.IsNullOrEmpty(change.RequestedFile.Value))
         {
             builder.UpdateIndexes(ctx, change, logger);
         }
@@ -134,7 +136,8 @@ internal sealed partial class RegistryBuilder
             }
         }
 
-        if (change.RequestedFile.Value.Length != 0)
+        // registry.go:577 — change.RequestedFile != "". (IsNullOrEmpty: see Build above.)
+        if (!string.IsNullOrEmpty(change.RequestedFile.Value))
         {
             neededProjects.Add(host.GetDefaultProject(change.RequestedFile).Path);
             if (!specifierCache.Has(change.RequestedFile))
@@ -425,7 +428,8 @@ internal sealed partial class RegistryBuilder
     internal void UpdateIndexes(CancellationToken ctx, RegistryChange change, LogTree? logger)
     {
         var (projectPath, _) = host.GetDefaultProject(change.RequestedFile);
-        if (projectPath.Value.Length == 0)
+        // registry.go:801 — projectPath == "". (IsNullOrEmpty: see Build above.)
+        if (string.IsNullOrEmpty(projectPath.Value))
         {
             return;
         }

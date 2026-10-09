@@ -49,7 +49,9 @@ public sealed class Project : IDisposable, LsProject, global::Ts.Project.Dirty.C
 
     private readonly string currentDirectory;
     private readonly string configFileName;
-    internal readonly global::Ts.TsPath.Path configFilePath;
+    // PORT-NOTE(project.go:246): Clone copies configFilePath verbatim (no recompute), so
+    // this cannot be readonly.
+    internal global::Ts.TsPath.Path configFilePath;
     private readonly List<global::Ts.FsWatch.IWatch> watches = [];
     private bool disposed;
 
@@ -187,6 +189,10 @@ public sealed class Project : IDisposable, LsProject, global::Ts.Project.Dirty.C
             typingsFiles = typingsFiles,
             LanguageService = LanguageService,
         };
+        // Go copies configFilePath into the clone literally (project.go:246). Recomputing
+        // it here would re-case the path (the ctor parameter above is a stand-in for Go's
+        // omitted useCaseSensitiveFileNames field), so assign the original.
+        clone.configFilePath = configFilePath;
         return clone;
     }
 

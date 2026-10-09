@@ -230,6 +230,9 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:402-407
     public SourceFile[] SourceFiles() => processed.Files;
 
+    // program.go:403
+    public DuplicateSourceFile[] DuplicateSourceFiles() => processed.DuplicateSourceFiles;
+
     public global::Ts.TsOptions.ParsedCommandLine CommandLine() => opts.Config;
 
     public CompilerHost Host() => opts.Host;
