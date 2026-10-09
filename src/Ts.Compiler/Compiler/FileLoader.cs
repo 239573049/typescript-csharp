@@ -464,6 +464,21 @@ internal sealed class FileLoader
     // fileloader.go:364-376
     internal SourceFile? ParseSourceFile(ParseTask t)
     {
+        Action releaseTracing = global::Ts.Tracing.TracingExtensions.Push(
+            Opts.Tracing, global::Ts.Tracing.Phase.Parse, "createSourceFile",
+            new Dictionary<string, object?> { ["path"] = t.NormalizedFilePath }, true);
+        try
+        {
+            return ParseSourceFileWorker(t);
+        }
+        finally
+        {
+            releaseTracing();
+        }
+    }
+
+    private SourceFile? ParseSourceFileWorker(ParseTask t)
+    {
         var path = ToPath(t.NormalizedFilePath);
         var options = ProjectReferenceFileMapper.GetCompilerOptionsForFile(t);
         var sourceFile = Opts.Host.GetSourceFile(new SourceFileParseOptions
