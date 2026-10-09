@@ -32,8 +32,8 @@ const client = getClient();
     {
     InlayHints = new InlayHintsPreferences
     {
-    IncludeInlayVariableTypeHints = Core.TSTrue,
-    IncludeInlayVariableTypeHintsWhenTypeMatchesName = Core.TSFalse,
+    IncludeInlayVariableTypeHints = Core_.TSTrue,
+    IncludeInlayVariableTypeHintsWhenTypeMatchesName = Core_.TSFalse,
     },
     });
     }

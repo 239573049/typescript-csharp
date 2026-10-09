@@ -27,7 +27,7 @@ if(true)
 /**/ }
 """;
         using var f = FourslashTest.New(content, fileName: "formatOnOpenCurlyBraceRemoveNewLine", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core.TSFalse });
+    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSFalse });
 
     f.GoToMarker("");
 

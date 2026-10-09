@@ -53,7 +53,7 @@ console.log(A, a, B, b, c, C, d, D);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSUnknown,
+    OrganizeImportsIgnoreCase = Core_.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
     }
         );
@@ -75,7 +75,7 @@ console.log(A, a, B, b, c, C, d, D);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSUnknown,
+    OrganizeImportsIgnoreCase = Core_.TSUnknown,
     OrganizeImportsTypeOrder = LsUtil.OrganizeImportsTypeOrder.Inline,
     }
         );

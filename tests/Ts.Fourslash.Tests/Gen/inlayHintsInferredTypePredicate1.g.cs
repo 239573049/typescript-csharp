@@ -33,7 +33,7 @@ function test(x: unknown) {
     {
     InlayHints = new InlayHintsPreferences
     {
-    IncludeInlayFunctionLikeReturnTypeHints = Core.TSTrue,
+    IncludeInlayFunctionLikeReturnTypeHints = Core_.TSTrue,
     },
     });
     }

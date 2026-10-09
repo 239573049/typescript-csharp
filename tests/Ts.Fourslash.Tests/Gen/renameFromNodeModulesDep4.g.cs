@@ -42,48 +42,48 @@ export const h: string;
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSTrue,
+    UseAliasesForRename = Core_.TSTrue,
     });
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSFalse,
+    UseAliasesForRename = Core_.TSFalse,
     });
 
     f.GoToMarker("ok2");
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSTrue,
+    UseAliasesForRename = Core_.TSTrue,
     });
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSFalse,
+    UseAliasesForRename = Core_.TSFalse,
     });
 
     f.GoToMarker("notOk");
 
     f.VerifyRenameFailed(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSTrue,
+    UseAliasesForRename = Core_.TSTrue,
     });
 
     f.VerifyRenameFailed(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSFalse,
+    UseAliasesForRename = Core_.TSFalse,
     });
 
     f.GoToMarker("okWithAlias");
 
     f.VerifyRenameSucceeded(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSTrue,
+    UseAliasesForRename = Core_.TSTrue,
     });
 
     f.VerifyRenameFailed(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSFalse,
+    UseAliasesForRename = Core_.TSFalse,
     });
     }
 }

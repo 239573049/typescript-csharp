@@ -33,7 +33,7 @@ public class FormattingSpacesAfterConstructorTests
 
     f.VerifyCurrentLineContent("class test { constructor() { } }");
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterConstructor = Core.TSTrue });
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterConstructor = Core_.TSTrue });
 
     f.FormatDocument("");
 

@@ -36,7 +36,7 @@ import { aa, CaseInsensitively, sorted } from "aardvark";
             LsProto.CodeActionKind.SourceSortImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSUnknown,
+    OrganizeImportsIgnoreCase = Core_.TSUnknown,
     }
         );
     }

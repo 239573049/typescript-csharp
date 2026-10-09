@@ -35,7 +35,7 @@ function foo([|{ a, ...[|{| "contextRangeIndex": 0 |}rest|] }: I|]) {
         using var f = FourslashTest.New(content, fileName: "renameRestBindingElement", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSTrue,
+    UseAliasesForRename = Core_.TSTrue,
     }, f.Ranges()[1]);
     }
 }

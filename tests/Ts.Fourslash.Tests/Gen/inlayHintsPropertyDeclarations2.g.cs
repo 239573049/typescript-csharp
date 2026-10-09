@@ -44,7 +44,7 @@ class C {
     {
     InlayHints = new InlayHintsPreferences
     {
-    IncludeInlayPropertyDeclarationTypeHints = Core.TSTrue,
+    IncludeInlayPropertyDeclarationTypeHints = Core_.TSTrue,
     },
     });
     }

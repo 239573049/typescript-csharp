@@ -47,7 +47,7 @@ console.log(_aB, _Ab, aB, Ab);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSFalse,
+    OrganizeImportsIgnoreCase = Core_.TSFalse,
     OrganizeImportsCollation = LsUtil.OrganizeImportsCollation.Unicode,
     OrganizeImportsCaseFirst = LsUtil.OrganizeImportsCaseFirst.Upper,
     }
@@ -67,7 +67,7 @@ console.log(_aB, _Ab, aB, Ab);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSFalse,
+    OrganizeImportsIgnoreCase = Core_.TSFalse,
     OrganizeImportsCollation = LsUtil.OrganizeImportsCollation.Unicode,
     OrganizeImportsCaseFirst = LsUtil.OrganizeImportsCaseFirst.Lower,
     }

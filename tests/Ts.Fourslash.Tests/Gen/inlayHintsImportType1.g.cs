@@ -37,7 +37,7 @@ const a = require('./a');
     {
     InlayHints = new InlayHintsPreferences
     {
-    IncludeInlayVariableTypeHints = Core.TSTrue,
+    IncludeInlayVariableTypeHints = Core_.TSTrue,
     },
     });
     }

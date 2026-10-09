@@ -29,7 +29,7 @@ public class FormattingInDestructuring4Tests
 /*4*/} = { a: 1, b: 2 };
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInDestructuring4", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = Core.TSFalse });
+    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = Core_.TSFalse });
 
     f.FormatDocument("");
 

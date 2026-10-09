@@ -44,7 +44,7 @@ function f12(a = ((({ a: 1, b: 1 })))) {}
     {
     InlayHints = new InlayHintsPreferences
     {
-    IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
+    IncludeInlayFunctionParameterTypeHints = Core_.TSTrue,
     },
     });
     }

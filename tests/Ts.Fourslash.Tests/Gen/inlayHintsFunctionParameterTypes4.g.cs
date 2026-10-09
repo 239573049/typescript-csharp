@@ -40,7 +40,7 @@ class Foo {
     {
     InlayHints = new InlayHintsPreferences
     {
-    IncludeInlayFunctionParameterTypeHints = Core.TSTrue,
+    IncludeInlayFunctionParameterTypeHints = Core_.TSTrue,
     },
     });
     }

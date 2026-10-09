@@ -49,7 +49,7 @@ console.log(a, b);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSUnknown,
+    OrganizeImportsIgnoreCase = Core_.TSUnknown,
     }
         );
 
@@ -64,7 +64,7 @@ console.log(a, b);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSTrue,
+    OrganizeImportsIgnoreCase = Core_.TSTrue,
     }
         );
 
@@ -79,7 +79,7 @@ console.log(a, b);
             LsProto.CodeActionKind.SourceOrganizeImports,
             new LsUtil.UserPreferences
     {
-    OrganizeImportsIgnoreCase = Core.TSFalse,
+    OrganizeImportsIgnoreCase = Core_.TSFalse,
     }
         );
     }

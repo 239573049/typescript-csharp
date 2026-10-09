@@ -686,7 +686,7 @@ function parseFormatStatement(funcName: string, args: readonly ts.Expression[]):
             // Go emits three statements (GetOptions / field assign / Configure). The C#
             // UserPreferences does not carry a FormatCodeSettings field yet, so the C#
             // emission is the equivalent single ConfigureFormat call (see file header).
-            const formattedValue = optValue === "true" || optValue === "false" || optValue.startsWith("Core.TS") || optValue.startsWith("Core_.TS")
+            const formattedValue = optValue === "true" || optValue === "false" || optValue.startsWith("Core_.TS")
                 ? optValue
                 : csStringLiteral(JSON.parse(optValue));
             return [{

@@ -52,7 +52,7 @@ var clear =
 
     """);
 
-    f.ConfigureFormat(new FormatCodeSettings { IndentMultiLineObjectLiteralBeginningOnBlankLine = Core.TSTrue });
+    f.ConfigureFormat(new FormatCodeSettings { IndentMultiLineObjectLiteralBeginningOnBlankLine = Core_.TSTrue });
 
     f.FormatDocument("");
 

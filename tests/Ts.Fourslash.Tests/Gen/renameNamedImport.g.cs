@@ -44,7 +44,7 @@ someExportedVariable;
 
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSTrue,
+    UseAliasesForRename = Core_.TSTrue,
     }, "i");
     }
 }

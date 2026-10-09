@@ -33,7 +33,7 @@ const x = name.toString();
         using var f = FourslashTest.New(content, fileName: "renameExportSpecifier", cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyBaselineRename(new LsUtil.UserPreferences
     {
-    UseAliasesForRename = Core.TSFalse,
+    UseAliasesForRename = Core_.TSFalse,
     }, "");
     }
 }

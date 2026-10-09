@@ -31,7 +31,7 @@ public class FormatSelectionPreserveTrailingWhitespaceTests
 
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionPreserveTrailingWhitespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core.TSFalse });
+    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core_.TSFalse });
 
     f.FormatSelection("begin", "end");
 
