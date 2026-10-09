@@ -27,9 +27,9 @@ public class SyntacticClassificationsDocComment4Tests
 function foo(p1) {}
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsDocComment4", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "function.declaration", Text = "foo" },
-            new SemanticToken { Type = "parameter.declaration", Text = "p1" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("function.declaration", "foo"),
+            new SemanticToken("parameter.declaration", "p1")
         });
     }
 }

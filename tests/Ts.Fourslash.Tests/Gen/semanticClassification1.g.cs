@@ -30,12 +30,12 @@ module /*0*/M {
 interface /*2*/X extends /*3*/M./*4*/I { }
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassification1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "namespace.declaration", Text = "M" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "interface.declaration", Text = "X" },
-            new SemanticToken { Type = "namespace", Text = "M" },
-            new SemanticToken { Type = "interface", Text = "I" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("namespace.declaration", "M"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("interface.declaration", "X"),
+            new SemanticToken("namespace", "M"),
+            new SemanticToken("interface", "I")
         });
     }
 }

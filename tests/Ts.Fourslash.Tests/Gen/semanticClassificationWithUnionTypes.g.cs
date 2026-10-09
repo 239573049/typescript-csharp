@@ -37,19 +37,19 @@ var M: /*4*/M./*5*/I | /*6*/I | /*7*/C;
 var I: typeof M | typeof /*8*/C;
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassificationWithUnionTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable", Text = "M" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "class.declaration", Text = "C" },
-            new SemanticToken { Type = "variable.declaration", Text = "M" },
-            new SemanticToken { Type = "variable", Text = "M" },
-            new SemanticToken { Type = "interface", Text = "I" },
-            new SemanticToken { Type = "interface", Text = "I" },
-            new SemanticToken { Type = "class", Text = "C" },
-            new SemanticToken { Type = "class.declaration", Text = "I" },
-            new SemanticToken { Type = "variable", Text = "M" },
-            new SemanticToken { Type = "class", Text = "C" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable", "M"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("class.declaration", "C"),
+            new SemanticToken("variable.declaration", "M"),
+            new SemanticToken("variable", "M"),
+            new SemanticToken("interface", "I"),
+            new SemanticToken("interface", "I"),
+            new SemanticToken("class", "C"),
+            new SemanticToken("class.declaration", "I"),
+            new SemanticToken("variable", "M"),
+            new SemanticToken("class", "C")
         });
     }
 }

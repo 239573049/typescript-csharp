@@ -34,18 +34,18 @@ module /*0*/M {
 `abcd${ /*3*/M./*4*/C.x + /*5*/M./*6*/E.E1}efg`
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassificationInTemplateExpressions", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "namespace.declaration", Text = "M" },
-            new SemanticToken { Type = "class.declaration", Text = "C" },
-            new SemanticToken { Type = "property.declaration.static", Text = "x" },
-            new SemanticToken { Type = "enum.declaration", Text = "E" },
-            new SemanticToken { Type = "enumMember.declaration.readonly", Text = "E1" },
-            new SemanticToken { Type = "namespace", Text = "M" },
-            new SemanticToken { Type = "class", Text = "C" },
-            new SemanticToken { Type = "property.static", Text = "x" },
-            new SemanticToken { Type = "namespace", Text = "M" },
-            new SemanticToken { Type = "enum", Text = "E" },
-            new SemanticToken { Type = "enumMember.readonly", Text = "E1" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("namespace.declaration", "M"),
+            new SemanticToken("class.declaration", "C"),
+            new SemanticToken("property.declaration.static", "x"),
+            new SemanticToken("enum.declaration", "E"),
+            new SemanticToken("enumMember.declaration.readonly", "E1"),
+            new SemanticToken("namespace", "M"),
+            new SemanticToken("class", "C"),
+            new SemanticToken("property.static", "x"),
+            new SemanticToken("namespace", "M"),
+            new SemanticToken("enum", "E"),
+            new SemanticToken("enumMember.readonly", "E1")
         });
     }
 }

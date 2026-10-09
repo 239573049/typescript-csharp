@@ -30,7 +30,7 @@ public class SyntacticClassificationsMergeConflictMarker1Tests
 >>>>>>> Feature
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsMergeConflictMarker1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
+    f.VerifySemanticTokens(new SemanticToken[]{
             
         });
     }

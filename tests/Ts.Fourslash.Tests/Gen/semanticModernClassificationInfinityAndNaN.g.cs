@@ -49,14 +49,14 @@ obj2.Infinity;
 obj2.NaN;
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationInfinityAndNaN", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration.readonly", Text = "obj1" },
-            new SemanticToken { Type = "variable.readonly", Text = "obj1" },
-            new SemanticToken { Type = "variable.readonly", Text = "obj1" },
-            new SemanticToken { Type = "variable.readonly", Text = "obj1" },
-            new SemanticToken { Type = "variable.declaration.readonly", Text = "obj2" },
-            new SemanticToken { Type = "variable.readonly", Text = "obj2" },
-            new SemanticToken { Type = "variable.readonly", Text = "obj2" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration.readonly", "obj1"),
+            new SemanticToken("variable.readonly", "obj1"),
+            new SemanticToken("variable.readonly", "obj1"),
+            new SemanticToken("variable.readonly", "obj1"),
+            new SemanticToken("variable.declaration.readonly", "obj2"),
+            new SemanticToken("variable.readonly", "obj2"),
+            new SemanticToken("variable.readonly", "obj2")
         });
     }
 }

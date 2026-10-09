@@ -32,9 +32,9 @@ class C {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsConflictMarkers1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.declaration", Text = "C" },
-            new SemanticToken { Type = "property.declaration", Text = "v" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.declaration", "C"),
+            new SemanticToken("property.declaration", "v")
         });
     }
 }

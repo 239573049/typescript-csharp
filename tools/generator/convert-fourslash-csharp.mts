@@ -3757,7 +3757,7 @@ function parseVerifyNavigateToArg(arg: ts.Expression): string {
     {
         Pattern = ${pattern ? pattern : `""`},
         Preferences = ${prefs},
-        Exact = new[]{${items.length ? items.join(",\n") + "," : ""}},
+        Exact = new LsProto.SymbolInformation[]{${items.length ? items.join(",\n") + "," : ""}},
     }`;
 }
 
@@ -4291,9 +4291,15 @@ function generateVerifyCompletions({ marker, args, isNewIdentifierLocation, andA
 }`;
     }
 
+    // Go: `f.VerifyCompletions(t, ...)` returns a VerifyCompletionsResult value that the corpus
+    // chains `.andApplyCodeAction(...)` / `.andHasNoCodeAction(...)` on with a discarding
+    // expression statement. C# cannot chain on a `void`-returning call, so the Go result value
+    // is spelled as two statements here: the verify call, then `f.ApplyCodeActionFromCompletion(...)`
+    // (the same helper `verify.applyCodeActionFromCompletion` reaches directly).
     const call = `f.VerifyCompletions(${marker}, ${expectedList})`;
     if (andApplyCodeActionArgs) {
-        return `${call}.AndApplyCodeAction(new CompletionsExpectedCodeAction
+        return `${call};
+f.ApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
 {
     Name = ${csStringLiteral(andApplyCodeActionArgs.name)},
     Source = ${csStringLiteral(andApplyCodeActionArgs.source)},
@@ -4538,10 +4544,10 @@ function generateNavigateTo({ args }: VerifyNavToCmd): string {
 }
 
 function generateSemanticClassifications({ format, tokens }: VerifySemanticClassificationsCmd): string {
-    const tokensStr = tokens.map(t => `new SemanticToken { Type = ${csStringLiteral(t.type)}, Text = ${csStringLiteral(t.text)} }`).join(",\n        ");
-    const maybeComma = tokens.length > 0 ? "," : "";
-    return `f.VerifySemanticTokens(new[]{
-        ${tokensStr}${maybeComma}
+    const tokensStr = tokens.map(t => `new SemanticToken(${csStringLiteral(t.type)}, ${csStringLiteral(t.text)})`).join(",\n        ");
+    // An explicit element type keeps the empty-token case (`[]`) typed (CS0826).
+    return `f.VerifySemanticTokens(new SemanticToken[]{
+        ${tokensStr}
     })`;
 }
 
@@ -4720,9 +4726,9 @@ function testName(name: string): string {
 }
 
 // Rewrites the class name and test method name of an already-emitted .g.cs when a basename
-// collision forces a `_server`-style output name. The header comment (which cites the upstream
-// and gen file paths) is left alone for the rare collisions where a source file is shared; in
-// practice the colliding pairs are distinct files, so only the two identifier lines change.
+// The header comment (which cites the upstream and gen file paths) is left alone for the rare
+// collisions where a source file is shared; in practice the colliding pairs are distinct files,
+// so only the two identifier lines change.
 function retargetTestName(content: string, oldName: string, newName: string): string {
     const oldCs = testName(oldName);
     const newCs = testName(newName);
@@ -4789,7 +4795,7 @@ function generateCSharpTest(test: GoTest, isServer: boolean, isCrashing: boolean
     const newStatement = hasDocCommentTemplateCommands
         ? `        var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: ${JSON.stringify(test.name)}, capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);`
+        using var f = FourslashTest.New(content, fileName: ${JSON.stringify(test.name)}, new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);`
         : `        using var f = FourslashTest.New(content, fileName: ${JSON.stringify(test.name)}, cancellationToken: TestContext.Current.CancellationToken);`;
     const body = `        SkipIfFailing.Check();
         const string content = ${contentLiteral(content)};
@@ -4996,6 +5002,8 @@ function emitFourslashTestUtil(): void {
 // using-alias inside this namespace (CS0234: the alias binds to the namespace itself), so the
 // two aliases are declared compilation-wide by Ts.Fourslash.Tests.csproj Using items
 // (named Core_/Ls_ because a bare Core/Ls alias cannot be declared at all).
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;

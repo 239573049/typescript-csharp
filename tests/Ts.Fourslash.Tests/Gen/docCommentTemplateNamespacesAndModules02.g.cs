@@ -31,7 +31,7 @@ namespace n1.
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateNamespacesAndModules02", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateNamespacesAndModules02", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyJSDocCompletion("top", 3, "/** */", null);
 
     f.VerifyNoJSDocCompletion("n2");

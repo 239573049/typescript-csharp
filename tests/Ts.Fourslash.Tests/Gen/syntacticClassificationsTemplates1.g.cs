@@ -30,11 +30,11 @@ var x = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsTemplates1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "v" },
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "property.declaration", Text = "p1" },
-            new SemanticToken { Type = "property.declaration", Text = "p2" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "v"),
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("property.declaration", "p1"),
+            new SemanticToken("property.declaration", "p2")
         });
     }
 }

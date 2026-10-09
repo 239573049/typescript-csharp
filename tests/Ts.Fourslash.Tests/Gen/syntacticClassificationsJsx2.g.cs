@@ -31,9 +31,9 @@ let x  = <div.name b = "some-value" c = {1}>
 let y = <element.name attr="123"/>
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsJsx2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "variable.declaration", Text = "y" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("variable.declaration", "y")
         });
     }
 }

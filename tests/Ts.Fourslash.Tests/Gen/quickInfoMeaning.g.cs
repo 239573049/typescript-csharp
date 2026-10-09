@@ -56,7 +56,7 @@ const i: bar/*bar_type*/ = { x: 1, y: 2 };
         {
             Pattern = "foo",
             Preferences = null,
-            Exact = new[]{new LsProto.SymbolInformation
+            Exact = new LsProto.SymbolInformation[]{new LsProto.SymbolInformation
     {
     Name = "foo",
     Kind = LsProto.SymbolKind.Variable,
@@ -89,7 +89,7 @@ const i: bar/*bar_type*/ = { x: 1, y: 2 };
         {
             Pattern = "bar",
             Preferences = null,
-            Exact = new[]{new LsProto.SymbolInformation
+            Exact = new LsProto.SymbolInformation[]{new LsProto.SymbolInformation
     {
     Name = "bar",
     Kind = LsProto.SymbolKind.Interface,

@@ -29,9 +29,9 @@ class A {
 c =
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationWithErrors", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.declaration", Text = "A" },
-            new SemanticToken { Type = "property.declaration", Text = "a" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.declaration", "A"),
+            new SemanticToken("property.declaration", "a")
         });
     }
 }

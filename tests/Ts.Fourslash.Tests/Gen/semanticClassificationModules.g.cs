@@ -33,17 +33,17 @@ var x: /*2*/M./*3*/I = /*4*/M.v;
 var y = /*5*/M;
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassificationModules", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "namespace.declaration", Text = "M" },
-            new SemanticToken { Type = "variable.declaration.local", Text = "v" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "namespace", Text = "M" },
-            new SemanticToken { Type = "interface", Text = "I" },
-            new SemanticToken { Type = "namespace", Text = "M" },
-            new SemanticToken { Type = "variable.local", Text = "v" },
-            new SemanticToken { Type = "variable.declaration", Text = "y" },
-            new SemanticToken { Type = "namespace", Text = "M" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("namespace.declaration", "M"),
+            new SemanticToken("variable.declaration.local", "v"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("namespace", "M"),
+            new SemanticToken("interface", "I"),
+            new SemanticToken("namespace", "M"),
+            new SemanticToken("variable.local", "v"),
+            new SemanticToken("variable.declaration", "y"),
+            new SemanticToken("namespace", "M")
         });
     }
 }

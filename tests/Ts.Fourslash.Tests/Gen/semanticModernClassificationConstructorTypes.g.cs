@@ -29,13 +29,13 @@ const x = Promise.resolve(Number.MAX_VALUE);
 if (x instanceof Promise) {}
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationConstructorTypes", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.defaultLibrary", Text = "Object" },
-            new SemanticToken { Type = "method.defaultLibrary", Text = "create" },
-            new SemanticToken { Type = "variable.declaration.readonly", Text = "x" },
-            new SemanticToken { Type = "class.defaultLibrary", Text = "Number" },
-            new SemanticToken { Type = "property.readonly.defaultLibrary", Text = "MAX_VALUE" },
-            new SemanticToken { Type = "variable.readonly", Text = "x" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.defaultLibrary", "Object"),
+            new SemanticToken("method.defaultLibrary", "create"),
+            new SemanticToken("variable.declaration.readonly", "x"),
+            new SemanticToken("class.defaultLibrary", "Number"),
+            new SemanticToken("property.readonly.defaultLibrary", "MAX_VALUE"),
+            new SemanticToken("variable.readonly", "x")
         });
     }
 }

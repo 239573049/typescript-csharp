@@ -32,7 +32,7 @@ declare function
         {
             Pattern = "",
             Preferences = null,
-            Exact = new[]{},
+            Exact = new LsProto.SymbolInformation[]{},
         }});
     }
 }

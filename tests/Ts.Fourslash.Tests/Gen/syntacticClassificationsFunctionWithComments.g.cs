@@ -33,13 +33,13 @@ function myFunction(/* x */ x: any) {
 // end of file
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsFunctionWithComments", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "function.declaration", Text = "myFunction" },
-            new SemanticToken { Type = "parameter.declaration", Text = "x" },
-            new SemanticToken { Type = "variable.declaration.local", Text = "y" },
-            new SemanticToken { Type = "parameter", Text = "x" },
-            new SemanticToken { Type = "parameter", Text = "x" },
-            new SemanticToken { Type = "parameter", Text = "x" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("function.declaration", "myFunction"),
+            new SemanticToken("parameter.declaration", "x"),
+            new SemanticToken("variable.declaration.local", "y"),
+            new SemanticToken("parameter", "x"),
+            new SemanticToken("parameter", "x"),
+            new SemanticToken("parameter", "x")
         });
     }
 }

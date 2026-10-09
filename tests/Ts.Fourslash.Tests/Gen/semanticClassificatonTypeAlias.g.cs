@@ -29,16 +29,16 @@ var y = </*2*/Alias>{};
 function f(x: /*3*/Alias): /*4*/Alias { return undefined; }
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassificatonTypeAlias", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "type.declaration", Text = "Alias" },
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "type", Text = "Alias" },
-            new SemanticToken { Type = "variable.declaration", Text = "y" },
-            new SemanticToken { Type = "type", Text = "Alias" },
-            new SemanticToken { Type = "function.declaration", Text = "f" },
-            new SemanticToken { Type = "parameter.declaration", Text = "x" },
-            new SemanticToken { Type = "type", Text = "Alias" },
-            new SemanticToken { Type = "type", Text = "Alias" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("type.declaration", "Alias"),
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("type", "Alias"),
+            new SemanticToken("variable.declaration", "y"),
+            new SemanticToken("type", "Alias"),
+            new SemanticToken("function.declaration", "f"),
+            new SemanticToken("parameter.declaration", "x"),
+            new SemanticToken("type", "Alias"),
+            new SemanticToken("type", "Alias")
         });
     }
 }

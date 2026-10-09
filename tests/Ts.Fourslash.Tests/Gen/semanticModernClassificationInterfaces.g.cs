@@ -28,21 +28,21 @@ const p = { x: 1, y: 2 } as Pos;
 const foo = (o: Pos) => o.x + o.y;
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationInterfaces", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "interface.declaration", Text = "Pos" },
-            new SemanticToken { Type = "property.declaration", Text = "x" },
-            new SemanticToken { Type = "property.declaration", Text = "y" },
-            new SemanticToken { Type = "variable.declaration.readonly", Text = "p" },
-            new SemanticToken { Type = "property.declaration", Text = "x" },
-            new SemanticToken { Type = "property.declaration", Text = "y" },
-            new SemanticToken { Type = "interface", Text = "Pos" },
-            new SemanticToken { Type = "function.declaration.readonly", Text = "foo" },
-            new SemanticToken { Type = "parameter.declaration", Text = "o" },
-            new SemanticToken { Type = "interface", Text = "Pos" },
-            new SemanticToken { Type = "parameter", Text = "o" },
-            new SemanticToken { Type = "property", Text = "x" },
-            new SemanticToken { Type = "parameter", Text = "o" },
-            new SemanticToken { Type = "property", Text = "y" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("interface.declaration", "Pos"),
+            new SemanticToken("property.declaration", "x"),
+            new SemanticToken("property.declaration", "y"),
+            new SemanticToken("variable.declaration.readonly", "p"),
+            new SemanticToken("property.declaration", "x"),
+            new SemanticToken("property.declaration", "y"),
+            new SemanticToken("interface", "Pos"),
+            new SemanticToken("function.declaration.readonly", "foo"),
+            new SemanticToken("parameter.declaration", "o"),
+            new SemanticToken("interface", "Pos"),
+            new SemanticToken("parameter", "o"),
+            new SemanticToken("property", "x"),
+            new SemanticToken("parameter", "o"),
+            new SemanticToken("property", "y")
         });
     }
 }

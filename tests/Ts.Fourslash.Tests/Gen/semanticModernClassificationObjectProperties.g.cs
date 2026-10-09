@@ -28,13 +28,13 @@ const a1 = { e: 1 };
 var a2 = { x };
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationObjectProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "variable.declaration", Text = "y" },
-            new SemanticToken { Type = "variable.declaration.readonly", Text = "a1" },
-            new SemanticToken { Type = "property.declaration", Text = "e" },
-            new SemanticToken { Type = "variable.declaration", Text = "a2" },
-            new SemanticToken { Type = "property.declaration", Text = "x" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("variable.declaration", "y"),
+            new SemanticToken("variable.declaration.readonly", "a1"),
+            new SemanticToken("property.declaration", "e"),
+            new SemanticToken("variable.declaration", "a2"),
+            new SemanticToken("property.declaration", "x")
         });
     }
 }

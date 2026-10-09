@@ -28,7 +28,7 @@ public class DocCommentTemplateEmptyFileTests
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateEmptyFile", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateEmptyFile", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyNoJSDocCompletion("0");
     }
 }

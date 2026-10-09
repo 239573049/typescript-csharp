@@ -35,18 +35,18 @@ var x = {
 };
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "v" },
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "property.declaration", Text = "p1" },
-            new SemanticToken { Type = "property.declaration", Text = "p2" },
-            new SemanticToken { Type = "property.declaration", Text = "any" },
-            new SemanticToken { Type = "property.declaration", Text = "function" },
-            new SemanticToken { Type = "property.declaration", Text = "var" },
-            new SemanticToken { Type = "property.declaration", Text = "void" },
-            new SemanticToken { Type = "property.declaration", Text = "v" },
-            new SemanticToken { Type = "variable", Text = "v" },
-            new SemanticToken { Type = "variable", Text = "v" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "v"),
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("property.declaration", "p1"),
+            new SemanticToken("property.declaration", "p2"),
+            new SemanticToken("property.declaration", "any"),
+            new SemanticToken("property.declaration", "function"),
+            new SemanticToken("property.declaration", "var"),
+            new SemanticToken("property.declaration", "void"),
+            new SemanticToken("property.declaration", "v"),
+            new SemanticToken("variable", "v"),
+            new SemanticToken("variable", "v")
         });
     }
 }

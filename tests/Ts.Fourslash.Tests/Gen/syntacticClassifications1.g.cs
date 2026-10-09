@@ -42,16 +42,16 @@ namespace M {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassifications1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "namespace.declaration", Text = "M" },
-            new SemanticToken { Type = "variable.declaration.local", Text = "v" },
-            new SemanticToken { Type = "variable.declaration.local", Text = "s" },
-            new SemanticToken { Type = "class.declaration", Text = "C" },
-            new SemanticToken { Type = "typeParameter.declaration", Text = "T" },
-            new SemanticToken { Type = "enum.declaration", Text = "E" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "namespace.declaration", Text = "M1" },
-            new SemanticToken { Type = "namespace.declaration", Text = "M2" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("namespace.declaration", "M"),
+            new SemanticToken("variable.declaration.local", "v"),
+            new SemanticToken("variable.declaration.local", "s"),
+            new SemanticToken("class.declaration", "C"),
+            new SemanticToken("typeParameter.declaration", "T"),
+            new SemanticToken("enum.declaration", "E"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("namespace.declaration", "M1"),
+            new SemanticToken("namespace.declaration", "M2")
         });
     }
 }

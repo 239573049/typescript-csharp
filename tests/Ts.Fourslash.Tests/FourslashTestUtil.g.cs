@@ -10,6 +10,8 @@
 // two aliases are declared compilation-wide by Ts.Fourslash.Tests.csproj Using items
 // (named Core_/Ls_ because a bare Core/Ls alias cannot be declared at all).
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

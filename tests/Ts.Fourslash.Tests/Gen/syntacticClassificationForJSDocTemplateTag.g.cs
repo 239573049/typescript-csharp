@@ -28,10 +28,10 @@ function ident<T>: T {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationForJSDocTemplateTag", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "function.declaration", Text = "ident" },
-            new SemanticToken { Type = "typeParameter.declaration", Text = "T" },
-            new SemanticToken { Type = "typeParameter", Text = "T" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("function.declaration", "ident"),
+            new SemanticToken("typeParameter.declaration", "T"),
+            new SemanticToken("typeParameter", "T")
         });
     }
 }

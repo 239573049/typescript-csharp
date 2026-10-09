@@ -30,7 +30,7 @@ function foo(x, y, z) {}
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateWithMultipleJSDoc2", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateWithMultipleJSDoc2", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyJSDocCompletion("", 7, """
     /**
      * 

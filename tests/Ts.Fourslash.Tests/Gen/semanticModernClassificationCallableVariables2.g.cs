@@ -32,21 +32,21 @@ function (mode: LanguageMode | undefined) { if (mode && mode.getFoldingRanges) {
 function b(a: () => void) { a(); };
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationCallableVariables2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "fs" },
-            new SemanticToken { Type = "interface.declaration", Text = "LanguageMode" },
-            new SemanticToken { Type = "method.declaration", Text = "getFoldingRanges" },
-            new SemanticToken { Type = "parameter.declaration", Text = "d" },
-            new SemanticToken { Type = "parameter.declaration", Text = "mode" },
-            new SemanticToken { Type = "interface", Text = "LanguageMode" },
-            new SemanticToken { Type = "parameter", Text = "mode" },
-            new SemanticToken { Type = "parameter", Text = "mode" },
-            new SemanticToken { Type = "method", Text = "getFoldingRanges" },
-            new SemanticToken { Type = "parameter", Text = "mode" },
-            new SemanticToken { Type = "method", Text = "getFoldingRanges" },
-            new SemanticToken { Type = "function.declaration", Text = "b" },
-            new SemanticToken { Type = "function.declaration", Text = "a" },
-            new SemanticToken { Type = "function", Text = "a" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "fs"),
+            new SemanticToken("interface.declaration", "LanguageMode"),
+            new SemanticToken("method.declaration", "getFoldingRanges"),
+            new SemanticToken("parameter.declaration", "d"),
+            new SemanticToken("parameter.declaration", "mode"),
+            new SemanticToken("interface", "LanguageMode"),
+            new SemanticToken("parameter", "mode"),
+            new SemanticToken("parameter", "mode"),
+            new SemanticToken("method", "getFoldingRanges"),
+            new SemanticToken("parameter", "mode"),
+            new SemanticToken("method", "getFoldingRanges"),
+            new SemanticToken("function.declaration", "b"),
+            new SemanticToken("function.declaration", "a"),
+            new SemanticToken("function", "a")
         });
     }
 }

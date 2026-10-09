@@ -30,7 +30,7 @@ function f1(x: number, y: number) {
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateReturnsTag2", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateReturnsTag2", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyJSDocCompletion("0", 7, """
     /**
      * 

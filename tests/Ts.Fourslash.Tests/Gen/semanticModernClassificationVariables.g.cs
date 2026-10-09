@@ -31,16 +31,16 @@ public class SemanticModernClassificationVariablesTests
   }
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "variable.declaration", Text = "y1" },
-            new SemanticToken { Type = "variable", Text = "x" },
-            new SemanticToken { Type = "variable.declaration.readonly.local", Text = "s" },
-            new SemanticToken { Type = "variable", Text = "y1" },
-            new SemanticToken { Type = "variable", Text = "x" },
-            new SemanticToken { Type = "variable.readonly.local", Text = "s" },
-            new SemanticToken { Type = "variable.declaration.local", Text = "e" },
-            new SemanticToken { Type = "variable", Text = "y1" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("variable.declaration", "y1"),
+            new SemanticToken("variable", "x"),
+            new SemanticToken("variable.declaration.readonly.local", "s"),
+            new SemanticToken("variable", "y1"),
+            new SemanticToken("variable", "x"),
+            new SemanticToken("variable.readonly.local", "s"),
+            new SemanticToken("variable.declaration.local", "e"),
+            new SemanticToken("variable", "y1")
         });
     }
 }

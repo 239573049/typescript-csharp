@@ -28,7 +28,7 @@ f/*0*/unction /*1*/foo/*2*/(/*3*/) /*4*/{ /*5*/}
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateInsideFunctionDeclaration", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateInsideFunctionDeclaration", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var marker in f.Markers())
     {
         f.VerifyNoJSDocCompletion(marker);

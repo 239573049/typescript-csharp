@@ -33,26 +33,26 @@ var s: String;
 var t: { (): string; foo: string};
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationCallableVariables", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.declaration", Text = "A" },
-            new SemanticToken { Type = "method.declaration", Text = "onEvent" },
-            new SemanticToken { Type = "function.declaration.readonly", Text = "x" },
-            new SemanticToken { Type = "class", Text = "A" },
-            new SemanticToken { Type = "method", Text = "onEvent" },
-            new SemanticToken { Type = "function.declaration.readonly", Text = "match" },
-            new SemanticToken { Type = "parameter.declaration", Text = "s" },
-            new SemanticToken { Type = "function.readonly", Text = "x" },
-            new SemanticToken { Type = "function.declaration.readonly", Text = "other" },
-            new SemanticToken { Type = "function.readonly", Text = "match" },
-            new SemanticToken { Type = "function.readonly", Text = "match" },
-            new SemanticToken { Type = "method.declaration", Text = "other" },
-            new SemanticToken { Type = "interface.declaration", Text = "B" },
-            new SemanticToken { Type = "variable.declaration", Text = "b" },
-            new SemanticToken { Type = "interface", Text = "B" },
-            new SemanticToken { Type = "variable.declaration", Text = "s" },
-            new SemanticToken { Type = "interface.defaultLibrary", Text = "String" },
-            new SemanticToken { Type = "variable.declaration", Text = "t" },
-            new SemanticToken { Type = "property.declaration", Text = "foo" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.declaration", "A"),
+            new SemanticToken("method.declaration", "onEvent"),
+            new SemanticToken("function.declaration.readonly", "x"),
+            new SemanticToken("class", "A"),
+            new SemanticToken("method", "onEvent"),
+            new SemanticToken("function.declaration.readonly", "match"),
+            new SemanticToken("parameter.declaration", "s"),
+            new SemanticToken("function.readonly", "x"),
+            new SemanticToken("function.declaration.readonly", "other"),
+            new SemanticToken("function.readonly", "match"),
+            new SemanticToken("function.readonly", "match"),
+            new SemanticToken("method.declaration", "other"),
+            new SemanticToken("interface.declaration", "B"),
+            new SemanticToken("variable.declaration", "b"),
+            new SemanticToken("interface", "B"),
+            new SemanticToken("variable.declaration", "s"),
+            new SemanticToken("interface.defaultLibrary", "String"),
+            new SemanticToken("variable.declaration", "t"),
+            new SemanticToken("property.declaration", "foo")
         });
     }
 }

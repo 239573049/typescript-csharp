@@ -67,7 +67,8 @@ export interface VFS {
     ],
         },
         
-    }).AndApplyCodeAction(new CompletionsExpectedCodeAction
+    });
+    f.ApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
     {
         Name = "ts",
         Source = "./ts",

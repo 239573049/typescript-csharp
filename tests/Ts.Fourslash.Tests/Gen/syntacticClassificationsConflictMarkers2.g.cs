@@ -30,8 +30,8 @@ class D { }
 >>>>>>> Branch - a
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsConflictMarkers2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.declaration", Text = "C" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.declaration", "C")
         });
     }
 }

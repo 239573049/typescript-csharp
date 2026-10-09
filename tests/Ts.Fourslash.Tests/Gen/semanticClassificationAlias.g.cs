@@ -33,10 +33,10 @@ const v: /*2*/x = /*3*/y;
         using var f = FourslashTest.New(content, fileName: "semanticClassificationAlias", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToFile("/b.ts");
 
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration.readonly", Text = "v" },
-            new SemanticToken { Type = "type", Text = "x" },
-            new SemanticToken { Type = "class", Text = "y" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration.readonly", "v"),
+            new SemanticToken("type", "x"),
+            new SemanticToken("class", "y")
         });
     }
 }

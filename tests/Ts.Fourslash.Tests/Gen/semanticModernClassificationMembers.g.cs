@@ -33,19 +33,19 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationMembers", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.declaration", Text = "A" },
-            new SemanticToken { Type = "property.declaration.static", Text = "x" },
-            new SemanticToken { Type = "property.declaration", Text = "f" },
-            new SemanticToken { Type = "method.declaration.async", Text = "m" },
-            new SemanticToken { Type = "class", Text = "A" },
-            new SemanticToken { Type = "property.static", Text = "x" },
-            new SemanticToken { Type = "method.async", Text = "m" },
-            new SemanticToken { Type = "property.declaration", Text = "s" },
-            new SemanticToken { Type = "property", Text = "f" },
-            new SemanticToken { Type = "method.declaration.static", Text = "t" },
-            new SemanticToken { Type = "class", Text = "A" },
-            new SemanticToken { Type = "property", Text = "f" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.declaration", "A"),
+            new SemanticToken("property.declaration.static", "x"),
+            new SemanticToken("property.declaration", "f"),
+            new SemanticToken("method.declaration.async", "m"),
+            new SemanticToken("class", "A"),
+            new SemanticToken("property.static", "x"),
+            new SemanticToken("method.async", "m"),
+            new SemanticToken("property.declaration", "s"),
+            new SemanticToken("property", "f"),
+            new SemanticToken("method.declaration.static", "t"),
+            new SemanticToken("class", "A"),
+            new SemanticToken("property", "f")
         });
     }
 }

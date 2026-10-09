@@ -38,17 +38,17 @@ var v: /*3*/M./*4*/I;
 var x = /*5*/M;
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassificationUninstantiatedModuleWithVariableOfSameName2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable", Text = "M" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "variable.declaration", Text = "M" },
-            new SemanticToken { Type = "property.declaration", Text = "foo" },
-            new SemanticToken { Type = "property.declaration", Text = "bar" },
-            new SemanticToken { Type = "variable.declaration", Text = "v" },
-            new SemanticToken { Type = "variable", Text = "M" },
-            new SemanticToken { Type = "interface", Text = "I" },
-            new SemanticToken { Type = "variable.declaration", Text = "x" },
-            new SemanticToken { Type = "variable", Text = "M" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable", "M"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("variable.declaration", "M"),
+            new SemanticToken("property.declaration", "foo"),
+            new SemanticToken("property.declaration", "bar"),
+            new SemanticToken("variable.declaration", "v"),
+            new SemanticToken("variable", "M"),
+            new SemanticToken("interface", "I"),
+            new SemanticToken("variable.declaration", "x"),
+            new SemanticToken("variable", "M")
         });
     }
 }

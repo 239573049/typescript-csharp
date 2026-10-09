@@ -53,7 +53,7 @@ let f1 = {
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateVariableStatements02", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateVariableStatements02", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var varName in new[]{"a", "b", "c", "d", "e", "f"})
     {
         f.VerifyJSDocCompletion(varName, 3, "/** */", null);

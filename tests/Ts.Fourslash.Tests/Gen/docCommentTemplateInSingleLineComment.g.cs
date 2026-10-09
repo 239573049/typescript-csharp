@@ -33,7 +33,7 @@ public class DocCommentTemplateInSingleLineCommentTests
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateInSingleLineComment", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateInSingleLineComment", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var marker in f.Markers())
     {
         f.VerifyNoJSDocCompletion(marker);

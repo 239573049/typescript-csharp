@@ -26,9 +26,9 @@ public class SyntacticClassificationsForOfKeywordTests
 for (var of of of) { }
 """;
         using var f = FourslashTest.New(content, fileName: "syntacticClassificationsForOfKeyword", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable.declaration", Text = "of" },
-            new SemanticToken { Type = "variable", Text = "of" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable.declaration", "of"),
+            new SemanticToken("variable", "of")
         });
     }
 }

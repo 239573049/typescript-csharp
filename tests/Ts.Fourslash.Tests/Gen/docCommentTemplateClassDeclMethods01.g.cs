@@ -35,7 +35,7 @@ class C {
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateClassDeclMethods01", capabilities: capabilities, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateClassDeclMethods01", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     f.VerifyJSDocCompletion("0", 3, "/** */", null);
 
     f.VerifyJSDocCompletion("1", 3, "/** */", null);

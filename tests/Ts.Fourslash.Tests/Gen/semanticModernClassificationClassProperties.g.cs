@@ -31,18 +31,18 @@ class A {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "semanticModernClassificationClassProperties", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "class.declaration", Text = "A" },
-            new SemanticToken { Type = "property.declaration", Text = "y" },
-            new SemanticToken { Type = "parameter.declaration", Text = "x" },
-            new SemanticToken { Type = "parameter.declaration", Text = "_y" },
-            new SemanticToken { Type = "property", Text = "y" },
-            new SemanticToken { Type = "parameter", Text = "_y" },
-            new SemanticToken { Type = "property.declaration", Text = "z" },
-            new SemanticToken { Type = "property", Text = "x" },
-            new SemanticToken { Type = "property", Text = "y" },
-            new SemanticToken { Type = "property.declaration", Text = "a" },
-            new SemanticToken { Type = "parameter.declaration", Text = "v" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("class.declaration", "A"),
+            new SemanticToken("property.declaration", "y"),
+            new SemanticToken("parameter.declaration", "x"),
+            new SemanticToken("parameter.declaration", "_y"),
+            new SemanticToken("property", "y"),
+            new SemanticToken("parameter", "_y"),
+            new SemanticToken("property.declaration", "z"),
+            new SemanticToken("property", "x"),
+            new SemanticToken("property", "y"),
+            new SemanticToken("property.declaration", "a"),
+            new SemanticToken("parameter.declaration", "v")
         });
     }
 }

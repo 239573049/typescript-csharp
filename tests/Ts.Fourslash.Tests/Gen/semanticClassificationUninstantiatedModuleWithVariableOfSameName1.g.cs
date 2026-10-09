@@ -32,11 +32,11 @@ declare module /*0*/M {
 var M = { I: 10 };
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassificationUninstantiatedModuleWithVariableOfSameName1", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "variable", Text = "M" },
-            new SemanticToken { Type = "interface.declaration", Text = "I" },
-            new SemanticToken { Type = "variable.declaration", Text = "M" },
-            new SemanticToken { Type = "property.declaration", Text = "I" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("variable", "M"),
+            new SemanticToken("interface.declaration", "I"),
+            new SemanticToken("variable.declaration", "M"),
+            new SemanticToken("property.declaration", "I")
         });
     }
 }

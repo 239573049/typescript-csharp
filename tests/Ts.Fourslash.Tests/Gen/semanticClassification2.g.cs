@@ -31,12 +31,12 @@ var Thing = 0;
 Thing.toExponential();
 """;
         using var f = FourslashTest.New(content, fileName: "semanticClassification2", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifySemanticTokens(new[]{
-            new SemanticToken { Type = "interface.declaration", Text = "Thing" },
-            new SemanticToken { Type = "method.declaration", Text = "toExponential" },
-            new SemanticToken { Type = "variable.declaration", Text = "Thing" },
-            new SemanticToken { Type = "variable", Text = "Thing" },
-            new SemanticToken { Type = "method.defaultLibrary", Text = "toExponential" },
+    f.VerifySemanticTokens(new SemanticToken[]{
+            new SemanticToken("interface.declaration", "Thing"),
+            new SemanticToken("method.declaration", "toExponential"),
+            new SemanticToken("variable.declaration", "Thing"),
+            new SemanticToken("variable", "Thing"),
+            new SemanticToken("method.defaultLibrary", "toExponential")
         });
     }
 }
