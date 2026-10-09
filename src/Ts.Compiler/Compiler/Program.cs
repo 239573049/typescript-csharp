@@ -59,6 +59,10 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     // program.go:107 — knownSymlinks lazyValue[symlinks.KnownSymlinks].
     private readonly LazyValue<global::Ts.Symlinks.KnownSymlinks> knownSymlinks = new();
 
+    // program.go:113-114 — hasTSFileOnce/hasTSFile (HasTSFile).
+    private readonly Once hasTSFileOnce = new();
+    private bool hasTSFile;
+
     // program.go:274-283 (NewProgram)
     public Program(ProgramOptions opts)
     {
@@ -806,6 +810,26 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
             }
         }
         return allFilesBelongToPath;
+    }
+
+    // program.go:2005-2008 — IsLibFile.
+    public bool IsLibFile(SourceFile sourceFile) => processed.LibFiles.ContainsKey(sourceFile.Path());
+
+    // program.go:2010-2019 — HasTSFile (sync.Once → Ts.Compiler.Once).
+    public bool HasTSFile()
+    {
+        hasTSFileOnce.Do(() =>
+        {
+            foreach (var file in processed.Files)
+            {
+                if (global::Ts.TsPath.TsPath.HasImplementationTSFileExtension(file.FileName()))
+                {
+                    hasTSFile = true;
+                    break;
+                }
+            }
+        });
+        return hasTSFile;
     }
 
     // program.go:2022 — GetSymlinkCache.

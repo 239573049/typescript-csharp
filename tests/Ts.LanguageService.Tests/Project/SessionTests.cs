@@ -1570,28 +1570,47 @@ export const value = content;",
     }
 
     // session_test.go:1436-1482 — "config parsing".
-    // SKIPPED: lsutil.ParseUserPreferences (internal/ls/lsutil/userpreferences.go) is not
-    // ported to C# yet; no raw-dictionary preference parser exists in Ts.Ls (same reason as
-    // the CustomConfigFileNameTests skips).
-    [Fact(Skip = "lsutil.ParseUserPreferences (internal/ls/lsutil/userpreferences.go) is not ported to C# yet; no raw-dictionary preference parser exists in Ts.Ls, Go test TestSession/config parsing")]
+    // PORT-NOTE: assert.DeepEqual over the preference struct compares the MarshalJSONTo
+    // output (UserPreferences.ToJsonElement), which covers every tagged field.
+    [Fact]
     public void ConfigParsing()
     {
-        // Ported body (compiles once ParseUserPreferences lands):
-        // var files = new Dictionary<string, object?> { ["/src/tsconfig.json"] = "{}", ["/src/index.ts"] = "export const x = 1;" };
-        // (global::Ts.Project.Session session, _) = SessionUtils.Setup(files);
-        // session.DidOpenFile(RequestContext.Background, "file:///src/index.ts", 1, (string)files["/src/index.ts"]!, LanguageKind.TypeScript.Value!);
-        // (_, Exception? err) = session.GetLanguageService(RequestContext.Background, (DocumentUri)"file:///src/index.ts");
-        // Assert.Null(err);
-        //
-        // var configMap1 = new Dictionary<string, object?> { ["preferences"] = new Dictionary<string, object?> { ["useAliasesForRenames"] = true, ["quoteStyle"] = "single" }, ["unstable"] = new Dictionary<string, object?> { ["organizeImportsSort"] = "ordinalIgnoreCase" } };
-        // session.Configure(UserPreferences.ParseUserPreferences(new Dictionary<string, object?> { ["js/ts"] = configMap1 }));
-        // var actualConfig1 = session.Config();
-        // var expectedPrefs1 = UserPreferences.NewDefaultUserPreferences();
-        // expectedPrefs1.UseAliasesForRename = Tristate.True;
-        // expectedPrefs1.QuotePreference = "single";
-        // expectedPrefs1.OrganizeImportsSort = OrganizeImportsSort.OrdinalIgnoreCase;
-        // Assert.Equivalent(expectedPrefs1, actualConfig1); // Go: assert.DeepEqual
-        // ... (configMap2 mirrors with false/"double"/"ordinal")
+        var files = new Dictionary<string, object?>
+        {
+            ["/src/tsconfig.json"] = "{}",
+            ["/src/index.ts"] = "export const x = 1;",
+        };
+        (global::Ts.Project.Session session, _) = SessionUtils.Setup(files);
+        session.DidOpenFile(RequestContext.Background, "file:///src/index.ts", 1, (string)files["/src/index.ts"]!, LanguageKind.TypeScript.Value!);
+        (_, Exception? err) = session.GetLanguageService(RequestContext.Background, "file:///src/index.ts");
+        Assert.Null(err);
+
+        static Dictionary<string, System.Text.Json.JsonElement> JsTs(string json) => new(StringComparer.Ordinal)
+        {
+            ["js/ts"] = System.Text.Json.JsonDocument.Parse(json).RootElement.Clone(),
+        };
+
+        session.Configure(global::Ts.Ls.UserPreferences.ParseUserPreferences(JsTs("""
+            { "preferences": { "useAliasesForRenames": true, "quoteStyle": "single" }, "unstable": { "organizeImportsSort": "ordinalIgnoreCase" } }
+            """)));
+        var actualConfig1 = session.Config();
+        var expectedPrefs1 = global::Ts.Ls.UserPreferences.NewDefaultUserPreferences();
+        expectedPrefs1.UseAliasesForRename = Tristate.True;
+        expectedPrefs1.QuotePreference = "single";
+        expectedPrefs1.OrganizeImportsSort = global::Ts.Ls.OrganizeImportsSort.OrdinalIgnoreCase;
+
+        Assert.Equal(expectedPrefs1.ToJsonElement().GetRawText(), actualConfig1.ToJsonElement().GetRawText());
+
+        session.Configure(global::Ts.Ls.UserPreferences.ParseUserPreferences(JsTs("""
+            { "preferences": { "useAliasesForRenames": false, "quoteStyle": "double" }, "unstable": { "organizeImportsSort": "ordinal" } }
+            """)));
+        var actualConfig2 = session.Config();
+        var expectedPrefs2 = global::Ts.Ls.UserPreferences.NewDefaultUserPreferences();
+        expectedPrefs2.UseAliasesForRename = Tristate.False;
+        expectedPrefs2.QuotePreference = "double";
+        expectedPrefs2.OrganizeImportsSort = global::Ts.Ls.OrganizeImportsSort.Ordinal;
+
+        Assert.Equal(expectedPrefs2.ToJsonElement().GetRawText(), actualConfig2.ToJsonElement().GetRawText());
     }
 
     // session_test.go:1487-1514 — "language service for closed files" → "closed file in

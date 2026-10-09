@@ -269,7 +269,7 @@ public sealed partial class LanguageService
     public global::Ts.LsProto.CommandOrCodeActionArrayOrNull ProvideCodeActions(global::Ts.LsProto.CodeActionParams parameters)
     {
         var program = this.program;
-        var file = GetProgramAndFile(parameters.TextDocument.Uri.Value);
+        var file = GetProgramAndFile(parameters.TextDocument.Uri);
 
         var actions = new List<global::Ts.LsProto.CommandOrCodeAction>();
 

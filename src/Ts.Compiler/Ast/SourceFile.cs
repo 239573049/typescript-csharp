@@ -18,7 +18,6 @@ namespace Ts.Ast;
 //     NodeVisitor visitToken/visitTopLevelStatements surface
 //   - GetNameTable (ast.go:2718-2747) — needs Node.JSDoc + literalIsName/IsTagName
 //   - GetOrCreateToken / createToken + token cache (ast.go:2774-2836)
-//   - GetDeclarationMap / computeDeclarationMap (ast.go:2838-2955) — needs many utilities
 //   - IsJS (ast.go:2655-2657) — needs IsSourceFileJS (utilities.go)
 //   - the SourceFileDataKey external-lazy-data mechanism (ast.go:2402-2447)
 //   - GetPositionMap / positionMap — dropped entirely (positionmap.go not ported,
@@ -178,6 +177,12 @@ public sealed partial class SourceFile : Node, DeclarationBase, LocalsContainerB
     internal int[]? ecmaLineMap;
     private readonly Lock ecmaLineMapMu = new();
 
+    // ast.go:2535-2536 — declarationMapMu/declarationMap. Guarded by the mutex; the
+    // mutex is NOT reentrant in Go, so callers must not recurse through GetDeclarationMap
+    // (computeDeclarationMap itself never does).
+    private readonly Lock declarationMapMu = new();
+    private Dictionary<string, List<Node>>? declarationMap;
+
     // Fields set by language service
     public UInt128 Hash;
 
@@ -303,6 +308,207 @@ public sealed partial class SourceFile : Node, DeclarationBase, LocalsContainerB
 
     // ast.go:2749-2751
     public bool IsBound() => Volatile.Read(ref isBound);
+
+    // ast.go:2838-2846 — GetDeclarationMap. Go's sync.Mutex maps to a lock; the map is
+    // built once on first use (the mutex is not reentrant, and computeDeclarationMap
+    // never re-enters).
+    public Dictionary<string, List<Node>> GetDeclarationMap()
+    {
+        lock (declarationMapMu)
+        {
+            declarationMap ??= ComputeDeclarationMap();
+            return declarationMap;
+        }
+    }
+
+    // ast.go:2848-2955 — computeDeclarationMap.
+    private Dictionary<string, List<Node>> ComputeDeclarationMap()
+    {
+        var result = new Dictionary<string, List<Node>>();
+
+        void AddDeclaration(Node declaration)
+        {
+            var name = AstUtilities.GetDeclarationName(declaration);
+            if (name != "")
+            {
+                if (!result.TryGetValue(name, out var declarations))
+                {
+                    declarations = [];
+                    result[name] = declarations;
+                }
+                declarations.Add(declaration);
+            }
+        }
+
+        bool Visit(Node node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.FunctionDeclaration:
+                case SyntaxKind.FunctionExpression:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.MethodSignature:
+                    {
+                        var declarationName = AstUtilities.GetDeclarationName(node);
+                        if (declarationName != "")
+                        {
+                            var declarations = result.GetValueOrDefault(declarationName);
+                            Node? lastDeclaration = null;
+                            if (declarations != null && declarations.Count != 0)
+                            {
+                                lastDeclaration = declarations[^1];
+                            }
+                            // Check whether this declaration belongs to an "overload group".
+                            if (lastDeclaration != null && node.Parent == lastDeclaration.Parent && node.Symbol() == lastDeclaration.Symbol())
+                            {
+                                // Overwrite the last declaration if it was an overload and this one is an implementation.
+                                if (node.Body() != null && lastDeclaration.Body() == null)
+                                {
+                                    declarations![^1] = node;
+                                }
+                            }
+                            else
+                            {
+                                if (declarations == null)
+                                {
+                                    declarations = [];
+                                    result[declarationName] = declarations;
+                                }
+                                declarations.Add(node);
+                            }
+                        }
+                        node.ForEachChild(Visit);
+                        break;
+                    }
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.ClassExpression:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.TypeAliasDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.ModuleDeclaration:
+                case SyntaxKind.ImportEqualsDeclaration:
+                case SyntaxKind.ImportClause:
+                case SyntaxKind.NamespaceImport:
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                case SyntaxKind.TypeLiteral:
+                    AddDeclaration(node);
+                    node.ForEachChild(Visit);
+                    break;
+                case SyntaxKind.ImportSpecifier:
+                case SyntaxKind.ExportSpecifier:
+                    if (node.PropertyName() != null)
+                    {
+                        AddDeclaration(node);
+                    }
+                    break;
+                case SyntaxKind.Parameter:
+                    // Only consider parameter properties
+                    if (!AstUtilities.HasSyntacticModifier(node, ModifierFlags.ParameterPropertyModifier))
+                    {
+                        break;
+                    }
+                    goto case SyntaxKind.VariableDeclaration;
+                case SyntaxKind.VariableDeclaration:
+                case SyntaxKind.BindingElement:
+                    {
+                        var name = node.Name();
+                        if (name != null)
+                        {
+                            if (AstUtilities.IsBindingPattern(name))
+                            {
+                                node.Name()!.ForEachChild(Visit);
+                            }
+                            else
+                            {
+                                if (node.Initializer() != null)
+                                {
+                                    Visit(node.Initializer()!);
+                                }
+                                AddDeclaration(node);
+                            }
+                        }
+                        break;
+                    }
+                case SyntaxKind.EnumMember:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.PropertySignature:
+                    AddDeclaration(node);
+                    break;
+                case SyntaxKind.ExportDeclaration:
+                    {
+                        // Handle named exports case e.g.:
+                        //    export {a, b as B} from "mod";
+                        var exportClause = node.AsExportDeclaration().ExportClause;
+                        if (exportClause != null)
+                        {
+                            if (NodeTests.IsNamedExports(exportClause))
+                            {
+                                foreach (var element in exportClause.Elements()!)
+                                {
+                                    Visit(element);
+                                }
+                            }
+                            else
+                            {
+                                Visit(exportClause.AsNamespaceExport().Name()!);
+                            }
+                        }
+                        break;
+                    }
+                case SyntaxKind.ImportDeclaration:
+                    {
+                        var importClause = node.AsImportDeclaration().ImportClause;
+                        if (importClause != null)
+                        {
+                            // Handle default import case e.g.:
+                            //    import d from "mod";
+                            if (importClause.Name() != null)
+                            {
+                                AddDeclaration(importClause.Name()!);
+                            }
+                            // Handle named bindings in imports e.g.:
+                            //    import * as NS from "mod";
+                            //    import {a, b as B} from "mod";
+                            var namedBindings = importClause.AsImportClause().NamedBindings;
+                            if (namedBindings != null)
+                            {
+                                if (namedBindings.Kind == SyntaxKind.NamespaceImport)
+                                {
+                                    AddDeclaration(namedBindings);
+                                }
+                                else
+                                {
+                                    foreach (var element in namedBindings.Elements()!)
+                                    {
+                                        Visit(element);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                case SyntaxKind.BinaryExpression:
+                    switch (AstUtilities.GetAssignmentDeclarationKind(node))
+                    {
+                        case JSDeclarationKind.ExportsProperty:
+                        case JSDeclarationKind.ThisProperty:
+                        case JSDeclarationKind.Property:
+                            AddDeclaration(node);
+                            break;
+                    }
+                    node.ForEachChild(Visit);
+                    break;
+                default:
+                    node.ForEachChild(Visit);
+                    break;
+            }
+            return false;
+        }
+
+        ForEachChild(Visit);
+        return result;
+    }
 
     // ast.go:2765-2770 — sync.Once → double-checked lock; isBound stored last.
     public void BindOnce(Action bind)

@@ -8,9 +8,6 @@
 //  * The Go `if !bundled.Embedded { t.Skip(...) }` guard is omitted: Bundled.Embedded is
 //    `const true` in the C# build, so the branch is unreachable (and CS0162 fatal).
 //  * context.Background() → RequestContext.Background.
-//  * The "rejects path traversal" / "accepts plain base file names" subtests are skipped:
-//    they drive lsutil.ParseUserPreferences (userpreferences.go), which is not ported to
-//    C# yet — Ts.Ls.UserPreferences has no raw-dictionary parser.
 
 using System;
 using System.Collections.Generic;
@@ -186,60 +183,59 @@ public sealed class CustomConfigFileNameTests
             $"expected RefreshDiagnostics to be called after customConfigFileName change, got {refreshCount} calls (baseline {baselineRefreshCount})");
     }
 
-    // customconfigfilename_test.go:156-175 — "rejects path traversal in
-    // customConfigFileName". SKIPPED: lsutil.ParseUserPreferences (userpreferences.go) is
-    // not ported to C# yet — there is no raw-preference-dictionary parser in Ts.Ls to
-    // drive the validation path under test.
-    [Fact(Skip = "lsutil.ParseUserPreferences (internal/ls/lsutil/userpreferences.go) is not ported to C# yet; no raw-dictionary preference parser exists in Ts.Ls")]
-    public void TestCustomConfigFileName_RejectsPathTraversalInCustomConfigFileName()
+    // Go: lsutil.ParseUserPreferences(map[string]any{"js/ts": map[string]any{"customConfigFileName": name}}).
+    private static UserPreferences ParseCustomConfigFileName(string name)
     {
-        // Ported body (compiles once ParseUserPreferences lands):
-        // foreach (var invalidName in new[]
-        // {
-        //     "/etc/passwd",
-        //     "../tsconfig.json",
-        //     "configs/tsconfig.all.json",
-        //     "..\\tsconfig.json",
-        //     "sub\\dir\\tsconfig.json",
-        //     "..",
-        //     ".",
-        // })
-        // {
-        //     var prefs = UserPreferences.ParseUserPreferences(new Dictionary<string, object?>
-        //     {
-        //         ["js/ts"] = new Dictionary<string, object?>
-        //         {
-        //             ["customConfigFileName"] = invalidName,
-        //         },
-        //     });
-        //     // Go message: "expected customConfigFileName to be cleared for invalid value %q"
-        //     Assert.Equal("", prefs.CustomConfigFileName);
-        // }
+        var writer = new System.Buffers.ArrayBufferWriter<byte>();
+        using (var json = new System.Text.Json.Utf8JsonWriter(writer))
+        {
+            json.WriteStartObject();
+            json.WriteString("customConfigFileName", name);
+            json.WriteEndObject();
+        }
+        using var doc = System.Text.Json.JsonDocument.Parse(writer.WrittenMemory);
+        return UserPreferences.ParseUserPreferences(new Dictionary<string, System.Text.Json.JsonElement>(StringComparer.Ordinal)
+        {
+            ["js/ts"] = doc.RootElement.Clone(),
+        });
     }
 
-    // customconfigfilename_test.go:177-192 — "accepts plain base file names in
-    // customConfigFileName". SKIPPED for the same reason as above.
-    [Fact(Skip = "lsutil.ParseUserPreferences (internal/ls/lsutil/userpreferences.go) is not ported to C# yet; no raw-dictionary preference parser exists in Ts.Ls")]
+    // customconfigfilename_test.go:156-175 — "rejects path traversal in customConfigFileName".
+    [Fact]
+    public void TestCustomConfigFileName_RejectsPathTraversalInCustomConfigFileName()
+    {
+        foreach (var invalidName in new[]
+        {
+            "/etc/passwd",
+            "../tsconfig.json",
+            "configs/tsconfig.all.json",
+            "..\\tsconfig.json",
+            "sub\\dir\\tsconfig.json",
+            "..",
+            ".",
+        })
+        {
+            UserPreferences prefs = ParseCustomConfigFileName(invalidName);
+            // Go message: "expected customConfigFileName to be cleared for invalid value %q"
+            Assert.Equal("", prefs.CustomConfigFileName);
+        }
+    }
+
+    // customconfigfilename_test.go:177-192 — "accepts plain base file names in customConfigFileName".
+    [Fact]
     public void TestCustomConfigFileName_AcceptsPlainBaseFileNamesInCustomConfigFileName()
     {
-        // Ported body (compiles once ParseUserPreferences lands):
-        // foreach (var validName in new[]
-        // {
-        //     "tsconfig.all.json",
-        //     "tsconfig.editor.json",
-        //     "jsconfig.custom.json",
-        // })
-        // {
-        //     var prefs = UserPreferences.ParseUserPreferences(new Dictionary<string, object?>
-        //     {
-        //         ["js/ts"] = new Dictionary<string, object?>
-        //         {
-        //             ["customConfigFileName"] = validName,
-        //         },
-        //     });
-        //     // Go message: "expected customConfigFileName to be %q"
-        //     Assert.Equal(validName, prefs.CustomConfigFileName);
-        // }
+        foreach (var validName in new[]
+        {
+            "tsconfig.all.json",
+            "tsconfig.editor.json",
+            "jsconfig.custom.json",
+        })
+        {
+            UserPreferences prefs = ParseCustomConfigFileName(validName);
+            // Go message: "expected customConfigFileName to be %q"
+            Assert.Equal(validName, prefs.CustomConfigFileName);
+        }
     }
 
     // customconfigfilename_test.go:194-230 — "cleans up inferred project when custom

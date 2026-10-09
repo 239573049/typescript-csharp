@@ -179,6 +179,33 @@ public static partial class AstUtilities
         return file != null && (file.ScriptKind == ScriptKind.JS || file.ScriptKind == ScriptKind.Jsx) && file.CheckJsDirective == null && checkJs.IsUnknown();
     }
 
+    // Go: ast.go:2957-2971 — GetDeclarationName (the string form). Ported here from
+    // src/Ts.LanguageService/Ls/LsDeps.cs (which now delegates) so the ast utilities
+    // carry the authoritative copy (consumed by computeDeclarationMap).
+    public static string GetDeclarationName(Node declaration)
+    {
+        var name = GetNonAssignedNameOfDeclaration(declaration);
+        if (name != null)
+        {
+            if (NodeTests.IsComputedPropertyName(name))
+            {
+                if (IsStringOrNumericLiteralLike(name.Expression()!))
+                {
+                    return name.Expression()!.Text();
+                }
+                if (NodeTests.IsPropertyAccessExpression(name.Expression()!))
+                {
+                    return name.Expression()!.Name()!.Text();
+                }
+            }
+            else if (IsPropertyName(name))
+            {
+                return name.Text();
+            }
+        }
+        return "";
+    }
+
     // Go: utilities.go:1428-1440
     public static Node? GetNameOfDeclaration(Node? declaration)
     {

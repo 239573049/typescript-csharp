@@ -3800,6 +3800,8 @@ function emitJson(skipped: Set<string>): { text: string; accessors: Map<string, 
     serializableTypes.push("typeof(ServerCapabilities)");
     serializableTypes.push("typeof(CompletionItem)");
     serializableTypes.push("typeof(CompletionList)");
+    // lsp/server.go handleInitialize logs json.MarshalIndent(s.clientCapabilities).
+    serializableTypes.push("typeof(ResolvedClientCapabilities)");
     // Pin the accessor name so contextAccessorFor is authoritative for both the
     // registration and every LspJsonContext.Default.<name> use site; relying on
     // STJ's derived names would leave primitives/arrays/nullables unspellable.

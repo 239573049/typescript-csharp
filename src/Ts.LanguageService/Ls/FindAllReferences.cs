@@ -110,6 +110,17 @@ public sealed partial class LanguageService
 {
     // === foundation-subset members kept for Rename.cs (Go :329/:348/:1529/:1538) ===
 
+    // findallreferences.go:321 — getLspRangeOfNode.
+    internal global::Ts.LsProto.Range GetLspRangeOfNode(
+        global::Ts.Ast.Node node,
+        global::Ts.Ast.SourceFile? sourceFile,
+        global::Ts.Ast.Node? endNode)
+    {
+        sourceFile ??= global::Ts.Ast.AstUtilities.GetSourceFileOfNode(node)!;
+        var textRange = GetRangeOfNode(node, sourceFile, endNode);
+        return CreateLspRangeFromBounds(textRange.Pos, textRange.End, sourceFile);
+    }
+
     // findallreferences.go:329 getRangeOfNode
     private static global::Ts.Core.TextRange GetRangeOfNode(
         global::Ts.Ast.Node node,

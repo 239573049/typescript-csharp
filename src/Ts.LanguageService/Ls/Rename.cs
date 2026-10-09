@@ -358,15 +358,23 @@ public sealed partial class LanguageService
         return null;
     }
 
-    // rename.go:223-233 — client-capability gates for module rename. PORT-NOTE: the
-    // per-request capability carrier (lsproto.GetClientCapabilities(ctx)) is not wired in
-    // this port yet, so both gates read the Go zero-value ClientCapabilities: no
-    // workspace/workspaceEdit.documentChanges and an empty resourceOperations list —
-    // i.e. both return false. The Go branch structure is kept verbatim so the gates flip
-    // with the lsp capability wave.
-    private static bool ClientSupportsDocumentChanges() => false;
+    // rename.go:223-233 — client-capability gates. Go reads lsproto.GetClientCapabilities(ctx);
+    // the C# carrier is the resolved capability set (the server passes its own copy, the
+    // language service passes LanguageService.ClientCapabilities()).
+    public static bool ClientSupportsWillRenameFiles(global::Ts.LsProto.ResolvedClientCapabilities caps)
+    {
+        return caps.Workspace.FileOperations.WillRename;
+    }
 
-    private static bool ClientSupportsRenameResourceOperations() => false;
+    public static bool ClientSupportsDocumentChanges(global::Ts.LsProto.ResolvedClientCapabilities caps)
+    {
+        return caps.Workspace.WorkspaceEdit.DocumentChanges;
+    }
+
+    public static bool ClientSupportsRenameResourceOperations(global::Ts.LsProto.ResolvedClientCapabilities caps)
+    {
+        return System.Array.IndexOf(caps.Workspace.WorkspaceEdit.ResourceOperations ?? [], global::Ts.LsProto.ResourceOperationKind.Rename) >= 0;
+    }
 
     // rename.go:236-276 — getRenameInfoForModule handles rename validation for module
     // specifiers.
@@ -380,7 +388,7 @@ public sealed partial class LanguageService
         {
             return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.You_cannot_rename_a_module_via_a_global_import);
         }
-        if (!ClientSupportsDocumentChanges() || !ClientSupportsRenameResourceOperations())
+        if (!ClientSupportsDocumentChanges(ClientCapabilities()) || !ClientSupportsRenameResourceOperations(ClientCapabilities()))
         {
             return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.File_rename_is_not_supported_by_the_editor);
         }
