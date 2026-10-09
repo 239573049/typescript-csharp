@@ -40,7 +40,7 @@ public enum PendingReload
     Full,
 }
 
-public sealed class Project : IDisposable, LsProject, global::Ts.Project.Dirty.Cloneable<Project>
+public sealed class Project : IDisposable, global::Ts.Ls.Project, global::Ts.Project.Dirty.Cloneable<Project>
 {
     internal const string InferredProjectName = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
 

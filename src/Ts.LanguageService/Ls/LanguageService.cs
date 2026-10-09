@@ -147,8 +147,9 @@ public sealed partial class LanguageService
             UserPreferences().ModuleSpecifierPreferences());
     }
 
-    // languageservice.go — ErrNeedsAutoImports.
-    internal static readonly Exception ErrNeedsAutoImports = new InvalidOperationException("needs auto-imports");
+    // languageservice.go — ErrNeedsAutoImports. The sentinel carries its own exception type
+    // so the lsp server's retry protocol (errors.Is(err, ls.ErrNeedsAutoImports)) can match it.
+    internal static readonly Exception ErrNeedsAutoImports = new NeedsAutoImportsException();
 
     // languageservice.go:120-123 — used for module specifier completions.
     public bool DirectoryExists(string path)
@@ -198,5 +199,14 @@ public sealed partial class LanguageService
         // Positions are already UTF-16 code-unit offsets in C# strings. The LSP
         // line/character converter will remain outside this raw-position API.
         return global::Ts.AstNav.Tokens.GetTouchingPropertyName(file, position);
+    }
+}
+
+// languageservice.go — the ErrNeedsAutoImports sentinel's type (Go: errors.New("needs auto-imports")).
+public sealed class NeedsAutoImportsException : InvalidOperationException
+{
+    public NeedsAutoImportsException()
+        : base("needs auto-imports")
+    {
     }
 }

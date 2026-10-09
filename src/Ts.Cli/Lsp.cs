@@ -146,33 +146,75 @@ internal static class Lsp
                 profileSession = global::Ts.Profiling.Pprof.BeginProfiling(pprofDir, Console.Error);
             }
 
-            // lsp.go:43-45 — bundled FS overlay + library path. Go's typingsLocation
-            // (osvfs.GetGlobalTypingsCacheLocation) has no ServerOptions field in the
-            // current Ts.Lsp port, so it is not passed yet.
+            // lsp.go:43-45 — bundled FS overlay, library path, typings cache location.
             var fs = global::Ts.Bundled.Bundled.WrapFS(global::Ts.Vfs.OsVfs.OsVfsUtil.FS());
             var defaultLibraryPath = global::Ts.Bundled.Bundled.LibPath();
+            var typingsLocation = global::Ts.Vfs.OsVfs.OsVfsUtil.GetGlobalTypingsCacheLocation();
 
             // lsp.go:47-48 — SIGINT/SIGTERM cancel the server; stop() runs at scope exit.
             using var signals = global::Ts.Execute.Signals.NotifyContext();
 
-            var server = new global::Ts.Lsp.Server(new global::Ts.Lsp.ServerOptions
+            var server = global::Ts.Lsp.Server.NewServer(new global::Ts.Lsp.ServerOptions
             {
-                In = Console.OpenStandardInput(),
-                Out = Console.OpenStandardOutput(),
+                In = global::Ts.Lsp.LspStreams.ToReader(Console.OpenStandardInput()),
+                Out = global::Ts.Lsp.LspStreams.ToWriter(Console.OpenStandardOutput()),
                 Err = Console.Error,
                 Cwd = System.IO.Directory.GetCurrentDirectory(), // lsp.go:54 — core.Must(os.Getwd())
-                FileSystem = fs,
+                FS = fs,
                 DefaultLibraryPath = defaultLibraryPath,
+                TypingsLocation = typingsLocation,
+                NpmInstall = NpmInstall, // lsp.go:58-62
+                ProgressDelay = TimeSpan.FromMilliseconds(250),
                 SetParentProcessID = NewParentProcessWatchdog(signals), // lsp.go:64
             });
 
-            // lsp.go:67-72 — Run. The C# port's Run returns the exit code directly (its
-            // error paths print to stderr inside Run and surface as a non-zero code).
-            return server.Run(signals.Token);
+            // lsp.go:67-72 — Run.
+            if (server.Run(signals.Token) is { } err)
+            {
+                Console.Error.WriteLine(err.Message);
+                return 1;
+            }
+            return 0;
         }
         finally
         {
             profileSession?.Stop(); // lsp.go:40 — Go: defer profileSession.Stop()
+        }
+    }
+
+    // lsp.go:58-62 — exec.Command("npm", args...) with cmd.Dir = cwd; cmd.Output() returns
+    // stdout and an *exec.ExitError for a non-zero exit.
+    private static (byte[] Output, Exception? Error) NpmInstall(string cwd, string[] args)
+    {
+        var startInfo = new System.Diagnostics.ProcessStartInfo("npm")
+        {
+            WorkingDirectory = cwd,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        foreach (string arg in args)
+        {
+            startInfo.ArgumentList.Add(arg);
+        }
+        try
+        {
+            using var process = System.Diagnostics.Process.Start(startInfo)!;
+            using var stdout = new System.IO.MemoryStream();
+            var stderrTask = process.StandardError.ReadToEndAsync();
+            process.StandardOutput.BaseStream.CopyTo(stdout);
+            process.WaitForExit();
+            string stderr = stderrTask.GetAwaiter().GetResult();
+            if (process.ExitCode != 0)
+            {
+                return (stdout.ToArray(), new InvalidOperationException(
+                    "exit status " + process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture) + (stderr.Length > 0 ? ": " + stderr : "")));
+            }
+            return (stdout.ToArray(), null);
+        }
+        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or System.IO.IOException)
+        {
+            return ([], e);
         }
     }
 

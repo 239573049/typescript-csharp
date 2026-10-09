@@ -279,7 +279,7 @@ public sealed class Snapshot
         ProjectCollection.GetDefaultProject(uri.Path(UseCaseSensitiveFileNames()));
 
     // snapshot.go:223-228 — GetProjectsContainingFile.
-    public LsProject[] GetProjectsContainingFile(global::Ts.LsProto.DocumentUri uri)
+    public global::Ts.Ls.Project[] GetProjectsContainingFile(global::Ts.LsProto.DocumentUri uri)
     {
         string fileName = uri.FileName();
         global::Ts.TsPath.Path path = toPath(fileName);

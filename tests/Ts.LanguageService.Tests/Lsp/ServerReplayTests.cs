@@ -1,72 +1,83 @@
+// End-to-end server scenarios over the framed LSP transport (no Go counterpart file:
+// these are the C#-side regression scenarios from the stdio skeleton era, re-driven
+// through the ported lsptestutil client against the full server.go port).
+
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Text.Json;
+using Ts.TestUtil.LspTestUtil;
 using Xunit;
+
+using LsProtoT = global::Ts.LsProto;
 
 namespace Ts.Lsp.Tests;
 
 public sealed class ServerReplayTests
 {
+    private static (LSPClient Client, System.Func<System.Exception?> Close, JsonElement Capabilities) Start(Dictionary<string, string> files)
+    {
+        var (client, closeClient) = LSPClient.NewLSPClient(
+            ServerTestUtil.Options("/src", ServerTestUtil.WrapMapFS(files)),
+            ServerTestUtil.OnServerRequest(null, acceptWorkDoneProgressCreate: true));
+        var (initMsg, _, ok) = LSPClient.SendRequest(client, LsProtoT.Infos.InitializeInfo, new LsProtoT.InitializeParams
+        {
+            Capabilities = new LsProtoT.ClientCapabilities(),
+        });
+        Assert.True(ok && initMsg!.AsResponse().Error is null, "Initialize failed");
+        JsonElement capabilities = initMsg!.AsResponse().Result!.Value.GetProperty("capabilities").Clone();
+        LSPClient.SendNotification(client, LsProtoT.Infos.InitializedInfo, new LsProtoT.InitializedParams());
+        client.Server.InitComplete().Wait(TestContext.Current.CancellationToken);
+        return (client, closeClient, capabilities);
+    }
+
+    private static LsProtoT.Diagnostic[] PullDiagnostics(LSPClient client, LsProtoT.DocumentUri uri)
+    {
+        var (msg, report, ok) = LSPClient.SendRequest(client, LsProtoT.Infos.TextDocumentDiagnosticInfo, new LsProtoT.DocumentDiagnosticParams
+        {
+            TextDocument = new LsProtoT.TextDocumentIdentifier { Uri = uri },
+        });
+        Assert.True(ok, "expected a response");
+        Assert.Null(msg!.AsResponse().Error);
+        Assert.NotNull(report?.FullDocumentDiagnosticReport);
+        return report.FullDocumentDiagnosticReport.Items;
+    }
+
+    private static bool HasCode(LsProtoT.Diagnostic diagnostic, int code) =>
+        diagnostic.Code?.Integer == code;
+
     [Fact]
     public void StdioReplayInitializeOpenDiagnosticsAndHover()
     {
         const string source = "const x: number = \"oops\";\nx;\n";
-        var escapedSource = source
-            .Replace("\\", "\\\\", System.StringComparison.Ordinal)
-            .Replace("\"", "\\\"", System.StringComparison.Ordinal)
-            .Replace("\n", "\\n", System.StringComparison.Ordinal);
-        using var input = new MemoryStream();
-        var inputWriter = new global::Ts.JsonRpc.Writer(input);
-        inputWriter.Write(Encoding.UTF8.GetBytes(
-            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}}"));
-        inputWriter.Write(Encoding.UTF8.GetBytes(
-            "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///src/main.ts\",\"languageId\":\"typescript\",\"version\":1,\"text\":\"" + escapedSource + "\"}}}"));
-        inputWriter.Write(Encoding.UTF8.GetBytes(
-            "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"textDocument/hover\",\"params\":{\"textDocument\":{\"uri\":\"file:///src/main.ts\"},\"position\":{\"line\":0,\"character\":6}}}"));
-        input.Position = 0;
-
-        using var output = new MemoryStream();
-        using var errors = new StringWriter();
-        var server = new global::Ts.Lsp.Server(new global::Ts.Lsp.ServerOptions
+        var (client, closeClient, capabilities) = Start(new Dictionary<string, string>
         {
-            In = input,
-            Out = output,
-            Err = errors,
-            Cwd = "/src",
-            DefaultLibraryPath = "/lib",
+            ["/src/main.ts"] = source,
         });
-
-        var exitCode = server.Run(TestContext.Current.CancellationToken);
-
-        Assert.Equal(0, exitCode);
-        Assert.Equal("", errors.ToString());
-        var messages = ReadMessages(output);
-
-        var initialize = Assert.Single(messages, message =>
-            message.RootElement.TryGetProperty("id", out var id) && id.GetInt32() == 1);
-        var capabilities = initialize.RootElement.GetProperty("result").GetProperty("capabilities");
-        Assert.Equal("utf-16", capabilities.GetProperty("positionEncoding").GetString());
-        Assert.True(capabilities.GetProperty("textDocumentSync").GetProperty("openClose").GetBoolean());
-        Assert.Equal(2, capabilities.GetProperty("textDocumentSync").GetProperty("change").GetInt32());
-        Assert.True(capabilities.GetProperty("hoverProvider").GetBoolean());
-
-        var publish = Assert.Single(messages, message =>
-            message.RootElement.TryGetProperty("method", out var method) &&
-            string.Equals(method.GetString(), "textDocument/publishDiagnostics", System.StringComparison.Ordinal));
-        var diagnostics = publish.RootElement.GetProperty("params").GetProperty("diagnostics");
-        Assert.Contains(diagnostics.EnumerateArray(), diagnostic =>
-            diagnostic.GetProperty("code").GetInt32() == 2322 &&
-            diagnostic.GetProperty("message").GetString()!.Contains("not assignable", System.StringComparison.Ordinal));
-
-        var hover = Assert.Single(messages, message =>
-            message.RootElement.TryGetProperty("id", out var id) && id.GetInt32() == 2);
-        Assert.True(hover.RootElement.TryGetProperty("result", out var hoverResult));
-        Assert.True(hoverResult.ValueKind is JsonValueKind.Null or JsonValueKind.Object);
-
-        foreach (var message in messages)
+        try
         {
-            message.Dispose();
+            Assert.Equal("utf-16", capabilities.GetProperty("positionEncoding").GetString());
+            Assert.True(capabilities.GetProperty("textDocumentSync").GetProperty("openClose").GetBoolean());
+            Assert.Equal(2, capabilities.GetProperty("textDocumentSync").GetProperty("change").GetInt32());
+            Assert.True(capabilities.GetProperty("hoverProvider").GetBoolean());
+
+            var uri = new LsProtoT.DocumentUri("file:///src/main.ts");
+            ServerTestUtil.DidOpen(client, uri, source);
+
+            Assert.Contains(PullDiagnostics(client, uri), diagnostic =>
+                HasCode(diagnostic, 2322) &&
+                diagnostic.Message.Contains("not assignable", System.StringComparison.Ordinal));
+
+            var (hoverMsg, _, hoverOk) = LSPClient.SendRequest(client, LsProtoT.Infos.TextDocumentHoverInfo, new LsProtoT.HoverParams
+            {
+                TextDocument = new LsProtoT.TextDocumentIdentifier { Uri = uri },
+                Position = new LsProtoT.Position { Line = 0, Character = 6 },
+            });
+            Assert.True(hoverOk, "expected a response");
+            Assert.Null(hoverMsg!.AsResponse().Error);
+            Assert.True(hoverMsg.AsResponse().Result?.ValueKind is null or JsonValueKind.Null or JsonValueKind.Object);
+        }
+        finally
+        {
+            Assert.Null(closeClient());
         }
     }
 
@@ -77,69 +88,37 @@ public sealed class ServerReplayTests
         // LSP character 34 (but Unicode-scalar character 33). This catches accidental
         // rune/code-point indexing in the didChange overlay path.
         const string source = "const s = \"😀\"; const n: number = 1;\n";
-        var escapedSource = source
-            .Replace("\\", "\\\\", System.StringComparison.Ordinal)
-            .Replace("\"", "\\\"", System.StringComparison.Ordinal)
-            .Replace("\n", "\\n", System.StringComparison.Ordinal);
-        using var input = new MemoryStream();
-        var inputWriter = new global::Ts.JsonRpc.Writer(input);
-        inputWriter.Write(Encoding.UTF8.GetBytes(
-            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}}"));
-        inputWriter.Write(Encoding.UTF8.GetBytes(
-            "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///src/change.ts\",\"languageId\":\"typescript\",\"version\":1,\"text\":\"" + escapedSource + "\"}}}"));
-        inputWriter.Write(Encoding.UTF8.GetBytes(
-            "{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"file:///src/change.ts\",\"version\":2},\"contentChanges\":[{\"range\":{\"start\":{\"line\":0,\"character\":34},\"end\":{\"line\":0,\"character\":35}},\"rangeLength\":1,\"text\":\"\\\"bad\\\"\"}]}}"));
-        input.Position = 0;
-
-        using var output = new MemoryStream();
-        using var errors = new StringWriter();
-        var server = new global::Ts.Lsp.Server(new global::Ts.Lsp.ServerOptions
+        var (client, closeClient, _) = Start(new Dictionary<string, string>
         {
-            In = input,
-            Out = output,
-            Err = errors,
-            Cwd = "/src",
-            DefaultLibraryPath = "/lib",
+            ["/src/change.ts"] = source,
         });
-
-        Assert.Equal(0, server.Run(TestContext.Current.CancellationToken));
-        Assert.Equal("", errors.ToString());
-        var messages = ReadMessages(output);
-        JsonDocument? changedDiagnostics = null;
-        foreach (var message in messages)
+        try
         {
-            if (message.RootElement.TryGetProperty("method", out var method) &&
-                string.Equals(method.GetString(), "textDocument/publishDiagnostics", System.StringComparison.Ordinal) &&
-                message.RootElement.GetProperty("params").GetProperty("version").GetInt32() == 2)
+            var uri = new LsProtoT.DocumentUri("file:///src/change.ts");
+            ServerTestUtil.DidOpen(client, uri, source);
+            LSPClient.SendNotification(client, LsProtoT.Infos.TextDocumentDidChangeInfo, new LsProtoT.DidChangeTextDocumentParams
             {
-                changedDiagnostics = message;
-            }
+                TextDocument = new LsProtoT.VersionedTextDocumentIdentifier { Uri = uri, Version = 2 },
+                ContentChanges =
+                [
+                    LsProtoT.TextDocumentContentChangePartialOrWholeDocument.FromPartial(new LsProtoT.TextDocumentContentChangePartial
+                    {
+                        Range = new LsProtoT.Range
+                        {
+                            Start = new LsProtoT.Position { Line = 0, Character = 34 },
+                            End = new LsProtoT.Position { Line = 0, Character = 35 },
+                        },
+                        RangeLength = 1,
+                        Text = "\"bad\"",
+                    }),
+                ],
+            });
+
+            Assert.Contains(PullDiagnostics(client, uri), diagnostic => HasCode(diagnostic, 2322));
         }
-
-        Assert.NotNull(changedDiagnostics);
-        Assert.Contains(
-            changedDiagnostics.RootElement.GetProperty("params").GetProperty("diagnostics").EnumerateArray(),
-            diagnostic => diagnostic.GetProperty("code").GetInt32() == 2322);
-
-        foreach (var message in messages)
+        finally
         {
-            message.Dispose();
-        }
-    }
-
-    private static List<JsonDocument> ReadMessages(MemoryStream output)
-    {
-        output.Position = 0;
-        var reader = new global::Ts.JsonRpc.Reader(output);
-        var messages = new List<JsonDocument>();
-        while (true)
-        {
-            var (data, ok) = reader.Read();
-            if (!ok)
-            {
-                return messages;
-            }
-            messages.Add(JsonDocument.Parse(data!));
+            Assert.Null(closeClient());
         }
     }
 }

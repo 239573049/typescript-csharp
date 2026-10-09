@@ -1333,7 +1333,7 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
     }
 
     // session.go:996-1004 — GetLanguageServiceAndProjectsForFile.
-    public (Project? Project, global::Ts.Ls.LanguageService? LanguageService, LsProject[] AllProjects, Exception? Error) GetLanguageServiceAndProjectsForFile(global::Ts.Core.RequestContext ctx, global::Ts.LsProto.DocumentUri uri)
+    public (Project? Project, global::Ts.Ls.LanguageService? LanguageService, global::Ts.Ls.Project[] AllProjects, Exception? Error) GetLanguageServiceAndProjectsForFile(global::Ts.Core.RequestContext ctx, global::Ts.LsProto.DocumentUri uri)
     {
         (Snapshot? snap, Project? project, global::Ts.Ls.LanguageService? defaultLs, Exception? err) = GetSnapshotAndDefaultProject(ctx, uri, callerRef: false);
         if (err is not null)
@@ -1341,13 +1341,13 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
             return (null, null, [], err);
         }
         // !!! TODO: sheetal:  Get other projects that contain the file with symlink
-        LsProject[] allProjects = snap!.GetProjectsContainingFile(uri);
+        global::Ts.Ls.Project[] allProjects = snap!.GetProjectsContainingFile(uri);
         return (project, defaultLs, allProjects, null);
     }
 
     // session.go:1006-1016 — GetProjectsForFile. (Go's error is always nil; dropped
     // per plan/05 §4.)
-    public LsProject[] GetProjectsForFile(global::Ts.Core.RequestContext ctx, global::Ts.LsProto.DocumentUri uri)
+    public global::Ts.Ls.Project[] GetProjectsForFile(global::Ts.Core.RequestContext ctx, global::Ts.LsProto.DocumentUri uri)
     {
         Snapshot snap = GetSnapshot(
             ctx,
