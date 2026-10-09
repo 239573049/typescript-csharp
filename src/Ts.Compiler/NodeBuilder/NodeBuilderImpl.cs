@@ -1309,8 +1309,9 @@ public sealed partial class NodeBuilder
             {
                 return f.NewQualifiedName(lhs, identifier);
             }
-            // DEFERRED: UseInstantiationExpressions path (createAccessExpression unported); the flag is not set on these paths.
-            throw new NotImplementedException("nodeBuilder.createAccessFromSymbolChain(UseInstantiationExpressions)");
+            return CreateExpressionWithTypeArguments(
+                f.NewPropertyAccessExpression(CreateAccessExpression(lhs), null /*questionDotToken*/, identifier, NodeFlags.None),
+                typeParameterNodes);
         }
         return identifier;
     }

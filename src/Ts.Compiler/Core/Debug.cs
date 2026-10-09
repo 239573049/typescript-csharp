@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Ts.Core;
@@ -22,6 +23,7 @@ public interface IKindString
 
 public static class Debug
 {
+    [DoesNotReturn]
     public static void Fail(string reason = "")
     {
         reason = reason.Length == 0 ? "Debug failure." : "Debug failure. " + reason;
@@ -45,7 +47,7 @@ public static class Debug
         Fail($"{msg} {detail}");
     }
 
-    public static void Assert(bool value, params object?[] message)
+    public static void Assert([DoesNotReturnIf(false)] bool value, params object?[] message)
     {
         if (value)
         {

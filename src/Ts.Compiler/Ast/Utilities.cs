@@ -2461,6 +2461,17 @@ public static partial class AstUtilities
             (IsTemplateLiteralKind(node.Kind) && (node.TemplateLiteralLikeData()!.TemplateFlags & TokenFlags.Unterminated) != 0);
     }
 
+    // utilities.go:4134-4140
+    public static Node ImportFromModuleSpecifier(Node node)
+    {
+        if (TryGetImportFromModuleSpecifier(node) is { } result)
+        {
+            return result;
+        }
+        Debug.FailBadSyntaxKind(node.Parent!);
+        return null!;
+    }
+
     // utilities.go:4142-4162
     public static Node? TryGetImportFromModuleSpecifier(Node node)
     {

@@ -4,7 +4,8 @@
 // accessors (CommonSourceDirectory / GetOutputFileNames / GetBuildInfoFileName /
 // PossiblyMatchesFileName / ParseInputOutputNames / ReloadFileNamesOfParsedCommandLine) are ported
 // against outputpaths (Ts.OutputPaths) + glob (Ts.Glob) + vfsmatch; ParsedCommandLine implements
-// outputpaths.OutputPathsHost. Only Locale() (locale package, phase 9) remains a PORT-TODO.
+// outputpaths.OutputPathsHost. Locale() parses the real `--locale` tag (see the deviation note on
+// Ts.Locale.Locale.TryParse — no localized-message data is wired yet).
 // PORT-NOTE: Go's compile-time interface assertions (`_ module.ResolvedProjectReference`,
 // `_ outputpaths.OutputPathsHost`) are dropped (05-conventions §1.3).
 
@@ -500,6 +501,24 @@ public sealed class ParsedCommandLine : OutputPathsHost, global::Ts.Module.Resol
             literalFileNamesLen = literalFileNamesLen,
         };
         return parsedCommandLine;
+    }
+
+    // parsedcommandline.go:418-423 — Locale() parses `--locale` lazily (Go `sync.Once` →
+    // single-shot guarded field). Go keeps the parsed tag even when language.Parse fails
+    // (zero tag); Locale.TryParse mirrors that by yielding Default (Und) on failure
+    // (deviation registered on Ts.Locale.Locale.TryParse — no BCP-47 parser under
+    // InvariantGlobalization; the localized-message data face itself is tracked separately).
+    private global::Ts.Locale.Locale locale;
+    private bool localeComputed;
+
+    public global::Ts.Locale.Locale Locale()
+    {
+        if (!localeComputed)
+        {
+            localeComputed = true;
+            locale = global::Ts.Locale.Locale.TryParse(CompilerOptions()!.Locale, out var parsed) ? parsed : global::Ts.Locale.Locale.Default;
+        }
+        return locale;
     }
 
     // Go module-level: fileGlobPattern / recursiveFileGlobPattern (parsedcommandline.go:23-24)

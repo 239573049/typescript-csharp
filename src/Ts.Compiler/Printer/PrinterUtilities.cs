@@ -5,8 +5,8 @@
 //     internal/ast/utilities.go). Relocate to Ts.Ast.AstUtilities when those helpers land there.
 //   * NameGenerator.isUniqueLocalName / nextContainer (from namegenerator.go).
 //   * The `getLiteralTextFlags` enum and `lineCharacterCache` type from internal/printer/utilities.go.
-//     internal/printer/utilities.go is a *later* printer wave; the functions it exports that printer.go
-//     calls are stubbed in PrinterStubs.cs. The two data types are hosted here because printer.go's
+//     The functions it exports that printer.go calls are now real (PrinterUtilities*.cs partials).
+//     The two data types are hosted here because printer.go's
 //     signatures reference them directly.
 
 using System;

@@ -1032,7 +1032,7 @@ public sealed partial class NodeFactory : NodeFactoryCoercible
             {
                 break;
             }
-            var propertyName = PrinterStubs.TryGetPropertyNameOfBindingOrAssignmentElement(element);
+            var propertyName = AstUtilities.TryGetPropertyNameOfBindingOrAssignmentElement(element);
             if (propertyName is not null)
             {
                 if (NodeTests.IsComputedPropertyName(propertyName))

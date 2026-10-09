@@ -1,5 +1,5 @@
 // PORT-NOTE: Selected self-contained helpers from internal/printer/utilities.go, hosted here for the printer
-// emit-body wave (utilities.go itself is a later wave; see PrinterStubs.cs for the functions still stubbed).
+// emit-body wave (utilities.go is now fully real across the PrinterUtilities*.cs partials).
 // These are the literal-text / string-escaping / line-position helpers that the common emit paths require to
 // produce real output. They are faithful 1:1 ports. Relocate to Utilities.cs when that wave lands.
 

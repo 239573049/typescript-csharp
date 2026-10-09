@@ -1557,9 +1557,9 @@ public sealed partial class NodeBuilder
         return null;
     }
 
-    // nodebuilderimpl.go:2459 — addPropertyToElementList. Ported for the property-signature slice; the
-    // accessor (getter/setter), method-signature, reverse-mapped-placeholder, and late-bound-name arms are
-    // deferred (see the PORT-NOTEs inline) and throw so a stubbed path never silently drops output.
+    // nodebuilderimpl.go:2459 — addPropertyToElementList. FULLY PORTED (all arms real): the late-bound
+    // trackComputedName/ReportNonSerializableProperty arm, the accessor getter/setter + `accessor`-keyword
+    // fake pair arm, the method-signature arm, and the reverse-mapped placeholder arm below.
     // nodebuilderimpl.go:2334 — trackComputedName.
     private void TrackComputedName(Node accessExpression, Node? enclosingDeclaration)
     {

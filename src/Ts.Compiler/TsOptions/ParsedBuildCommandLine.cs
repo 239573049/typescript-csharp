@@ -1,6 +1,7 @@
 // Ported from tsgo internal/tsoptions/parsedbuildcommandline.go
 //
-// SCOPE (phase 4): Locale() is stubbed — it depends on the locale package (phase 9).
+// Locale() now parses the real `--locale` tag (parsedbuildcommandline.go:40-45); see the
+// deviation note on Ts.Locale.Locale.TryParse (no localized-message data is wired yet).
 
 using System;
 using Ts.Ast;
@@ -37,7 +38,18 @@ public sealed class ParsedBuildCommandLine
         return resolvedProjectPaths;
     }
 
-    // PORT-TODO: locale.Parse (phase 9). Stubbed until the locale package lands.
-    public object Locale()
-        => throw new NotSupportedException("ParsedBuildCommandLine.Locale: pending the locale package (phase 9).");
+    // parsedbuildcommandline.go:40-45 — Locale() parses `--locale` lazily (Go `sync.Once` →
+    // single-shot guarded field); failure yields Default (Go's zero tag), see Ts.Locale.Locale.
+    private global::Ts.Locale.Locale locale;
+    private bool localeComputed;
+
+    public global::Ts.Locale.Locale Locale()
+    {
+        if (!localeComputed)
+        {
+            localeComputed = true;
+            locale = global::Ts.Locale.Locale.TryParse(CompilerOptions!.Locale, out var parsed) ? parsed : global::Ts.Locale.Locale.Default;
+        }
+        return locale;
+    }
 }

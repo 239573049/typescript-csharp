@@ -54,7 +54,9 @@ public partial class Checker
         }
         return diagnostic;
     }
-    internal Diagnostic? ErrorOrNil(Node? location, global::Ts.Diagnostics.Message message, params object?[] args) => throw new NotImplementedException("error");
+    // ErrorOrNil was a leftover invented stub: Go has no errorOrNil (verified incl. git history);
+    // the function the audit meant is lookupOrIssueError (checker.go:14196), already REAL in
+    // Checker.Merge.cs. The dead stub (zero call sites) is deleted per the stub policy.
     // CreateDiagnosticForNode is real in Checker.Relater.cs.
     // ast.Diagnostic.AddRelatedInfo (variadic helper form used by ported checker call sites).
     internal void AddRelatedInfo(Diagnostic diagnostic, params Diagnostic[] relatedInformation)

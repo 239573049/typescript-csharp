@@ -177,11 +177,25 @@ public sealed class SymbolTrackerImpl : ISymbolTracker
         }
     }
 
+    // tracker.go:133-143 — ReportPrivateInBaseOfClassExpression.
     public void ReportPrivateInBaseOfClassExpression(string propertyName)
     {
-        AddDiagnostic(
-            global::Ts.Diagnostics.Diagnostics.Property_0_of_exported_anonymous_class_type_may_not_be_private_or_protected,
-            propertyName);
+        var location = ErrorLocation();
+        if (location is not null)
+        {
+            var diag = DeclarationDiagnostics.CreateDiagnosticForNode(
+                location,
+                global::Ts.Diagnostics.Diagnostics.Property_0_of_exported_anonymous_class_type_may_not_be_private_or_protected,
+                propertyName);
+            if (NodeTests.IsVariableDeclaration(location.Parent!))
+            {
+                diag.AddRelatedInfo(DeclarationDiagnostics.CreateDiagnosticForNode(
+                    location,
+                    global::Ts.Diagnostics.Diagnostics.Add_a_type_annotation_to_the_variable_0,
+                    ErrorDeclarationNameWithFallback()));
+            }
+            state.AddDiagnostic(diag);
+        }
     }
 
     public void ReportTruncationError()
