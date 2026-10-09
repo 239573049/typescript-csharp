@@ -233,7 +233,10 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
         bool includeWorkspace = false;
         bool includeTsconfigDir = false;
         string tsconfigDir = global::Ts.TsPath.TsPath.GetDirectoryPath(fileName);
-        Dictionary<string, bool>? wildcardDirectories = entry.commandLine!.WildcardDirectories();
+        // Go: entry.commandLine may be nil here (a config whose parse failed, e.g. the file
+        // does not exist); WildcardDirectories/LiteralFileNames/ExtendedSourceFiles are
+        // nil-receiver-safe in Go (parsedcommandline.go:223-226, 263-268), so use `?.`.
+        Dictionary<string, bool>? wildcardDirectories = entry.commandLine?.WildcardDirectories();
         var comparePathsOptions = new global::Ts.TsPath.ComparePathsOptions
         {
             CurrentDirectory = sessionOptions.CurrentDirectory,
@@ -255,7 +258,7 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
                 externalDirectories.Add(dir);
             }
         }
-        foreach (string literalFileName in entry.commandLine.LiteralFileNames() ?? [])
+        foreach (string literalFileName in entry.commandLine?.LiteralFileNames() ?? [])
         {
             if (global::Ts.TsPath.TsPath.ContainsPath(sessionOptions.CurrentDirectory, literalFileName, comparePathsOptions))
             {
@@ -279,7 +282,7 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
         {
             globs.Add(WatchUtil.GetRecursiveGlobPattern(tsconfigDir));
         }
-        foreach (string extendedFileName in entry.commandLine.ExtendedSourceFiles() ?? [])
+        foreach (string extendedFileName in entry.commandLine?.ExtendedSourceFiles() ?? [])
         {
             if (includeWorkspace && global::Ts.TsPath.TsPath.ContainsPath(sessionOptions.CurrentDirectory, extendedFileName, comparePathsOptions))
             {
@@ -711,6 +714,9 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
         if (customConfigFileName != "")
         {
             bool skip = skipSearchInDirectoryOfFile;
+            // Go: ForEachAncestorDirectory's var zero T is "" for string; the C# generic
+            // exhaust branch yields null (Path.cs ForEachAncestorDirectory), so normalize
+            // to the Go zero value here (path.go:1075).
             (string result, _) = global::Ts.TsPath.TsPath.ForEachAncestorDirectory(searchPath, directory =>
             {
                 if (!skip)
@@ -728,6 +734,7 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
                 skip = false;
                 return ("", false);
             });
+            result ??= "";
             if (result != "")
             {
                 logger.Logf("computeConfigFileName:: File: {0}:: Result: {1}", fileName, result);
@@ -741,6 +748,9 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
         // - For ancestor of jsconfig.json: skip both tsconfig.json and jsconfig.json
         bool skipTsconfig = skipSearchInDirectoryOfFile;
         bool skipJsconfig = skipSearchInDirectoryOfFile && !fileName.EndsWith("/tsconfig.json", StringComparison.Ordinal);
+        // Go: ForEachAncestorDirectory's var zero T is "" for string; the C# generic
+        // exhaust branch yields null (Path.cs ForEachAncestorDirectory), so normalize to
+        // the Go zero value here (path.go:1075).
         (string result2, _) = global::Ts.TsPath.TsPath.ForEachAncestorDirectory(searchPath, directory =>
         {
             if (!skipTsconfig)
@@ -767,6 +777,7 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
             skipJsconfig = false;
             return ("", false);
         });
+        result2 ??= "";
         logger.Logf("computeConfigFileName:: File: {0}:: Result: {1}", fileName, result2);
         return result2;
     }

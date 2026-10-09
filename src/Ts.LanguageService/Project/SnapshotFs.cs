@@ -599,7 +599,9 @@ public sealed class SnapshotFSBuilder : FileSource
         string fileName = "";
         entry.Locked(e =>
         {
-            if (e.Value() is not null && e.Value()!.MatchesDiskText())
+            // Go: !e.Value().MatchesDiskText() (snapshotfs.go:410) — only reload entries
+            // whose cached text is stale (needsReload); the fresh placeholder must read.
+            if (e.Value() is not null && !e.Value()!.MatchesDiskText())
             {
                 fileName = e.Value()!.fileName;
             }

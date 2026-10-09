@@ -565,7 +565,13 @@ public sealed class Project : IDisposable, LsProject, global::Ts.Project.Dirty.C
                 "typings installer files",
                 WatchKind.Create | WatchKind.Change | WatchKind.Delete,
                 hasRelativePatternCapability,
-                static input => input); // core.Identity
+                // Go: core.Identity over the PatternsAndIgnored STRUCT (watch.go:107-111,160-165):
+                // Watchers() on a fresh typings watch receives the zero struct (nil slices,
+                // watch.go:195) and yields no watchers until the first Clone
+                // (projectcollectionbuilder.go:898). PatternsAndIgnored is a class here, so the
+                // zero value would be nil and crash GetWatchers — substitute the equivalent
+                // empty instance to preserve the Go zero-value semantics.
+                static input => input ?? new PatternsAndIgnored());
         }
         return project;
     }

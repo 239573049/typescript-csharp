@@ -555,23 +555,15 @@ internal static class LsDeps
         b.AppendFormat(CultureInfo.InvariantCulture, "{0:X4}", charCode);
     }
 
-    // lsconv/converters.go:110 — FileNameToDocumentURI (plain-path subset: bundled://
-    // and dynamic `^/…` file names belong to the deferred project layer, and Windows
-    // volume splitting to the deferred tspath.SplitVolumePath port). Go escapes each
-    // path segment with url.PathEscape plus an extra sub-delims replacer; C#'s
-    // Uri.EscapeDataString escapes that same combined set.
+    // lsconv/converters.go:110 — FileNameToDocumentURI. FIX: this was an early-wave
+    // plain-path subset (file:// escaping only). Go's converter also handles bundled://
+    // file names and dynamic `^/scheme/authority/path` names (untitled files round-trip
+    // to `untitled:Untitled-N`), which findallreferences.go:513-608/:1028 and every other
+    // caller rely on — so this now delegates to the full static port,
+    // Ts.Ls.LsConv.Converters.FileNameToDocumentURI.
     internal static global::Ts.LsProto.DocumentUri FileNameToDocumentURI(string fileName)
     {
-        if (fileName.StartsWith("//", StringComparison.Ordinal))
-        {
-            fileName = fileName["//".Length..];
-        }
-        var parts = fileName.Split('/');
-        for (var i = 0; i < parts.Length; i++)
-        {
-            parts[i] = Uri.EscapeDataString(parts[i]);
-        }
-        return new global::Ts.LsProto.DocumentUri("file://" + string.Join("/", parts));
+        return global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI(fileName);
     }
 
     // lsconv/converters.go:161 — Converters.ToLSPRange (UTF-16 direct).
