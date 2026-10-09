@@ -157,24 +157,8 @@ public sealed partial class LanguageService
         return LsProtoT.InlayHintsOrNull.FromInlayHints(ProvideInlayHint(FileNameOf(@params.TextDocument.Uri), @params.Range, inlayHintPreferences, ctx.Cancellation));
     }
 
-    // rename.go:47-60 — GetRenameInfo.
-    public RenameInfo GetRenameInfo(RequestContext ctx, string newName, LsProtoT.DocumentUri documentURI, LsProtoT.Position position)
-    {
-        string fileName = FileNameOf(documentURI);
-        SourceFile sourceFile = GetProgramAndFile(fileName);
-        return GetRenameInfo(fileName, ToPosition(sourceFile, position), newName, ctx.Cancellation);
-    }
-
-    // rename.go:33-45 — ProvideRename. The foundation rename engine resolves references
-    // within the default project (see the Rename.cs header), so the orchestrator's
-    // cross-project fan-out reduces to the default project's edits.
-    public LsProtoT.WorkspaceEditOrNull ProvideRename(RequestContext ctx, LsProtoT.RenameParams @params, CrossProjectOrchestrator orchestrator)
-    {
-        string fileName = FileNameOf(@params.TextDocument.Uri);
-        SourceFile sourceFile = GetProgramAndFile(fileName);
-        LsProtoT.WorkspaceEdit? edit = ProvideRename(fileName, ToPosition(sourceFile, @params.Position), @params.NewName, ctx.Cancellation);
-        return edit is null ? new LsProtoT.WorkspaceEditOrNull() : LsProtoT.WorkspaceEditOrNull.FromWorkspaceEdit(edit);
-    }
+    // rename.go:33-60 — ProvideRename / GetRenameInfo live in Rename.cs (the Go canonical
+    // home of the rename family).
 
     // callhierarchy.go:976-1008 — ProvidePrepareCallHierarchy.
     public LsProtoT.CallHierarchyItemsOrNull ProvidePrepareCallHierarchy(RequestContext ctx, LsProtoT.DocumentUri documentURI, LsProtoT.Position position)

@@ -1809,7 +1809,7 @@ public sealed class Server : global::Ts.Project.Client, global::Ts.Project.Ata.N
             return HandleWillRenameFilesWorker(ctx, renameFilesParams, req, true /*sendRenameFile*/);
         }
 
-        return (defaultLs.ProvideRename(ctx, @params, orchestrator!), null);
+        return (defaultLs.ProvideRename(ctx, @params, orchestrator), null);
     }
 
     private (LsProto.WorkspaceEditOrNull? Result, Exception? Error) HandleWillRenameFiles(RequestContext ctx, LsProto.RenameFilesParams @params, RequestMessage msg)
