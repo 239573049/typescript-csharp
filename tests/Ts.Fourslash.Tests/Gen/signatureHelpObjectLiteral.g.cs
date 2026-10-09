@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpObjectLiteral.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,8 +30,8 @@ objectLiteral.f(/*objectLiteral1*/4, /*objectLiteral2*/"");
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("objectLiteral1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("objectLiteral2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterName = "b", ParameterSpan = "b: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: number, b: string): string", ParameterName = "b", ParameterSpan = "b: string", IsVariadic = false, IsVariadicSet = false });
     }
 }

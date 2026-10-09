@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/goToDefinitionDestructuredRequire1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;

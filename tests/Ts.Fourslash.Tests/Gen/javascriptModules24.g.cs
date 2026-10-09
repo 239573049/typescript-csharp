@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/javascriptModules24.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -42,6 +44,6 @@ foo.bar(/*2*/"test");
     f.VerifyQuickInfoIs("(alias) function foo(): number\n(alias) namespace foo\nimport foo", "");
 
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { IsVariadic = false, IsVariadicSet = false });
     }
 }

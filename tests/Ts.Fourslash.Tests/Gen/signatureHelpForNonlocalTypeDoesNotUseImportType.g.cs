@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpForNonlocalTypeDoesNotUseImportType.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -33,6 +35,6 @@ f(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForNonlocalTypeDoesNotUseImportType", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(p?: Thing): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(p?: Thing): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

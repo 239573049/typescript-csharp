@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpWithTriggers02.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -33,19 +35,19 @@ foo(bar/*1*/)
 
     f.Insert("(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar(x: unknown, y: unknown): unknown" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar(x: unknown, y: unknown): unknown", IsVariadic = false, IsVariadicSet = false });
 
     f.Backspace(1);
 
     f.Insert("<");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar<U>(x: U, y: U): U" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "bar<U>(x: U, y: U): U", IsVariadic = false, IsVariadicSet = false });
 
     f.Backspace(1);
 
     f.Insert(",");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: <U>(x: U, y: U) => U, y: <U>(x: U, y: U) => U): <U>(x: U, y: U) => U" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: <U>(x: U, y: U) => U, y: <U>(x: U, y: U) => U): <U>(x: U, y: U) => U", IsVariadic = false, IsVariadicSet = false });
 
     f.Backspace(1);
     }

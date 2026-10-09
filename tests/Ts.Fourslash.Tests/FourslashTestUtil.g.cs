@@ -41,13 +41,21 @@ public static class FourslashTestUtil
     // completions.go:213-215 — DeprecateSortText.
     public static string DeprecateSortText(string original) => "z" + original;
 
-    // util.go:14-16.
+    // util.go:14-16 (in the Go util package the two sentinels are declared there; in C# the
+    // corpus names them unqualified through the compilation-wide static using of this class).
+    //   Ignored — Go fourslash.go:1018 type Ignored = struct{}: the "do not check editRange"
+    //             arm of the *EditRange | Ignored union. The runner's EditRange class is the
+    //             *EditRange arm, so the emitted expected item defaults carry the Ignored
+    //             sentinel here (see generateVerifyCompletions: the anonymous-range linkage
+    //             that Go's Ignored arm stands for is not ported, so the check is a no-op).
+    //   AnyTextEdits — fourslash.go:5467 var AnyTextEdits *[]*lsproto.TextEdit (a typed nil
+    //             pointer in a non-nil interface): the "any non-nil edits" sentinel the
+    //             emitted expected completion items use for the hasAction marker. In C# it is
+    //             a LsProto.TextEdit[] sentinel compared by reference (it can never appear in a
+    //             real completion item).
     public static readonly object Ignored = new();
 
-    // fourslash.go:2449 — AnyTextEdits is the "any non-nil edits" sentinel the emitted
-    // expected-completion items use for AdditionalTextEdits (Go: an untyped nil *[]*TextEdit
-    // pointer, a non-nil interface holding a nil pointer).
-    public static readonly object AnyTextEdits = new();
+    public static readonly LsProto.TextEdit[] AnyTextEdits = [];
 
     public static readonly string[] DefaultCommitCharacters = [".", ",", ";"];
 

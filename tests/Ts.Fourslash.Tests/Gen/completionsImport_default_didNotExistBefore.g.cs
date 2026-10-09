@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/completionsImport_default_didNotExistBefore.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;

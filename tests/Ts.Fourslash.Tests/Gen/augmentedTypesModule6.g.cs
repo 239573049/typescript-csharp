@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/augmentedTypesModule6.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -72,7 +74,7 @@ r2./*6*/
     });
 
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m3f(): m3f" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m3f(): m3f", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("4", "var r: m3f", "");
 
@@ -114,6 +116,6 @@ r2./*6*/
 
     f.Insert("foo(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

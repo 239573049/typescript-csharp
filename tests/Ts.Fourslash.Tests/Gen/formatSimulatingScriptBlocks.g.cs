@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatSimulatingScriptBlocks.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -43,7 +45,7 @@ public class FormatSimulatingScriptBlocksTests
 /* END EXTERNAL SOURCE */
 """;
         using var f = FourslashTest.New(content, fileName: "formatSimulatingScriptBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { BaseIndentSize = 12 });
+    f.ConfigureFormat(static o => o.BaseIndentSize = 12);
 
     f.FormatSelection("begin1", "end1");
 
@@ -51,7 +53,7 @@ public class FormatSimulatingScriptBlocksTests
 
     f.FormatSelection("begin3", "end3");
 
-    f.ConfigureFormat(new FormatCodeSettings { BaseIndentSize = 24 });
+    f.ConfigureFormat(static o => o.BaseIndentSize = 24);
 
     f.FormatSelection("begin4", "end4");
 

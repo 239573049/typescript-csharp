@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/completionsImport_jsModuleExportsAssignment.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -46,7 +48,7 @@ module.exports = {
 """;
         using var f = FourslashTest.New(content, fileName: "completionsImport_jsModuleExportsAssignment", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
+    f.ConfigureFormat(static o => o.NewLineCharacter = "\n");
 
     f.GoToMarker("");
 

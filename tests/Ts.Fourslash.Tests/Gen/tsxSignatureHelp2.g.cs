@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/tsxSignatureHelp2.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -48,8 +50,8 @@ let e1 = <MainButton/*1*/ /*2*/
 """;
         using var f = FourslashTest.New(content, fileName: "tsxSignatureHelp2", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "MainButton(buttonProps: ButtonProps): JSX.Element", ParameterSpan = "buttonProps: ButtonProps", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -683,15 +683,16 @@ function parseFormatStatement(funcName: string, args: readonly ts.Expression[]):
             ) {
                 optValue = stringToTristate(args[1].getText());
             }
-            // Go emits three statements (GetOptions / field assign / Configure). The C#
-            // UserPreferences does not carry a FormatCodeSettings field yet, so the C#
-            // emission is the equivalent single ConfigureFormat call (see file header).
+            // Go emits three statements (GetOptions / field assign / Configure). The C# port
+            // mirrors them with one lambdas-in call: the runner reads the options copy, clones
+            // the FormatCodeSettings, applies the field assignment, and installs the clone back
+            // on the session preferences (see FourslashTest.ConfigureFormat).
             const formattedValue = optValue === "true" || optValue === "false" || optValue.startsWith("Core_.TS")
                 ? optValue
                 : csStringLiteral(JSON.parse(optValue));
             return [{
                 kind: "format",
-                csStatement: `f.ConfigureFormat(new FormatCodeSettings { ${optName.charAt(0).toUpperCase() + optName.slice(1)} = ${formattedValue} })`,
+                csStatement: `f.ConfigureFormat(static o => o.${optName.charAt(0).toUpperCase() + optName.slice(1)} = ${formattedValue})`,
             }];
         case "selection": {
             const startMarker = getStringLiteralLike(args[0])?.text;
@@ -1669,7 +1670,7 @@ function parseBaselineDocumentHighlightsArgs(args: readonly ts.Expression[]): [V
                             if (ts.isElementAccessExpression(obj) && ts.isCallExpression(obj.expression) && obj.expression.getText().includes("ranges")) {
                                 const index = obj.argumentExpression?.getText();
                                 if (index !== undefined) {
-                                    filesToSearch.push(`f.Ranges()[${index}].FileName()`);
+                                    filesToSearch.push(`f.Ranges()[${index}].FileName`);
                                     continue;
                                 }
                             }
@@ -1677,7 +1678,7 @@ function parseBaselineDocumentHighlightsArgs(args: readonly ts.Expression[]): [V
                             if (ts.isIdentifier(obj)) {
                                 const resolved = parseRangeVariable(obj);
                                 if (resolved) {
-                                    filesToSearch.push(`${resolved}.FileName()`);
+                                    filesToSearch.push(`${resolved}.FileName`);
                                     continue;
                                 }
                             }
@@ -1947,6 +1948,10 @@ function parseVerifyLinkedEditing(args: readonly ts.Expression[]): [VerifyLinked
     return [{
         kind: "verifyLinkedEditing",
         ranges,
+        // Go models the response as map[string][]lsproto.Range where an absent key means "no
+        // ranges reported"; the emitter spells it as an explicit null entry, which the C#
+        // verifier reads as that same expectation.
+        hasNullEntries: entries.some(entry => entry.endsWith("] = null")),
     }];
 }
 
@@ -2713,7 +2718,9 @@ function getRangesByTextArg(arg: ts.CallExpression): string | undefined {
 
 /**
  * Handles `.filter(r => !(r.marker && r.marker.data.KEY))` patterns on range arrays.
- * Converts to `[.. Core_.Filter(source, (RangeMarker r) => ...)]`
+ * Converts to `[.. global::Ts.Core.CoreUtil.Filter(source, (RangeMarker r) => ...)]` — the
+ * port of Go's `core.Filter` (core.go:54), which the Go corpus reaches as `core.Filter`
+ * (util.go dot-imports core) and which Ts.Core.CoreUtil hosts in the C# port.
  */
 function parseFilterExpression(arg: ts.CallExpression): string | undefined {
     if (!ts.isPropertyAccessExpression(arg.expression) || arg.expression.name.text !== "filter") {
@@ -2753,7 +2760,7 @@ function parseFilterExpression(arg: ts.CallExpression): string | undefined {
         return undefined;
     }
 
-    return `[.. Core_.Filter(${sourceGo}, ${predicate})]`;
+    return `[.. global::Ts.Core.CoreUtil.Filter(${sourceGo}, ${predicate})]`;
 }
 
 function parseFilterPredicate(arrow: ts.ArrowFunction): string | undefined {
@@ -4440,10 +4447,9 @@ function generateSignatureHelpExpected(opts: VerifySignatureHelpOptions): string
     if (opts.overrideSelectedItemIndex !== undefined) {
         fields.push(`OverrideSelectedItemIndex = ${opts.overrideSelectedItemIndex}`);
     }
-    if (opts.isVariadic !== undefined) {
-        fields.push(`IsVariadic = ${opts.isVariadic}`);
-        fields.push(`IsVariadicSet = true`);
-    }
+    // IsVariadic/IsVariadicSet are a pair (see the runner's VerifySignatureHelpOptions): the
+    // Go corpus distinguishes "explicitly set to false" from "unset", so both always emit.
+    fields.push(`IsVariadic = ${opts.isVariadic === true}, IsVariadicSet = ${opts.isVariadic !== undefined}`);
 
     return `new VerifySignatureHelpOptions { ${fields.join(", ")} }`;
 }
@@ -4590,7 +4596,12 @@ function generateCSharpCmdStatement(cmd: Cmd): string {
         case "verifyBaselineCallHierarchy":
             return `f.VerifyBaselineCallHierarchy()`;
         case "verifyLinkedEditing":
-            return `f.VerifyLinkedEditing(${cmd.ranges})`;
+            // Go compares map[string][]lsproto.Range: an explicit `undefined` value means the
+            // response must have no entry for that marker, which is a different assertion from
+            // an empty range list. The two are separate verifier entry points.
+            return cmd.hasNullEntries
+                ? `f.VerifyLinkedEditingHasNone(${cmd.ranges})`
+                : `f.VerifyLinkedEditing(${cmd.ranges})`;
         case "goTo":
             return generateGoToCommand(cmd);
         case "edit":
@@ -4743,6 +4754,8 @@ const fileHeader = (testName: string, goName: string): string => `// <auto-gener
 // _submodules/TypeScript/tests/cases/fourslash/${goName}.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -4795,7 +4808,7 @@ function generateCSharpTest(test: GoTest, isServer: boolean, isCrashing: boolean
     const newStatement = hasDocCommentTemplateCommands
         ? `        var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: ${JSON.stringify(test.name)}, new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);`
+        using var f = FourslashTest.New(content, fileName: ${JSON.stringify(test.name)}, options: new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);`
         : `        using var f = FourslashTest.New(content, fileName: ${JSON.stringify(test.name)}, cancellationToken: TestContext.Current.CancellationToken);`;
     const body = `        SkipIfFailing.Check();
         const string content = ${contentLiteral(content)};
@@ -5034,13 +5047,21 @@ public static class FourslashTestUtil
     // completions.go:213-215 — DeprecateSortText.
     public static string DeprecateSortText(string original) => "z" + original;
 
-    // util.go:14-16.
+    // util.go:14-16 (in the Go util package the two sentinels are declared there; in C# the
+    // corpus names them unqualified through the compilation-wide static using of this class).
+    //   Ignored — Go fourslash.go:1018 type Ignored = struct{}: the "do not check editRange"
+    //             arm of the *EditRange | Ignored union. The runner's EditRange class is the
+    //             *EditRange arm, so the emitted expected item defaults carry the Ignored
+    //             sentinel here (see generateVerifyCompletions: the anonymous-range linkage
+    //             that Go's Ignored arm stands for is not ported, so the check is a no-op).
+    //   AnyTextEdits — fourslash.go:5467 var AnyTextEdits *[]*lsproto.TextEdit (a typed nil
+    //             pointer in a non-nil interface): the "any non-nil edits" sentinel the
+    //             emitted expected completion items use for the hasAction marker. In C# it is
+    //             a LsProto.TextEdit[] sentinel compared by reference (it can never appear in a
+    //             real completion item).
     public static readonly object Ignored = new();
 
-    // fourslash.go:2449 — AnyTextEdits is the "any non-nil edits" sentinel the emitted
-    // expected-completion items use for AdditionalTextEdits (Go: an untyped nil *[]*TextEdit
-    // pointer, a non-nil interface holding a nil pointer).
-    public static readonly object AnyTextEdits = new();
+    public static readonly LsProto.TextEdit[] AnyTextEdits = [];
 
     public static readonly string[] DefaultCommitCharacters = [".", ",", ";"];
 

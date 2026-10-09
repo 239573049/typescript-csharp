@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/docCommentTemplateVariableStatements01.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -53,7 +55,7 @@ let f = class F {
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateVariableStatements01", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateVariableStatements01", options: new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var varName in new[]{"a", "b", "c", "d"})
     {
         f.VerifyJSDocCompletion(varName, 3, "/** */", null);

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/getJavaScriptCompletions16.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -74,7 +76,7 @@ let x = new Something(/*sig*/);
     f.Backspace(1);
 
     f.GoToMarker("sig");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Something(a: number, b: any): Something" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Something(a: number, b: any): Something", IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("method");
 

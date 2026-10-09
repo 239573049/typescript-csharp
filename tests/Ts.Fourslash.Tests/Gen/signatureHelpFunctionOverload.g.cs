@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpFunctionOverload.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,8 +33,8 @@ functionOverload(""/*functionOverload2*/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpFunctionOverload", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("functionOverload1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(): any", ParameterCount = 0, OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(): any", ParameterCount = 0, OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("functionOverload2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(test: string): any", ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionOverload(test: string): any", ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

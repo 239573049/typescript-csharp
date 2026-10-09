@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/commentsImportDeclaration.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -124,7 +126,7 @@ var new/*9*/Var = new extMod.m1.m2./*10*/c();
     });
 
     f.GoToMarker("8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("8q", "function extMod.m1.fooExport(): number", "exported function");
 

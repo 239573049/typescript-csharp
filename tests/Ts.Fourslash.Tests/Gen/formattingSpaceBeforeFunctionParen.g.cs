@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingSpaceBeforeFunctionParen.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,9 +34,9 @@ public class FormattingSpaceBeforeFunctionParenTests
 /*7*/function* g () { }
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpaceBeforeFunctionParen", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceBeforeFunctionParenthesis = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.InsertSpaceBeforeFunctionParenthesis = Core_.TSTrue);
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterFunctionKeywordForAnonymousFunctions = Core_.TSFalse });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterFunctionKeywordForAnonymousFunctions = Core_.TSFalse);
 
     f.FormatDocument("");
 

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatInsertSpaceAfterCloseBraceBeforeCloseBracket.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -26,7 +28,7 @@ public class FormatInsertSpaceAfterCloseBraceBeforeCloseBracketTests
 [{}]
 """;
         using var f = FourslashTest.New(content, fileName: "formatInsertSpaceAfterCloseBraceBeforeCloseBracket", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = Core_.TSTrue);
 
     f.FormatDocument("");
 

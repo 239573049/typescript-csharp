@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpBeforeSemicolon1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -30,6 +32,6 @@ Foo(/**/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpBeforeSemicolon1", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(arg1: string, arg2: string): void", ParameterCount = 2, ParameterName = "arg1", ParameterSpan = "arg1: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(arg1: string, arg2: string): void", ParameterCount = 2, ParameterName = "arg1", ParameterSpan = "arg1: string", IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpConstructorInheritance.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -38,6 +40,6 @@ class B3 extends B2 {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpConstructorInheritance", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("indirectSuperCall");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(n: number): B2", ParameterCount = 1, ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(n: number): B2", ParameterCount = 1, ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

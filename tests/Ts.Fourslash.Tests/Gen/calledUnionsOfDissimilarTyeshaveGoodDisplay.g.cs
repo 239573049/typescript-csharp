@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/calledUnionsOfDissimilarTyeshaveGoodDisplay.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -68,14 +70,14 @@ callableThing5(/*5*/1)
 """;
         using var f = FourslashTest.New(content, fileName: "calledUnionsOfDissimilarTyeshaveGoodDisplay", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing1(o1: { x: number; } & { y: number; }): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing1(o1: { x: number; } & { y: number; }): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing2(arg0: { x: number; } & { y: number; }): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing2(arg0: { x: number; } & { y: number; }): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing3(arg0: { x: number; } & { y: number; } & { z: number; } & { u: number; } & { v: number; }): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing3(arg0: { x: number; } & { y: number; } & { z: number; } & { u: number; } & { v: number; }): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing4(arg0: { x: number; } & { y: number; } & { z: number; } & { u: number; } & { v: number; } & { w: number; }): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing4(arg0: { x: number; } & { y: number; } & { z: number; } & { u: number; } & { v: number; } & { w: number; }): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("5");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing5(a1: number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callableThing5(a1: number): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

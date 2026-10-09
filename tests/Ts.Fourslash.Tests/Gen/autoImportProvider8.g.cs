@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/autoImportProvider8.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -48,7 +50,7 @@ const b = new MyClass2/*2*/();
         f.MarkTestAsStradaServer();
     f.GoToMarker("1");
 
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
+    f.ConfigureFormat(static o => o.NewLineCharacter = "\n");
 
     f.VerifyCompletions("1", new CompletionsExpectedList
     {

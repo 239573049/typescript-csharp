@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpOnOverloadsDifferentArity.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,10 +34,10 @@ f(1/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnOverloadsDifferentArity", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number): any", ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 4 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number): any", ParameterName = "n", ParameterSpan = "n: number", OverloadsCount = 4, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert(", ");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number, b: boolean): any", ParameterName = "b", ParameterSpan = "b: boolean", OverloadsCount = 4 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(n: number, b: boolean): any", ParameterName = "b", ParameterSpan = "b: boolean", OverloadsCount = 4, IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/quickInfoInFunctionTypeReference2.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -36,6 +38,6 @@ c.map(/*3*/
     f.VerifyQuickInfoAt("2", "(parameter) value: T", "");
 
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "map(fn: (k: string, value: number, context: any) => void, context: any): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "map(fn: (k: string, value: number, context: any) => void, context: any): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpSimpleFunctionCall.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,8 +33,8 @@ functionCall("", /*functionCall2*/1);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSimpleFunctionCall", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("functionCall1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "str", ParameterSpan = "str: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "str", ParameterSpan = "str: string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("functionCall2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "num", ParameterSpan = "num: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "functionCall(str: string, num: number): void", ParameterName = "num", ParameterSpan = "num: number", IsVariadic = false, IsVariadicSet = false });
     }
 }

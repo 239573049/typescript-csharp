@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/documentHighlights_windowsPath.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -27,6 +29,6 @@ public class DocumentHighlights_windowsPathTests
 var /*1*/[|x|] = 1;
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights_windowsPath", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName()}, f.Ranges()[0]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName}, f.Ranges()[0]);
     }
 }

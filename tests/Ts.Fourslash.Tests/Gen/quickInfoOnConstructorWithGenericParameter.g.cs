@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/quickInfoOnConstructorWithGenericParameter.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -41,11 +43,11 @@ var x = new /*2*/B(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "quickInfoOnConstructorWithGenericParameter", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B", IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("null,");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(a: Foo<I>, b: number): B", IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("10);");
 

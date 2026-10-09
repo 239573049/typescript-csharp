@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/docCommentTemplateInSingleLineComment.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -33,7 +35,7 @@ public class DocCommentTemplateInSingleLineCommentTests
 """;
         var capabilities = FourslashTest.GetDefaultCapabilities();
         capabilities.TextDocument!.Completion!.CompletionItem!.SnippetSupport = false;
-        using var f = FourslashTest.New(content, fileName: "docCommentTemplateInSingleLineComment", new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
+        using var f = FourslashTest.New(content, fileName: "docCommentTemplateInSingleLineComment", options: new FourslashTest.FourslashOptions { Capabilities = capabilities }, cancellationToken: TestContext.Current.CancellationToken);
     foreach (var marker in f.Markers())
     {
         f.VerifyNoJSDocCompletion(marker);

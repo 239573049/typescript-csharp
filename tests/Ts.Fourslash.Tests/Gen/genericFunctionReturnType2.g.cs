@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/genericFunctionReturnType2.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -35,12 +37,12 @@ var /*4*/r2 = r(/*3*/4);
 """;
         using var f = FourslashTest.New(content, fileName: "genericFunctionReturnType2", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: number): (a: number) => number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: number): (a: number) => number", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("2", "var r: (a: number) => number", "");
 
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "r(a: number): number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "r(a: number): number", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("4", "var r2: number", "");
     }

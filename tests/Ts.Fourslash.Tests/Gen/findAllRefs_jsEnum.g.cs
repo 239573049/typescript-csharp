@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/findAllRefs_jsEnum.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;

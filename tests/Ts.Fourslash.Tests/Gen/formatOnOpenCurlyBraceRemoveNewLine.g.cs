@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatOnOpenCurlyBraceRemoveNewLine.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -27,7 +29,7 @@ if(true)
 /**/ }
 """;
         using var f = FourslashTest.New(content, fileName: "formatOnOpenCurlyBraceRemoveNewLine", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSFalse });
+    f.ConfigureFormat(static o => o.PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSFalse);
 
     f.GoToMarker("");
 

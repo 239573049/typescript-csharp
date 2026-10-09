@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/classExtendsInterfaceSigHelp1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -36,6 +38,6 @@ i.foo(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "classExtendsInterfaceSigHelp1", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterSpan = "x: string", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterSpan = "x: string", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

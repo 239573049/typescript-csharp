@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatIfWithEmptyCondition.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -27,7 +29,7 @@ if () {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatIfWithEmptyCondition", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSTrue);
 
     f.FormatDocument("");
 

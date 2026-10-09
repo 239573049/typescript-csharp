@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpOnNestedOverloads.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,10 +33,10 @@ fn('', fn2(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnNestedOverloads", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn2(x: string): any", ParameterName = "x", ParameterSpan = "x: string", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn2(x: string): any", ParameterName = "x", ParameterSpan = "x: string", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("'',");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn2(x: string, y: number): any", ParameterName = "y", ParameterSpan = "y: number", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fn2(x: string, y: number): any", ParameterName = "y", ParameterSpan = "y: number", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

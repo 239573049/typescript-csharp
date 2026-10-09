@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatSelectionPreserveTrailingWhitespace.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,7 +33,7 @@ public class FormatSelectionPreserveTrailingWhitespaceTests
 
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionPreserveTrailingWhitespace", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { TrimTrailingWhitespace = Core_.TSFalse });
+    f.ConfigureFormat(static o => o.TrimTrailingWhitespace = Core_.TSFalse);
 
     f.FormatSelection("begin", "end");
 

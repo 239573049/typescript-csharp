@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingOnClosingBracket.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -57,7 +59,7 @@ a++;/*19*/
 }/*27*/
 """;
         using var f = FourslashTest.New(content, fileName: "formattingOnClosingBracket", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterSemicolonInForStatements = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterSemicolonInForStatements = Core_.TSTrue);
 
     f.FormatDocument("");
 

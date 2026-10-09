@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/arityErrorAfterSignatureHelp.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,13 +34,13 @@ declare function f(x: string, y: number): any;
         using var f = FourslashTest.New(content, fileName: "arityErrorAfterSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("3");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("\"");
 
     f.Insert("\"");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions {  });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyCodeFixNotAvailable();
 

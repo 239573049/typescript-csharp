@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/crossFileQuickInfoExportedTypeDoesNotUseImportType.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -39,6 +41,6 @@ const thing/*1*/ = foob(/*2*/);
     f.VerifyQuickInfoAt("1", "const thing: {\n    x: B;\n    y: B;\n}", "");
 
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foob(): { x: B; y: B; }" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foob(): { x: B; y: B; }", IsVariadic = false, IsVariadicSet = false });
     }
 }

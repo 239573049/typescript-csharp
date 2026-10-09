@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpForSuperCalls1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -42,8 +44,8 @@ class C2 extends B2 {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForSuperCalls1", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(): B" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(): B", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(x: number): B2" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B2(x: number): B2", IsVariadic = false, IsVariadicSet = false });
     }
 }

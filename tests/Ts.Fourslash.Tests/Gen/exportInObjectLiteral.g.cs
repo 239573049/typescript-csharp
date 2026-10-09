@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/exportInObjectLiteral.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,6 +31,6 @@ const k = {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "exportInObjectLiteral", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName()}, f.Ranges()[0]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName}, f.Ranges()[0]);
     }
 }

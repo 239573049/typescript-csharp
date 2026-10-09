@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpOnTypePredicates.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,9 +34,9 @@ f3(/*3*/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnTypePredicates", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f1(a: any): a is number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f1(a: any): a is number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f2(a: any): a is unknown" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f2(a: any): a is unknown", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("3");
     f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f3(a: any, ...b: any[]): a is number", IsVariadic = true, IsVariadicSet = true });
     }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/genericParameterHelpConstructorCalls.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -38,14 +40,14 @@ new testClass<IFoo,/*constructor5*/IFoo,IFoo>(null, null, null)
 """;
         using var f = FourslashTest.New(content, fileName: "genericParameterHelpConstructorCalls", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("constructor1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>(a: T, b: U, c: M): testClass<T, U, M>", ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>(a: T, b: U, c: M): testClass<T, U, M>", ParameterName = "T", ParameterSpan = "T extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("constructor2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("constructor3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "T", ParameterSpan = "T extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("constructor4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("constructor5");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "U", ParameterSpan = "U", IsVariadic = false, IsVariadicSet = false });
     }
 }

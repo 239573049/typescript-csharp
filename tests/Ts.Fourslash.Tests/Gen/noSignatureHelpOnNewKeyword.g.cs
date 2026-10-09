@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/noSignatureHelpOnNewKeyword.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,6 +33,6 @@ new /*2*/Foo(/*3*/)
     f.VerifyNoSignatureHelpForMarkers("1", "2");
 
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(): Foo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(): Foo", IsVariadic = false, IsVariadicSet = false });
     }
 }

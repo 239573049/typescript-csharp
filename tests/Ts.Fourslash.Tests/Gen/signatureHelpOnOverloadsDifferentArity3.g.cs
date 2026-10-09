@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpOnOverloadsDifferentArity3.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,14 +34,14 @@ f(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpOnOverloadsDifferentArity3", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(): any", ParameterCount = 0, OverloadsCount = 4 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(): any", ParameterCount = 0, OverloadsCount = 4, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("x, ");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(s: string, b: boolean): any", ParameterCount = 2, ParameterName = "b", ParameterSpan = "b: boolean", OverloadsCount = 4 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(s: string, b: boolean): any", ParameterCount = 2, ParameterName = "b", ParameterSpan = "b: boolean", OverloadsCount = 4, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("x, ");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(s: string, b: boolean): any", ParameterCount = 2, OverloadsCount = 4 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(s: string, b: boolean): any", ParameterCount = 2, OverloadsCount = 4, IsVariadic = false, IsVariadicSet = false });
     }
 }

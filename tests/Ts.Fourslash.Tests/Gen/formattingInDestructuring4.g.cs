@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingInDestructuring4.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,7 +31,7 @@ public class FormattingInDestructuring4Tests
 /*4*/} = { a: 1, b: 2 };
 """;
         using var f = FourslashTest.New(content, fileName: "formattingInDestructuring4", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = Core_.TSFalse });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = Core_.TSFalse);
 
     f.FormatDocument("");
 

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpInCallback.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -30,7 +32,7 @@ forEach(/*1*/() => {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInCallback", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "forEach(f: () => void): any" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "forEach(f: () => void): any", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyNoSignatureHelpForMarkers("2");
     }

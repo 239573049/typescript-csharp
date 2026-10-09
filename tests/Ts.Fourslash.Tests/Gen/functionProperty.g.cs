@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/functionProperty.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -46,11 +48,11 @@ c./*quickInfoC*/x;
 """;
         using var f = FourslashTest.New(content, fileName: "functionProperty", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("signatureA");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("signatureB");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("signatureC");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(a: number): void", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyCompletions("completionA", new CompletionsExpectedList
     {

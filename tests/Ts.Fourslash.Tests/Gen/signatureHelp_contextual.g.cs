@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelp_contextual.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -48,28 +50,28 @@ const cb2: () => void = (/*contextualFunctionType*/)
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelp_contextual", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("takesObj0");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("takesObj1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("takesObj2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m(n: number, s: string): void", ParameterCount = 2, ParameterName = "n", ParameterSpan = "n: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("takesObj3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2(): void", ParameterCount = 0 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2(): void", ParameterCount = 0, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualParameter1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualParameter1b");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "n", ParameterSpan = "n: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualParameter2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualParameter3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: boolean" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: boolean", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualParameter3_2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, ParameterName = "s", ParameterSpan = "s: string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualParameter4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb(n: number, s: string, b: boolean): void", ParameterCount = 3, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualTypeAlias");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Cb(): void", ParameterCount = 0 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Cb(): void", ParameterCount = 0, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("contextualFunctionType");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb2(): void", ParameterCount = 0 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "cb2(): void", ParameterCount = 0, IsVariadic = false, IsVariadicSet = false });
     }
 }

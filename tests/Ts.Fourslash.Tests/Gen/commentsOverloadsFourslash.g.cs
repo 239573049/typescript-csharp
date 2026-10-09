@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/commentsOverloadsFourslash.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -260,10 +262,10 @@ foo(null);
     f.VerifyQuickInfoAt("o4q", "function f1(a: number): number (+1 overload)", "this is signature 1");
 
     f.GoToMarker("4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("o4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 1", ParameterDocComment = "param a", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 1", ParameterDocComment = "param a", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("5", "function f2(a: number): number (+1 overload)", "");
 
@@ -276,9 +278,9 @@ foo(null);
     f.VerifyQuickInfoAt("o8q", "function f2(a: number): number (+1 overload)", "");
 
     f.GoToMarker("8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("o8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterDocComment = "param a", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterDocComment = "param a", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("9", "function f3(a: number): number (+1 overload)", "");
 
@@ -291,9 +293,9 @@ foo(null);
     f.VerifyQuickInfoAt("o12q", "function f3(a: number): number (+1 overload)", "");
 
     f.GoToMarker("12");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("o12");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("13", "function f4(a: number): number (+1 overload)", "this is signature 4 - with number parameter");
 
@@ -306,9 +308,9 @@ foo(null);
     f.VerifyQuickInfoAt("o16q", "function f4(a: number): number (+1 overload)", "this is signature 4 - with number parameter");
 
     f.GoToMarker("16");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 4 - with string parameter", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 4 - with string parameter", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("o16");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 4 - with number parameter", ParameterDocComment = "param a", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 4 - with number parameter", ParameterDocComment = "param a", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyCompletions("17", new CompletionsExpectedList
     {
@@ -409,22 +411,22 @@ foo(null);
     });
 
     f.GoToMarker("19");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("19q", "var i1_i: i1\nnew (b: number) => any (+1 overload)", "new 1");
 
     f.GoToMarker("20");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("20q", "var i1_i: i1\nnew (a: string) => any (+1 overload)", "new 1");
 
     f.GoToMarker("21");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this signature 1", ParameterDocComment = "param a", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this signature 1", ParameterDocComment = "param a", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("21q", "var i1_i: i1\n(a: number) => number (+1 overload)", "this signature 1");
 
     f.GoToMarker("22");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("22q");
 
@@ -477,102 +479,102 @@ foo(null);
     });
 
     f.GoToMarker("24");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("24q", "(method) i1.foo(a: number): number (+1 overload)", "foo 1");
 
     f.GoToMarker("25");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("25q", "(method) i1.foo(b: string): number (+1 overload)", "foo 2");
 
     f.GoToMarker("26");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("26q", "(method) i1.foo2(a: number): number (+1 overload)", "");
 
     f.GoToMarker("27");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo2 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo2 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("27q", "(method) i1.foo2(b: string): number (+1 overload)", "foo2 2");
 
     f.GoToMarker("28");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("28q", "(method) i1.foo3(a: number): number (+1 overload)", "");
 
     f.GoToMarker("29");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("29q", "(method) i1.foo3(b: string): number (+1 overload)", "");
 
     f.GoToMarker("30");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo4 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo4 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("30q", "(method) i1.foo4(a: number): number (+1 overload)", "foo4 1");
 
     f.GoToMarker("31");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("31q", "(method) i1.foo4(b: string): number (+1 overload)", "foo4 1");
 
     f.GoToMarker("32");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("32q", "var i2_i: i2\nnew (b: number) => any (+1 overload)", "new 2");
 
     f.GoToMarker("33");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("33q", "var i2_i: i2\nnew (a: string) => any (+1 overload)", "");
 
     f.GoToMarker("34");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("34q", "var i2_i: i2\n(a: number) => number (+1 overload)", "");
 
     f.GoToMarker("35");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("35q", "var i2_i: i2\n(b: string) => number (+1 overload)", "this is signature 2");
 
     f.GoToMarker("36");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("36q", "var i3_i: i3\nnew (b: number) => any (+1 overload)", "new 2");
 
     f.GoToMarker("37");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("37q", "var i3_i: i3\nnew (a: string) => any (+1 overload)", "new 1");
 
     f.GoToMarker("38");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is signature 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("38q", "var i3_i: i3\n(a: number) => number (+1 overload)", "this is signature 1");
 
     f.GoToMarker("39");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("39q", "var i3_i: i3\n(b: string) => number (+1 overload)", "this is signature 1");
 
     f.GoToMarker("40");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("40q", "var i4_i: i4\nnew (b: number) => any (+1 overload)", "");
 
     f.GoToMarker("41");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("41q", "var i4_i: i4\nnew (a: string) => any (+1 overload)", "");
 
     f.GoToMarker("42");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("42q", "var i4_i: i4\n(a: number) => number (+1 overload)", "");
 
     f.GoToMarker("43");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("43q", "var i4_i: i4\n(b: string) => number (+1 overload)", "");
 
@@ -633,102 +635,102 @@ foo(null);
     });
 
     f.GoToMarker("45");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("45q", "(method) c.prop1(a: number): number (+1 overload)", "");
 
     f.GoToMarker("46");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("46q", "(method) c.prop1(b: string): number (+1 overload)", "");
 
     f.GoToMarker("47");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop2 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop2 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("47q", "(method) c.prop2(a: number): number (+1 overload)", "prop2 1");
 
     f.GoToMarker("48");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("48q", "(method) c.prop2(b: string): number (+1 overload)", "prop2 1");
 
     f.GoToMarker("49");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("49q", "(method) c.prop3(a: number): number (+1 overload)", "");
 
     f.GoToMarker("50");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop3 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop3 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("50q", "(method) c.prop3(b: string): number (+1 overload)", "prop3 2");
 
     f.GoToMarker("51");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop4 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop4 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("51q", "(method) c.prop4(a: number): number (+1 overload)", "prop4 1");
 
     f.GoToMarker("52");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop4 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop4 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("52q", "(method) c.prop4(b: string): number (+1 overload)", "prop4 2");
 
     f.GoToMarker("53");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop5 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop5 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("53q", "(method) c.prop5(a: number): number (+1 overload)", "prop5 1");
 
     f.GoToMarker("54");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop5 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "prop5 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("54q", "(method) c.prop5(b: string): number (+1 overload)", "prop5 2");
 
     f.GoToMarker("55");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("55q", "constructor c1(a: number): c1 (+1 overload)", "");
 
     f.GoToMarker("56");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("56q", "constructor c1(b: string): c1 (+1 overload)", "");
 
     f.GoToMarker("57");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("57q", "constructor c2(a: number): c2 (+1 overload)", "c2 1");
 
     f.GoToMarker("58");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("58q", "constructor c2(b: string): c2 (+1 overload)", "c2 1");
 
     f.GoToMarker("59");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("59q", "constructor c3(a: number): c3 (+1 overload)", "");
 
     f.GoToMarker("60");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c3 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c3 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("60q", "constructor c3(b: string): c3 (+1 overload)", "c3 2");
 
     f.GoToMarker("61");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c4 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c4 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("61q", "constructor c4(a: number): c4 (+1 overload)", "c4 1");
 
     f.GoToMarker("62");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c4 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c4 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("62q", "constructor c4(b: string): c4 (+1 overload)", "c4 2");
 
     f.GoToMarker("63");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c5 1", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c5 1", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("63q", "constructor c5(a: number): c5 (+1 overload)", "c5 1");
 
     f.GoToMarker("64");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c5 2", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c5 2", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("64q", "constructor c5(b: string): c5 (+1 overload)", "c5 2");
 

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpForSignatureWithUnreachableType.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -37,6 +39,6 @@ func({/*1*/});
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForSignatureWithUnreachableType", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "func(param: {}): void", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "func(param: {}): void", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

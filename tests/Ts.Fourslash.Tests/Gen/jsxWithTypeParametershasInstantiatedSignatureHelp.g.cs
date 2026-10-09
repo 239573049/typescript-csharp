@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/jsxWithTypeParametershasInstantiatedSignatureHelp.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -39,10 +41,10 @@ function SFC<T>(_props: Record<string, T>) {
         using var f = FourslashTest.New(content, fileName: "jsxWithTypeParametershasInstantiatedSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, unknown>): string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, unknown>): string", IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("2");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, string>): string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SFC(_props: Record<string, string>): string", IsVariadic = false, IsVariadicSet = false });
     }
 }

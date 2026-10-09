@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpTypeArguments.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -42,16 +44,16 @@ new C<number, string, /*C2*/;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpTypeArguments", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("f0");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("f1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("f2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("C0");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T extends number>(): void", ParameterName = "T", ParameterSpan = "T extends number", OverloadsCount = 3, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("C1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U>(): void", ParameterName = "U", ParameterSpan = "U", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("C2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "C<T, U, V extends string>(): void", ParameterName = "V", ParameterSpan = "V extends string", IsVariadic = false, IsVariadicSet = false });
     }
 }

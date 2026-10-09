@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/qualifyModuleTypeNames.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,6 +31,6 @@ x(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "qualifyModuleTypeNames", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(arg: m.c): m.c" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "x(arg: m.c): m.c", IsVariadic = false, IsVariadicSet = false });
     }
 }

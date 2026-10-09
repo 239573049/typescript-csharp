@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/genericFunctionSignatureHelp3MultiFile.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -48,23 +50,23 @@ foo7(1, <string>(/*7*/   // signature help shows y as T
 """;
         using var f = FourslashTest.New(content, fileName: "genericFunctionSignatureHelp3MultiFile", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo1(x: number, callback: (y1: unknown) => number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo1(x: number, callback: (y1: unknown) => number): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo2(x: number, callback: (y2: unknown) => number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo2(x: number, callback: (y2: unknown) => number): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y3: unknown): number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y3: unknown): number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo4(x: number, callback: (y4: string) => number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo4(x: number, callback: (y4: string) => number): void", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("5");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y5: string): number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(y5: string): number", IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("6");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo6(x: number, callback: (y6: unknown) => number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo6(x: number, callback: (y6: unknown) => number): void", IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("string>(null,null);");
 
     f.GoToMarker("7");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo7(x: number, callback: (y7: unknown) => number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo7(x: number, callback: (y7: unknown) => number): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/callSignatureHelp.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,6 +33,6 @@ c(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "callSignatureHelp", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "c(): number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "c(): number", IsVariadic = false, IsVariadicSet = false });
     }
 }

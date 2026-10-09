@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingSpaceBetweenParent.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,7 +30,7 @@ public class FormattingSpaceBetweenParentTests
 /*3*/if((true)){}
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpaceBetweenParent", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core_.TSTrue);
 
     f.FormatDocument("");
 

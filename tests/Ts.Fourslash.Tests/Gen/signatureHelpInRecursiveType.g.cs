@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpInRecursiveType.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -37,6 +39,6 @@ type Foo = Reverse<[0,/**/]>;
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInRecursiveType", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Reverse<List extends any[]>" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Reverse<List extends any[]>", IsVariadic = false, IsVariadicSet = false });
     }
 }

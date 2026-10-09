@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/commentsInheritanceFourslash.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -336,21 +338,21 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("5");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l5");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("1iq", "var i1_i: i1", "");
 
@@ -492,21 +494,21 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("7");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("9");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("10");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l9");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_l1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_l1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l10");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_l1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c1_nc_l1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l7");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("6iq", "var c1_i: c1", "");
 
@@ -618,21 +620,21 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("12");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i1_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("13");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("14");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("15");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l12");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l13");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l14");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l15");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("12q", "(method) i1.i1_f1(): void", "i1_f1");
 
@@ -715,9 +717,9 @@ class c6 extends c5 {
     f.VerifyQuickInfoAt("18iq", "var c3_i: c3", "");
 
     f.GoToMarker("17");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("18");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("18sq", "constructor c2(a: number): c2", "c2 constructor");
 
@@ -836,13 +838,13 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("20");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("22");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("21");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("23");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("20q", "(method) c2.c2_f1(): void", "c2 c2_f1");
 
@@ -959,13 +961,13 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("25");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("27");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c3 f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c3 f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("26");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("28");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("25q", "(method) c2.c2_f1(): void", "c2 c2_f1");
 
@@ -976,13 +978,13 @@ class c6 extends c5 {
     f.VerifyQuickInfoAt("28q", "(method) c3.nc_f1(): void", "");
 
     f.GoToMarker("30");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 c2_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("32");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("31");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("33");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("30q", "(method) c2.c2_f1(): void", "c2 c2_f1");
 
@@ -993,7 +995,7 @@ class c6 extends c5 {
     f.VerifyQuickInfoAt("33q", "(method) c2.nc_f1(): void", "");
 
     f.GoToMarker("34");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "c2 constructor", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("34iq", "var c4_i: c4", "");
 
@@ -1152,21 +1154,21 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("37");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("39");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("38");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("40");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l37");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l37");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l39");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l40");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("36iq", "var i2_i: i2", "");
 
@@ -1295,21 +1297,21 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("42");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("44");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i3 f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i3 f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("43");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("45");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l42");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l43");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l44");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l45");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("42q", "(method) i2.i2_f1(): void", "i2_f1");
 
@@ -1434,19 +1436,19 @@ class c6 extends c5 {
     });
 
     f.GoToMarker("47");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2_f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("49");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "i2 f1", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("48");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l47");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l48");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l49");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("l50");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("47q", "(method) i2.i2_f1(): void", "i2_f1");
 

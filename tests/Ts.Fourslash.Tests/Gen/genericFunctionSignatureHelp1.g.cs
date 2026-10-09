@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/genericFunctionSignatureHelp1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,6 +30,6 @@ f(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "genericFunctionSignatureHelp1", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: unknown): unknown" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: unknown): unknown", IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/staticGenericOverloads1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -35,18 +37,18 @@ A.B(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "staticGenericOverloads1", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("a");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("); A.B(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<unknown>): A<unknown>", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<unknown>): A<unknown>", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("a");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(v: A<number>): A<number>", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/importNameCodeFix_externalNonRelateive2.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -47,7 +49,7 @@ shared/*external2external*/
 """;
         using var f = FourslashTest.New(content, fileName: "importNameCodeFix_externalNonRelateive2", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
-    f.ConfigureFormat(new FormatCodeSettings { NewLineCharacter = "\n" });
+    f.ConfigureFormat(static o => o.NewLineCharacter = "\n");
 
     f.GoToMarker("internal2external");
 

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpEmptyList.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,8 +34,8 @@ Bar</*2*/>();
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpEmptyList", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(arg1: string, arg2: string): void", ParameterCount = 2, ParameterName = "arg1", ParameterSpan = "arg1: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Foo(arg1: string, arg2: string): void", ParameterCount = 2, ParameterName = "arg1", ParameterSpan = "arg1: string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Bar<T>(arg1: string, arg2: string): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Bar<T>(arg1: string, arg2: string): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

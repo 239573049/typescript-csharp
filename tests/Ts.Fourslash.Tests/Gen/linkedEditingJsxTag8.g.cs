@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/linkedEditingJsxTag8.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,7 +34,7 @@ const jsx = (
 );
 """;
         using var f = FourslashTest.New(content, fileName: "linkedEditingJsxTag8", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyLinkedEditing(new Dictionary<string, LsProto.Range[]?>
+    f.VerifyLinkedEditingHasNone(new Dictionary<string, LsProto.Range[]?>
     {
     ["8"] = null,
     });

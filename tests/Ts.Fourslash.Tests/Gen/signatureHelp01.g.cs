@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelp01.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -34,6 +36,6 @@ function bar {
         using var f = FourslashTest.New(content, fileName: "signatureHelp01", cancellationToken: TestContext.Current.CancellationToken);
         f.MarkTestAsStradaServer();
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterCount = 1 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterCount = 1, IsVariadic = false, IsVariadicSet = false });
     }
 }

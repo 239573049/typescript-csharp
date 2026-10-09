@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpImplicitConstructor.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,6 +31,6 @@ var implicitConstructor = new ImplicitConstructor(/**/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpImplicitConstructor", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ImplicitConstructor(): ImplicitConstructor", ParameterCount = 0 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ImplicitConstructor(): ImplicitConstructor", ParameterCount = 0, IsVariadic = false, IsVariadicSet = false });
     }
 }

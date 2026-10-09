@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpConstructorOverload.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,8 +31,8 @@ var y = new clsOverload(/*2*/'');
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpConstructorOverload", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(): clsOverload", ParameterCount = 0, OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(): clsOverload", ParameterCount = 0, OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(test: string): clsOverload", ParameterCount = 1, ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "clsOverload(test: string): clsOverload", ParameterCount = 1, ParameterName = "test", ParameterSpan = "test: string", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/codeFixMissingTypeAnnotationOnExports58-genercs-doesnt-drop-trailing-unknown-2.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;

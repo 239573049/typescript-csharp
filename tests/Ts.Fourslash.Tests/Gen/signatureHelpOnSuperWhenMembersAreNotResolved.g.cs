@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpOnSuperWhenMembersAreNotResolved.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -36,6 +38,6 @@ class C extends B {
 
     f.Insert("super(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(x: string): B" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "B(x: string): B", IsVariadic = false, IsVariadicSet = false });
     }
 }

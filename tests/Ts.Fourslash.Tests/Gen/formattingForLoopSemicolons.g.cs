@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingForLoopSemicolons.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -42,7 +44,7 @@ public class FormattingForLoopSemicolonsTests
 
     f.VerifyCurrentLineContent("for (var x; x < 0; x++) { }");
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterSemicolonInForStatements = Core_.TSFalse });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterSemicolonInForStatements = Core_.TSFalse);
 
     f.FormatDocument("");
 

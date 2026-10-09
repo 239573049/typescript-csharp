@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpNoArguments.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -30,6 +32,6 @@ foo(/**/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpNoArguments", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(n: number): string", ParameterName = "n", ParameterSpan = "n: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(n: number): string", ParameterName = "n", ParameterSpan = "n: number", IsVariadic = false, IsVariadicSet = false });
     }
 }

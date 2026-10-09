@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/jsSignature-41059.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,6 +33,6 @@ a.next(/**/);
         using var f = FourslashTest.New(content, fileName: "jsSignature-41059", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Generator.next(): IteratorResult<T, TReturn>", OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Generator.next(): IteratorResult<T, TReturn>", OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpInference.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,6 +30,6 @@ f("x", /**/);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInference", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: \"x\", b: \"x\", c: \"x\"): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: \"x\"" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(a: \"x\", b: \"x\", c: \"x\"): void", ParameterCount = 3, ParameterName = "b", ParameterSpan = "b: \"x\"", IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/quickInfoCanBeTruncated.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -548,7 +550,7 @@ type DeeplyMapped/*6*/ = {[K in keyof Foo]: {[K2 in keyof Foo]: [K, K2, Foo[K], 
     f.GoToMarker("3");
 
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(s: \"_499\", x: \"_0\" | \"_1\" | \"_10\" | \"_100\" | \"_101\" | \"_102\" | \"_103\" | \"_104\" | \"_105\" | \"_106\" | \"_107\" | \"_108\" | \"_109\" | \"_11\" | \"_110\" | \"_111\" | \"_112\" | \"_113\" | \"_114\" | \"_115\" | \"_116\" | ... 477 more ... | \"_99\", y: string): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "f(s: \"_499\", x: \"_0\" | \"_1\" | \"_10\" | \"_100\" | \"_101\" | \"_102\" | \"_103\" | \"_104\" | \"_105\" | \"_106\" | \"_107\" | \"_108\" | \"_109\" | \"_11\" | \"_110\" | \"_111\" | \"_112\" | \"_113\" | \"_114\" | \"_115\" | \"_116\" | ... 477 more ... | \"_99\", y: string): void", IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("4");
 

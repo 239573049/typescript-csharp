@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/commentsExternalModulesFourslash.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -95,7 +97,7 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     });
 
     f.GoToMarker("3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo's comment" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foo's comment", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("3q", "function foo(): number", "foo's comment");
 
@@ -172,7 +174,7 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     });
 
     f.GoToMarker("6");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("6q", "function m1.fooExport(): number", "exported function");
 
@@ -317,7 +319,7 @@ var new/*14*/Var = new extMod.m1.m2./*15*/c();
     });
 
     f.GoToMarker("13");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "exported function", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("13q", "function extMod.m1.fooExport(): number", "exported function");
 

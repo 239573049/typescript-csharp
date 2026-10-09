@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpForOptionalMethods.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -36,6 +38,6 @@ const o: Obj = {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpForOptionalMethods", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "optionalMethod(current: any): any", ParameterName = "current", ParameterSpan = "current: any" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "optionalMethod(current: any): any", ParameterName = "current", ParameterSpan = "current: any", IsVariadic = false, IsVariadicSet = false });
     }
 }

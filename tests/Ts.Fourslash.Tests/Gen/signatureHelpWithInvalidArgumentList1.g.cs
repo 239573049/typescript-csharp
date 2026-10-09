@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpWithInvalidArgumentList1.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,6 +30,6 @@ foo(hello my name /**/is
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpWithInvalidArgumentList1", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(a: any): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(a: any): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

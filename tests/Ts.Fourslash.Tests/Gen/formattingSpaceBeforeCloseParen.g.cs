@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingSpaceBeforeCloseParen.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -30,7 +32,7 @@ public class FormattingSpaceBeforeCloseParenTests
 /*5*/var bar = (function (a) { });
 """;
         using var f = FourslashTest.New(content, fileName: "formattingSpaceBeforeCloseParen", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core_.TSTrue);
 
     f.FormatDocument("");
 
@@ -54,7 +56,7 @@ public class FormattingSpaceBeforeCloseParenTests
 
     f.VerifyCurrentLineContent("var bar = ( function( a ) { } );");
 
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core_.TSFalse });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = Core_.TSFalse);
 
     f.FormatDocument("");
 

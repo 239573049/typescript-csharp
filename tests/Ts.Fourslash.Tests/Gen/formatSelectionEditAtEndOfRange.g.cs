@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatSelectionEditAtEndOfRange.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -27,7 +29,7 @@ public class FormatSelectionEditAtEndOfRangeTests
 void 0;
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionEditAtEndOfRange", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { Semicolons = "remove" });
+    f.ConfigureFormat(static o => o.Semicolons = "remove");
 
     f.FormatSelection("1", "2");
 

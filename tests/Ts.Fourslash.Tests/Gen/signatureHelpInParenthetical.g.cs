@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpInParenthetical.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,10 +30,10 @@ class base { constructor (public n: number, public y: string) { } }
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInParenthetical", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "n", IsVariadic = false, IsVariadicSet = false });
 
     f.Insert("0, ");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "y" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "y", IsVariadic = false, IsVariadicSet = false });
     }
 }

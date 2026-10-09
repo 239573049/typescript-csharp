@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/genericParameterHelpTypeReferences.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -43,16 +45,16 @@ let t: Ty</*typeAlias*/>;
 """;
         using var f = FourslashTest.New(content, fileName: "genericParameterHelpTypeReferences", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("type1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>", ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>", ParameterName = "T", ParameterSpan = "T extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("type2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>", ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>", ParameterName = "T", ParameterSpan = "T extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("type3");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>", ParameterName = "T", ParameterSpan = "T extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "testClass<T extends IFoo, U, M extends IFoo>", ParameterName = "T", ParameterSpan = "T extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("type4");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "M", ParameterSpan = "M extends IFoo", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("interface");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "I<T>", ParameterName = "T", ParameterSpan = "T" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "I<T>", ParameterName = "T", ParameterSpan = "T", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("typeAlias");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Ty<T>", ParameterName = "T", ParameterSpan = "T" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "Ty<T>", ParameterName = "T", ParameterSpan = "T", IsVariadic = false, IsVariadicSet = false });
     }
 }

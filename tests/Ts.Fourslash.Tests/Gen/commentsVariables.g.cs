@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/commentsVariables.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -166,12 +168,12 @@ var x = fo/*15*/o2;
     });
 
     f.GoToMarker("5");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("5q", "function foo(): void", "foos comment");
 
     f.GoToMarker("6");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("6q", "var fooVar: () => void", "fooVar comment");
 
@@ -212,12 +214,12 @@ var x = fo/*15*/o2;
     });
 
     f.GoToMarker("8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "foos comment", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("8q", "function foo(): void", "foos comment");
 
     f.GoToMarker("9");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "fooVar comment", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("9q", "var fooVar: () => void", "fooVar comment");
 

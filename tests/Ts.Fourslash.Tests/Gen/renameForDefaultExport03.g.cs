@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/renameForDefaultExport03.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -41,6 +43,6 @@ var y = /*4*/[|f|]();
 }|]
 """;
         using var f = FourslashTest.New(content, fileName: "renameForDefaultExport03", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, [.. Core_.Filter(f.GetRangesByText()["f"], static (RangeMarker r) => r.Marker == null || !r.Marker.Data.ContainsKey("inComment"))]);
+    f.VerifyBaselineRename(null /*preferences*/, [.. global::Ts.Core.CoreUtil.Filter(f.GetRangesByText()["f"], static (RangeMarker r) => r.Marker == null || !r.Marker.Data.ContainsKey("inComment"))]);
     }
 }

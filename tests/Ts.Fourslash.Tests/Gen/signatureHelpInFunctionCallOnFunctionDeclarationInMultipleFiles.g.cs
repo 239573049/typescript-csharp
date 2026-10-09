@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpInFunctionCallOnFunctionDeclarationInMultipleFiles.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -32,6 +34,6 @@ fn(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInFunctionCallOnFunctionDeclarationInMultipleFiles", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { OverloadsCount = 2, IsVariadic = false, IsVariadicSet = false });
     }
 }

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/exportInLabeledStatement.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -28,6 +30,6 @@ subTitle:
 [|export|] const title: string
 """;
         using var f = FourslashTest.New(content, fileName: "exportInLabeledStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName()}, f.Ranges()[0]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName}, f.Ranges()[0]);
     }
 }

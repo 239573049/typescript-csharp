@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpSimpleSuperCall.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -35,6 +37,6 @@ class SuperCall extends SuperCallBase {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSimpleSuperCall", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("superCall");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperCallBase(b: boolean): SuperCallBase", ParameterName = "b", ParameterSpan = "b: boolean" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "SuperCallBase(b: boolean): SuperCallBase", ParameterName = "b", ParameterSpan = "b: boolean", IsVariadic = false, IsVariadicSet = false });
     }
 }

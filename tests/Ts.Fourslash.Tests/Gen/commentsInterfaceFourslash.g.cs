@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/commentsInterfaceFourslash.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -178,7 +180,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     f.VerifyQuickInfoAt("11", "var i2_i_foo_r: string", "");
 
     f.GoToMarker("12");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "param help" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "param help", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("12q", "(property) i2.foo: (b: number) => string", "this is foo");
 
@@ -193,7 +195,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     f.VerifyQuickInfoAt("15", "var i2_i_n: any", "");
 
     f.GoToMarker("16");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new method", ParameterDocComment = "param" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "new method", ParameterDocComment = "param", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("16q", "var i2_i: i2\nnew (i: i1) => any", "new method");
 
@@ -208,19 +210,19 @@ i3_i.nc/*45q*/_l(/*45*/10);
     f.VerifyQuickInfoAt("21", "var i2_i_nc_foo_r: string", "");
 
     f.GoToMarker("22");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("22q", "(property) i2.nc_foo: (b: number) => string", "");
 
     f.VerifyQuickInfoAt("23", "var i2_i_r: number", "");
 
     f.GoToMarker("24");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp a" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp a", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("24q", "var i2_i: i2\n(a: number, b: number) => number", "this is call signature");
 
     f.GoToMarker("25");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp b" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is call signature", ParameterDocComment = "paramhelp b", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("26", "var i2_i_fnfoo: (b: number) => string", "");
 
@@ -229,7 +231,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     f.VerifyQuickInfoAt("28", "var i2_i_fnfoo_r: string", "");
 
     f.GoToMarker("29");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is fnfoo", ParameterDocComment = "param help" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "this is fnfoo", ParameterDocComment = "param help", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("29q", "(method) i2.fnfoo(b: number): string", "this is fnfoo");
 
@@ -240,7 +242,7 @@ i3_i.nc/*45q*/_l(/*45*/10);
     f.VerifyQuickInfoAt("32", "var i2_i_nc_fnfoo_r: string", "");
 
     f.GoToMarker("33");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("33q", "(method) i2.nc_fnfoo(b: number): string", "");
 
@@ -514,20 +516,20 @@ i3_i.nc/*45q*/_l(/*45*/10);
     });
 
     f.GoToMarker("42");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "Function i3 f", ParameterDocComment = "number parameter" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "Function i3 f", ParameterDocComment = "number parameter", IsVariadic = false, IsVariadicSet = false });
 
     f.GoToMarker("43");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "comment i3 l b" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", ParameterDocComment = "comment i3 l b", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("43q", "(property) i3.l: (b: number) => string", "i3 l");
 
     f.GoToMarker("44");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("44q", "(method) i3.nc_f(a: number): string", "");
 
     f.GoToMarker("45");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { DocComment = "", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("45q", "(property) i3.nc_l: (b: number) => string", "");
     }

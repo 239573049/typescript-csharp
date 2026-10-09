@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpFunctionParameter.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,8 +31,8 @@ function parameterFunction(callback: (a: number, b: string) => void) {
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpFunctionParameter", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("parameterFunction1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("parameterFunction2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterName = "b", ParameterSpan = "b: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "callback(a: number, b: string): void", ParameterName = "b", ParameterSpan = "b: string", IsVariadic = false, IsVariadicSet = false });
     }
 }

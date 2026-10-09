@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpAnonymousFunction.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -30,8 +32,8 @@ anonymousFunctionTest(5, "")(/*anonymousFunction1*/1, /*anonymousFunction2*/"");
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpAnonymousFunction", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("anonymousFunction1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "(a: number, b: string): string", ParameterCount = 2, ParameterName = "a", ParameterSpan = "a: number", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("anonymousFunction2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "b", ParameterSpan = "b: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "b", ParameterSpan = "b: string", IsVariadic = false, IsVariadicSet = false });
     }
 }

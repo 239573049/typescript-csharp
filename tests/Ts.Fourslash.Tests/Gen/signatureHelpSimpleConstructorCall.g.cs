@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpSimpleConstructorCall.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -31,8 +33,8 @@ var x = new ConstructorCall(/*constructorCall1*/1,/*constructorCall2*/2);
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpSimpleConstructorCall", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("constructorCall1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "str", ParameterSpan = "str: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "str", ParameterSpan = "str: string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("constructorCall2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "num", ParameterSpan = "num: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "ConstructorCall(str: string, num: number): ConstructorCall", ParameterName = "num", ParameterSpan = "num: number", IsVariadic = false, IsVariadicSet = false });
     }
 }

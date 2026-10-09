@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatIfTryCatchBlocks.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -34,7 +36,7 @@ catch (e) {
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatIfTryCatchBlocks", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSTrue);
 
     f.FormatDocument("");
 

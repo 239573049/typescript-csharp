@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpInCompleteGenericsCall.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -29,6 +31,6 @@ foo(/*1*/
 """;
         using var f = FourslashTest.New(content, fileName: "signatureHelpInCompleteGenericsCall", cancellationToken: TestContext.Current.CancellationToken);
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: number, callback: (x: unknown) => number): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "foo(x: number, callback: (x: unknown) => number): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

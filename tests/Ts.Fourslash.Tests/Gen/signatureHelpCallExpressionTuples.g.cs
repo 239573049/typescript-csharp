@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/signatureHelpCallExpressionTuples.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -38,9 +40,9 @@ fnNoParamsWrapped/*7*/(/*8*/);
     f.VerifyQuickInfoAt("3", "var fnWrapped: (str: string, num: number) => void", "");
 
     f.GoToMarker("1");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnWrapped(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnWrapped(str: string, num: number): void", ParameterCount = 2, ParameterName = "str", ParameterSpan = "str: string", IsVariadic = false, IsVariadicSet = false });
     f.GoToMarker("2");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { ParameterName = "num", ParameterSpan = "num: number", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyQuickInfoAt("4", "var fnVariadicWrapped: (str: string, ...num: number[]) => void", "");
 
@@ -52,6 +54,6 @@ fnNoParamsWrapped/*7*/(/*8*/);
     f.VerifyQuickInfoAt("7", "var fnNoParamsWrapped: () => void", "");
 
     f.GoToMarker("8");
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnNoParamsWrapped(): void", ParameterCount = 0 });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "fnNoParamsWrapped(): void", ParameterCount = 0, IsVariadic = false, IsVariadicSet = false });
     }
 }

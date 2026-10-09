@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatSpaceAfterTemplateHeadAndMiddle.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -45,7 +47,7 @@ const a6 = `
 `;
 """;
         using var f = FourslashTest.New(content, fileName: "formatSpaceAfterTemplateHeadAndMiddle", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = Core_.TSTrue);
 
     f.FormatDocument("");
 

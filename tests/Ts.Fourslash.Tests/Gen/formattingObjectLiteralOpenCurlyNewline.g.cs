@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formattingObjectLiteralOpenCurlyNewline.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -52,7 +54,7 @@ var clear =
 
     """);
 
-    f.ConfigureFormat(new FormatCodeSettings { IndentMultiLineObjectLiteralBeginningOnBlankLine = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.IndentMultiLineObjectLiteralBeginningOnBlankLine = Core_.TSTrue);
 
     f.FormatDocument("");
 

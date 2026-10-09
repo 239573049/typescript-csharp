@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/getEditsForFileRename_tsconfig_empty_include.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;

@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/augmentedTypesModule3.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -58,6 +60,6 @@ var /*2*/r = m2g/*3*/;
 
     f.Insert("(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2g(): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "m2g(): void", IsVariadic = false, IsVariadicSet = false });
     }
 }

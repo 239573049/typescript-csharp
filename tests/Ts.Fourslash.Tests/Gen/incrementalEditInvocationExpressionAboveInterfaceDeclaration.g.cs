@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/incrementalEditInvocationExpressionAboveInterfaceDeclaration.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -35,7 +37,7 @@ interface Foo {
 
     f.Insert("alert(");
 
-    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "alert(message?: any): void" });
+    f.VerifySignatureHelp(new VerifySignatureHelpOptions { Text = "alert(message?: any): void", IsVariadic = false, IsVariadicSet = false });
 
     f.VerifyErrorExistsAfterMarker("1");
     }

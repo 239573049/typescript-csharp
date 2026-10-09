@@ -4,6 +4,8 @@
 // _submodules/TypeScript/tests/cases/fourslash/formatNestedClassWithOpenBraceOnNewLines.ts (upstream) and re-run
 // "npm run convert:fourslash" in tools/generator.</auto-generated>
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Ts.Core;
@@ -30,9 +32,9 @@ module A
 }
 """;
         using var f = FourslashTest.New(content, fileName: "formatNestedClassWithOpenBraceOnNewLines", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.PlaceOpenBraceOnNewLineForControlBlocks = Core_.TSTrue);
 
-    f.ConfigureFormat(new FormatCodeSettings { PlaceOpenBraceOnNewLineForFunctions = Core_.TSTrue });
+    f.ConfigureFormat(static o => o.PlaceOpenBraceOnNewLineForFunctions = Core_.TSTrue);
 
     f.GoToMarker("1");
 
