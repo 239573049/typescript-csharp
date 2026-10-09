@@ -18,6 +18,8 @@ public sealed class ServerOptions
     public string Cwd { get; set; } = "";
     public global::Ts.Vfs.IFileSystem? FileSystem { get; set; }
     public string DefaultLibraryPath { get; set; } = "";
+    // server.go:50 — SetParentProcessID func(parentPID int).
+    public Action<int>? SetParentProcessID { get; set; }
 }
 
 public sealed class Server
@@ -34,6 +36,8 @@ public sealed class Server
     private bool shutdownRequested;
     private global::Ts.Compiler.Program? program;
     private global::Ts.Ls.LanguageService? languageService;
+    // server.go:219 — startWatchdog func(parentPID int).
+    private readonly Action<int>? startWatchdog;
 
     public Server(ServerOptions options)
     {
@@ -58,6 +62,7 @@ public sealed class Server
         writer = new global::Ts.JsonRpc.Writer(options.Out);
         stderr = options.Err;
         baseFileSystem = options.FileSystem;
+        startWatchdog = options.SetParentProcessID; // server.go:72
         currentDirectory = global::Ts.TsPath.TsPath.NormalizePath(options.Cwd);
         defaultLibraryPath = string.IsNullOrEmpty(options.DefaultLibraryPath)
             ? global::Ts.TsPath.TsPath.CombinePaths(currentDirectory, "lib")
@@ -106,7 +111,7 @@ public sealed class Server
             }
 
             var method = methodElement.GetString()!; // String ValueKind is asserted above.
-            if (shutdownRequested && !string.Equals(method, global::Ts.LsProto.Methods.Exit, StringComparison.Ordinal))
+            if (shutdownRequested && !string.Equals(method, global::Ts.LsProto.Methods.Exit.Value, StringComparison.Ordinal))
             {
                 if (hasId)
                 {
@@ -115,49 +120,72 @@ public sealed class Server
                 return false;
             }
 
-            switch (method)
+            // The generated Methods members are `static readonly Method` values, not
+            // compile-time constants, so case labels cannot carry them; the dispatch is
+            // an ordinal compare chain instead of a switch. LsHostedMethods covers the
+            // two requests whose surface is still hand-hosted (see Protocol.cs).
+            if (string.Equals(method, global::Ts.LsProto.LsHostedMethods.Initialize.Value, StringComparison.Ordinal))
             {
-                case global::Ts.LsProto.Methods.Initialize:
-                    HandleInitialize(root, id, hasId);
-                    return false;
-                case global::Ts.LsProto.Methods.Initialized:
-                    return false;
-                case global::Ts.LsProto.Methods.Shutdown:
-                    shutdownRequested = true;
-                    if (hasId)
-                    {
-                        WriteNullResponse(id);
-                    }
-                    return false;
-                case global::Ts.LsProto.Methods.Exit:
-                    return true;
-                case global::Ts.LsProto.Methods.TextDocumentDidOpen:
-                    HandleDidOpen(ParseDidOpenParams(GetParams(root)), cancellationToken);
-                    return false;
-                case global::Ts.LsProto.Methods.TextDocumentDidChange:
-                    HandleDidChange(ParseDidChangeParams(GetParams(root)), cancellationToken);
-                    return false;
-                case global::Ts.LsProto.Methods.TextDocumentDidClose:
-                    HandleDidClose(ParseDidCloseParams(GetParams(root)));
-                    return false;
-                case global::Ts.LsProto.Methods.TextDocumentHover:
-                    RequireRequest(hasId);
-                    HandleHover(id, ParseHoverParams(GetParams(root)), cancellationToken);
-                    return false;
-                case global::Ts.LsProto.Methods.TextDocumentDefinition:
-                    RequireRequest(hasId);
-                    HandleDefinition(id, ParseDefinitionParams(GetParams(root)), cancellationToken);
-                    return false;
-                case global::Ts.LsProto.Methods.TextDocumentCompletion:
-                    RequireRequest(hasId);
-                    HandleCompletion(id, ParseCompletionParams(GetParams(root)), cancellationToken);
-                    return false;
-                default:
-                    if (hasId)
-                    {
-                        WriteError(id, global::Ts.JsonRpc.ErrorCodes.CodeMethodNotFound, "Method not found");
-                    }
-                    return false;
+                HandleInitialize(root, id, hasId);
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.Initialized.Value, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.Shutdown.Value, StringComparison.Ordinal))
+            {
+                shutdownRequested = true;
+                if (hasId)
+                {
+                    WriteNullResponse(id);
+                }
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.Exit.Value, StringComparison.Ordinal))
+            {
+                return true;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.TextDocumentDidOpen.Value, StringComparison.Ordinal))
+            {
+                HandleDidOpen(ParseDidOpenParams(GetParams(root)), cancellationToken);
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.TextDocumentDidChange.Value, StringComparison.Ordinal))
+            {
+                HandleDidChange(ParseDidChangeParams(GetParams(root)), cancellationToken);
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.TextDocumentDidClose.Value, StringComparison.Ordinal))
+            {
+                HandleDidClose(ParseDidCloseParams(GetParams(root)));
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.TextDocumentHover.Value, StringComparison.Ordinal))
+            {
+                RequireRequest(hasId);
+                HandleHover(id, ParseHoverParams(GetParams(root)), cancellationToken);
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.Methods.TextDocumentDefinition.Value, StringComparison.Ordinal))
+            {
+                RequireRequest(hasId);
+                HandleDefinition(id, ParseDefinitionParams(GetParams(root)), cancellationToken);
+                return false;
+            }
+            else if (string.Equals(method, global::Ts.LsProto.LsHostedMethods.TextDocumentCompletion.Value, StringComparison.Ordinal))
+            {
+                RequireRequest(hasId);
+                HandleCompletion(id, ParseCompletionParams(GetParams(root)), cancellationToken);
+                return false;
+            }
+            else
+            {
+                if (hasId)
+                {
+                    WriteError(id, global::Ts.JsonRpc.ErrorCodes.CodeMethodNotFound, "Method not found");
+                }
+                return false;
             }
         }
         catch (JsonException exception)
@@ -206,6 +234,12 @@ public sealed class Server
             }
         }
 
+        // server.go:1061-1063
+        if (startWatchdog != null && parameters.ProcessId is { } processId)
+        {
+            startWatchdog(processId);
+        }
+
         var result = new global::Ts.LsProto.InitializeResult
         {
             Capabilities = new global::Ts.LsProto.ServerCapabilities
@@ -240,7 +274,7 @@ public sealed class Server
         EnsureInitialized();
         var item = parameters.TextDocument!; // lsp:"required"; source-gen required validation enforces presence.
         var uri = item.Uri.Value;
-        openDocuments[uri] = new OpenDocument(item.Uri, DocumentUriToFileName(item.Uri), item.LanguageId, item.Version, item.Text);
+        openDocuments[uri] = new OpenDocument(item.Uri, DocumentUriToFileName(item.Uri), item.LanguageId.Value ?? "", item.Version, item.Text);
         RebuildProgram();
         PublishDiagnostics(openDocuments[uri], cancellationToken);
     }
@@ -286,7 +320,7 @@ public sealed class Server
         if (openDocuments.Remove(uri, out var document))
         {
             RebuildProgram();
-            WriteNotification(global::Ts.LsProto.Methods.TextDocumentPublishDiagnostics, new global::Ts.LsProto.PublishDiagnosticsParams
+            WriteNotification(global::Ts.LsProto.Methods.TextDocumentPublishDiagnostics.Value, new global::Ts.LsProto.PublishDiagnosticsParams
             {
                 Uri = document.Uri,
                 Diagnostics = [],
@@ -330,7 +364,7 @@ public sealed class Server
                 Range = TextRangeToRange(sourceFile.Text(), definition.TextSpan),
             };
         }
-        WriteResponse(id, global::Ts.LsProto.Definition.FromLocations(locations), global::Ts.LsProto.LspJsonContext.Default.Definition);
+        WriteResponse(id, global::Ts.LsProto.LocationOrLocationsOrDefinitionLinksOrNull.FromLocations(locations), global::Ts.LsProto.LspJsonContext.Default.LocationOrLocationsOrDefinitionLinksOrNull);
     }
 
     private void HandleCompletion(JsonElement id, global::Ts.LsProto.CompletionParams parameters, CancellationToken cancellationToken)
@@ -434,7 +468,7 @@ public sealed class Server
             };
         }
 
-        WriteNotification(global::Ts.LsProto.Methods.TextDocumentPublishDiagnostics, new global::Ts.LsProto.PublishDiagnosticsParams
+        WriteNotification(global::Ts.LsProto.Methods.TextDocumentPublishDiagnostics.Value, new global::Ts.LsProto.PublishDiagnosticsParams
         {
             Uri = document.Uri,
             Version = document.Version,
@@ -489,7 +523,7 @@ public sealed class Server
         var rootUriElement = GetRequiredProperty(parameters, "rootUri");
         global::Ts.LsProto.DocumentUri? rootUri = rootUriElement.ValueKind switch
         {
-            JsonValueKind.Null => null,
+            JsonValueKind.Null => (global::Ts.LsProto.DocumentUri?)null,
             JsonValueKind.String => new global::Ts.LsProto.DocumentUri(rootUriElement.GetString()!),
             _ => throw new JsonException("rootUri must be a string or null"),
         };

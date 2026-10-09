@@ -1,4 +1,9 @@
-// Ported from tsgo internal/lsp/lsproto/util.go (comparison helpers subset).
+// Ported from tsgo internal/lsp/lsproto/util.go (comparison helpers subset), plus
+// lsp.go DocumentUri.FileName (hosted here as an extension; moved from the retired
+// hand-written Protocol.cs subset when the generated protocol face absorbed it).
+
+using System;
+using System.Text.Json;
 
 namespace Ts.LsProto;
 
@@ -28,5 +33,46 @@ public static class Util
             return startComp;
         }
         return ComparePositions(lsRange.End, other.End);
+    }
+}
+
+// lsproto lsp.go — DocumentUri.FileName(): URI → file name.
+public static class DocumentUriExtensions
+{
+    public static string FileName(this DocumentUri uri)
+    {
+        var value = uri.Value;
+        if (value.StartsWith("file://", StringComparison.Ordinal))
+        {
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var parsed))
+            {
+                throw new JsonException("invalid file URI: " + value);
+            }
+            if (!string.IsNullOrEmpty(parsed.Host))
+            {
+                return global::Ts.TsPath.TsPath.NormalizePath("//" + parsed.Host + parsed.AbsolutePath);
+            }
+            return global::Ts.TsPath.TsPath.NormalizePath(parsed.LocalPath);
+        }
+
+        var colon = value.IndexOf(':', StringComparison.Ordinal);
+        if (colon < 0)
+        {
+            throw new JsonException("invalid URI: " + value);
+        }
+        var scheme = value[..colon];
+        var path = value[(colon + 1)..];
+        var authority = "ts-nul-authority";
+        if (path.StartsWith("//", StringComparison.Ordinal))
+        {
+            var slash = path.IndexOf('/', 2);
+            if (slash < 0)
+            {
+                throw new JsonException("invalid URI: " + value);
+            }
+            authority = path[2..slash];
+            path = path[slash..];
+        }
+        return "^/" + scheme + "/" + authority + "/" + path;
     }
 }
