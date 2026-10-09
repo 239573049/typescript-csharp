@@ -37,6 +37,62 @@ public sealed partial class LanguageService
         };
     }
 
+    // completions.go:34-59 — ProvideCompletion. The LSP-level completion entry: the trigger
+    // character comes off the request context, the position converts through l.converters,
+    // and the list rides the generated CompletionItemsOrListOrNull union. (Go's
+    // format.WithFormatCodeSettings seeds the context for the resolve request; the C#
+    // format engine takes its options explicitly, so the context seeding dissolves.)
+    public global::Ts.LsProto.CompletionItemsOrListOrNull? ProvideCompletion(
+        RequestContext ctx,
+        global::Ts.LsProto.DocumentUri documentURI,
+        global::Ts.LsProto.Position position,
+        global::Ts.LsProto.CompletionContext? context)
+    {
+        ctx.Cancellation.ThrowIfCancellationRequested();
+        var file = GetProgramAndFile(documentURI);
+        string? triggerCharacter = null;
+        if (context != null)
+        {
+            triggerCharacter = context.TriggerCharacter;
+        }
+        var pos = (int)Converters().LineAndCharacterToPosition(global::Ts.Ls.Change.SourceFileScriptExtensions.AsScript(file), position);
+        var completionListInternal = GetCompletionsAtPositionWorker(
+            file,
+            pos,
+            triggerCharacter,
+            false, /*includeSymbols*/
+            ctx.Cancellation);
+        if (completionListInternal == null)
+        {
+            // Go propagates a nil completion list into the zero-value response union.
+            return new global::Ts.LsProto.CompletionItemsOrListOrNull();
+        }
+        var completionList = EnsureItemData(file.FileName(), pos, CompletionListToLSP(completionListInternal));
+        return new global::Ts.LsProto.CompletionItemsOrListOrNull { List = completionList };
+    }
+
+    // completions.go:63-77 — ensureItemData.
+    internal static global::Ts.LsProto.CompletionList? EnsureItemData(string fileName, int pos, global::Ts.LsProto.CompletionList? list)
+    {
+        if (list == null)
+        {
+            return null;
+        }
+        foreach (var item in list.Items ?? [])
+        {
+            if (item.Data == null)
+            {
+                item.Data = new global::Ts.LsProto.CompletionItemData
+                {
+                    FileName = fileName,
+                    Position = pos,
+                    Name = item.Label,
+                };
+            }
+        }
+        return list;
+    }
+
     // completions.go:327-451 — getCompletionsAtPosition. (Go's exported LSP entry ProvideCompletion
     // wraps this with converters; the raw API surfaces the CompletionList directly.)
     public CompletionList? GetCompletionsAtPosition(

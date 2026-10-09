@@ -32,6 +32,86 @@ public sealed partial class LanguageService
         global::Ts.Checker.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope |
         global::Ts.Checker.TypeFormatFlags.UseInstantiationExpressions;
 
+    // hover.go:25-86 — ProvideHover. The LSP-level hover entry: the content format comes from
+    // the stored client capabilities (Go: lsproto.GetClientCapabilities(ctx)), the position
+    // converts through l.converters, and the response is the generated HoverOrNull union.
+    public global::Ts.LsProto.HoverOrNull? ProvideHover(global::Ts.Core.RequestContext ctx, global::Ts.LsProto.HoverParams parameters)
+    {
+        ctx.Cancellation.ThrowIfCancellationRequested();
+        var contentFormat = LsUtil.PreferredMarkupKind(ClientCapabilities().TextDocument.Hover.ContentFormat);
+        var isMarkdown = contentFormat == global::Ts.LsProto.MarkupKind.Markdown;
+
+        var verbosityLevel = parameters.VerbosityLevel ?? 0;
+
+        var file = GetProgramAndFile(parameters.TextDocument.Uri);
+        var position = (int)Converters().LineAndCharacterToPosition(global::Ts.Ls.Change.SourceFileScriptExtensions.AsScript(file), parameters.Position);
+        var node = global::Ts.AstNav.Tokens.GetTouchingPropertyName(file, position);
+        if (NodeTests.IsSourceFile(node) || (AstUtilities.IsPropertyAccessOrQualifiedName(node) && LsDeps.IsInComment(file, position, node) == null))
+        {
+            // Avoid giving quickInfo for the sourceFile as a whole or inside the comment of a/**/.b
+            return new global::Ts.LsProto.HoverOrNull();
+        }
+        var (checker, done) = program.GetTypeCheckerForFile(ctx.Cancellation, file);
+        try
+        {
+            var rangeNode = GetNodeForQuickInfo(node);
+            var symbol = GetSymbolAtLocationForQuickInfo(checker, rangeNode);
+
+            // Always create VerbosityContext for hover so that canExpandSymbol can signal
+            // canIncreaseVerbosity even at Level 0. The nodebuilder also detects expandable
+            // types at Level 0 via shouldExpandType (maxExpansionDepth = 0).
+            var maxTruncLen = UserPreferences().MaximumHoverLength;
+            if (maxTruncLen <= 0)
+            {
+                maxTruncLen = 500;
+            }
+            var vc = new global::Ts.Checker.VerbosityContext
+            {
+                Level = verbosityLevel,
+                MaxTruncationLength = maxTruncLen,
+            };
+
+            var (quickInfo, documentation) = GetQuickInfoAndDocumentationForSymbol(checker, symbol, rangeNode, isMarkdown, vc);
+            if (quickInfo.Length == 0)
+            {
+                return new global::Ts.LsProto.HoverOrNull();
+            }
+            var hoverRange = GetLspRangeOfNode(rangeNode, file, null);
+
+            string content;
+            if (isMarkdown)
+            {
+                content = FormatQuickInfo(quickInfo) + documentation;
+            }
+            else
+            {
+                content = quickInfo + documentation;
+            }
+
+            var hover = new global::Ts.LsProto.Hover
+            {
+                Contents = global::Ts.LsProto.MarkupContentOrStringOrMarkedStringWithLanguageOrMarkedStrings.FromMarkupContent(
+                    new global::Ts.LsProto.MarkupContent
+                    {
+                        Kind = contentFormat,
+                        Value = content,
+                    }),
+                Range = hoverRange,
+            };
+
+            if (ClientCapabilities().Experimental.HoverVerbosityLevel)
+            {
+                hover.CanIncreaseVerbosity = vc.CanIncreaseVerbosity && !vc.Truncated;
+            }
+
+            return new global::Ts.LsProto.HoverOrNull { Hover = hover };
+        }
+        finally
+        {
+            done();
+        }
+    }
+
     // hover.go:25-86 — ProvideHover core, minus the LSP envelope (the C# server builds the Hover
     // response from this native shape).
     public QuickInfo? GetQuickInfoAtPosition(

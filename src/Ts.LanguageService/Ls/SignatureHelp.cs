@@ -39,6 +39,175 @@ public sealed record ParameterInformation(string Label, bool IsRest);
 
 public sealed partial class LanguageService
 {
+    // signaturehelp.go:40-56 — ProvideSignatureHelp. The LSP-level entry: the position
+    // converts through l.converters and the trigger context rides the same pipeline as the
+    // raw foundation entry below.
+    public global::Ts.LsProto.SignatureHelpOrNull? ProvideSignatureHelp(
+        global::Ts.Core.RequestContext ctx,
+        global::Ts.LsProto.DocumentUri documentURI,
+        global::Ts.LsProto.Position position,
+        global::Ts.LsProto.SignatureHelpContext? context)
+    {
+        ctx.Cancellation.ThrowIfCancellationRequested();
+        var program = GetProgram();
+        var sourceFile = GetProgramAndFile(documentURI);
+        var items = GetSignatureHelpItems(
+            ctx.Cancellation,
+            (int)Converters().LineAndCharacterToPosition(global::Ts.Ls.Change.SourceFileScriptExtensions.AsScript(sourceFile), position),
+            program,
+            sourceFile,
+            context);
+        return new global::Ts.LsProto.SignatureHelpOrNull { SignatureHelp = items };
+    }
+
+    // signaturehelp.go:57-146 — GetSignatureHelpItems (the LSP-level overload taking the
+    // SignatureHelpContext). Ports the trigger-reason computation: onlyUseSyntacticOwners
+    // gates the in-string/in-comment bail-out and isManuallyInvoked feeds
+    // getContainingArgumentInfo.
+    public global::Ts.LsProto.SignatureHelp? GetSignatureHelpItems(
+        CancellationToken ctx,
+        int position,
+        global::Ts.Compiler.Program program,
+        SourceFile sourceFile,
+        global::Ts.LsProto.SignatureHelpContext? context)
+    {
+        if ((uint)position > (uint)sourceFile.End)
+        {
+            throw new ArgumentOutOfRangeException(nameof(position));
+        }
+
+        var (checker, done) = host.GetTypeCheckerForFile(ctx, sourceFile);
+        try
+        {
+            // Decide whether to show signature help
+            var startingToken = global::Ts.AstNav.Tokens.FindPrecedingToken(sourceFile, position);
+            if (startingToken is null)
+            {
+                // We are at the beginning of the file
+                return null;
+            }
+
+            // signaturehelp.go:74-86 — signatureHelpTriggerReasonKind (iota order).
+            const int TriggerReasonKindNone = 0; // was undefined
+            const int TriggerReasonKindInvoked = 1; // was "invoked"
+            const int TriggerReasonKindCharacterTyped = 2; // was "characterTyped"
+            const int TriggerReasonKindRetriggered = 3; // was "retrigger"
+
+            // Emulate VS Code's toTsTriggerReason.
+            var triggerReasonKind = TriggerReasonKindNone;
+            if (context != null)
+            {
+                switch (context.TriggerKind)
+                {
+                    case global::Ts.LsProto.SignatureHelpTriggerKind.TriggerCharacter:
+                        if (context.TriggerCharacter != null)
+                        {
+                            if (context.IsRetrigger)
+                            {
+                                triggerReasonKind = TriggerReasonKindRetriggered;
+                            }
+                            else
+                            {
+                                triggerReasonKind = TriggerReasonKindCharacterTyped;
+                            }
+                        }
+                        else
+                        {
+                            triggerReasonKind = TriggerReasonKindInvoked;
+                        }
+                        break;
+                    case global::Ts.LsProto.SignatureHelpTriggerKind.ContentChange:
+                        if (context.IsRetrigger)
+                        {
+                            triggerReasonKind = TriggerReasonKindRetriggered;
+                        }
+                        else
+                        {
+                            triggerReasonKind = TriggerReasonKindCharacterTyped;
+                        }
+                        break;
+                    case global::Ts.LsProto.SignatureHelpTriggerKind.Invoked:
+                        triggerReasonKind = TriggerReasonKindInvoked;
+                        break;
+                    default:
+                        triggerReasonKind = TriggerReasonKindInvoked;
+                        break;
+                }
+            }
+
+            // Only need to be careful if the user typed a character and signature help wasn't showing.
+            var onlyUseSyntacticOwners = triggerReasonKind == TriggerReasonKindCharacterTyped;
+
+            // Bail out quickly in the middle of a string or comment, don't provide signature help unless the user explicitly requested it.
+            if (onlyUseSyntacticOwners && (LsDeps.IsInString(sourceFile, position, startingToken) || LsDeps.IsInComment(sourceFile, position, startingToken) != null))
+            {
+                return null;
+            }
+
+            var isManuallyInvoked = triggerReasonKind == TriggerReasonKindInvoked;
+            var argumentInfo = GetContainingArgumentInfo(
+                startingToken, sourceFile, checker, isManuallyInvoked, position);
+            if (argumentInfo is null)
+            {
+                return null;
+            }
+
+            // signaturehelp.go:126-129 — if ctx.Err() != nil { return nil }.
+            if (ctx.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            var (callTargetName, candidateDeclarations) =
+                GetDeclarationSignatureCandidates(checker, argumentInfo);
+            if (candidateDeclarations.Count == 0)
+            {
+                return null;
+            }
+
+            return ToLspSignatureHelp(CreateSignatureHelpItems(callTargetName, candidateDeclarations, argumentInfo, sourceFile));
+        }
+        finally
+        {
+            done();
+        }
+    }
+
+    // signaturehelp.go:277 createSignatureHelpItems — the domain-record → lsproto mapping.
+    // The C# foundation renders the same label/parameter labels into the raw record; this
+    // lifts them into the generated SignatureHelp shape.
+    private static global::Ts.LsProto.SignatureHelp? ToLspSignatureHelp(SignatureHelp? items)
+    {
+        if (items == null)
+        {
+            return null;
+        }
+        var signatures = new global::Ts.LsProto.SignatureInformation[items.Signatures.Length];
+        for (var i = 0; i < items.Signatures.Length; i++)
+        {
+            var signature = items.Signatures[i];
+            var parameters = new global::Ts.LsProto.ParameterInformation[signature.Parameters.Length];
+            for (var j = 0; j < signature.Parameters.Length; j++)
+            {
+                parameters[j] = new global::Ts.LsProto.ParameterInformation
+                {
+                    Label = global::Ts.LsProto.StringOrTuple.FromString(signature.Parameters[j].Label),
+                };
+            }
+            signatures[i] = new global::Ts.LsProto.SignatureInformation
+            {
+                Label = signature.Label,
+                Parameters = parameters,
+            };
+        }
+        return new global::Ts.LsProto.SignatureHelp
+        {
+            Signatures = signatures,
+            ActiveSignature = (uint)items.ActiveSignature,
+            ActiveParameter = items.ActiveParameter is { } activeParameter ? global::Ts.LsProto.UintegerOrNull.FromUinteger((uint)activeParameter) : null,
+        };
+    }
+
     // signaturehelp.go:57 GetSignatureHelpItems (foundation subset).
     public SignatureHelp? GetSignatureHelpItems(
         string fileName,

@@ -11,6 +11,30 @@ namespace Ts.Ls;
 // userpreferences.go:45 — UserPreferences represents TypeScript language service preferences.
 public sealed class UserPreferences
 {
+    // userpreferences.go:46 — FormatCodeSettings (Go's first field; carries the format
+    // engine settings, consumed by LanguageService.FormatOptions and the LSP formatting
+    // entry points).
+    public global::Ts.Format.FormatCodeSettings FormatCodeSettings = global::Ts.Format.FormatCodeSettings.GetDefaultFormatCodeSettings();
+
+    // userpreferences.go:148 — UseAliasesForRename
+    // (raw:"providePrefixAndSuffixTextForRename" config:"preferences.useAliasesForRenames").
+    public Tristate UseAliasesForRename;
+    // userpreferences.go:149 — AllowRenameOfImportPath (raw:"allowRenameOfImportPath").
+    public Tristate AllowRenameOfImportPath;
+
+    // userpreferences.go:54 — MaximumHoverLength (raw:"maximumHoverLength") // !!!
+    public int MaximumHoverLength;
+
+    // userpreferences.go:165 — PreferGoToSourceDefinition (raw:"preferGoToSourceDefinition").
+    public bool PreferGoToSourceDefinition;
+    // userpreferences.go:200 — ExcludeLibrarySymbolsInNavTo
+    // (raw:"excludeLibrarySymbolsInNavTo" config:"workspaceSymbols.excludeLibrarySymbols").
+    public Tristate ExcludeLibrarySymbolsInNavTo;
+
+    // userpreferences.go:173 — EnableFormatting
+    // (raw:"formatEnabled" config:"format.enabled" fallbackConfig:"format.enable").
+    public Tristate EnableFormatting;
+
     // userpreferences.go:48 — QuotePreference (string enum: "" | "auto" | "double" | "single").
     public string QuotePreference = "";
     // userpreferences.go:78 — JsxAttributeCompletionStyle ("auto" | "braces" | "none").
@@ -171,15 +195,22 @@ public sealed class UserPreferences
     // userpreferences.go:15-35 — NewDefaultUserPreferences (completion-relevant subset).
     public static UserPreferences NewDefaultUserPreferences() => new()
     {
+        // userpreferences.go:17 — FormatCodeSettings: GetDefaultFormatCodeSettings().
+        FormatCodeSettings = global::Ts.Format.FormatCodeSettings.GetDefaultFormatCodeSettings(),
         // userpreferences.go:21 — EnableAutoClosingTags: core.TSTrue.
         EnableAutoClosingTags = Tristate.True,
         IncludeCompletionsForModuleExports = Tristate.True,
         IncludeCompletionsForImportStatements = Tristate.True,
+        // userpreferences.go:25-27 — rename/format/validate defaults.
+        AllowRenameOfImportPath = Tristate.True,
+        EnableFormatting = Tristate.True,
         EnableJSDocCompletions = Tristate.True,
         GenerateReturnInDocTemplate = Tristate.True,
         // userpreferences.go:28-31 — protocol defaults.
         EnableValidation = Tristate.True,
         ReportStyleChecksAsWarnings = Tristate.True,
+        // userpreferences.go:32 — ExcludeLibrarySymbolsInNavTo.
+        ExcludeLibrarySymbolsInNavTo = Tristate.True,
     };
 }
 

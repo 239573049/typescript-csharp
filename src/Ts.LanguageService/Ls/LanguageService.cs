@@ -1,4 +1,4 @@
-// Ported from tsgo internal/ls/languageservice.go (foundation subset).
+// Ported from tsgo internal/ls/languageservice.go.
 
 using System;
 using Ts.Core;
@@ -11,46 +11,95 @@ public sealed partial class LanguageService
     private readonly Host host;
     private readonly global::Ts.Compiler.Program program;
 
+    // languageservice.go:20 — the resolved client capabilities. PORT-NOTE: Go reads them
+    // per request via lsproto.GetClientCapabilities(ctx); plan/01 §4.4 fixed the C#
+    // RequestContext shape (no context values), so the session-scoped capabilities are
+    // stored on the instance at construction (identical semantics: immutable for the
+    // service lifetime; registered deviation, see Project/LsProto.Missing.cs).
+    private readonly global::Ts.LsProto.ResolvedClientCapabilities clientCapabilities;
+
+    // languageservice.go — the negotiated position encoding ("utf-16" | "utf-8"); the
+    // converters are built over it (ls session.go: NewConverters(positionEncoding, ...)).
+    private readonly string positionEncoding;
+
     public LanguageService(Host host)
+        : this(new global::Ts.TsPath.Path(""), host, new global::Ts.LsProto.ResolvedClientCapabilities(), global::Ts.Ls.UserPreferences.NewDefaultUserPreferences(), "utf-16")
+    {
+    }
+
+    // languageservice.go:24-38 — NewLanguageService(projectPath, program, host, activeFile).
+    // Go's host.GetPreferences(activeFile) is the snapshot's per-session preference set; the
+    // C# session resolves it to a value before calling this factory, so the activeFile
+    // parameter dissolves. The converters come off the host in Go; the C# foundation host
+    // carries none, so they are built over the program's own files with the negotiated
+    // encoding.
+    public LanguageService(
+        global::Ts.TsPath.Path projectPath,
+        Host host,
+        global::Ts.LsProto.ResolvedClientCapabilities clientCapabilities,
+        global::Ts.Ls.UserPreferences userPreferences,
+        string positionEncoding)
     {
         this.host = host ?? throw new ArgumentNullException(nameof(host));
         program = host.GetProgram()!; // Go unconditionally dereferences the host's Program.
+        this.projectPath = projectPath;
+        this.clientCapabilities = clientCapabilities ?? new global::Ts.LsProto.ResolvedClientCapabilities();
+        activeConfig = userPreferences ?? global::Ts.Ls.UserPreferences.NewDefaultUserPreferences();
+        this.positionEncoding = positionEncoding;
     }
 
-    // Go: NewLanguageService(projectPath, program, host, activeFile).
-    // The project path, active preferences, converters, and source-map cache are
-    // consumed only by deferred LS/LSP features, so the foundation constructor
-    // accepts the concrete Program and installs its direct host adapter.
+    // Go: NewLanguageService(projectPath, program, host, activeFile). Foundation entry kept
+    // for the direct-program callers (tests, fourslash): default-constructed capabilities,
+    // default preferences, UTF-16 encoding, and the program's own host adapter.
     public static LanguageService NewLanguageService(global::Ts.Compiler.Program program)
     {
         return new LanguageService(new ProgramHost(program));
     }
 
+    // languageservice.go:24-38 — NewLanguageService. The lsp-server wave constructs the
+    // service with the project path, resolved client capabilities, the session preference
+    // set, and the negotiated position encoding.
+    public static LanguageService NewLanguageService(
+        string projectPath,
+        global::Ts.Compiler.Program program,
+        Host? host,
+        global::Ts.LsProto.ResolvedClientCapabilities clientCapabilities,
+        global::Ts.Ls.UserPreferences userPreferences,
+        string positionEncoding)
+    {
+        return new LanguageService(
+            global::Ts.TsPath.TsPath.ToPath(projectPath, program.GetCurrentDirectory(), program.UseCaseSensitiveFileNames()),
+            host ?? new ProgramHost(program),
+            clientCapabilities,
+            userPreferences,
+            positionEncoding);
+    }
+
+    // languageservice.go:20 — projectPath.
+    internal global::Ts.TsPath.Path projectPath;
+
+    // The stored resolved client capabilities (see the field comment above).
+    internal global::Ts.LsProto.ResolvedClientCapabilities ClientCapabilities() => clientCapabilities;
+
     public global::Ts.Compiler.Program GetProgram() => program;
 
     // languageservice.go:48-50 — UserPreferences returns the active configuration. The
     // config-sync channel (l.activeConfig, fed by the lsp workspace/didChangeConfiguration
-    // wave) is not wired yet; defaults stand in until then.
-    private global::Ts.Ls.UserPreferences activeConfig = global::Ts.Ls.UserPreferences.NewDefaultUserPreferences();
+    // wave) seeds the value at construction (NewLanguageService).
+    private global::Ts.Ls.UserPreferences activeConfig;
 
     public global::Ts.Ls.UserPreferences UserPreferences() => activeConfig;
 
-    // languageservice.go:16 — projectPath. PORT-NOTE: assigned by the project/lsp wave's
-    // NewLanguageService(projectPath, ...); empty for the direct program host.
-    internal global::Ts.TsPath.Path projectPath;
-
-    // Go: l.FormatOptions() (UserPreferences.FormatCodeSettings). PORT-NOTE: the config-sync
-    // channel is not wired yet; defaults stand in until the lsp/config wave.
+    // Go: l.FormatOptions() (languageservice.go:52-54 — activeConfig.FormatCodeSettings).
     public global::Ts.Format.FormatCodeSettings FormatOptions() =>
-        global::Ts.Format.FormatCodeSettings.GetDefaultFormatCodeSettings();
+        UserPreferences().FormatCodeSettings;
 
-    // Go: l.converters (owned by the lsp session). PORT-NOTE: until the lsp-server wave wires a
-    // session-owned instance, build a UTF-16 Converters over the program's own files.
+    // Go: l.converters (owned by the lsp session, built over the negotiated encoding).
     private global::Ts.Ls.LsConv.Converters? converters;
 
     internal global::Ts.Ls.LsConv.Converters Converters()
     {
-        return converters ??= new global::Ts.Ls.LsConv.Converters("utf-16", fileName =>
+        return converters ??= new global::Ts.Ls.LsConv.Converters(positionEncoding, fileName =>
             global::Ts.Ls.LsConv.LineMap.ComputeLSPLineStarts(program.GetSourceFile(fileName)!.Text()));
     }
 
