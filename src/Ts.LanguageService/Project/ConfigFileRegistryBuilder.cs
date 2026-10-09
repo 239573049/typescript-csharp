@@ -728,6 +728,9 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
                 skip = false;
                 return ("", false);
             });
+            // Go's ForEachAncestorDirectory zero value is "" — C# default(string) is null,
+            // so coalesce before the "" comparison below (configfileregistrybuilder.go:586).
+            result ??= "";
             if (result != "")
             {
                 logger.Logf("computeConfigFileName:: File: {0}:: Result: {1}", fileName, result);
@@ -767,6 +770,9 @@ internal sealed class ConfigFileRegistryBuilder : global::Ts.TsOptions.ParseConf
             skipJsconfig = false;
             return ("", false);
         });
+        // Go's ForEachAncestorDirectory zero value is "" — C# default(string) is null,
+        // so coalesce before the "" comparison below (configfileregistrybuilder.go:630).
+        result2 ??= "";
         logger.Logf("computeConfigFileName:: File: {0}:: Result: {1}", fileName, result2);
         return result2;
     }

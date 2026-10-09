@@ -362,7 +362,8 @@ public sealed class TypingsInstaller
     }
 
     // ata.go:280-316 — installNpmPackages (ThrottleGroup-batched npm installs).
-    private static Exception? InstallNpmPackages(
+    // (internal: Go package-private; the unit test needs same-package access.)
+    internal static Exception? InstallNpmPackages(
         CancellationToken ctx,
         string[] packageNames,
         SemaphoreSlim concurrencySemaphore,

@@ -599,7 +599,7 @@ public sealed class SnapshotFSBuilder : FileSource
         string fileName = "";
         entry.Locked(e =>
         {
-            if (e.Value() is not null && e.Value()!.MatchesDiskText())
+            if (e.Value() is not null && !e.Value()!.MatchesDiskText())
             {
                 fileName = e.Value()!.fileName;
             }

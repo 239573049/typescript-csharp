@@ -1217,7 +1217,9 @@ public sealed partial class Session : global::Ts.Project.Ata.TypingsInstallerHos
                 {
                     updateReason = UpdateReason.RequestedLoadProjectTree;
                 }
-                else if (request.AutoImports.Value.Length != 0)
+                // session.go:934 — request.AutoImports != "". (IsNullOrEmpty: a default
+                // DocumentUri has Value == null in C#, not "".)
+                else if (!string.IsNullOrEmpty(request.AutoImports.Value))
                 {
                     updateReason = UpdateReason.RequestedLanguageServiceWithAutoImports;
                 }

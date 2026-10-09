@@ -907,16 +907,12 @@ public sealed class Snapshot
                 {
                     session.parseCache.Deref(ParseCache.NewParseCacheKey(file.ParseOptions(), file.Hash, file.ScriptKind));
                 }
-                // PORT-NOTE(project): Go also releases parse-cache refs for
-                // program.DuplicateSourceFiles() here; Ts.Compiler.Program does not expose
-                // a DuplicateSourceFiles() accessor yet (compiler-side additive passthrough
-                // is outside this session's file scope), so the release loop is dropped
-                // until that surface lands. Duplicate files are an error path (parsing
-                // diagnostics), so cache entries for them are rare in practice.
-                // foreach (var file in project.Program.DuplicateSourceFiles())
-                // {
-                //     session.parseCache.Deref(ParseCache.NewParseCacheKey(file.ParseOptions, file.Hash, file.ScriptKind));
-                // }
+                // snapshot.go:550-552 — duplicate files hold their own parse-cache refs;
+                // Program.DuplicateSourceFiles() is now available (Program.cs, program.go:403).
+                foreach (var file in project.Program.DuplicateSourceFiles())
+                {
+                    session.parseCache.Deref(ParseCache.NewParseCacheKey(file.ParseOptions, file.Hash, file.ScriptKind));
+                }
             }
         }
         // map-iter: 序无关 — release bookkeeping per config.

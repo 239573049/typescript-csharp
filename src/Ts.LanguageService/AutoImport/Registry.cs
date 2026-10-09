@@ -153,10 +153,12 @@ public struct BucketState
         return b;
     }
 
-    // registry.go:158-160 — Dirty.
+    // registry.go:158-160 — Dirty. (Path is a struct in C#: its default has Value == null,
+    // while Go's `type Path string` zero value is "" — hence IsNullOrEmpty instead of
+    // len(...) != 0.)
     public bool Dirty()
     {
-        return multipleFilesDirty || dirtyFile.Value.Length != 0 || newProgramStructure > 0 || dirtyPackages.Len() > 0;
+        return multipleFilesDirty || !string.IsNullOrEmpty(dirtyFile.Value) || newProgramStructure > 0 || dirtyPackages.Len() > 0;
     }
 
     // registry.go:162-167 — DirtyFile.
@@ -194,10 +196,11 @@ public struct BucketState
             dirtyPackages.Len() > 0;
     }
 
-    // registry.go:187-189 — hasDirtyFileBesides.
+    // registry.go:187-189 — hasDirtyFileBesides. (IsNullOrEmpty: default(Path).Value is
+    // null in C#, whereas Go's `type Path string` zero value is "" — see Dirty above.)
     internal bool HasDirtyFileBesides(global::Ts.TsPath.Path file)
     {
-        return multipleFilesDirty || dirtyFile.Value.Length != 0 && dirtyFile != file;
+        return multipleFilesDirty || !string.IsNullOrEmpty(dirtyFile.Value) && dirtyFile != file;
     }
 }
 
