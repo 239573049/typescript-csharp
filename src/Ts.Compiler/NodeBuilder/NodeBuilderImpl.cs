@@ -1411,7 +1411,7 @@ public sealed partial class NodeBuilder
                 root = accessibleSymbolChain[0];
             }
             var parents = ch.GetContainersOfSymbol(root, ctx.enclosingDeclaration, meaning);
-            if (parents.Count > 0)
+            if (parents is { Count: > 0 })
             {
                 var parentSpecifiers = new List<SortedSymbolNamePair>(parents.Count);
                 foreach (var parentSym in parents)
