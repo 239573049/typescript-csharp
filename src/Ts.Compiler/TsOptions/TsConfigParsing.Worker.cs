@@ -443,7 +443,7 @@ public static partial class TsConfigParsing
                 var excludeSpecsRaw = configFileSpecsValue.excludeSpecs;
                 var includeArr = includeSpecsRaw as object?[] ?? Array.Empty<object?>();
                 var excludeArr = excludeSpecsRaw as object?[] ?? Array.Empty<object?>();
-                errors.Add(Diagnostic.NewCompilerDiagnostic(Diag.No_inputs_were_found_in_config_file_0_Specified_include_paths_were_1_and_exclude_paths_were_2, configFileName, stringifyStringArrayJson(includeArr), stringifyStringArrayJson(excludeArr)));
+                errors.Add(Diagnostic.NewCompilerDiagnostic(Diag.No_inputs_were_found_in_config_file_0_Specified_include_paths_were_1_and_exclude_paths_were_2, configFileName, stringifyJsonArray(includeArr), stringifyJsonArray(excludeArr)));
             }
             return (fileNames, literalFileNamesLen);
         }
@@ -972,11 +972,14 @@ public static partial class TsConfigParsing
             extendedConfigCache), null);
     }
 
-    // Go call site: core.Must(core.StringifyJson([]string, "", "")). StringifyJson over `any` is
-    // AOT-deferred (Core.cs); this per-caller emitter reproduces Go json.Marshal of a []string with
-    // no prefix/indent — a compact JSON array of double-quoted, escaped strings — byte-for-byte for
-    // the "No inputs were found" diagnostic path.
-    internal static string stringifyStringArrayJson(object?[] values)
+    // Go call site: core.Must(core.StringifyJson(includeSpecs, "", "")) /
+    // core.Must(core.StringifyJson(excludeSpecs, "", "")) (tsconfigparsing.go:1341). StringifyJson
+    // over `any` is AOT-deferred (Core.cs:673, plan/07 §4.2 face 1), so this typed emitter
+    // reproduces Go json.MarshalIndent(value, "", "") — the compact JSON encoding with no
+    // whitespace — for the values that reach it: the raw `include`/`exclude` arrays straight from
+    // the config (so their elements are strings, JSON numbers decoded to float64, or `true`/`false`;
+    // e.g. `[1]` prints as `[1]`, not the `[""]` a string-only emitter would produce).
+    internal static string stringifyJsonArray(object?[] values)
     {
         var sb = new System.Text.StringBuilder();
         sb.Append('[');
@@ -986,10 +989,61 @@ public static partial class TsConfigParsing
             {
                 sb.Append(',');
             }
-            AppendJsonString(sb, values[i] as string ?? "");
+            AppendJsonValue(sb, values[i]);
         }
         sb.Append(']');
         return sb.ToString();
+    }
+
+    // encoding/json's value encoder for the types parseJsonToStringKey can produce.
+    private static void AppendJsonValue(System.Text.StringBuilder sb, object? value)
+    {
+        switch (value)
+        {
+            case null:
+                sb.Append("null");
+                break;
+            case string s:
+                AppendJsonString(sb, s);
+                break;
+            case bool b:
+                sb.Append(b ? "true" : "false");
+                break;
+            case double d:
+                // Go's json encoder emits the shortest round-trippable form (strconv 'f'/-1);
+                // .NET Core 3.0+ "R" is the same shortest round-trip formatting (1.0 → "1").
+                sb.Append(d.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+                break;
+            case int i:
+                sb.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                break;
+            case long l:
+                sb.Append(l.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                break;
+            case object?[] array:
+                sb.Append(stringifyJsonArray(array));
+                break;
+            case OrderedMap<string, object?> map:
+                // Go ordered maps marshal as JSON objects, preserving insertion order.
+                sb.Append('{');
+                var first = true;
+                foreach (var (key, entry) in map.Entries())
+                {
+                    if (!first)
+                    {
+                        sb.Append(',');
+                    }
+                    first = false;
+                    AppendJsonString(sb, key);
+                    sb.Append(':');
+                    AppendJsonValue(sb, entry);
+                }
+                sb.Append('}');
+                break;
+            default:
+                AppendJsonString(sb, value.ToString() ?? "");
+                break;
+        }
     }
 
     private static void AppendJsonString(System.Text.StringBuilder sb, string s)
