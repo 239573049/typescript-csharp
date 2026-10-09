@@ -12,6 +12,8 @@ public sealed class RenameTests
     private const string FileName = "/src/main.ts";
     private const string FileUri = "file:///src/main.ts";
 
+    private static global::Ts.LsProto.DocumentUri Uri => global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI(FileName);
+
     [Fact]
     public void PrepareRenameOnIdentifierReturnsTriggerSpan()
     {
@@ -20,40 +22,35 @@ public sealed class RenameTests
 
         var declarationPosition = source.IndexOf("value", StringComparison.Ordinal);
 
-        var placeholder = service.PrepareRename(
-            FileName,
-            declarationPosition,
-            TestContext.Current.CancellationToken);
+        var info = service.GetRenameInfo(
+            global::Ts.Core.RequestContext.Background,
+            "" /*newName*/,
+            Uri,
+            new global::Ts.LsProto.Position { Line = 0, Character = (uint)declarationPosition });
 
-        Assert.NotNull(placeholder);
-        Assert.Equal("value", placeholder.Placeholder);
-        Assert.Equal(0u, placeholder.Range.Start.Line);
-        Assert.Equal((uint)declarationPosition, placeholder.Range.Start.Character);
-        Assert.Equal(0u, placeholder.Range.End.Line);
-        Assert.Equal((uint)(declarationPosition + "value".Length), placeholder.Range.End.Character);
+        Assert.True(info.CanRename);
+        Assert.Equal("value", info.DisplayName);
+        Assert.NotNull(info.TriggerSpan);
+        Assert.Equal(0u, info.TriggerSpan.Start.Line);
+        Assert.Equal((uint)declarationPosition, info.TriggerSpan.Start.Character);
+        Assert.Equal(0u, info.TriggerSpan.End.Line);
+        Assert.Equal((uint)(declarationPosition + "value".Length), info.TriggerSpan.End.Character);
     }
 
     [Fact]
-    public void PrepareRenameOnKeywordReturnsNull()
+    public void PrepareRenameOnKeywordReturnsNoRename()
     {
         const string source = "const value = 1; if (value) { value; }\n";
         var service = BuildService(source);
 
         var keywordPosition = source.IndexOf("if", StringComparison.Ordinal);
 
-        var placeholder = service.PrepareRename(
-            FileName,
-            keywordPosition,
-            TestContext.Current.CancellationToken);
-
-        Assert.Null(placeholder);
-
-        // The faithful RenameInfo channel carries the Go error message.
         var info = service.GetRenameInfo(
-            FileName,
-            keywordPosition,
-            "",
-            TestContext.Current.CancellationToken);
+            global::Ts.Core.RequestContext.Background,
+            "" /*newName*/,
+            Uri,
+            new global::Ts.LsProto.Position { Line = 0, Character = (uint)keywordPosition });
+
         Assert.False(info.CanRename);
         Assert.Equal("You cannot rename this element.", info.LocalizedErrorMessage);
     }
@@ -69,14 +66,18 @@ public sealed class RenameTests
         var secondUsePosition = firstUsePosition + "value + ".Length;
 
         var edit = service.ProvideRename(
-            FileName,
-            secondUsePosition,
-            "renamed",
-            TestContext.Current.CancellationToken);
+            global::Ts.Core.RequestContext.Background,
+            new global::Ts.LsProto.RenameParams
+            {
+                TextDocument = new global::Ts.LsProto.TextDocumentIdentifier { Uri = Uri },
+                Position = new global::Ts.LsProto.Position { Line = 0, Character = (uint)secondUsePosition },
+                NewName = "renamed",
+            },
+            orchestrator: null);
 
-        Assert.NotNull(edit);
-        Assert.NotNull(edit.Changes);
-        var (uri, textEdits) = Assert.Single(edit.Changes);
+        Assert.NotNull(edit.WorkspaceEdit);
+        Assert.NotNull(edit.WorkspaceEdit.Changes);
+        var (uri, textEdits) = Assert.Single(edit.WorkspaceEdit.Changes);
         Assert.Equal(FileUri, uri.Value);
         Assert.Equal(3, textEdits.Length);
 

@@ -1283,13 +1283,6 @@ internal static class LsDeps
         return QuotePreference.Double;
     }
 
-    // Zero-preferences overload retained for pre-UserPreferences call sites (rename.go path);
-    // Go's zero value falls through to the module-specifier scan identically.
-    internal static QuotePreference GetQuotePreference(global::Ts.Ast.SourceFile sourceFile)
-    {
-        return GetQuotePreference(sourceFile, new UserPreferences());
-    }
-
     // ls/utilities.go:452 — getAdjustedLocation.
     internal static global::Ts.Ast.Node GetAdjustedLocation(global::Ts.Ast.Node node, bool forRename, global::Ts.Ast.SourceFile? sourceFile)
     {
