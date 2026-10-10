@@ -147,7 +147,7 @@ public sealed partial class Session
     }
 
     // handleGetTypeOfSymbol returns the type of a symbol. (session.go:1233-1247)
-    private TypeResponse? HandleGetTypeOfSymbol(global::Ts.Core.RequestContext ctx, GetTypeOfSymbolParams @params)
+    internal TypeResponse? HandleGetTypeOfSymbol(global::Ts.Core.RequestContext ctx, GetTypeOfSymbolParams @params)
     {
         CheckerSetup setup = SetupChecker(ctx, @params.Snapshot, @params.Project);
         try
