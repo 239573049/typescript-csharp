@@ -107,6 +107,14 @@ internal sealed class ProjectCompilerHost :
     // GetResolvedProjectReference implements compiler.CompilerHost.
     public global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path)
     {
+        if (foundationFileSystem is not null)
+        {
+            // Foundation (ProjectService) path, not part of compilerhost.go: there is no config
+            // file registry, so the referenced config is parsed directly, as the CLI host does
+            // (compiler/host.go:86-89).
+            return global::Ts.TsOptions.TsConfigParsing.GetParsedCommandLineOfConfigFilePath(
+                fileName, path, null, null, this, null).Item1;
+        }
         if (builder is null)
         {
             return configFileRegistry!.GetConfig(path);
@@ -143,8 +151,20 @@ internal sealed class ProjectCompilerHost :
         global::Ts.Core.ScriptKind scriptKind = foundationFileSystem.TryGetOpenFile(opts.Path, out OpenFileSnapshot openFile)
             ? openFile.ScriptKind
             : global::Ts.Core.CoreUtil.GetScriptKindFromFileName(opts.FileName);
+        if (global::Ts.Bundled.Bundled.IsBundled(opts.FileName))
+        {
+            // HOSTING-NOTE: the session path shares parsed files through ParseCache
+            // (compilerhost.go:105-117, lsp.ServerOptions.ParseCache); the foundation path had no
+            // cache and re-parsed every bundled lib on each reload. Bundled libs are immutable,
+            // so they are shared process-wide keyed by the parse options, as ParseCache keys
+            // them by (options, content hash, kind).
+            var key = (opts.FileName, opts.ExternalModuleIndicatorOptions.Jsx, opts.ExternalModuleIndicatorOptions.Force, scriptKind);
+            return bundledSourceFiles.GetOrAdd(key, _ => global::Ts.Parser.Parser.ParseSourceFile(opts, text, scriptKind));
+        }
         return global::Ts.Parser.Parser.ParseSourceFile(opts, text, scriptKind);
     }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(string FileName, bool Jsx, bool Force, global::Ts.Core.ScriptKind Kind), global::Ts.Ast.SourceFile> bundledSourceFiles = new();
 
     // Trace implements compiler.CompilerHost.
     public void Trace(global::Ts.Diagnostics.Message msg, params object?[] args)

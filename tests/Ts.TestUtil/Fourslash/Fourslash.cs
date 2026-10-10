@@ -386,7 +386,8 @@ public sealed partial class FourslashTest : IDisposable
     // fourslash.go:818-830 — GoToFile / GoToFileNumber.
     public void GoToFile(string filename)
     {
-        ensureActiveFile(filename);
+        filename = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(filename, RootDirectory);
+        openFile(filename);
     }
 
     public void GoToFileNumber(int index)
@@ -395,7 +396,7 @@ public sealed partial class FourslashTest : IDisposable
         {
             throw new ArgumentOutOfRangeException(nameof(index), "Invalid file index: " + index);
         }
-        GoToFile(testData.Files[index].VirtualFileName);
+        openFile(testData.Files[index].VirtualFileName);
     }
 
     // fourslash.go:831-861 — Markers / MarkerNames / MarkerByName / Ranges.
