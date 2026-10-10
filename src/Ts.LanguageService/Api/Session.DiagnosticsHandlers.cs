@@ -253,7 +253,7 @@ public sealed partial class Session
 
     // handleGetCompletionsAtPosition returns completions at a position in a document.
     // (session.go:3124-3179)
-    private CompletionInfoResponse? HandleGetCompletionsAtPosition(global::Ts.Core.RequestContext ctx, GetCompletionsAtPositionParams @params)
+    internal CompletionInfoResponse? HandleGetCompletionsAtPosition(global::Ts.Core.RequestContext ctx, GetCompletionsAtPositionParams @params)
     {
         if (@params.IncludeSymbol)
         {

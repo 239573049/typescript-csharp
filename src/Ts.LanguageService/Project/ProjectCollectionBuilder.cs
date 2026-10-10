@@ -293,9 +293,9 @@ public sealed class ProjectCollectionBuilder
         // effect is early error exit.
         foreach (global::Ts.TsPath.Path configPath in apiState.openProjects.Keys)
         {
-            if (configuredProjects.Load(configPath) is { Ok: true } entry)
+            if (FindConfiguredProject(configPath, ProjectLoadKind.Find) is { } entry)
             {
-                UpdateProgram(entry.Entry!, logger);
+                UpdateProgram(entry, logger);
             }
             else
             {
@@ -1367,6 +1367,15 @@ public sealed class ProjectCollectionBuilder
             configFilePath,
             Project.NewConfiguredProject(configFileName, configFilePath, this, logger));
         return entry;
+    }
+
+    // Go: configuredProjects.Load (dirty.SyncMap.Load → C# (Entry, bool) tuple). A plain
+    // `is { Ok: true }` pattern cannot deconstruct a tuple, so the lookup goes through here.
+    private Dirty.SyncMapEntry<global::Ts.TsPath.Path, Project>? FindConfiguredProject(
+        global::Ts.TsPath.Path configFilePath,
+        ProjectLoadKind loadKind)
+    {
+        return FindOrCreateProject("", configFilePath, loadKind, null);
     }
 
     // projectcollectionbuilder.go:1043-1083 — updateInferredProjectRoots.

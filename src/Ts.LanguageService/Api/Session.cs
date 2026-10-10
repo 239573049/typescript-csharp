@@ -524,8 +524,10 @@ public sealed partial class Session : Handler
     // at most one ref per project/file (opens are idempotent), so it can release
     // exactly those refs on Close and never send a close for a ref it doesn't hold.
     // Guarded by updateMu.
-    private readonly global::Ts.Collections.Set<global::Ts.TsPath.Path> openProjects = new();
-    private readonly global::Ts.Collections.Set<global::Ts.TsPath.Path> openFiles = new();
+    // internal (not private): Go's package-private fields, read by the same-package
+    // ported tests via InternalsVisibleTo (05-conventions.md §1.1/§16).
+    internal readonly global::Ts.Collections.Set<global::Ts.TsPath.Path> openProjects = new();
+    internal readonly global::Ts.Collections.Set<global::Ts.TsPath.Path> openFiles = new();
 
     // updateMu serializes the whole of handleUpdateSnapshot (and releaseOpenRefs)
     // against other updates. Unlike snapshotsMu it is held across the slow
@@ -1039,7 +1041,11 @@ public sealed partial class Session : Handler
     // closes are ref-counted per session: the session holds at most one ref per
     // project/file, so repeated opens are idempotent and a close only releases a ref
     // the session is actually holding. (session.go:824-972)
-    private UpdateSnapshotResponse HandleUpdateSnapshot(global::Ts.Core.RequestContext ctx, UpdateSnapshotParams @params)
+    //
+    // internal (not private): Go's handler methods are package-private and the
+    // same-package ported tests (session_apistate_test.go, session_completion_test.go)
+    // call them directly via InternalsVisibleTo (05-conventions.md §1.1/§16).
+    internal UpdateSnapshotResponse HandleUpdateSnapshot(global::Ts.Core.RequestContext ctx, UpdateSnapshotParams @params)
     {
         // Fully serialize updates: snapshot creation, ref tracking, and the
         // latestSnapshot/diff bookkeeping must be atomic with respect to other updates,
@@ -1223,7 +1229,7 @@ public sealed partial class Session : Handler
     // handleRelease decrements the ref count for a snapshot.
     // The snapshot and its registries are only cleaned up when the ref count reaches zero.
     // (session.go:974-995)
-    private object? HandleRelease(global::Ts.Core.RequestContext ctx, ReleaseParams? @params)
+    internal object? HandleRelease(global::Ts.Core.RequestContext ctx, ReleaseParams? @params)
     {
         if (@params is null || @params.Snapshot.Value == 0)
         {
@@ -1254,7 +1260,7 @@ public sealed partial class Session : Handler
 
     // handleGetDefaultProjectForFile returns the default project for a given file,
     // or nil if no project currently contains the file. (session.go:997-1012)
-    private ProjectResponse? HandleGetDefaultProjectForFile(global::Ts.Core.RequestContext ctx, GetDefaultProjectForFileParams @params)
+    internal ProjectResponse? HandleGetDefaultProjectForFile(global::Ts.Core.RequestContext ctx, GetDefaultProjectForFileParams @params)
     {
         SnapshotData sd = GetSnapshotData(@params.Snapshot);
 
@@ -1270,7 +1276,7 @@ public sealed partial class Session : Handler
 
     // handleParseConfigFile parses a tsconfig.json file and returns its contents.
     // (session.go:1014-1044)
-    private ConfigFileResponse HandleParseConfigFile(global::Ts.Core.RequestContext ctx, ParseConfigFileParams @params)
+    internal ConfigFileResponse HandleParseConfigFile(global::Ts.Core.RequestContext ctx, ParseConfigFileParams @params)
     {
         string configFileName = @params.File.ToAbsoluteFileName(projectSession.GetCurrentDirectory());
         if (!projectSession.FS().TryReadFile(configFileName, out string configFileContent))
