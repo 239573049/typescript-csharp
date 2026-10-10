@@ -67,17 +67,37 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
     private bool hasTSFile;
 
     // program.go:274-283 (NewProgram)
+    // program.go:274-282
     public Program(ProgramOptions opts)
     {
         this.opts = opts;
-        processed = FileLoader.ProcessAllProgramFiles(opts, SingleThreaded());
-        comparePathsOptions = new global::Ts.TsPath.ComparePathsOptions
+        Action releaseTracing = NoOp;
+        if (opts.Tracing is not null)
         {
-            UseCaseSensitiveFileNames = opts.Host.FS().UseCaseSensitiveFileNames(),
-            CurrentDirectory = opts.Host.GetCurrentDirectory(),
-        };
-        InitCheckerPool();
-        VerifyCompilerOptions();
+            releaseTracing = global::Ts.Tracing.TracingExtensions.Push(
+                opts.Tracing, global::Ts.Tracing.Phase.Program, "createProgram",
+                new Dictionary<string, object?> { ["configFilePath"] = opts.Config.CompilerOptions()!.ConfigFilePath },
+                separateBeginAndEnd: true);
+        }
+        try
+        {
+            processed = FileLoader.ProcessAllProgramFiles(opts, SingleThreaded());
+            comparePathsOptions = new global::Ts.TsPath.ComparePathsOptions
+            {
+                UseCaseSensitiveFileNames = opts.Host.FS().UseCaseSensitiveFileNames(),
+                CurrentDirectory = opts.Host.GetCurrentDirectory(),
+            };
+            InitCheckerPool();
+            VerifyCompilerOptions();
+        }
+        finally
+        {
+            releaseTracing();
+        }
+    }
+
+    private static void NoOp()
+    {
     }
 
     // program.go:319-326 — the `&Program{...}` literal UpdateProgram builds for a reused program:
@@ -412,7 +432,21 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
             if (!file.IsBound())
             {
                 var f = file;
-                wg.Queue(() => global::Ts.Binder.Binder.BindSourceFile(f));
+                wg.Queue(() =>
+                {
+                    // program.go:456-458 — one bind event per file, on its own trace thread.
+                    Action releaseTracing = global::Ts.Tracing.TracingExtensions.Push(
+                        opts.Tracing, global::Ts.Tracing.Phase.Bind, "bindSourceFile",
+                        new Dictionary<string, object?> { ["path"] = f.Path().Value }, true);
+                    try
+                    {
+                        global::Ts.Binder.Binder.BindSourceFile(f);
+                    }
+                    finally
+                    {
+                        releaseTracing();
+                    }
+                });
             }
         }
         wg.RunAndWait();
@@ -764,9 +798,25 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
         {
             return false;
         }
-        // PORT-NOTE (phase 4/5): the json-file emit-location check needs outputpaths.GetCommonSourceDirectory /
-        // GetSourceFilePathInNewDirWorker (deferred emit helpers). For a json root under outDir, tsgo emits it;
-        // returning true is the safe over-approximation until those land.
+        // Otherwise, if rootDir is specified or a config file exists, we know the common source
+        // directory and can check if the file would be emitted in the same location.
+        if (options.RootDir != "" || options.ConfigFilePath != "")
+        {
+            var commonDir = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(
+                global::Ts.OutputPaths.OutputPaths.GetCommonSourceDirectory(options, () => [], GetCurrentDirectory(), UseCaseSensitiveFileNames(), null),
+                GetCurrentDirectory());
+            var outputPath = global::Ts.OutputPaths.OutputPaths.GetSourceFilePathInNewDirWorker(
+                sourceFile.FileName(), options.OutDir, GetCurrentDirectory(), commonDir, UseCaseSensitiveFileNames());
+            if (global::Ts.TsPath.TsPath.ComparePaths(sourceFile.FileName(), outputPath, new global::Ts.TsPath.ComparePathsOptions
+                {
+                    UseCaseSensitiveFileNames = UseCaseSensitiveFileNames(),
+                    CurrentDirectory = GetCurrentDirectory(),
+                }) == 0)
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

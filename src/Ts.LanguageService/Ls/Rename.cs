@@ -1,28 +1,36 @@
-// Ported from tsgo internal/ls/rename.go.
+// Ported from tsgo internal/ls/rename.go (1:1).
 //
-// PORT-NOTE (subset shape): the Go entry points take LSP line/character positions and
-// ride the full references engine (handleCrossProject → symbolAndEntriesToRename with
-// per-symbol search state on checker.GetSymbolAtLocation). The C# LS foundation's
-// position currency is the raw UTF-16 offset (see LanguageService.GetNodeAtPosition),
-// checker.GetSymbolAtLocation is still an internal throwing stub, and the cross-project
-// orchestrator belongs to the deferred project layer. This port therefore keeps the Go
-// pipeline shape — eligibility → rename-info validation → reference entries → text
-// edits — but the symbol channel is the public emit-resolver declaration identity used
-// by FindAllReferences.cs/DocumentHighlights.cs, and the binder symbol of the resolved
-// declaration stands in for the checker symbol. Deferred deep surfaces are single
-// stubs marked with their Go names below. Positions are UTF-16 code units throughout.
+// ProvideRename (:33) rides the cross-project orchestrator exactly as Go does —
+// handleCrossProject → symbolAndEntriesToRename → combineRenameResponse — on top of the deep
+// find-all-references engine (FindAllReferences*.cs), and reads its settings from
+// LanguageService.UserPreferences().
+//
+// Position currency: GetRenameInfo (:47) is the LSP-currency entry (DocumentUri + lsproto
+// Position, converted through l.converters); symbolAndEntriesToRename and getRangeOfEntry
+// work on the reference entries' own LSP ranges. The raw UTF-16 offset currency stays behind
+// LanguageService.ProvideSymbolsAndEntries.
+//
+// Go's (Resp, error) pairs collapse to response values: every arm here returns a nil error in
+// Go. Go's (RenameInfo, bool) "handled" channel becomes RenameInfo? (null = not handled).
+//
+// PORT-NOTE: Go reads the client capabilities per request via lsproto.GetClientCapabilities(ctx);
+// the C# carrier is the resolved capability set, so ClientSupportsWillRenameFiles /
+// ClientSupportsDocumentChanges / ClientSupportsRenameResourceOperations take it as a parameter.
+// The LSP server passes its own copy (Server.cs), this file passes LanguageService.ClientCapabilities().
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Ts.Ast; // instance-syntax resolution of the Ts.Ast.NodeAccessors extension methods
-using PrepareRenamePlaceholder = Ts.LsProto.PrepareRenamePlaceholder;
-using TextEdit = Ts.LsProto.TextEdit;
+using Ts.Checker; // CheckerFindRefsLsExports extension methods
+using Ts.Diagnostics; // Message.Localize extension method
+using Ts.Core; // Tristate.IsTrue / IsTrueOrUnknown extension methods
+using RequestContext = Ts.Core.RequestContext;
 using WorkspaceEdit = Ts.LsProto.WorkspaceEdit;
+using WorkspaceEditOrNull = Ts.LsProto.WorkspaceEditOrNull;
 
 namespace Ts.Ls;
 
-// rename.go:24 — RenameInfo represents the result of a rename validation check.
+// rename.go:24-31 — RenameInfo represents the result of a rename validation check.
 // It is used by the `textDocument/prepareRename` LSP handler.
 public sealed class RenameInfo
 {
@@ -36,159 +44,116 @@ public sealed class RenameInfo
 
 public sealed partial class LanguageService
 {
-    // rename.go:136 — l.UserPreferences().AllowRenameOfImportPath gate. The preferences
-    // carrier is deferred; the Go default (TSUnknown, i.e. not TSTrue) keeps module
-    // rename disengaged. Property (not const) so the guarded arm stays compiled.
-    private static bool AllowRenameOfImportPath => false;
-
-    // rename.go:47 — GetRenameInfo.
-    public RenameInfo GetRenameInfo(
-        string fileName,
-        int position,
-        string newName = "",
-        CancellationToken cancellationToken = default)
+    // rename.go:33-45 — ProvideRename.
+    public WorkspaceEditOrNull ProvideRename(
+        RequestContext ctx,
+        global::Ts.LsProto.RenameParams @params,
+        CrossProjectOrchestrator? orchestrator)
     {
-        var node = GetNodeAtPosition(fileName, position, out var sourceFile);
+        return CrossProject.HandleCrossProject(
+            this,
+            ctx.Cancellation,
+            @params,
+            orchestrator,
+            // Go's symbolAndEntriesToRename receives the full context (locale + cancellation);
+            // the C# transformer delegate carries the token only, so the request context is
+            // captured here and the pump's token is folded back into it.
+            (l, c, req, data, options) => l.SymbolAndEntriesToRename(ctx with { Cancellation = c }, req, data, options),
+            CrossProject.CombineRenameResponse,
+            true, /*isRename*/
+            false, /*implementations*/
+            new SymbolEntryTransformOptions());
+    }
+
+    // rename.go:47-60 — GetRenameInfo.
+    public RenameInfo GetRenameInfo(
+        RequestContext ctx,
+        string newName,
+        global::Ts.LsProto.DocumentUri documentURI,
+        global::Ts.LsProto.Position position)
+    {
+        var sourceFile = GetProgramAndFile(documentURI);
+        var pos = ToPosition(sourceFile, position);
+
+        var node = global::Ts.AstNav.Tokens.GetTouchingPropertyName(sourceFile, pos);
         node = LsDeps.GetAdjustedLocation(node, true /*forRename*/, sourceFile);
 
         if (NodeIsEligibleForRename(node))
         {
-            var (checker, done) = host.GetTypeCheckerForFile(cancellationToken, sourceFile);
-            try
+            var renameInfo = GetRenameInfoForNode(ctx, newName, node, sourceFile, GetProgram());
+            if (renameInfo != null)
             {
-                var renameInfo = GetRenameInfoForNode(newName, node, sourceFile, checker.GetEmitResolver(), checker);
-                if (renameInfo != null)
-                {
-                    return renameInfo;
-                }
-            }
-            finally
-            {
-                done();
+                return renameInfo;
             }
         }
-        return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.You_cannot_rename_this_element);
+        return GetRenameInfoError(ctx.Locale, global::Ts.Diagnostics.Diagnostics.You_cannot_rename_this_element);
     }
 
-    // lsp/server.go:1373 — handlePrepareRename response shaping. The Go handler turns a
-    // non-renameable position into a user-facing request error; the C# subset returns
-    // null (the LSP null response arm).
-    public PrepareRenamePlaceholder? PrepareRename(
-        string fileName,
-        int position,
-        CancellationToken cancellationToken = default)
+    // rename.go:62-101 — symbolAndEntriesToRename.
+    internal WorkspaceEditOrNull SymbolAndEntriesToRename(
+        RequestContext ctx,
+        global::Ts.LsProto.RenameParams @params,
+        SymbolAndEntriesData data,
+        SymbolEntryTransformOptions options)
     {
-        var info = GetRenameInfo(fileName, position, "" /*newName*/, cancellationToken);
-        if (!info.CanRename)
+        if (!NodeIsEligibleForRename(data.OriginalNode!))
         {
-            return null;
-        }
-        return new PrepareRenamePlaceholder
-        {
-            Range = info.TriggerSpan!,
-            Placeholder = info.DisplayName,
-        };
-    }
-
-    // rename.go:33 ProvideRename / :62 symbolAndEntriesToRename, fused per the header
-    // note: the reference entries come from the FindAllReferences foundation subset
-    // (identifier use-sites whose emit-resolver declaration matches the queried node's)
-    // instead of the deep per-symbol search state.
-    public WorkspaceEdit? ProvideRename(
-        string fileName,
-        int position,
-        string newName,
-        CancellationToken cancellationToken = default)
-    {
-        var originalNode = GetNodeAtPosition(fileName, position, out var sourceFile);
-        originalNode = LsDeps.GetAdjustedLocation(originalNode, true /*forRename*/, sourceFile);
-
-        // rename.go:63 — eligibility gate.
-        if (!NodeIsEligibleForRename(originalNode))
-        {
-            return null;
+            return new WorkspaceEditOrNull();
         }
 
-        var (checker, done) = host.GetTypeCheckerForFile(cancellationToken, sourceFile);
+        var program = GetProgram();
+
+        // Defense-in-depth: validate rename eligibility even if the client skipped prepareRename.
+        // Use getRenameInfoForNode directly with the already-resolved node to avoid
+        // re-resolving the position and polluting state baselines.
+        var sourceFile = AstUtilities.GetSourceFileOfNode(data.OriginalNode!)!;
+        var info = GetRenameInfoForNode(ctx, @params.NewName, data.OriginalNode!, sourceFile, program);
+        if (info == null || !info.CanRename)
+        {
+            return new WorkspaceEditOrNull();
+        }
+
+        var entries = new List<ReferenceEntry>();
+        foreach (var s in data.SymbolsAndEntries)
+        {
+            entries.AddRange(s.References);
+        }
+        var changes = new Dictionary<global::Ts.LsProto.DocumentUri, List<global::Ts.LsProto.TextEdit>>();
+        var (checker, done) = program.GetTypeChecker(ctx.Cancellation);
         try
         {
-            var emitResolver = checker.GetEmitResolver();
+            var quotePreference = LsDeps.GetQuotePreference(sourceFile, UserPreferences());
+            var useAliasesForRename = UserPreferences().UseAliasesForRename.IsTrueOrUnknown();
 
-            // rename.go:69 — defense-in-depth: validate rename eligibility even if the
-            // client skipped prepareRename.
-            var info = GetRenameInfoForNode(newName, originalNode, sourceFile, emitResolver, checker);
-            if (info == null || !info.CanRename)
+            foreach (var entry in entries)
             {
-                return null;
-            }
-
-            if (originalNode.Kind != SyntaxKind.Identifier && originalNode.Kind != SyntaxKind.PrivateIdentifier)
-            {
-                // Go dispatches the special reference families (labels, this, string
-                // literals) through getReferencedSymbolsForNode. Deferred with the
-                // FindAllReferences deep path.
-                return null;
-            }
-            var targetDeclaration = GetReferencedDeclaration(emitResolver, originalNode);
-            if (targetDeclaration is null)
-            {
-                return null;
-            }
-
-            var quotePreference = LsDeps.GetQuotePreference(sourceFile);
-            // rename.go:83 — UserPreferences().UseAliasesForRename.IsTrueOrUnknown();
-            // the preferences carrier is deferred, so the Go default (unknown) holds.
-            const bool useAliasesForRename = true;
-
-            var searchName = originalNode.Text();
-            var changes = new Dictionary<global::Ts.LsProto.DocumentUri, List<TextEdit>>();
-            // Go iterates the request's sourceFiles slice in program order; positions
-            // within a file ascend, so the edit order is deterministic.
-            foreach (var file in program.SourceFiles())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                foreach (var reference in GetPossibleSymbolReferenceNodes(file, searchName, null))
+                var uri = GetFileNameOfEntry(entry);
+                if (UserPreferences().AllowRenameOfImportPath != Tristate.True && entry.Node != null && AstUtilities.IsStringLiteralLike(entry.Node) && LsDeps.TryGetImportFromModuleSpecifier(entry.Node) != null)
                 {
-                    if (!IsValidReferencePosition(reference, searchName))
-                    {
-                        continue;
-                    }
-                    if (!ReferenceEquals(GetReferencedDeclaration(emitResolver, reference), targetDeclaration))
-                    {
-                        continue;
-                    }
-                    // rename.go:87 — skip module-specifier string entries unless
-                    // AllowRenameOfImportPath (deferred preference, default false).
-                    if (!AllowRenameOfImportPath &&
-                        AstUtilities.IsStringLiteralLike(reference) &&
-                        LsDeps.TryGetImportFromModuleSpecifier(reference) != null)
-                    {
-                        continue;
-                    }
-                    var uri = LsDeps.FileNameToDocumentURI(file.FileName());
-                    var textEdit = new TextEdit
-                    {
-                        Range = LsDeps.ToLspRange(file, GetRangeOfNode(reference, file, null)),
-                        NewText = GetTextForRename(originalNode, reference, newName, emitResolver, quotePreference, useAliasesForRename),
-                    };
-                    if (!changes.TryGetValue(uri, out var edits))
-                    {
-                        edits = new List<TextEdit>();
-                        changes[uri] = edits;
-                    }
-                    edits.Add(textEdit);
+                    continue;
                 }
+                var textEdit = new global::Ts.LsProto.TextEdit
+                {
+                    Range = GetRangeOfEntry(entry),
+                    NewText = GetTextForRename(data.OriginalNode!, entry, @params.NewName, checker, quotePreference, useAliasesForRename),
+                };
+                if (!changes.TryGetValue(uri, out var editsForUri))
+                {
+                    editsForUri = [];
+                    changes[uri] = editsForUri;
+                }
+                editsForUri.Add(textEdit);
             }
 
-            var changesArrays = new Dictionary<global::Ts.LsProto.DocumentUri, TextEdit[]>(changes.Count);
+            var changesArrays = new Dictionary<global::Ts.LsProto.DocumentUri, global::Ts.LsProto.TextEdit[]>(changes.Count);
             foreach (var (uri, edits) in changes) // map-iter: 序无关（JSON object 键序无语义；值按文件独立成组）
             {
                 changesArrays[uri] = edits.ToArray();
             }
-            return new WorkspaceEdit
+            return WorkspaceEditOrNull.FromWorkspaceEdit(new WorkspaceEdit
             {
                 Changes = changesArrays,
-            };
+            });
         }
         finally
         {
@@ -196,72 +161,71 @@ public sealed partial class LanguageService
         }
     }
 
-    // rename.go:104 — getRenameInfoForNode performs detailed validation for a rename
-    // operation on a specific node. Go returns (RenameInfo, false) for "not handled";
-    // the C# mapping is a null return. PORT-NOTE: the Go symbol channel is
-    // checker.GetSymbolAtLocation; it is still an internal throwing stub, so identifiers
-    // resolve through the emit-resolver declaration channel (see FindAllReferences.cs)
-    // and the binder symbol of the resolved declaration stands in for the checker symbol.
+    // rename.go:103-143 — getRenameInfoForNode performs detailed validation for a rename
+    // operation on a specific node. Go returns (RenameInfo, false) for "not handled"; the C#
+    // mapping is a null return.
     private RenameInfo? GetRenameInfoForNode(
+        RequestContext ctx,
         string newName,
         Node node,
         SourceFile sourceFile,
-        global::Ts.Checker.EmitResolver emitResolver,
-        global::Ts.Checker.Checker checker)
+        global::Ts.Compiler.Program program)
     {
-        global::Ts.Ast.Symbol? symbol = null;
-        if (node.Kind is SyntaxKind.Identifier or SyntaxKind.PrivateIdentifier)
+        var (checker, done) = program.GetTypeChecker(ctx.Cancellation);
+        try
         {
-            symbol = GetReferencedDeclaration(emitResolver, node)?.Symbol();
-        }
-        if (symbol == null)
-        {
-            if (AstUtilities.IsStringLiteralLike(node))
+            var symbol = checker.GetSymbolAtLocation(node);
+            if (symbol == null)
             {
-                // Allow renaming of string literal types with contextual string literal types.
-                var typ = FindRefsSpecial.GetContextualTypeFromParentOrAncestorTypeNode(node, checker);
-                if (typ != null && (typ.IsStringLiteral() ||
-                    (typ.IsUnion() && global::Ts.Core.CoreUtil.Every(typ.Types(), t => t.IsStringLiteral()))))
+                if (AstUtilities.IsStringLiteralLike(node))
                 {
-                    return GetRenameInfoSuccess(node, sourceFile, node.Text());
+                    // Allow renaming of string literal types with contextual string literal types
+                    var typ = FindRefsSpecial.GetContextualTypeFromParentOrAncestorTypeNode(node, checker);
+                    if (typ != null && (typ.IsStringLiteral() ||
+                        (typ.IsUnion() && global::Ts.Core.CoreUtil.Every(typ.Types(), t => t.IsStringLiteral()))))
+                    {
+                        return GetRenameInfoSuccess(node, sourceFile, node.Text());
+                    }
                 }
+                else if (LsDeps.IsLabelName(node))
+                {
+                    var name = node.Text();
+                    return GetRenameInfoSuccess(node, sourceFile, name);
+                }
+                return null;
             }
-            else if (LsDeps.IsLabelName(node))
+
+            // Only allow a symbol to be renamed if it actually has at least one declaration.
+            if ((symbol.Declarations?.Length ?? 0) == 0)
             {
-                var name = node.Text();
-                return GetRenameInfoSuccess(node, sourceFile, name);
+                return null;
             }
-            return null;
-        }
 
-        // Only allow a symbol to be renamed if it actually has at least one declaration.
-        if ((symbol.Declarations?.Length ?? 0) == 0)
-        {
-            return null;
-        }
-
-        var msg = RenameBlockedReason(sourceFile, node, symbol);
-        if (msg != null)
-        {
-            return GetRenameInfoError(msg);
-        }
-
-        if (AstUtilities.IsStringLiteralLike(node) && LsDeps.TryGetImportFromModuleSpecifier(node) != null)
-        {
-            if (AllowRenameOfImportPath)
+            var msg = RenameBlockedReason(sourceFile, node, symbol, checker, program);
+            if (msg != null)
             {
-                return GetRenameInfoForModule(newName, node, sourceFile, symbol);
+                return GetRenameInfoError(ctx.Locale, msg);
             }
-            return null;
-        }
 
-        // Go: ch.SymbolToString(symbol); the checker printer surface is internal to
-        // Ts.Compiler, and for every symbol reachable on this subset path the binder
-        // name is the printed name.
-        return GetRenameInfoSuccess(node, sourceFile, symbol.Name);
+            if (AstUtilities.IsStringLiteralLike(node) && LsDeps.TryGetImportFromModuleSpecifier(node) != null)
+            {
+                if (UserPreferences().AllowRenameOfImportPath.IsTrue())
+                {
+                    return GetRenameInfoForModule(ctx, newName, node, sourceFile, symbol);
+                }
+                return null;
+            }
+
+            return GetRenameInfoSuccess(node, sourceFile, checker.SymbolToString(symbol));
+        }
+        finally
+        {
+            done();
+        }
     }
 
-    // rename.go:145 — nodeIsEligibleForRename.
+    // rename.go:145-158 — nodeIsEligibleForRename. Owned by this file (the Go canonical home);
+    // FindAllReferences.cs reaches it through the shared LanguageService type.
     private static bool NodeIsEligibleForRename(Node node)
     {
         switch (node.Kind)
@@ -279,53 +243,68 @@ public sealed partial class LanguageService
         }
     }
 
-    // rename.go:162 — renameBlockedReason returns a non-nil diagnostic message if the
-    // rename should be blocked because the symbol is a library definition, a default
-    // keyword, or would cross node_modules boundaries.
+    // rename.go:160-179 — renameBlockedReason returns a non-nil diagnostic message if the
+    // rename should be blocked because the symbol is a library definition, a default keyword,
+    // or would cross node_modules boundaries.
     private global::Ts.Diagnostics.Message? RenameBlockedReason(
         SourceFile sourceFile,
         Node node,
-        global::Ts.Ast.Symbol symbol)
+        global::Ts.Ast.Symbol symbol,
+        global::Ts.Checker.Checker checker,
+        global::Ts.Compiler.Program program)
     {
         foreach (var declaration in symbol.Declarations ?? [])
         {
-            if (IsDefinedInLibraryFile(declaration))
+            if (IsDefinedInLibraryFile(program, declaration))
             {
                 return global::Ts.Diagnostics.Diagnostics.You_cannot_rename_elements_that_are_defined_in_the_standard_TypeScript_library;
             }
         }
 
         // Cannot rename `default` as in `import { default as foo } from "./someModule"`
-        if (NodeTests.IsIdentifier(node) &&
-            node.Text() == "default" &&
-            symbol.Parent != null &&
-            (symbol.Parent.Flags & SymbolFlags.Module) != 0)
+        if (NodeTests.IsIdentifier(node) && node.Text() == "default" && symbol.Parent != null && (symbol.Parent.Flags & SymbolFlags.Module) != 0)
         {
             return global::Ts.Diagnostics.Diagnostics.You_cannot_rename_this_element;
         }
 
-        return WouldRenameInOtherNodeModules(sourceFile, symbol);
+        var msg = WouldRenameInOtherNodeModules(sourceFile, symbol, checker, UserPreferences());
+        if (msg != null)
+        {
+            return msg;
+        }
+
+        return null;
     }
 
-    // rename.go:182 — isDefinedInLibraryFile checks if a declaration is from a default
+    // rename.go:181-185 — isDefinedInLibraryFile checks if a declaration is from a default
     // library file (e.g., lib.d.ts).
-    private bool IsDefinedInLibraryFile(Node declaration)
+    private static bool IsDefinedInLibraryFile(global::Ts.Compiler.Program program, Node declaration)
     {
         var declSourceFile = AstUtilities.GetSourceFileOfNode(declaration)!; // Go dereferences unconditionally.
         return program.IsSourceFileDefaultLibrary(declSourceFile.Path()) &&
             global::Ts.TsPath.TsPath.IsDeclarationFileName(declSourceFile.FileName());
     }
 
-    // rename.go:188 — wouldRenameInOtherNodeModules checks if renaming the symbol would
-    // affect node_modules. PORT-NOTE: the preferences carrier is deferred, so
-    // UseAliasesForRename.IsTrueOrUnknown() holds and the Go alias-unwrapping branch
-    // (ch.GetAliasedSymbol behind !IsTrueOrUnknown) drops out.
+    // rename.go:187-221 — wouldRenameInOtherNodeModules checks if renaming the symbol would
+    // affect node_modules.
     private static global::Ts.Diagnostics.Message? WouldRenameInOtherNodeModules(
         SourceFile originalFile,
-        global::Ts.Ast.Symbol symbol)
+        global::Ts.Ast.Symbol symbol,
+        global::Ts.Checker.Checker ch,
+        UserPreferences preferences)
     {
-        var declarations = symbol.Declarations;
-        if (declarations == null || declarations.Length == 0)
+        var sym = symbol;
+        if (!preferences.UseAliasesForRename.IsTrueOrUnknown() && (sym.Flags & SymbolFlags.Alias) != 0)
+        {
+            var importSpecifier = global::Ts.Core.CoreUtil.Find(sym.Declarations, NodeTests.IsImportSpecifier);
+            if (importSpecifier != null && importSpecifier.AsImportSpecifier().PropertyName == null)
+            {
+                sym = ch.GetAliasedSymbol(sym)!;
+            }
+        }
+
+        var declarations = sym.Declarations;
+        if ((declarations?.Length ?? 0) == 0)
         {
             return null;
         }
@@ -334,7 +313,7 @@ public sealed partial class LanguageService
         if (originalPackage.Length == 0)
         {
             // Original source file is not in node_modules.
-            foreach (var declaration in declarations)
+            foreach (var declaration in declarations!)
             {
                 if (LsDeps.IsInsideNodeModules(AstUtilities.GetSourceFileOfNode(declaration)!.FileName()))
                 {
@@ -345,7 +324,7 @@ public sealed partial class LanguageService
         }
 
         // Original source file is in node_modules.
-        foreach (var declaration in declarations)
+        foreach (var declaration in declarations!)
         {
             var declPackage = global::Ts.Module.Module.ParseNodeModuleFromPath(
                 AstUtilities.GetSourceFileOfNode(declaration)!.FileName(),
@@ -376,9 +355,10 @@ public sealed partial class LanguageService
         return System.Array.IndexOf(caps.Workspace.WorkspaceEdit.ResourceOperations ?? [], global::Ts.LsProto.ResourceOperationKind.Rename) >= 0;
     }
 
-    // rename.go:236-276 — getRenameInfoForModule handles rename validation for module
+    // rename.go:235-276 — getRenameInfoForModule handles rename validation for module
     // specifiers.
     private RenameInfo? GetRenameInfoForModule(
+        RequestContext ctx,
         string newName,
         Node specifier,
         SourceFile sourceFile,
@@ -386,19 +366,19 @@ public sealed partial class LanguageService
     {
         if (!global::Ts.TsPath.TsPath.IsExternalModuleNameRelative(specifier.Text()))
         {
-            return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.You_cannot_rename_a_module_via_a_global_import);
+            return GetRenameInfoError(ctx.Locale, global::Ts.Diagnostics.Diagnostics.You_cannot_rename_a_module_via_a_global_import);
         }
         if (!ClientSupportsDocumentChanges(ClientCapabilities()) || !ClientSupportsRenameResourceOperations(ClientCapabilities()))
         {
-            return GetRenameInfoError(global::Ts.Diagnostics.Diagnostics.File_rename_is_not_supported_by_the_editor);
+            return GetRenameInfoError(ctx.Locale, global::Ts.Diagnostics.Diagnostics.File_rename_is_not_supported_by_the_editor);
         }
 
         Node? moduleSourceFile = null;
-        foreach (var decl in moduleSymbol.Declarations ?? [])
+        foreach (var declaration in moduleSymbol.Declarations ?? [])
         {
-            if (NodeTests.IsSourceFile(decl))
+            if (NodeTests.IsSourceFile(declaration))
             {
-                moduleSourceFile = decl;
+                moduleSourceFile = declaration;
                 break;
             }
         }
@@ -409,11 +389,10 @@ public sealed partial class LanguageService
 
         var fileName = moduleSourceFile.AsSourceFile().FileName();
         var withoutIndex = "";
-        var specifierText = specifier.Text();
-        if (!specifierText.EndsWith("/index", StringComparison.Ordinal) && !specifierText.EndsWith("/index.js", StringComparison.Ordinal))
+        if (!specifier.Text().EndsWith("/index", System.StringComparison.Ordinal) && !specifier.Text().EndsWith("/index.js", System.StringComparison.Ordinal))
         {
             var candidate = global::Ts.TsPath.TsPath.RemoveFileExtension(fileName);
-            if (candidate.EndsWith("/index", StringComparison.Ordinal))
+            if (candidate.EndsWith("/index", System.StringComparison.Ordinal))
             {
                 withoutIndex = candidate[..^"/index".Length];
             }
@@ -424,17 +403,17 @@ public sealed partial class LanguageService
         {
             displayName = withoutIndex;
         }
-        var newFileName = GetNewFileNameForModuleRename(displayName, specifierText, newName);
+        var newFileName = GetNewFileNameForModuleRename(displayName, specifier.Text(), newName);
 
         // Span should only be the last component of the path. + 1 to account for the quote character.
-        var indexAfterLastSlash = specifierText.LastIndexOf('/') + 1;
+        var indexAfterLastSlash = specifier.Text().LastIndexOf('/') + 1;
         var start = specifier.Pos + 1 + indexAfterLastSlash;
-        var length = specifierText.Length - indexAfterLastSlash;
+        var length = specifier.Text().Length - indexAfterLastSlash;
 
         return new RenameInfo
         {
             CanRename = true,
-            DisplayName = specifierText[indexAfterLastSlash..],
+            DisplayName = specifier.Text()[indexAfterLastSlash..],
             TriggerSpan = LsDeps.ToLspRange(sourceFile, new global::Ts.Core.TextRange(start, start + length)),
             FileToRename = displayName,
             NewFileName = newFileName,
@@ -468,39 +447,39 @@ public sealed partial class LanguageService
         return newPath;
     }
 
-    // rename.go:297 — getTextForRename. PORT-NOTE: the subset reference engine produces
-    // plain node entries, so the Go arms keyed on entryKindSearchedLocalFoundProperty /
-    // entryKindSearchedPropertyFoundLocal (deep per-symbol search state) and the
-    // entryKindRange guards collapse; the checker symbol comparisons
-    // (GetSymbolAtLocation / GetExportSpecifierLocalTargetSymbol) ride the
-    // emit-resolver declaration channel.
-    private static string GetTextForRename(
+    // rename.go:297-350 — getTextForRename.
+    private string GetTextForRename(
         Node originalNode,
-        Node entryNode,
+        ReferenceEntry entry,
         string newText,
-        global::Ts.Checker.EmitResolver emitResolver,
+        global::Ts.Checker.Checker ch,
         QuotePreference quotePreference,
         bool useAliasesForRename)
     {
-        if (useAliasesForRename && (NodeTests.IsIdentifier(originalNode) || AstUtilities.IsStringLiteralLike(originalNode)))
+        if (useAliasesForRename && entry.Kind != EntryKind.Range && (NodeTests.IsIdentifier(originalNode) || AstUtilities.IsStringLiteralLike(originalNode)))
         {
-            var node = LsDeps.GetReparsedNodeForNode(entryNode);
+            var node = LsDeps.GetReparsedNodeForNode(entry.Node!);
+            var kind = entry.Kind;
             var parent = node.Parent!; // Go dereferences unconditionally.
             var name = originalNode.Text();
             var isShorthandAssignment = NodeTests.IsShorthandPropertyAssignment(parent);
             if (isShorthandAssignment ||
-                (LsDeps.IsObjectBindingElementWithoutPropertyName(parent) &&
-                    parent.Name() == node &&
-                    parent.AsBindingElement().DotDotDotToken == null))
+                (LsDeps.IsObjectBindingElementWithoutPropertyName(parent) && parent.Name() == node && parent.AsBindingElement().DotDotDotToken == null))
             {
+                if (kind == EntryKind.SearchedLocalFoundProperty)
+                {
+                    return name + ": " + newText;
+                }
+                if (kind == EntryKind.SearchedPropertyFoundLocal)
+                {
+                    return newText + ": " + name;
+                }
                 // In `const o = { x }; o.x`, symbolAtLocation at `x` in `{ x }` is the property symbol.
                 // For a binding element `const { x } = o;`, symbolAtLocation at `x` is the property symbol.
                 if (isShorthandAssignment)
                 {
                     var grandParent = parent.Parent!;
-                    if (NodeTests.IsObjectLiteralExpression(grandParent) &&
-                        NodeTests.IsBinaryExpression(grandParent.Parent!) &&
-                        AstUtilities.IsModuleExportsAccessExpression(grandParent.Parent!.AsBinaryExpression().Left!))
+                    if (NodeTests.IsObjectLiteralExpression(grandParent) && NodeTests.IsBinaryExpression(grandParent.Parent!) && AstUtilities.IsModuleExportsAccessExpression(grandParent.Parent!.AsBinaryExpression().Left!))
                     {
                         return name + ": " + newText;
                     }
@@ -511,12 +490,20 @@ public sealed partial class LanguageService
             if (NodeTests.IsImportSpecifier(parent) && parent.PropertyName() == null)
             {
                 // If the original symbol was using this alias, just rename the alias.
-                var originalSymbol = GetReferencedDeclaration(emitResolver, originalNode)?.Symbol();
-                if (originalSymbol?.Declarations != null)
+                global::Ts.Ast.Symbol? originalSymbol;
+                if (NodeTests.IsExportSpecifier(originalNode.Parent!))
                 {
-                    foreach (var declaration in originalSymbol.Declarations)
+                    originalSymbol = ch.GetExportSpecifierLocalTargetSymbol(originalNode.Parent!);
+                }
+                else
+                {
+                    originalSymbol = ch.GetSymbolAtLocation(originalNode);
+                }
+                if (originalSymbol != null)
+                {
+                    foreach (var declaration in originalSymbol.Declarations ?? [])
                     {
-                        if (declaration == parent)
+                        if (ReferenceEquals(declaration, parent))
                         {
                             return name + " as " + newText;
                         }
@@ -527,10 +514,7 @@ public sealed partial class LanguageService
             if (NodeTests.IsExportSpecifier(parent) && parent.PropertyName() == null)
             {
                 // If the symbol for the node is same as declared node symbol use prefix text
-                if (originalNode == entryNode ||
-                    ReferenceEquals(
-                        GetReferencedDeclaration(emitResolver, originalNode),
-                        GetReferencedDeclaration(emitResolver, entryNode)))
+                if (ReferenceEquals(originalNode, entry.Node) || ReferenceEquals(ch.GetSymbolAtLocation(originalNode), ch.GetSymbolAtLocation(entry.Node!)))
                 {
                     return name + " as " + newText;
                 }
@@ -539,7 +523,7 @@ public sealed partial class LanguageService
         }
 
         // If the node is a numerical indexing literal, then add quotes around the property access.
-        if (NodeTests.IsNumericLiteral(entryNode) && AstUtilities.IsAccessExpression(entryNode.Parent!))
+        if (entry.Kind != EntryKind.Range && NodeTests.IsNumericLiteral(entry.Node!) && AstUtilities.IsAccessExpression(entry.Node!.Parent!))
         {
             var quote = GetQuoteFromPreference(quotePreference);
             return quote + newText + quote;
@@ -548,7 +532,7 @@ public sealed partial class LanguageService
         return newText;
     }
 
-    // rename.go:352 — getQuoteFromPreference.
+    // rename.go:352-357 — getQuoteFromPreference.
     private static string GetQuoteFromPreference(QuotePreference quotePreference)
     {
         if (quotePreference == QuotePreference.Single)
@@ -558,19 +542,17 @@ public sealed partial class LanguageService
         return "\"";
     }
 
-    // rename.go:359 — getRenameInfoError. locale.FromContext(ctx) collapses to the
-    // default locale until the request-context locale carrier lands.
-    private static RenameInfo GetRenameInfoError(global::Ts.Diagnostics.Message message)
+    // rename.go:359-364 — getRenameInfoError. Go: message.Localize(locale.FromContext(ctx)).
+    private static RenameInfo GetRenameInfoError(global::Ts.Locale.Locale locale, global::Ts.Diagnostics.Message message)
     {
         return new RenameInfo
         {
             CanRename = false,
-            LocalizedErrorMessage = global::Ts.Diagnostics.Diagnostics.Localize(
-                global::Ts.Locale.Locale.Default, message, message.Key),
+            LocalizedErrorMessage = message.Localize(locale),
         };
     }
 
-    // rename.go:366 — getRenameInfoSuccess.
+    // rename.go:366-379 — getRenameInfoSuccess.
     private static RenameInfo GetRenameInfoSuccess(Node node, SourceFile sourceFile, string displayName)
     {
         var start = global::Ts.AstNav.Tokens.GetStartOfNode(node, sourceFile, false /*includeJSDoc*/);

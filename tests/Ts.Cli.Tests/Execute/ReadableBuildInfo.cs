@@ -24,7 +24,11 @@ internal static class ReadableBuildInfo
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }))
         {
-            new Writer(buildInfo).Write(w, buildInfoText.Length);
+            // Go: Size is len(buildInfoText) — the BYTE length of the marshaled buildinfo
+            // (readablebuildinfo.go:222). A C# string is UTF-16, so measure the UTF-8 byte
+            // count; this is the same as Length for ASCII and counts the internal-symbol
+            // sentinel (a lone surrogate) as Go's U+FFFD does.
+            new Writer(buildInfo).Write(w, Encoding.UTF8.GetByteCount(buildInfoText));
         }
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }

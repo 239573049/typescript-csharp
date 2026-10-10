@@ -116,18 +116,29 @@ public partial class Checker
     // checker.go:7534-7548
     internal Type CheckExpressionEx(Node node, CheckMode checkMode)
     {
-        // !!! tracing (tr.Push): omitted (tracer wiring lands with the tracing wave).
-        var saveCurrentNode = currentNode;
-        currentNode = node;
-        instantiationCount = 0;
-        var uninstantiatedType = CheckExpressionWorker(node, checkMode);
-        var t = InstantiateTypeWithSingleGenericCallSignature(node, uninstantiatedType, checkMode);
-        if (IsConstEnumObjectType(t))
+        Action? releaseTracing = null;
+        if (tracer is { } tr)
         {
-            CheckConstEnumAccess(node, t);
+            releaseTracing = tr.Push(global::Ts.Tracing.Phase.Check, "checkExpression", NodeTraceArgs(node), false);
         }
-        currentNode = saveCurrentNode;
-        return t;
+        try
+        {
+            var saveCurrentNode = currentNode;
+            currentNode = node;
+            instantiationCount = 0;
+            var uninstantiatedType = CheckExpressionWorker(node, checkMode);
+            var t = InstantiateTypeWithSingleGenericCallSignature(node, uninstantiatedType, checkMode);
+            if (IsConstEnumObjectType(t))
+            {
+                CheckConstEnumAccess(node, t);
+            }
+            currentNode = saveCurrentNode;
+            return t;
+        }
+        finally
+        {
+            releaseTracing?.Invoke();
+        }
     }
 
     // checker.go:10010

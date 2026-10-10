@@ -21,6 +21,7 @@ using Ts.Ast; // instance-syntax resolution of the Ts.Ast.NodeAccessors extensio
 using Ts.Checker; // CheckerFindRefsLsExports / CheckerLsExports extension methods
 using Ts.Collections; // Set<T>
 using Ts.Compiler; // ProgramLsExports extension methods
+using Ts.Core; // Tristate.IsTrueOrUnknown extension method
 
 namespace Ts.Ls;
 
@@ -416,10 +417,10 @@ public sealed partial class LanguageService
         else
         {
             options.Use = ReferenceUse.Rename;
-            // rename.go:689 — l.UserPreferences().UseAliasesForRename.IsTrueOrUnknown();
-            // the preferences member is not on the carrier yet, so the Go default (unknown
-            // → true) holds.
-            options.UseAliasesForRename = true;
+            // findallreferences.go:689 — l.UserPreferences().UseAliasesForRename.IsTrueOrUnknown()
+            // (the comment below previously carried the Go source's own line tag "rename.go:689";
+            // the call site is findallreferences.go:689).
+            options.UseAliasesForRename = UserPreferences().UseAliasesForRename.IsTrueOrUnknown();
         }
         return GetReferencedSymbolsForNodeWorker(ctx, position, node, program, program.SourceFiles(), options);
     }

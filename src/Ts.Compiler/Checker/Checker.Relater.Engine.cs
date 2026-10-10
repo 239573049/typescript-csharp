@@ -3,8 +3,6 @@
 // structural comparison (recursiveTypeRelatedTo/structuredTypeRelatedTo and the union/intersection,
 // property, signature and index-info sub-relations).
 //
-// PORT-NOTE: `tracing.*` (Instant/Push) calls are omitted (--generateTrace is phase 9; the Tracer
-// shell has no Push/Instant surface). They are purely observational and never affect results.
 // §1.5: diagnostics via the `Diag` alias.
 
 using System;
@@ -604,11 +602,29 @@ internal sealed class Relater
         Ternary result;
         if (expandingFlags == ExpandingFlags.Both)
         {
+            if (c.tracer is { } tr)
+            {
+                tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "recursiveTypeRelatedTo_DepthLimit", new Dictionary<string, object?> { ["sourceId"] = source.id.Value, ["targetId"] = target.id.Value, ["depth"] = sourceStack.Count, ["targetDepth"] = targetStack.Count });
+            }
             result = Ternary.Maybe;
         }
         else
         {
-            result = StructuredTypeRelatedTo(source, target, reportErrors, intersectionState);
+            // relater.go:3132-3134 — Go `defer tr.Push(...)()` scoped to this function; the release
+            // runs before anything that could observe the difference, so it is closed right after the call.
+            Action? releaseTracing = null;
+            if (c.tracer is { } tr)
+            {
+                releaseTracing = tr.Push(global::Ts.Tracing.Phase.CheckTypes, "structuredTypeRelatedTo", new Dictionary<string, object?> { ["sourceId"] = source.id.Value, ["targetId"] = target.id.Value }, false);
+            }
+            try
+            {
+                result = StructuredTypeRelatedTo(source, target, reportErrors, intersectionState);
+            }
+            finally
+            {
+                releaseTracing?.Invoke();
+            }
         }
         var propagatingVarianceFlags = c.reliabilityFlags;
         c.reliabilityFlags |= saveReliabilityFlags;
@@ -1556,6 +1572,10 @@ internal sealed class Relater
             numCombinations *= Checker.CountTypes(c.GetNonMissingTypeOfSymbol(sourceProperty));
             if (numCombinations > 25)
             {
+                if (c.tracer is { } tr)
+                {
+                    tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "typeRelatedToDiscriminatedType_DepthLimit", new Dictionary<string, object?> { ["sourceId"] = source.id.Value, ["targetId"] = target.id.Value, ["numCombinations"] = numCombinations });
+                }
                 return Ternary.False;
             }
             if (numCombinations == 0)
@@ -2625,11 +2645,28 @@ internal sealed class Relater
         return true;
     }
 
-    // relater.go:4990-5005 — PORT-NOTE: tracing.Instant omitted (phase 9); body is a no-op observer.
+    // relater.go:4990-5005
     internal void TraceUnionsOrIntersectionsTooLarge(Type source, Type target)
     {
-        _ = source;
-        _ = target;
+        var tr = c.tracer;
+        if (tr == null)
+        {
+            return;
+        }
+        if ((source.flags & TypeFlags.UnionOrIntersection) != 0 && (target.flags & TypeFlags.UnionOrIntersection) != 0)
+        {
+            if ((source.objectFlags & target.objectFlags & ObjectFlags.PrimitiveUnion) != 0)
+            {
+                // There's a fast path for comparing primitive unions
+                return;
+            }
+            var sourceSize = source.Types().Length;
+            var targetSize = target.Types().Length;
+            if (sourceSize * targetSize > 1_000_000)
+            {
+                tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "traceUnionsOrIntersectionsTooLarge_DepthLimit", new Dictionary<string, object?> { ["sourceId"] = source.id.Value, ["sourceSize"] = sourceSize, ["targetId"] = target.id.Value, ["targetSize"] = targetSize });
+            }
+        }
     }
 
     // relater.go — helper mirroring slices.Equal over string slices.

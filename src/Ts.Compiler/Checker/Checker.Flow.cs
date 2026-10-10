@@ -165,7 +165,7 @@ public partial class Checker
             // and disable further control flow analysis in the containing function or module body.
             if (tracer is { } tr)
             {
-                tr.RecordType(errorType!); // tracing Instant getTypeAtFlowNode_DepthLimit
+                tr.Instant(global::Ts.Tracing.Phase.CheckTypes, "getTypeAtFlowNode_DepthLimit", new Dictionary<string, object?> { ["depth"] = f.depth });
             }
             flowAnalysisDisabled = true;
             ReportFlowControlError(f.reference);

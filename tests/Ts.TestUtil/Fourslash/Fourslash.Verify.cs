@@ -2,7 +2,7 @@
 // LS counterpart, in the Go file's section order:
 //   quickInfo      (:3977-4048)  → GetQuickInfoAtPosition (foundation QuickInfo record)
 //   completions    (:1011-1560)  → GetCompletionsAtPosition / ResolveCompletionItem
-//   rename         (:4575-4841)  → PrepareRename / ProvideRename (WorkspaceEdit.Changes arm)
+//   rename         (:4575-4841)  → GetRenameInfo / ProvideRename (WorkspaceEdit.Changes arm)
 //   diagnostics    (:5218-5272, :5632-5777) → ProvideDiagnostics
 //   signature help (:4148-4451)  → GetSignatureHelpItems (foundation record, reduced shape)
 //   linkedEditing  (:5191-5216)  → ProvideLinkedEditingRange
@@ -602,31 +602,38 @@ public sealed partial class FourslashTest
     // fourslash.go:4575-4841 — rename.
     // ---------------------------------------------------------------------
 
-    // fourslash.go:4657-4685 — VerifyRenameSucceeded. (Go's preferences parameter feeds the
-    // configuration exchange; the C# preferences channel is applied at Configure, so the
-    // argument is accepted for shape parity and unused when null.)
+    // fourslash.go:4657-4685 — VerifyRenameSucceeded (rename.go:47/:33 currency: DocumentUri +
+    // lsproto.Position through l.converters). Go's `defer f.ConfigureWithReset(t, *preferences)()`
+    // maps to ConfigureWithPreferences/RestorePreferences in try/finally.
     public void VerifyRenameSucceeded(UserPreferences? preferences = null)
     {
         UserPreferences? saved = ConfigureWithPreferences(preferences);
         try
         {
             string prefix = getCurrentPositionPrefix();
-            LsProto.PrepareRenamePlaceholder? prepare = LS().PrepareRename(
-                activeFilename,
-                caretOffset(),
-                cancellationToken);
-            if (prepare == null)
+            global::Ts.Core.RequestContext ctx = RenameContext();
+            RenameInfo info = LS().GetRenameInfo(
+                ctx,
+                "" /*newName*/,
+                DocumentUriFor(activeFilename),
+                currentCaretPosition);
+            if (!info.CanRename)
             {
                 throw new InvalidOperationException(prefix + "Expected rename to succeed, but prepareRename returned null");
             }
 
             // Also verify that textDocument/rename produces edits, since prepareRename is optional.
-            LsProto.WorkspaceEdit? renameResult = LS().ProvideRename(
-                activeFilename,
-                caretOffset(),
-                "RENAME_SUCCEEDED_TEST",
-                cancellationToken);
-            if (renameResult == null || renameResult.Changes == null || renameResult.Changes.Count == 0)
+            LsProto.WorkspaceEditOrNull renameResult = LS().ProvideRename(
+                ctx,
+                new LsProto.RenameParams
+                {
+                    TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
+                    Position = currentCaretPosition,
+                    NewName = "RENAME_SUCCEEDED_TEST",
+                },
+                orchestrator: null);
+            LsProto.WorkspaceEdit? edit = renameResult.WorkspaceEdit;
+            if (edit == null || edit.Changes == null || edit.Changes.Count == 0)
             {
                 throw new InvalidOperationException(prefix + "prepareRename succeeded but textDocument/rename returned no changes");
             }
@@ -637,29 +644,39 @@ public sealed partial class FourslashTest
         }
     }
 
-    // fourslash.go:4970-5008 — VerifyRenameFailed.
+    // fourslash.go:4970-5008 — VerifyRenameFailed. (prepareRename's error response / null result
+    // is RenameInfo.CanRename == false on the in-process transport, D-012.)
     public void VerifyRenameFailed(UserPreferences? preferences = null)
     {
         UserPreferences? saved = ConfigureWithPreferences(preferences);
         try
         {
             string prefix = getCurrentPositionPrefix();
-            LsProto.PrepareRenamePlaceholder? prepare = LS().PrepareRename(
-                activeFilename,
-                caretOffset(),
-                cancellationToken);
-            if (prepare == null)
+            global::Ts.Core.RequestContext ctx = RenameContext();
+            RenameInfo info = LS().GetRenameInfo(
+                ctx,
+                "" /*newName*/,
+                DocumentUriFor(activeFilename),
+                currentCaretPosition);
+            if (info.CanRename)
             {
-                return;
+                throw new InvalidOperationException(prefix + "Expected rename to fail, but prepareRename returned a result");
             }
-            LsProto.WorkspaceEdit? renameResult = LS().ProvideRename(
-                activeFilename,
-                caretOffset(),
-                "RENAME_FAILED_TEST",
-                cancellationToken);
-            if (renameResult != null && renameResult.Changes is { Count: > 0 })
+
+            // Also verify that textDocument/rename does not produce usable edits, since prepareRename is optional.
+            LsProto.WorkspaceEditOrNull renameResult = LS().ProvideRename(
+                ctx,
+                new LsProto.RenameParams
+                {
+                    TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
+                    Position = currentCaretPosition,
+                    NewName = "RENAME_FAILED_TEST",
+                },
+                orchestrator: null);
+            LsProto.WorkspaceEdit? edit = renameResult.WorkspaceEdit;
+            if (edit != null && edit.Changes != null && edit.Changes.Count > 0)
             {
-                throw new InvalidOperationException(prefix + "Expected rename to fail, but textDocument/rename returned changes");
+                throw new InvalidOperationException(prefix + "prepareRename returned null but textDocument/rename returned changes");
             }
         }
         finally
@@ -673,11 +690,16 @@ public sealed partial class FourslashTest
     // ride FileRename/willRenameFiles which is not ported.)
     public LsProto.WorkspaceEdit? RenameAtCaret(string newName)
     {
-        LsProto.WorkspaceEdit? result = LS().ProvideRename(
-            activeFilename,
-            caretOffset(),
-            newName,
-            cancellationToken);
+        LsProto.WorkspaceEditOrNull renameResult = LS().ProvideRename(
+            RenameContext(),
+            new LsProto.RenameParams
+            {
+                TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
+                Position = currentCaretPosition,
+                NewName = newName,
+            },
+            orchestrator: null);
+        LsProto.WorkspaceEdit? result = renameResult.WorkspaceEdit;
 
         if (result == null)
         {
@@ -705,6 +727,11 @@ public sealed partial class FourslashTest
         return result;
     }
 
+    // The rename entries take an LSP request context; the harness carries the cancellation
+    // token separately.
+    private global::Ts.Core.RequestContext RenameContext() =>
+        global::Ts.Core.RequestContext.Background with { Cancellation = cancellationToken };
+
     // fourslash.go:4830-4841 — VerifyRename.
     public void VerifyRename(string markerName, string newName, IReadOnlyDictionary<string, string> expectedFileContents)
     {
@@ -723,6 +750,11 @@ public sealed partial class FourslashTest
                 "File content after rename did not match expected content for " + entry.Key + ".");
         }
     }
+
+    // lsconv.FileNameToDocumentURI — the DocumentUri the rename entries take (Go:
+    // lsconv.FileNameToDocumentURI(f.activeFilename)).
+    private static LsProto.DocumentUri DocumentUriFor(string fileName) =>
+        global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI(fileName);
 
     // lsconv.DocumentUri.FileName() equivalent for the simple file:// URIs the harness sees.
     private static string DocumentUriToFileName(LsProto.DocumentUri uri)

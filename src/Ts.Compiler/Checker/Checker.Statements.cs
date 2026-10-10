@@ -48,43 +48,60 @@ public partial class Checker
     private void CheckSourceFileWorker(SourceFile sourceFile, bool checkUnused)
     {
         var links = sourceFileLinks.Get(sourceFile);
-        if (!links.typeChecked)
+        // checker.go:2187-2189 — Go `defer tr.Push(...)()` inside the !typeChecked branch: the
+        // checkSourceFile event closes when checkSourceFile returns (after the unused check).
+        Action releaseTracing = NoOp;
+        try
         {
-            saveDeferredDiagnostics = true;
-            // !!! tracing: defer tr.Push(...) omitted at skeleton level (tracer surface not yet landed).
-            // Grammar checking
-            CheckGrammarSourceFile(sourceFile);
-            renamedBindingElementsInTypes = null;
-            CheckSourceElements(sourceFile.Statements!.Nodes);
-            CheckDeferredNodes(sourceFile);
-            if (AstUtilities.IsExternalOrCommonJSModule(sourceFile))
+            if (!links.typeChecked)
             {
-                CheckExternalModuleExports(sourceFile.AsNode());
-                RegisterForUnusedIdentifiersCheck(sourceFile.AsNode());
+                saveDeferredDiagnostics = true;
+                if (tracer is not null)
+                {
+                    releaseTracing = tracer.Push(
+                        global::Ts.Tracing.Phase.Check, "checkSourceFile",
+                        new Dictionary<string, object?> { ["path"] = sourceFile.FileName() }, true);
+                }
+                // Grammar checking
+                CheckGrammarSourceFile(sourceFile);
+                renamedBindingElementsInTypes = null;
+                CheckSourceElements(sourceFile.Statements!.Nodes);
+                CheckDeferredNodes(sourceFile);
+                if (AstUtilities.IsExternalOrCommonJSModule(sourceFile))
+                {
+                    CheckExternalModuleExports(sourceFile.AsNode());
+                    RegisterForUnusedIdentifiersCheck(sourceFile.AsNode());
+                }
+                if (!sourceFile.IsDeclarationFile && !IsCanceled())
+                {
+                    CheckUnusedRenamedBindingElements();
+                }
+                saveDeferredDiagnostics = false;
+                ProduceDeferredDiagnostics();
+                reportedUnreachableNodes.Clear();
+                links.typeChecked = true;
             }
-            if (!sourceFile.IsDeclarationFile && !IsCanceled())
+            if (checkUnused && !links.unusedChecked)
             {
-                CheckUnusedRenamedBindingElements();
+                // The unused identifiers check relies on a full type check having first been performed
+                if (!sourceFile.IsDeclarationFile && !IsCanceled())
+                {
+                    CheckUnusedIdentifiers(links.identifierCheckNodes);
+                }
+                links.unusedChecked = true;
             }
-            saveDeferredDiagnostics = false;
-            ProduceDeferredDiagnostics();
-            reportedUnreachableNodes.Clear();
-            links.typeChecked = true;
+            if (IsCanceled())
+            {
+                wasCanceled = true;
+            }
         }
-        if (checkUnused && !links.unusedChecked)
+        finally
         {
-            // The unused identifiers check relies on a full type check having first been performed
-            if (!sourceFile.IsDeclarationFile && !IsCanceled())
-            {
-                CheckUnusedIdentifiers(links.identifierCheckNodes!);
-            }
-            links.unusedChecked = true;
-        }
-        if (IsCanceled())
-        {
-            wasCanceled = true;
+            releaseTracing();
         }
     }
+
+    private static readonly Action NoOp = static () => { };
 
     // checker.go:7017-7021
     internal void RegisterForUnusedIdentifiersCheck(Node node)
@@ -482,69 +499,80 @@ public partial class Checker
     // checker.go:2491
     internal void CheckDeferredNode(Node node)
     {
-        // !!! tracing: defer tr.Push(...) omitted at skeleton level.
-        var saveCurrentNode = currentNode;
-        currentNode = node;
-        instantiationCount = 0;
-        switch (node.Kind)
+        Action? releaseTracing = null;
+        if (tracer is { } tr)
         {
-            case SyntaxKind.CallExpression:
-            case SyntaxKind.NewExpression:
-            case SyntaxKind.TaggedTemplateExpression:
-            case SyntaxKind.Decorator:
-            case SyntaxKind.JsxOpeningElement:
-                // These node kinds are deferred checked when overload resolution fails. To save on work,
-                // we ensure the arguments are checked just once in a deferred way.
-                // checker.go:2499-2502 — direct translation: resolveUntypedCall.
-                ResolveUntypedCall(node);
-                break;
-            case SyntaxKind.FunctionExpression:
-            case SyntaxKind.ArrowFunction:
-            case SyntaxKind.MethodDeclaration:
-            case SyntaxKind.MethodSignature:
-                // checker.go:2503-2504
-                CheckFunctionExpressionOrObjectLiteralMethodDeferred(node);
-                break;
-            case SyntaxKind.GetAccessor:
-            case SyntaxKind.SetAccessor:
-                // checker.go:2505-2506
-                CheckAccessorDeclaration(node);
-                break;
-            case SyntaxKind.ClassExpression:
-                // checker.go:2507-2508
-                CheckClassExpressionDeferred(node);
-                break;
-            case SyntaxKind.TypeParameter:
-                // checker.go:2510-2511
-                CheckTypeParameterDeferred(node);
-                break;
-            case SyntaxKind.JsxSelfClosingElement:
-                // checker.go:2512-2513
-                CheckJsxSelfClosingElementDeferred(node);
-                break;
-            case SyntaxKind.JsxElement:
-                // checker.go:2514-2515
-                CheckJsxElementDeferred(node);
-                break;
-            case SyntaxKind.TypeAssertionExpression:
-            case SyntaxKind.AsExpression:
-                // checker.go:2516-2517
-                CheckAssertionDeferred(node);
-                break;
-            case SyntaxKind.VoidExpression:
-                // checker.go:2519-2520
-                CheckExpression(node.Expression()!);
-                break;
-            case SyntaxKind.BinaryExpression:
-                // checker.go:2521-2523
-                if (AstUtilities.IsInstanceOfExpression(node))
-                {
-                    ResolveUntypedCall(node);
-                }
-                break;
-                // No default: Go's switch (checker.go:2497-2524) falls through silently for other kinds.
+            releaseTracing = tr.Push(global::Ts.Tracing.Phase.Check, "checkDeferredNode", NodeTraceArgs(node), false);
         }
-        currentNode = saveCurrentNode;
+        try
+        {
+            var saveCurrentNode = currentNode;
+            currentNode = node;
+            instantiationCount = 0;
+            switch (node.Kind)
+            {
+                case SyntaxKind.CallExpression:
+                case SyntaxKind.NewExpression:
+                case SyntaxKind.TaggedTemplateExpression:
+                case SyntaxKind.Decorator:
+                case SyntaxKind.JsxOpeningElement:
+                    // These node kinds are deferred checked when overload resolution fails. To save on work,
+                    // we ensure the arguments are checked just once in a deferred way.
+                    // checker.go:2499-2502 — direct translation: resolveUntypedCall.
+                    ResolveUntypedCall(node);
+                    break;
+                case SyntaxKind.FunctionExpression:
+                case SyntaxKind.ArrowFunction:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.MethodSignature:
+                    // checker.go:2503-2504
+                    CheckFunctionExpressionOrObjectLiteralMethodDeferred(node);
+                    break;
+                case SyntaxKind.GetAccessor:
+                case SyntaxKind.SetAccessor:
+                    // checker.go:2505-2506
+                    CheckAccessorDeclaration(node);
+                    break;
+                case SyntaxKind.ClassExpression:
+                    // checker.go:2507-2508
+                    CheckClassExpressionDeferred(node);
+                    break;
+                case SyntaxKind.TypeParameter:
+                    // checker.go:2510-2511
+                    CheckTypeParameterDeferred(node);
+                    break;
+                case SyntaxKind.JsxSelfClosingElement:
+                    // checker.go:2512-2513
+                    CheckJsxSelfClosingElementDeferred(node);
+                    break;
+                case SyntaxKind.JsxElement:
+                    // checker.go:2514-2515
+                    CheckJsxElementDeferred(node);
+                    break;
+                case SyntaxKind.TypeAssertionExpression:
+                case SyntaxKind.AsExpression:
+                    // checker.go:2516-2517
+                    CheckAssertionDeferred(node);
+                    break;
+                case SyntaxKind.VoidExpression:
+                    // checker.go:2519-2520
+                    CheckExpression(node.Expression()!);
+                    break;
+                case SyntaxKind.BinaryExpression:
+                    // checker.go:2521-2523
+                    if (AstUtilities.IsInstanceOfExpression(node))
+                    {
+                        ResolveUntypedCall(node);
+                    }
+                    break;
+                    // No default: Go's switch (checker.go:2497-2524) falls through silently for other kinds.
+            }
+            currentNode = saveCurrentNode;
+        }
+        finally
+        {
+            releaseTracing?.Invoke();
+        }
     }
 
     // checker.go:2527
@@ -624,13 +652,24 @@ public partial class Checker
                 }
                 else if (modifiers == ModifierFlags.In || modifiers == ModifierFlags.Out)
                 {
-                    // !!! tracing: defer tr.Push(...) omitted at skeleton level.
-                    var source = CreateMarkerType(symbol, typeParameter, CoreUtil.IfElse(modifiers == ModifierFlags.Out, markerSubTypeForCheck!, markerSuperTypeForCheck!));
-                    var target = CreateMarkerType(symbol, typeParameter, CoreUtil.IfElse(modifiers == ModifierFlags.Out, markerSuperTypeForCheck!, markerSubTypeForCheck!));
-                    var saveVarianceTypeParameter = typeParameter;
-                    varianceTypeParameter = typeParameter;
-                    CheckTypeAssignableTo(source, target, node, Diag.Type_0_is_not_assignable_to_type_1_as_implied_by_variance_annotation);
-                    varianceTypeParameter = saveVarianceTypeParameter;
+                    Action? releaseTracing = null;
+                    if (tracer is { } tr)
+                    {
+                        releaseTracing = tr.Push(global::Ts.Tracing.Phase.CheckTypes, "checkTypeParameterDeferred", new Dictionary<string, object?> { ["parent"] = GetDeclaredTypeOfSymbol(symbol).id.Value, ["id"] = typeParameter.id.Value }, false);
+                    }
+                    try
+                    {
+                        var source = CreateMarkerType(symbol, typeParameter, CoreUtil.IfElse(modifiers == ModifierFlags.Out, markerSubTypeForCheck!, markerSuperTypeForCheck!));
+                        var target = CreateMarkerType(symbol, typeParameter, CoreUtil.IfElse(modifiers == ModifierFlags.Out, markerSuperTypeForCheck!, markerSubTypeForCheck!));
+                        var saveVarianceTypeParameter = typeParameter;
+                        varianceTypeParameter = typeParameter;
+                        CheckTypeAssignableTo(source, target, node, Diag.Type_0_is_not_assignable_to_type_1_as_implied_by_variance_annotation);
+                        varianceTypeParameter = saveVarianceTypeParameter;
+                    }
+                    finally
+                    {
+                        releaseTracing?.Invoke();
+                    }
                 }
             }
         }
@@ -1420,10 +1459,31 @@ public partial class Checker
     // checker.go:5760
     internal void CheckVariableDeclaration(Node node)
     {
-        // !!! tracing: defer tr.Push(...) omitted at skeleton level.
-        CheckGrammarVariableDeclaration(node.AsVariableDeclaration());
-        CheckVariableLikeDeclaration(node);
+        Action? releaseTracing = null;
+        if (tracer is { } tr)
+        {
+            releaseTracing = tr.Push(global::Ts.Tracing.Phase.Check, "checkVariableDeclaration", NodeTraceArgs(node), false);
+        }
+        try
+        {
+            CheckGrammarVariableDeclaration(node.AsVariableDeclaration());
+            CheckVariableLikeDeclaration(node);
+        }
+        finally
+        {
+            releaseTracing?.Invoke();
+        }
     }
+
+    // checker.go:2493/5762/7536 — the `map[string]any{"kind": node.Kind, "pos": node.Pos(), "end":
+    // node.End(), "path": ...}` trace args (ast.Kind marshals as its integer value).
+    private static Dictionary<string, object?> NodeTraceArgs(Node node) => new()
+    {
+        ["kind"] = (int)node.Kind,
+        ["pos"] = node.Pos,
+        ["end"] = node.End,
+        ["path"] = AstUtilities.GetSourceFileOfNode(node)!.FileName(),
+    };
 
     // checker.go:6001
     internal void CheckDecorators(Node node)

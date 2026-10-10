@@ -1351,10 +1351,14 @@ public sealed partial class FourslashTest
                 GoToMarkerOrRange(markerOrRange);
 
                 LsProto.WorkspaceEdit? result = LS().ProvideRename(
-                    activeFilename,
-                    caretOffset(),
-                    "?",
-                    cancellationToken);
+                    RenameContext(),
+                    new LsProto.RenameParams
+                    {
+                        TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
+                        Position = currentCaretPosition,
+                        NewName = "?",
+                    },
+                    orchestrator: null).WorkspaceEdit;
 
                 Dictionary<LsProto.DocumentUri, LsProto.TextEdit[]> changes =
                     result?.Changes ?? new Dictionary<LsProto.DocumentUri, LsProto.TextEdit[]>();

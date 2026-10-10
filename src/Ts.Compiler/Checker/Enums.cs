@@ -137,6 +137,46 @@ public enum VarianceFlags : uint
     AllowsStructuralFallback = Unmeasurable | Unreliable,
 }
 
+public static class VarianceFlagsExtensions
+{
+    // types.go:556-578 — VarianceFlags.String()
+    public static string ToVarianceString(this VarianceFlags v)
+    {
+        var variance = v & VarianceFlags.VarianceMask;
+        string result;
+        switch (variance)
+        {
+            case VarianceFlags.Invariant:
+                result = "in out";
+                break;
+            case VarianceFlags.Bivariant:
+                result = "[bivariant]";
+                break;
+            case VarianceFlags.Contravariant:
+                result = "in";
+                break;
+            case VarianceFlags.Covariant:
+                result = "out";
+                break;
+            case VarianceFlags.Independent:
+                result = "[independent]";
+                break;
+            default:
+                result = "";
+                break;
+        }
+        if ((v & VarianceFlags.Unmeasurable) != 0)
+        {
+            result += " (unmeasurable)";
+        }
+        else if ((v & VarianceFlags.Unreliable) != 0)
+        {
+            result += " (unreliable)";
+        }
+        return result;
+    }
+}
+
 // types.go:329-343
 [System.Flags]
 public enum AccessFlags : uint

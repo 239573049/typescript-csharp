@@ -51,9 +51,13 @@ public readonly struct Locale : IEquatable<Locale>
     // PORT-NOTE (deviation D-020): x/text validates subtags against the IANA registry
     // ("well-formed but unknown" is an error there); without that table this accepts every
     // syntactically well-formed BCP-47 tag (RFC 5646 §2.1 grammar, '_' accepted as a separator
-    // like x/text). The well-formed tags it accepts beyond Go only affect the tsconfig "locale"
-    // validation diagnostic; message matching (Diagnostics.GetLocalizedMessages) treats an
-    // unknown language as "no translation", matching Go's matcher confidence No → English.
+    // like x/text), except for the one case the grammar alone can settle: a 4-8 letter primary
+    // language subtag (R 2.1.1 B/C/D) is only valid when it names an entry of the registry, and
+    // none exist, so x/text always errors on them ("abcd", "whoops"); it accepts only 2-3 letter
+    // languages (probe against golang.org/x/text v0.31.0). The well-formed tags it accepts beyond
+    // Go only affect the tsconfig "locale" validation diagnostic; message matching
+    // (Diagnostics.GetLocalizedMessages) treats an unknown language as "no translation", matching
+    // Go's matcher confidence No → English.
     public static bool TryParse(string localeStr, out Locale locale)
     {
         string? canonical = Canonicalize(localeStr);
@@ -99,8 +103,10 @@ public readonly struct Locale : IEquatable<Locale>
 
         // language
         string lang = parts[i];
-        if (!IsAlpha(lang) || lang.Length < 2)
+        if (!IsAlpha(lang) || lang.Length < 2 || lang.Length > 3)
         {
+            // x/text rejects 4-8 letter languages ("abcd", "whoops", "abcde-…"): R 2.1.1 B/C/D
+            // require them to be registry entries, and the source table is empty.
             return null;
         }
         sb.Append(Lower(lang));

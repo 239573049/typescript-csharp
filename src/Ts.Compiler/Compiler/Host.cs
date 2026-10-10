@@ -51,7 +51,7 @@ public static class CompilerHosts
 }
 
 // host.go:25-31
-internal sealed class CompilerHostImpl : CompilerHost
+internal sealed class CompilerHostImpl : CompilerHost, global::Ts.TsOptions.ParseConfigHost
 {
     private readonly string currentDirectory;
     private readonly IFileSystem fs;
@@ -118,13 +118,12 @@ internal sealed class CompilerHostImpl : CompilerHost
     }
 
     // host.go:86-89
-    // PORT-NOTE (phase 4/5): reached only when project references are configured. The Go body calls
-    // tsoptions.GetParsedCommandLineOfConfigFilePath, whose C# equivalent + its ParseConfigHost wiring
-    // are part of the deferred project-reference surface. Returns null until that lands; the loader's
-    // project-reference path (addProjectReferenceTasks) is a no-op when there are no references.
     public global::Ts.TsOptions.ParsedCommandLine? GetResolvedProjectReference(string fileName, global::Ts.TsPath.Path path)
     {
-        _ = extendedConfigCache;
-        return null;
+        // Go: `commandLine, _ := tsoptions.GetParsedCommandLineOfConfigFilePath(fileName, path,
+        // nil /*options*/, nil /*optionsRaw*/, h, h.extendedConfigCache); return commandLine`.
+        var (commandLine, _) = global::Ts.TsOptions.TsConfigParsing.GetParsedCommandLineOfConfigFilePath(
+            fileName, path, null, null, this, extendedConfigCache);
+        return commandLine;
     }
 }

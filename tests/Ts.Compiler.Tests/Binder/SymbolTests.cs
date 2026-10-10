@@ -15,20 +15,25 @@ public class SymbolTests
     [Fact]
     public void InternalSymbolName_Prefix_IsSentinel()
     {
-        Assert.Equal("þ", InternalSymbolName.Prefix);
+        // The sentinel is a lone low surrogate (the UTF-16 analogue of Go's invalid byte 0xFE,
+        // plan D-008) — not U+00FE, which is a valid identifier character. Like Go's byte it
+        // fails IsIdentifierText and encodes to U+FFFD.
+        Assert.Equal("\uDC00", InternalSymbolName.Prefix);
         Assert.Single(InternalSymbolName.Prefix);
+        Assert.True(global::Ts.Scanner.Scanner.IsIdentifierText("þ", global::Ts.Core.LanguageVariant.Standard));
+        Assert.False(global::Ts.Scanner.Scanner.IsIdentifierText(InternalSymbolName.Prefix, global::Ts.Core.LanguageVariant.Standard));
     }
 
     [Fact]
     public void InternalSymbolName_Composites_UsePrefix()
     {
-        Assert.Equal("þcall", InternalSymbolName.Call);
-        Assert.Equal("þconstructor", InternalSymbolName.Constructor);
-        Assert.Equal("þnew", InternalSymbolName.New);
-        Assert.Equal("þtype", InternalSymbolName.Type);
-        Assert.Equal("þobject", InternalSymbolName.Object);
-        Assert.Equal("þclass", InternalSymbolName.Class);
-        Assert.Equal("þfunction", InternalSymbolName.Function);
+        Assert.Equal("\uDC00call", InternalSymbolName.Call);
+        Assert.Equal("\uDC00constructor", InternalSymbolName.Constructor);
+        Assert.Equal("\uDC00new", InternalSymbolName.New);
+        Assert.Equal("\uDC00type", InternalSymbolName.Type);
+        Assert.Equal("\uDC00object", InternalSymbolName.Object);
+        Assert.Equal("\uDC00class", InternalSymbolName.Class);
+        Assert.Equal("\uDC00function", InternalSymbolName.Function);
         // These two are deliberately not prefixed (symbol.go:66-67).
         Assert.Equal("export=", InternalSymbolName.ExportEquals);
         Assert.Equal("default", InternalSymbolName.Default);

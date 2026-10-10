@@ -72,7 +72,8 @@ public static class SkipIfFailing
     // skip_if_failing.go:43-53 — SkipIfFailing.
     public static void Check()
     {
-        if (Environment.GetEnvironmentVariable("TSGO_FOURSLASH_IGNORE_FAILING") != "")
+        // os.Getenv returns "" for an unset variable; GetEnvironmentVariable returns null.
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TSGO_FOURSLASH_IGNORE_FAILING")))
         {
             return;
         }

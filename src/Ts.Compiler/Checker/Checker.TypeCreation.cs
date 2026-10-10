@@ -186,7 +186,7 @@ public partial class Checker
 
     // utilities.go:1599-1601
     internal static bool IsReservedMemberName(string name) =>
-        name.Length >= 2 && name[0] == '\xFE' && name[1] != '@' && name[1] != '#';
+        name.Length >= 2 && name[0] == '\uDC00' && name[1] != '@' && name[1] != '#';
 
     // utilities.go:339-341 — sortSymbols over the [start, end) subrange (slices.SortFunc is non-stable).
     internal void SortSymbols(List<Symbol> symbols, int start, int end)

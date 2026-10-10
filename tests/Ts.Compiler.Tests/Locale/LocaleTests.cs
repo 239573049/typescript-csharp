@@ -31,6 +31,12 @@ public class LocaleTests
     [InlineData("en-x")]
     [InlineData("1en")]
     [InlineData("en US")]
+    // x/text internal/language.Parse rejects a 4+ character primary subtag as a syntax error
+    // (parse.go:270-271) before any registry lookup, so these words are "not well-formed".
+    [InlineData("whoops")]
+    [InlineData("abcd")]
+    [InlineData("abcde")]
+    [InlineData("wxyz")]
     public void RejectsMalformedTags(string input)
     {
         Assert.False(global::Ts.Locale.Locale.TryParse(input, out var locale));

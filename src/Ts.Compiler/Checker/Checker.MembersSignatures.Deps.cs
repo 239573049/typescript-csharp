@@ -456,9 +456,9 @@ public partial class Checker
     }
     // ast/utilities.go:2074 — delegates to the ast utility now that it has landed.
     internal static bool IsImportCall(Node node) => AstUtilities.IsImportCall(node);
-    // utilities.go:963 — isLateBoundName. PORT-NOTE: '\xfe' is the InternalSymbolName sentinel (U+00FE in
-    // UTF-16); late-bound names are `\xfe@...`.
-    internal static bool IsLateBoundName(string name) => name.Length >= 2 && name[0] == '\xfe' && name[1] == '@';
+    // utilities.go:963 — isLateBoundName. PORT-NOTE: InternalSymbolName.Prefix is the single-code-unit
+    // sentinel (plan D-008); late-bound names are `<Prefix>@...`.
+    internal static bool IsLateBoundName(string name) => name.Length >= 2 && name[0] == InternalSymbolName.Prefix[0] && name[1] == '@';
     // ast.IsCheckJSEnabledForFile: real body in AstUtilities (Utilities.Binder.cs, utilities.go:2863).
     internal bool IsCheckJSEnabledForFile(SourceFile sourceFile, CompilerOptions options) => AstUtilities.IsCheckJSEnabledForFile(sourceFile, options);
     // ForEachReturnStatement is now REAL in Ast/Utilities.cs (AstUtilities, utilities.go:1138).
