@@ -177,7 +177,7 @@ public sealed partial class FourslashTest
             static (f, position) => f.LS().ProvideSourceDefinition(
                 f.activeFilename,
                 f.converters.PositionToLineAndCharacter(f.getScriptInfo(f.activeFilename)!, position),
-                clientSupportsLink: false,
+                f.LS().ClientCapabilities().TextDocument.Definition.LinkSupport, // sourcedefinition.go:30
                 f.cancellationToken),
             includeOriginalSelectionRange: false,
             markers);
