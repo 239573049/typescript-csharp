@@ -690,9 +690,19 @@ function parseFormatStatement(funcName: string, args: readonly ts.Expression[]):
             const formattedValue = optValue === "true" || optValue === "false" || optValue.startsWith("Core_.TS")
                 ? optValue
                 : csStringLiteral(JSON.parse(optValue));
+            // FormatCodeSettings.Semicolons is a real enum in the C# port (Go's SemicolonPreference
+            // is a string), so the corpus's string literal names the enum member instead.
+            let memberValue = formattedValue;
+            if (optName === "semicolons") {
+                const semicolonMember = ({ ignore: "Ignore", insert: "Insert", remove: "Remove" } as Record<string, string>)[JSON.parse(optValue)];
+                if (!semicolonMember) {
+                    throw new Error(`Unrecognized semicolons option: ${optValue}`);
+                }
+                memberValue = `global::Ts.Format.SemicolonPreference.${semicolonMember}`;
+            }
             return [{
                 kind: "format",
-                csStatement: `f.ConfigureFormat(static o => o.${optName.charAt(0).toUpperCase() + optName.slice(1)} = ${formattedValue})`,
+                csStatement: `f.ConfigureFormat(static o => o.${optName.charAt(0).toUpperCase() + optName.slice(1)} = ${memberValue})`,
             }];
         case "selection": {
             const startMarker = getStringLiteralLike(args[0])?.text;
@@ -2760,7 +2770,9 @@ function parseFilterExpression(arg: ts.CallExpression): string | undefined {
         return undefined;
     }
 
-    return `[.. global::Ts.Core.CoreUtil.Filter(${sourceGo}, ${predicate})]`;
+    // The filtered value keeps the source's element type: Go appends the result with `...`
+    // (see the caller), so a List<T> source must stay a List<T> for `..` to spread it.
+    return `global::Ts.Core.CoreUtil.Filter(${sourceGo}, ${predicate})`;
 }
 
 function parseFilterPredicate(arrow: ts.ArrowFunction): string | undefined {
@@ -2783,7 +2795,10 @@ function parseFilterPredicate(arrow: ts.ArrowFunction): string | undefined {
             const right = inner.right;
             if (ts.isPropertyAccessExpression(right) && right.expression.getText() === `${paramName}.marker.data`) {
                 const key = right.name.text;
-                return `static (RangeMarker r) => r.Marker == null || !r.Marker.Data.ContainsKey(${csStringLiteral(key)})`;
+                // Go's `r.Marker.Data[key] == nil` also holds when the marker carries no data map,
+                // so the C# predicate must not dereference a null Data (CS8602 under
+                // TreatWarningsAsErrors).
+                return `static (RangeMarker r) => r.Marker == null || r.Marker.Data is null || !r.Marker.Data.ContainsKey(${csStringLiteral(key)})`;
             }
         }
     }
@@ -4301,12 +4316,13 @@ function generateVerifyCompletions({ marker, args, isNewIdentifierLocation, andA
     // Go: `f.VerifyCompletions(t, ...)` returns a VerifyCompletionsResult value that the corpus
     // chains `.andApplyCodeAction(...)` / `.andHasNoCodeAction(...)` on with a discarding
     // expression statement. C# cannot chain on a `void`-returning call, so the Go result value
-    // is spelled as two statements here: the verify call, then `f.ApplyCodeActionFromCompletion(...)`
+    // is spelled as two statements here: the verify call, then
+    // `f.VerifyApplyCodeActionFromCompletion(null, ...)`
     // (the same helper `verify.applyCodeActionFromCompletion` reaches directly).
     const call = `f.VerifyCompletions(${marker}, ${expectedList})`;
     if (andApplyCodeActionArgs) {
         return `${call};
-f.ApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
+f.VerifyApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
 {
     Name = ${csStringLiteral(andApplyCodeActionArgs.name)},
     Source = ${csStringLiteral(andApplyCodeActionArgs.source)},
@@ -4332,8 +4348,11 @@ function generateBaselineDocumentHighlights({ args, preferences, filesToSearch }
     // `args` may be empty; don't leave a dangling `, )` behind the fixed first argument.
     const allArgs = [preferences, ...args].filter(arg => arg.length > 0).join(", ");
     if (filesToSearch) {
+        // The C# variadic carries the filesToSearch array as the second argument (Go's parameter
+        // position); `VerifyBaselineDocumentHighlightsWithOptions` recognizes it by element type,
+        // so the corpus argument order after it does not matter.
         const filesGo = `new[]{${filesToSearch.join(", ")}}`;
-        return `f.VerifyBaselineDocumentHighlightsWithOptions(${allArgs}, ${filesGo}, ${args.join(", ")})`;
+        return `f.VerifyBaselineDocumentHighlightsWithOptions(${[preferences, filesGo, ...args].filter(arg => arg.length > 0).join(", ")})`;
     }
     return `f.VerifyBaselineDocumentHighlights(${allArgs})`;
 }

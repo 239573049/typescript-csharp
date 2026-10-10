@@ -115,18 +115,19 @@ public sealed record SemanticToken(string Type, string Text);
 
 public sealed partial class FourslashTest
 {
-    // fourslash.go:472-556 — GetDefaultCapabilities. The Go body is the full LSP client
-    // capability document; the C# LS reads only the semantic-token types/modifiers (threaded by
-    // New()), so the remaining fields are the ones whose absence would show up in a capability
-    // query. Spelled out so the corpus's `capabilities.TextDocument!.Completion!...` mutations
-    // resolve.
+    // fourslash.go:346-471 — defaultSemanticTokenTypes/Modifiers live in Fourslash.cs; the rest of
+    // the Go package-level default capability vars are spelled inline below.
+
+    // fourslash.go:472-556 — GetDefaultCapabilities. Byte-for-byte the Go capability document
+    // (the weaker earlier C# version omitted Hover/Definition/SignatureHelp/Diagnostic/
+    // FoldingRange, which is why every hover baseline came out plaintext in the C# port).
     public static LsProto.ClientCapabilities GetDefaultCapabilities()
     {
         return new LsProto.ClientCapabilities
         {
             General = new LsProto.GeneralClientCapabilities
             {
-                PositionEncodings = [LsProto.PositionEncodingKind.Utf8],
+                PositionEncodings = [LsProto.PositionEncodingKind.UTF8],
             },
             Experimental = new LsProto.ExperimentalClientCapabilities
             {
@@ -150,6 +151,72 @@ public sealed partial class FourslashTest
                         ItemDefaults = ["commitCharacters", "editRange"],
                     },
                 },
+                Diagnostic = new LsProto.DiagnosticClientCapabilities
+                {
+                    RelatedInformation = true,
+                    TagSupport = new LsProto.ClientDiagnosticsTagOptions
+                    {
+                        ValueSet = [LsProto.DiagnosticTag.Unnecessary, LsProto.DiagnosticTag.Deprecated],
+                    },
+                },
+                PublishDiagnostics = new LsProto.PublishDiagnosticsClientCapabilities
+                {
+                    RelatedInformation = true,
+                    TagSupport = new LsProto.ClientDiagnosticsTagOptions
+                    {
+                        ValueSet = [LsProto.DiagnosticTag.Unnecessary, LsProto.DiagnosticTag.Deprecated],
+                    },
+                },
+                Definition = new LsProto.DefinitionClientCapabilities
+                {
+                    LinkSupport = true,
+                },
+                TypeDefinition = new LsProto.TypeDefinitionClientCapabilities
+                {
+                    LinkSupport = true,
+                },
+                Implementation = new LsProto.ImplementationClientCapabilities
+                {
+                    LinkSupport = true,
+                },
+                Hover = new LsProto.HoverClientCapabilities
+                {
+                    ContentFormat = [LsProto.MarkupKind.Markdown, LsProto.MarkupKind.PlainText],
+                },
+                SignatureHelp = new LsProto.SignatureHelpClientCapabilities
+                {
+                    SignatureInformation = new LsProto.ClientSignatureInformationOptions
+                    {
+                        DocumentationFormat = [LsProto.MarkupKind.Markdown, LsProto.MarkupKind.PlainText],
+                        ParameterInformation = new LsProto.ClientSignatureParameterInformationOptions
+                        {
+                            LabelOffsetSupport = true,
+                        },
+                        ActiveParameterSupport = true,
+                    },
+                    ContextSupport = true,
+                },
+                DocumentSymbol = new LsProto.DocumentSymbolClientCapabilities
+                {
+                    HierarchicalDocumentSymbolSupport = true,
+                },
+                FoldingRange = new LsProto.FoldingRangeClientCapabilities
+                {
+                    RangeLimit = 5000,
+                    FoldingRangeKind = new LsProto.ClientFoldingRangeKindOptions
+                    {
+                        ValueSet =
+                        [
+                            LsProto.FoldingRangeKind.Comment,
+                            LsProto.FoldingRangeKind.Imports,
+                            LsProto.FoldingRangeKind.Region,
+                        ],
+                    },
+                    FoldingRange = new LsProto.ClientFoldingRangeOptions
+                    {
+                        CollapsedText = true,
+                    },
+                },
             },
             Workspace = new LsProto.WorkspaceClientCapabilities
             {
@@ -165,6 +232,133 @@ public sealed partial class FourslashTest
                 },
             },
         };
+    }
+
+    // fourslash.go:557-636 — getCapabilitiesWithDefaults. The C# harness carried only the raw
+    // (un-defaulted) capabilities into ResolvedCapabilities(); Go runs every initialize() through
+    // this merge first, and the missing pieces are exactly the ones an LS entry reads when a
+    // corpus test leaves them unspecified (hover ContentFormat, signature-help documentation
+    // format/label offsets, folding-range kinds, diagnostics tags, …). The merge is applied in
+    // ResolvedCapabilities(), mirroring Go's ordering.
+    public static LsProto.ClientCapabilities WithDefaults(LsProto.ClientCapabilities? capabilities)
+    {
+        LsProto.ClientCapabilities result = capabilities ?? new LsProto.ClientCapabilities();
+        result.General = new LsProto.GeneralClientCapabilities
+        {
+            PositionEncodings = [LsProto.PositionEncodingKind.UTF8],
+        };
+        result.Experimental ??= new LsProto.ExperimentalClientCapabilities
+        {
+            HoverVerbosityLevel = true,
+        };
+        result.TextDocument ??= new LsProto.TextDocumentClientCapabilities();
+        result.TextDocument.Completion ??= new LsProto.CompletionClientCapabilities
+        {
+            CompletionItem = new LsProto.ClientCompletionItemOptions
+            {
+                SnippetSupport = true,
+                CommitCharactersSupport = true,
+                PreselectSupport = true,
+                LabelDetailsSupport = true,
+                InsertReplaceSupport = true,
+                DocumentationFormat = [LsProto.MarkupKind.Markdown, LsProto.MarkupKind.PlainText],
+            },
+            CompletionList = new LsProto.CompletionListCapabilities
+            {
+                ItemDefaults = ["commitCharacters", "editRange"],
+            },
+        };
+        result.TextDocument.Diagnostic ??= new LsProto.DiagnosticClientCapabilities
+        {
+            RelatedInformation = true,
+            TagSupport = new LsProto.ClientDiagnosticsTagOptions
+            {
+                ValueSet = [LsProto.DiagnosticTag.Unnecessary, LsProto.DiagnosticTag.Deprecated],
+            },
+        };
+        result.TextDocument.PublishDiagnostics ??= new LsProto.PublishDiagnosticsClientCapabilities
+        {
+            RelatedInformation = true,
+            TagSupport = new LsProto.ClientDiagnosticsTagOptions
+            {
+                ValueSet = [LsProto.DiagnosticTag.Unnecessary, LsProto.DiagnosticTag.Deprecated],
+            },
+        };
+        result.TextDocument.SemanticTokens ??= new LsProto.SemanticTokensClientCapabilities
+        {
+            Requests = new LsProto.ClientSemanticTokensRequestOptions
+            {
+                Full = new LsProto.BooleanOrClientSemanticTokensRequestFullDelta
+                {
+                    Boolean = true,
+                },
+            },
+            TokenTypes = DefaultSemanticTokenTypes(),
+            TokenModifiers = DefaultSemanticTokenModifiers(),
+            Formats = [LsProto.TokenFormat.Relative],
+        };
+        result.Workspace ??= new LsProto.WorkspaceClientCapabilities();
+        result.Workspace.FileOperations ??= new LsProto.FileOperationClientCapabilities
+        {
+            WillRename = true,
+        };
+        result.Workspace.WorkspaceEdit ??= new LsProto.WorkspaceEditClientCapabilities
+        {
+            DocumentChanges = true,
+            ResourceOperations = [LsProto.ResourceOperationKind.Rename],
+        };
+        result.Workspace.Configuration ??= true;
+        result.TextDocument.Definition ??= new LsProto.DefinitionClientCapabilities
+        {
+            LinkSupport = true,
+        };
+        result.TextDocument.TypeDefinition ??= new LsProto.TypeDefinitionClientCapabilities
+        {
+            LinkSupport = true,
+        };
+        result.TextDocument.Implementation ??= new LsProto.ImplementationClientCapabilities
+        {
+            LinkSupport = true,
+        };
+        result.TextDocument.Hover ??= new LsProto.HoverClientCapabilities
+        {
+            ContentFormat = [LsProto.MarkupKind.Markdown, LsProto.MarkupKind.PlainText],
+        };
+        result.TextDocument.SignatureHelp ??= new LsProto.SignatureHelpClientCapabilities
+        {
+            SignatureInformation = new LsProto.ClientSignatureInformationOptions
+            {
+                DocumentationFormat = [LsProto.MarkupKind.Markdown, LsProto.MarkupKind.PlainText],
+                ParameterInformation = new LsProto.ClientSignatureParameterInformationOptions
+                {
+                    LabelOffsetSupport = true,
+                },
+                ActiveParameterSupport = true,
+            },
+            ContextSupport = true,
+        };
+        result.TextDocument.DocumentSymbol ??= new LsProto.DocumentSymbolClientCapabilities
+        {
+            HierarchicalDocumentSymbolSupport = true,
+        };
+        result.TextDocument.FoldingRange ??= new LsProto.FoldingRangeClientCapabilities
+        {
+            RangeLimit = 5000,
+            FoldingRangeKind = new LsProto.ClientFoldingRangeKindOptions
+            {
+                ValueSet =
+                [
+                    LsProto.FoldingRangeKind.Comment,
+                    LsProto.FoldingRangeKind.Imports,
+                    LsProto.FoldingRangeKind.Region,
+                ],
+            },
+            FoldingRange = new LsProto.ClientFoldingRangeOptions
+            {
+                CollapsedText = true,
+            },
+        };
+        return result;
     }
 }
 

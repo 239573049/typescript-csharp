@@ -43,7 +43,9 @@ public sealed class DocumentSpan
 // baselineutil.go:520-536 — baselineFourslashLocationsOptions.
 public sealed class BaselineFourslashLocationsOptions
 {
-    public Marker? Marker;
+    // baselineutil.go:511 — markerInfo.marker is MarkerOrRange, so a code-lens baseline can carry
+    // a bare RangeMarker; the producers only read FileName and LSPos().
+    public IFourslashMarkerOrRange? Marker;
     public string MarkerName = "/*MARKER*/";
     public string? EndMarker;
     public Func<DocumentSpan, string?>? StartMarkerPrefix;
@@ -76,6 +78,28 @@ public sealed partial class FourslashTest
             options.OrderedFiles = UniqueFilesInSpanOrder(spans);
         }
         return GetBaselineForGroupedSpansWithFileContents(spansByFile, options);
+    }
+
+    // baselineutil.go:545-549 — documented span keyed by file (the C# analog of Go's
+    // fileToSpan MultiMap<string, documentSpan> that the producers build from a
+    // map[documentSpan]string / []documentSpan pair).
+    internal static List<KeyValuePair<LsProto.DocumentUri, List<DocumentSpan>>> GroupSpansByUri(
+        IEnumerable<KeyValuePair<LsProto.DocumentUri, LsProto.Range>> spans)
+    {
+        var order = new List<LsProto.DocumentUri>();
+        var byFile = new Dictionary<string, List<DocumentSpan>>(StringComparer.Ordinal);
+        foreach ((LsProto.DocumentUri uri, LsProto.Range range) in spans)
+        {
+            string key = uri.Value;
+            if (!byFile.TryGetValue(key, out List<DocumentSpan>? bucket))
+            {
+                bucket = [];
+                byFile[key] = bucket;
+                order.Add(uri);
+            }
+            bucket.Add(new DocumentSpan(uri, range));
+        }
+        return [.. order.Select(uri => new KeyValuePair<LsProto.DocumentUri, List<DocumentSpan>>(uri, byFile[uri.Value]))];
     }
 
     // collections.GroupBy → insertion-ordered grouping by uri.
@@ -161,7 +185,7 @@ public sealed partial class FourslashTest
         {
             foreach (LsProto.DocumentUri uri in options.OrderedFiles)
             {
-                AddFileEntry(uri.FileName());
+                AddFileEntry(uri.Value);
             }
         }
         else
@@ -176,7 +200,7 @@ public sealed partial class FourslashTest
         // already added the file to the baseline.
         if (options.AdditionalSpan != null && !foundAdditionalLocation)
         {
-            string fileName = options.AdditionalSpan.Uri.FileName();
+            string fileName = options.AdditionalSpan.Uri.Value;
             if (TryTextOfFile(fileName, out string content))
             {
                 baselineEntries.Add(GetBaselineContentForFile(
@@ -229,9 +253,8 @@ public sealed partial class FourslashTest
     private static Dictionary<DocumentSpan, int> NewSpanMap() =>
         new(ReferenceEqualityComparer.Instance);
 
-    // baselineutil.go:654-659 — textOfFile. Go walks the vfs; the C# harness owns the file set in
-    // scriptInfos, so the walk order is the test-data file order (matching Go's sorted walk of the
-    // map-backed in-memory fs closely enough for the marker file to be found).
+    // baselineutil.go:654-659 — textOfFile. Go reads the file back out of the vfs; the C# harness
+    // owns the same text in scriptInfos, which New() and every edit keep in sync.
     private bool TryTextOfFile(string fileName, out string content)
     {
         if (scriptInfos.TryGetValue(fileName, out FourslashScriptInfo? script))
@@ -610,7 +633,7 @@ public sealed partial class FourslashTest
             FileNameValue = fileName;
             Content = content;
             IsLibFile = IsLibFileStatic(fileName);
-            lineStarts = global::Ts.Ls.LsConv.ComputeLSPLineStarts(content);
+            lineStarts = global::Ts.Ls.LsConv.LineMap.ComputeLSPLineStarts(content).LineStarts;
             converters = new Converters("utf-16", _ => global::Ts.Ls.LsConv.LineMap.ComputeLSPLineStarts(content));
             ReadableContents.Append("// === ").Append(fileName).Append(" ===");
         }
@@ -769,7 +792,20 @@ public sealed partial class FourslashTest
         where T : class
     {
         public Marker? Marker;
+
         public T? Item;
+
+        // Constructed through an object initializer at every call site; the two fields are the
+        // whole payload (Go's markerAndItem literal).
+        public MarkerAndItem()
+        {
+        }
+
+        public MarkerAndItem(Marker marker, T? item)
+        {
+            Marker = marker;
+            Item = item;
+        }
     }
 
     // baselineutil.go:1049-1140 — annotateContentWithTooltips.

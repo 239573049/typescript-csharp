@@ -30,6 +30,6 @@ subTitle:
 [|export|] const title: string
 """;
         using var f = FourslashTest.New(content, fileName: "exportInLabeledStatement", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{f.Ranges()[0].FileName}, f.Ranges()[0]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, new[]{f.Ranges()[0].FileName}, f.Ranges()[0]);
     }
 }

@@ -36,6 +36,6 @@ import { [|x|] } from "foo";
 import { x } from "foo";
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights_moduleImport_filesToSearch", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, [.. f.Ranges()], new[]{"/a.ts", "/b.ts"}, [.. f.Ranges()]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, new[]{"/a.ts", "/b.ts"}, [.. f.Ranges()]);
     }
 }

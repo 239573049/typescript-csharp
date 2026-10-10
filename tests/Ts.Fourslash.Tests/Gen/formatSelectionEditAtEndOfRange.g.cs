@@ -29,7 +29,7 @@ public class FormatSelectionEditAtEndOfRangeTests
 void 0;
 """;
         using var f = FourslashTest.New(content, fileName: "formatSelectionEditAtEndOfRange", cancellationToken: TestContext.Current.CancellationToken);
-    f.ConfigureFormat(static o => o.Semicolons = "remove");
+    f.ConfigureFormat(static o => o.Semicolons = global::Ts.Format.SemicolonPreference.Remove);
 
     f.FormatSelection("1", "2");
 

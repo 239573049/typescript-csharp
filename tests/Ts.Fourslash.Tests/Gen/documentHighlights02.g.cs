@@ -41,6 +41,6 @@ function [|foo|] () {
 
     f.GoToFile("b.ts");
 
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, [.. f.Ranges()], new[]{"a.ts", "b.ts"}, [.. f.Ranges()]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, new[]{"a.ts", "b.ts"}, [.. f.Ranges()]);
     }
 }

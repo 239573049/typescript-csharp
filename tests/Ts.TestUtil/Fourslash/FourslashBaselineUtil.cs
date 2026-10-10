@@ -314,7 +314,12 @@ public static partial class FourslashBaselineUtil
                 };
 
             default:
-                return new Baseline.Options { Subfolder = subfolder, IsSubmodule = true };
+                // baselineutil.go:481-487 — the default arm returns Subfolder only; the
+                // IsSubmodule/three-root diff machinery belongs to the commands that have a Strada
+                // counterpart (and therefore a fixup above). QuickInfo, SignatureHelp,
+                // documentHighlights, Document Symbols, findRenameLocations-adjacent families …
+                // compare straight against reference/fourslash/<command>/.
+                return new Baseline.Options { Subfolder = subfolder };
         }
     }
 

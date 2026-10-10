@@ -141,9 +141,8 @@ public sealed partial class FourslashTest
         converters.LineAndCharacterToPosition(getScriptInfo(activeFilename)!, currentCaretPosition);
 
     // ---------------------------------------------------------------------
-    // fourslash.go:1011-1560 — completions. (MarkerInput = string | Marker | nil, matching the
-    // Go test surface used by the ported corpus; []string/[]*Marker arms drop to the loop form
-    // the tests would express directly in C#.)
+    // fourslash.go:1011-1560 — completions. (MarkerInput = string | Marker | []string |
+    // List<Marker> | nil, exactly Go's `string | *Marker | []string | []*Marker | nil`.)
     // ---------------------------------------------------------------------
 
     // fourslash.go:1011-1016 — CompletionsExpectedList. The option records are declared at
@@ -151,7 +150,7 @@ public sealed partial class FourslashTest
     // exactly as Go's corpus does.
     public CompletionList? VerifyCompletions(object? markerInput, CompletionsExpectedList? expected)
     {
-        CompletionList? list;
+        CompletionList? list = null;
         switch (markerInput)
         {
             case string markerName:
@@ -162,16 +161,21 @@ public sealed partial class FourslashTest
                 goToMarker(marker);
                 list = verifyCompletionsWorker(expected);
                 break;
-            // fourslash.go:1070-1125 — the []string / []*Marker arms: each marker is visited and
-            // the resulting lists are ANDed (Go returns a merged list; the verifier only needs
-            // the last, and each visit runs the full verifyCompletionsWorker).
+            // fourslash.go:1070-1125 — the []string / []*Marker arms: every marker is visited and
+            // verified, the last result being what Go returns to the caller.
             case string[] markerNames:
-                goToMarkerInput(markerNames);
-                list = verifyCompletionsWorker(expected);
+                foreach (string name in markerNames)
+                {
+                    GoToMarker(name);
+                    list = verifyCompletionsWorker(expected);
+                }
                 break;
             case List<Marker> markersInput:
-                goToMarkerInput(markersInput);
-                list = verifyCompletionsWorker(expected);
+                foreach (Marker marker in markersInput)
+                {
+                    goToMarker(marker);
+                    list = verifyCompletionsWorker(expected);
+                }
                 break;
             case null:
                 list = verifyCompletionsWorker(expected);
@@ -564,7 +568,7 @@ public sealed partial class FourslashTest
             mismatches.Add("insertText: expected \"" + expected.InsertText + "\", got \"" + actual.InsertText + "\"");
         }
         if (expected.AdditionalTextEdits != null &&
-            !ReferenceEquals(expected.AdditionalTextEdits, FourslashTestUtil.AnyTextEdits))
+            !ReferenceEquals(expected.AdditionalTextEdits, AnyTextEdits))
         {
             mismatches.Add("additionalTextEdits: expected unset, got "
                 + (actual.AdditionalTextEdits == null ? "null" : actual.AdditionalTextEdits.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)));

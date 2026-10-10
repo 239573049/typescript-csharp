@@ -13,6 +13,11 @@
     <!-- Test seam: format rule engine internals are exercised by the test project
          (plan/05-conventions.md §16, same pattern as Ts.Compiler). -->
     <InternalsVisibleTo Include="Ts.LanguageService.Tests" />
+    <!-- Test seam: the fourslash runner drives the LSP-shaped LS entries directly instead of
+         over the JSON-RPC wire (plan/08 §7.3, D-012): ProvideReferences (:694),
+         ProvideVSReferences (:708), ProvideImplementations (:925) and ResolveCodeLens are
+         internal, and their Go counterparts are exported. -->
+    <InternalsVisibleTo Include="Ts.Fourslash.Tests" />
   </ItemGroup>
 
   <ItemGroup>

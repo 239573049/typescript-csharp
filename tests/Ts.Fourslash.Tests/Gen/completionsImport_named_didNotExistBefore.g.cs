@@ -75,7 +75,7 @@ t/**/
         },
         
     });
-    f.ApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
+    f.VerifyApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
     {
         Name = "Test1",
         Source = "./a",

@@ -70,7 +70,7 @@ export interface VFS {
         },
         
     });
-    f.ApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
+    f.VerifyApplyCodeActionFromCompletion(null /*markerName*/, new ApplyCodeActionFromCompletionOptions
     {
         Name = "ts",
         Source = "./ts",

@@ -6,12 +6,8 @@
 // PORT-NOTE: the baseline comparison itself is the shared tests/Ts.TestUtil/Baseline/Baseline.cs
 // port of internal/testutil/baseline. The per-command DiffFixupOld/DiffFixupNew closures of
 // getBaselineOptions (baselineutil.go:108-491 — Strada-format text fixups keyed to the
-// TypeScript submodule reference) live in FourslashBaselineUtil. This partial deliberately does
-// NOT go through FourslashBaselineUtil.GetBaselineOptions: that takes the isSubmoduleTest branch
-// and diffs against the TypeScript submodule reference, which is unreachable for the C# port
-// (the emitted corpus's own expected baselines live under testdata/baselines/expected, not in
-// _submodules/TypeScript). The plain comparison against the local reference tree is the shape
-// the port's producers target. See plan/11 D-021.
+// TypeScript submodule reference) live in FourslashBaselineUtil and are reached through
+// GetBaselineOptions, exactly as Go routes them.
 
 #if TS_FOURSLASH_RUNNER
 
@@ -49,21 +45,23 @@ public sealed partial class FourslashTest
         }
 
         // Go recovers `testPath` with runtime.Caller(1) — the path of the generated *_test.go
-        // file, which lives under internal/fourslash/tests/gen/. The C# corpus is generated from
-        // exactly that tree; the submodule branch it selects is deliberately not taken here (see
-        // the header). The expected-local path is
-        // baselines/expected/fourslash/<normalizedCommand>/<name> — the port's stand-in for the
-        // submodule baselines the C# tree does not carry, and the files the ported producers
-        // target.
+        // file, which lives under internal/fourslash/tests/gen/. Every routed decision downstream
+        // keys off that substring (isSubmoduleTest, baselineutil.go:493-495), so the C# session
+        // reconstructs the same path shape from the emitted test base name: per-command baselines
+        // land in baselines/{local,reference}/submodule/fourslash/<command>/… while the responses
+        // are diffed against the Strada reference in the TypeScript submodule. The
+        // non-submodule branch (baselines/…/fourslash/<command>/…) is only for the manual tests
+        // that live under fourslash/tests/manual.
+        string testPath = "fourslash/tests/gen/" + testBaseName + "_test.go";
+
         var context = new BaselineTestContext();
         foreach ((FourslashBaselineCommand command, string content) in baselines.Entries())
         {
-            string subfolder = "fourslash/" + FourslashBaselineUtil.NormalizeCommandName(command.Value);
             Baseline.Run(
                 context,
                 FourslashBaselineUtil.GetBaselineFileName(testBaseName, command),
                 content,
-                new Baseline.Options { Subfolder = subfolder });
+                FourslashBaselineUtil.GetBaselineOptions(command, testPath));
         }
         if (context.Failed)
         {

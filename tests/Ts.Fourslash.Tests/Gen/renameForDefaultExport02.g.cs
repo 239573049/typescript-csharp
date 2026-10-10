@@ -37,6 +37,6 @@ var x: typeof /*3*/[|DefaultExportedFunction|];
 var y = /*4*/[|DefaultExportedFunction|]();
 """;
         using var f = FourslashTest.New(content, fileName: "renameForDefaultExport02", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineRename(null /*preferences*/, [.. global::Ts.Core.CoreUtil.Filter(f.GetRangesByText()["DefaultExportedFunction"], static (RangeMarker r) => r.Marker == null || !r.Marker.Data.ContainsKey("inComment"))]);
+    f.VerifyBaselineRename(null /*preferences*/, global::Ts.Core.CoreUtil.Filter(f.GetRangesByText()["DefaultExportedFunction"], static (RangeMarker r) => r.Marker == null || r.Marker.Data is null || !r.Marker.Data.ContainsKey("inComment")));
     }
 }

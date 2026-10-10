@@ -38,6 +38,6 @@ import y from "./y";
 y().[|foo|]();
 """;
         using var f = FourslashTest.New(content, fileName: "documentHighlights_33722", cancellationToken: TestContext.Current.CancellationToken);
-    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, f.Ranges()[0], new[]{"/x.ts"}, f.Ranges()[0]);
+    f.VerifyBaselineDocumentHighlightsWithOptions(null /*preferences*/, new[]{"/x.ts"}, f.Ranges()[0]);
     }
 }

@@ -24,6 +24,21 @@ public static partial class CoreUtil
     // LargeStackExecutor (fixed 64 MB stack, plan/01 §4.6) replaces the Go runtime
     // stack-limit knob; there is no supported C# analog to runtime/debug.SetMaxStack.
 
+    // core.go:24-34 — Filter. The Go slice is []V.Append-able; the C# corpus also filters a
+    // collections.MultiMap value (a List<V>), so the list overload is the same core.Filter.
+    public static List<T> Filter<T>(List<T> list, Func<T, bool> f)
+    {
+        var result = new List<T>(list.Count);
+        foreach (T value in list)
+        {
+            if (f(value))
+            {
+                result.Add(value);
+            }
+        }
+        return result;
+    }
+
     public static T[]? Filter<T>(T[]? slice, Func<T, bool> f)
     {
         if (slice != null)
