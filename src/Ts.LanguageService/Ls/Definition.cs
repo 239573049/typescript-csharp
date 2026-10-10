@@ -12,10 +12,8 @@
 //   getContextNode / toContextRange / getRangeOfNode → SourceDefinitionDeps / FindAllReferences.cs.
 // The raw-position entry `GetDefinitionAtPosition` keeps its DefinitionLocation[] payload
 // for the existing callers; `ProvideDefinition`/`ProvideTypeDefinition` are the Go-shaped
-// LSP entries riding the same worker. PORT-NOTE (capabilities): the per-request carrier
-// (lsproto.GetClientCapabilities(ctx).TextDocument.Definition.LinkSupport) is not wired
-// yet, so clientSupportsLink reads the Go zero value (false) and responses take the
-// Locations arm; the branch structure is kept verbatim.
+// LSP entries riding the same worker. Go's per-request lsproto.GetClientCapabilities(ctx)
+// is the instance-held ClientCapabilities() (LanguageService.cs field note).
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +47,8 @@ public sealed partial class LanguageService
         SourceFile file,
         int pos)
     {
-        // definition.go:33-34 — clientSupportsLink reads the zero-value capabilities (see header).
-        const bool clientSupportsLink = false;
+        // definition.go:33-34
+        bool clientSupportsLink = ClientCapabilities().TextDocument.Definition.LinkSupport;
 
         var reference = SourceDefinitionDeps.GetReferenceAtPosition(file, pos, program);
 
@@ -184,8 +182,8 @@ public sealed partial class LanguageService
         int position,
         CancellationToken cancellationToken = default)
     {
-        // definition.go:105-106 — clientSupportsLink zero value (see header).
-        const bool clientSupportsLink = false;
+        // definition.go:105-106
+        bool clientSupportsLink = ClientCapabilities().TextDocument.TypeDefinition.LinkSupport;
 
         var file = GetProgramAndFile(fileName);
         var node = global::Ts.AstNav.Tokens.GetTouchingPropertyName(file, position);
