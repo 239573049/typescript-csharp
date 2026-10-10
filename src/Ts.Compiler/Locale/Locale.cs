@@ -48,12 +48,14 @@ public readonly struct Locale : IEquatable<Locale>
     // `language.Parse`, which "gracefully fails" (returns the parsed tag plus an error that is
     // discarded except for the ok flag).
     //
-    // PORT-NOTE (deviation D-020): x/text validates subtags against the IANA registry
-    // ("well-formed but unknown" is an error there); without that table this accepts every
-    // syntactically well-formed BCP-47 tag (RFC 5646 §2.1 grammar, '_' accepted as a separator
-    // like x/text). The well-formed tags it accepts beyond Go only affect the tsconfig "locale"
-    // validation diagnostic; message matching (Diagnostics.GetLocalizedMessages) treats an
-    // unknown language as "no translation", matching Go's matcher confidence No → English.
+    // PORT-NOTE (deviation D-020): the well-formedness half of x/text's parser is mirrored here
+    // (RFC 5646 §2.1 grammar, '_' accepted as a separator like x/text, plus internal/language's
+    // 4+ character primary-subtag rejection — see Canonicalize). What is NOT mirrored is the IANA
+    // registry lookup: x/text additionally fails 2-3 letter languages, scripts, regions and variants
+    // that are well-formed but unregistered ("xy" → ValueError), and normalizes extlang/grandfathered
+    // tags. The remaining over-acceptance only affects the tsconfig/CLI "locale" validation
+    // diagnostic (tsconfigparsing.go:386-388); message matching (Diagnostics.GetLocalizedMessages)
+    // treats an unknown language as "no translation", matching Go's matcher confidence No → English.
     public static bool TryParse(string localeStr, out Locale locale)
     {
         string? canonical = Canonicalize(localeStr);
@@ -100,6 +102,16 @@ public readonly struct Locale : IEquatable<Locale>
         // language
         string lang = parts[i];
         if (!IsAlpha(lang) || lang.Length < 2)
+        {
+            return null;
+        }
+        // x/text internal/language.Parse (parse.go:261-271): the scanner takes the leading run of
+        // alphanumeric characters as the language subtag and rejects the whole tag as a syntax error
+        // when that token is 4+ characters (`else if n >= 4 { return Und, ErrSyntax }`), before any
+        // IANA registry lookup. That is why "whoops"/"abcd" are errors while 2-3 letter languages
+        // ("en", "abc") go on to the registry check. BCP-47 reserves 4-8 letter primary subtags for
+        // future use, so rejecting them here matches Go without needing the registry.
+        if (lang.Length >= 4)
         {
             return null;
         }
