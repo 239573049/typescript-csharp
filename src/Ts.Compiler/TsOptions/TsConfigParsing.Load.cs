@@ -701,7 +701,21 @@ public static partial class TsConfigParsing
             errors.AddRange(err2);
         }
         // json.compileOnSave handled by raw
-        var (extendedConfigPath, err3) = getExtendsConfigPathOrArray(json.GetOrZero("extends"), host, basePath, configFileName, null, null, null);
+        // Go: tsconfigparsing.go:939-943 — `var extendedConfigPath []string` (nil slice) plus the
+        // guard `extends != nil && extends != ""`. The nil slice prints as `[]string(nil)` in
+        // reflect.TypeOf, so the later `ownConfig.extendedConfigPath != nil` check (parseConfig) is
+        // FALSE when the config has no "extends" and the inherited-config merge is skipped. C#
+        // must keep null here for the same reason (an empty array would be non-null and would run
+        // the merge with no extended configs, which can emit spurious errors such as
+        // "Compiler option 'extends' requires a value of type string or Array").
+        Diagnostic[]? err3 = null;
+        object? extendedConfigPathRaw = null;
+        object? extendsRaw = json.GetOrZero("extends");
+        if (extendsRaw is not null && !(extendsRaw is string extendsString && extendsString == ""))
+        {
+            (string[] paths, err3) = getExtendsConfigPathOrArray(extendsRaw, host, basePath, configFileName, null, null, null);
+            extendedConfigPathRaw = paths;
+        }
         if (err3 != null)
         {
             errors.AddRange(err3);
@@ -711,7 +725,7 @@ public static partial class TsConfigParsing
             raw = json,
             options = options,
             typeAcquisition = typeAcquisition,
-            extendedConfigPath = extendedConfigPath,
+            extendedConfigPath = extendedConfigPathRaw,
         }, errors.ToArray());
     }
 

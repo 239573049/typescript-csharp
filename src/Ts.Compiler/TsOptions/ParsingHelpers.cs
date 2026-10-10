@@ -148,6 +148,9 @@ public static class ParsingHelpers
             {
                 if (v5 is string str)
                 {
+                    // Go: parsinghelpers.go:118-123 — a scalar extends is wrapped into a one-element
+                    // list and then, because the Go code does not `continue`, overwritten by the
+                    // scalar itself (Set calls p.optsMap.Delete(key) first). Kept verbatim.
                     result.Set("extends", new object?[] { str });
                 }
                 result.Set("extends", v5);
