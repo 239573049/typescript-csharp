@@ -1477,11 +1477,27 @@ public class VfsMatchTests
     [Fact]
     public void GlobPatternInternals_QuestionAndStar()
     {
+        // vfsmatch_test.go:1630-1641 — "question mark segment at end of string".
+        // Create pattern with question mark that should fail when string is exhausted
         var p1 = VfsMatchApi.CompileGlobPattern("a?", "/", Usage.Files, true);
         Assert.NotNull(p1);
+
+        // Should match "ab"
         Assert.True(p1!.Matches("/ab"));
+
+        // Should NOT match "a" (question mark requires a character)
         Assert.False(p1.Matches("/a"));
 
+        // vfsmatch_test.go:1714-1722 — "star with no trailing content".
+        // Test that star can match to end of string
+        var pStar = VfsMatchApi.CompileGlobPattern("a*", "/", Usage.Files, true);
+        Assert.NotNull(pStar);
+        Assert.True(pStar!.Matches("/a"));
+        Assert.True(pStar.Matches("/abc"));
+        Assert.True(pStar.Matches("/aXYZ"));
+
+        // vfsmatch_test.go:1643-1660 — "star segment with complex pattern".
+        // Pattern like "a*b*c" requires backtracking in star matching
         var p2 = VfsMatchApi.CompileGlobPattern("a*b*c", "/", Usage.Files, true);
         Assert.NotNull(p2);
         Assert.True(p2!.Matches("/abc"));
