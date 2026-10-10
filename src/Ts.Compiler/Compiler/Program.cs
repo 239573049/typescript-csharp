@@ -798,9 +798,25 @@ public sealed partial class Program : global::Ts.Checker.Program, global::Ts.Out
         {
             return false;
         }
-        // PORT-NOTE (phase 4/5): the json-file emit-location check needs outputpaths.GetCommonSourceDirectory /
-        // GetSourceFilePathInNewDirWorker (deferred emit helpers). For a json root under outDir, tsgo emits it;
-        // returning true is the safe over-approximation until those land.
+        // Otherwise, if rootDir is specified or a config file exists, we know the common source
+        // directory and can check if the file would be emitted in the same location.
+        if (options.RootDir != "" || options.ConfigFilePath != "")
+        {
+            var commonDir = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(
+                global::Ts.OutputPaths.OutputPaths.GetCommonSourceDirectory(options, () => [], GetCurrentDirectory(), UseCaseSensitiveFileNames(), null),
+                GetCurrentDirectory());
+            var outputPath = global::Ts.OutputPaths.OutputPaths.GetSourceFilePathInNewDirWorker(
+                sourceFile.FileName(), options.OutDir, GetCurrentDirectory(), commonDir, UseCaseSensitiveFileNames());
+            if (global::Ts.TsPath.TsPath.ComparePaths(sourceFile.FileName(), outputPath, new global::Ts.TsPath.ComparePathsOptions
+                {
+                    UseCaseSensitiveFileNames = UseCaseSensitiveFileNames(),
+                    CurrentDirectory = GetCurrentDirectory(),
+                }) == 0)
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
