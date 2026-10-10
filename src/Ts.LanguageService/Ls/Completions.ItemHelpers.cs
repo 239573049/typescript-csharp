@@ -745,21 +745,32 @@ public sealed partial class LanguageService
     }
 
     // completions.go:4822-4845 — clientSupports* read the LSP client capabilities off the request
-    // context. PORT-NOTE: the raw API carries no LSP context yet (same shape as hover's
-    // documentation-format probe); Go's zero-value ClientCapabilities yields false/empty for every
-    // probe, so these return the headless defaults until the lsp-server wave threads real
-    // capabilities through.
-    private static bool ClientSupportsItemLabelDetails() => false;
+    // context. PORT-NOTE: Go reads lsproto.GetClientCapabilities(ctx) per request; the C# carrier
+    // is the resolved capability set installed on the service (LanguageService.ClientCapabilities,
+    // the same value the rename-capability gates read). The previous `=> false` stubs made the
+    // headless service ignore the negotiated set, so the fourslash client (which negotiates
+    // commitChars/editRange) produced neither the itemDefaults nor the per-item flag Go returns.
+    private bool ClientSupportsItemLabelDetails() =>
+        ClientCapabilities().TextDocument.Completion.CompletionItem.LabelDetailsSupport;
 
-    private static bool ClientSupportsItemSnippet() => false;
+    private bool ClientSupportsItemSnippet() =>
+        ClientCapabilities().TextDocument.Completion.CompletionItem.SnippetSupport;
 
-    private static bool ClientSupportsItemCommitCharacters() => false;
+    private bool ClientSupportsItemCommitCharacters() =>
+        ClientCapabilities().TextDocument.Completion.CompletionItem.CommitCharactersSupport;
 
-    private static bool ClientSupportsItemInsertReplace() => false;
+    private bool ClientSupportsItemInsertReplace() =>
+        ClientCapabilities().TextDocument.Completion.CompletionItem.InsertReplaceSupport;
 
-    private static bool ClientSupportsDefaultCommitCharacters() => false;
+    private bool ClientSupportsDefaultCommitCharacters() =>
+        System.Array.IndexOf(
+            ClientCapabilities().TextDocument.Completion.CompletionList.ItemDefaults ?? [],
+            "commitCharacters") >= 0;
 
-    private static bool ClientSupportsDefaultEditRange() => false;
+    private bool ClientSupportsDefaultEditRange() =>
+        System.Array.IndexOf(
+            ClientCapabilities().TextDocument.Completion.CompletionList.ItemDefaults ?? [],
+            "editRange") >= 0;
 
     // completions.go:4426-4518 — createLSPCompletionItem.
     internal global::Ts.LsProto.CompletionItem CreateLSPCompletionItem(

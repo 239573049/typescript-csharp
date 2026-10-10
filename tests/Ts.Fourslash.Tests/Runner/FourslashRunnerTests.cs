@@ -39,14 +39,14 @@ declare const p: Point;
 p/*a*/
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "basicEdit", TestContext.Current.CancellationToken);
+        using FourslashTest f = FourslashTest.New(content, fileName: "basicEdit", cancellationToken: TestContext.Current.CancellationToken);
         f.GoToMarker("a");
         f.Insert(".");
         f.GoToEOF();
-        f.VerifyCompletions(null, new FourslashTest.CompletionsExpectedList
+        f.VerifyCompletions(null, new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Exact =
                 [
@@ -76,21 +76,21 @@ declare const p: Point;
 p./*a*/
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "basicBackspace", TestContext.Current.CancellationToken);
-        f.VerifyCompletions("a", new FourslashTest.CompletionsExpectedList
+        using FourslashTest f = FourslashTest.New(content, fileName: "basicBackspace", cancellationToken: TestContext.Current.CancellationToken);
+        f.VerifyCompletions("a", new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Includes = ["y"],
             },
         });
         f.GoToMarker("b");
         f.Backspace(10); // `y: number;`
-        f.VerifyCompletions("a", new FourslashTest.CompletionsExpectedList
+        f.VerifyCompletions("a", new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Excludes = ["y"],
             },
@@ -111,20 +111,20 @@ declare const p: Point;
 p./*a*/
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "basicReplaceLine", TestContext.Current.CancellationToken);
-        f.VerifyCompletions("a", new FourslashTest.CompletionsExpectedList
+        using FourslashTest f = FourslashTest.New(content, fileName: "basicReplaceLine", cancellationToken: TestContext.Current.CancellationToken);
+        f.VerifyCompletions("a", new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Includes = ["y"],
             },
         });
         f.ReplaceLine(3, "\tz: number;"); // `y: number;`
-        f.VerifyCompletions("a", new FourslashTest.CompletionsExpectedList
+        f.VerifyCompletions("a", new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Excludes = ["y"],
                 Includes = ["z"],
@@ -145,11 +145,11 @@ import { foo } from './a';
 const test = foo./*1*/
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "basicMultifileCompletions", TestContext.Current.CancellationToken);
-        f.VerifyCompletions("1", new FourslashTest.CompletionsExpectedList
+        using FourslashTest f = FourslashTest.New(content, fileName: "basicMultifileCompletions", cancellationToken: TestContext.Current.CancellationToken);
+        f.VerifyCompletions("1", new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Includes =
                 [
@@ -178,11 +178,11 @@ declare const p: Point;
 p./*a*/
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "basicInterfaceMembers", TestContext.Current.CancellationToken);
-        f.VerifyCompletions("a", new FourslashTest.CompletionsExpectedList
+        using FourslashTest f = FourslashTest.New(content, fileName: "basicInterfaceMembers", cancellationToken: TestContext.Current.CancellationToken);
+        f.VerifyCompletions("a", new CompletionsExpectedList
         {
             IsIncomplete = false,
-            Items = new FourslashTest.CompletionsExpectedItems
+            Items = new CompletionsExpectedItems
             {
                 Exact =
                 [
@@ -220,7 +220,7 @@ class Foo/*3*/ {
 }
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "basicQuickInfo", TestContext.Current.CancellationToken);
+        using FourslashTest f = FourslashTest.New(content, fileName: "basicQuickInfo", cancellationToken: TestContext.Current.CancellationToken);
         f.VerifyQuickInfoAt("1", "var someVar: number", "Some var");
 
         // Go's second expectation is the hover markdown with an LS link
@@ -244,7 +244,7 @@ class Tex {
 }
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "asConstRefsNoErrors2", TestContext.Current.CancellationToken);
+        using FourslashTest f = FourslashTest.New(content, fileName: "asConstRefsNoErrors2", cancellationToken: TestContext.Current.CancellationToken);
         // (VerifyBaselineGoToDefinition dropped — see file header.)
         f.VerifyNoErrors();
     }
@@ -262,7 +262,7 @@ const value = 1;
 const other = value/*use*/ + value;
 """;
 
-        using FourslashTest f = FourslashTest.New(content, fileName: "renameLocalVariable", TestContext.Current.CancellationToken);
+        using FourslashTest f = FourslashTest.New(content, fileName: "renameLocalVariable", cancellationToken: TestContext.Current.CancellationToken);
         f.VerifyRename(
             "use",
             "renamed",

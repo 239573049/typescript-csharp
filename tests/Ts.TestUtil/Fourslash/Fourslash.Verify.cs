@@ -141,41 +141,16 @@ public sealed partial class FourslashTest
         converters.LineAndCharacterToPosition(getScriptInfo(activeFilename)!, currentCaretPosition);
 
     // ---------------------------------------------------------------------
-    // fourslash.go:1011-1560 — completions. (MarkerInput = string | Marker | nil, matching the
-    // Go test surface used by the ported corpus; []string/[]*Marker arms drop to the loop form
-    // the tests would express directly in C#.)
+    // fourslash.go:1011-1560 — completions. (MarkerInput = string | Marker | []string |
+    // List<Marker> | nil, exactly Go's `string | *Marker | []string | []*Marker | nil`.)
     // ---------------------------------------------------------------------
 
-    // fourslash.go:1011-1016 — CompletionsExpectedList.
-    public sealed class CompletionsExpectedList
-    {
-        public bool IsIncomplete;
-        public CompletionsExpectedItemDefaults? ItemDefaults;
-        public CompletionsExpectedItems? Items;
-        public UserPreferences? UserPreferences;
-    }
-
-    // fourslash.go:1028-1031 — CompletionsExpectedItemDefaults. (EditRange: Ignored | *EditRange;
-    // the *EditRange arm needs the range↔anonymous-marker link the baselines exercise — omitted.)
-    public sealed class CompletionsExpectedItemDefaults
-    {
-        public IReadOnlyList<string>? CommitCharacters;
-        public object? EditRange;
-    }
-
-    // fourslash.go:1034-1041 — CompletionsExpectedItem = string | *lsproto.CompletionItem, and
-    // CompletionsExpectedItems.
-    public sealed class CompletionsExpectedItems
-    {
-        public List<object>? Includes;
-        public List<string>? Excludes;
-        public List<object>? Exact;
-        public List<object>? Unsorted;
-    }
-
+    // fourslash.go:1011-1016 — CompletionsExpectedList. The option records are declared at
+    // namespace level (Fourslash.Options.cs) so the emitted corpus can name them unqualified,
+    // exactly as Go's corpus does.
     public CompletionList? VerifyCompletions(object? markerInput, CompletionsExpectedList? expected)
     {
-        CompletionList? list;
+        CompletionList? list = null;
         switch (markerInput)
         {
             case string markerName:
@@ -185,6 +160,22 @@ public sealed partial class FourslashTest
             case Marker marker:
                 goToMarker(marker);
                 list = verifyCompletionsWorker(expected);
+                break;
+            // fourslash.go:1070-1125 — the []string / []*Marker arms: every marker is visited and
+            // verified, the last result being what Go returns to the caller.
+            case string[] markerNames:
+                foreach (string name in markerNames)
+                {
+                    GoToMarker(name);
+                    list = verifyCompletionsWorker(expected);
+                }
+                break;
+            case List<Marker> markersInput:
+                foreach (Marker marker in markersInput)
+                {
+                    goToMarker(marker);
+                    list = verifyCompletionsWorker(expected);
+                }
                 break;
             case null:
                 list = verifyCompletionsWorker(expected);
@@ -289,8 +280,9 @@ public sealed partial class FourslashTest
              (expected.Items.Includes?.Count ?? 0) == 0 &&
              (expected.Items.Excludes?.Count ?? 0) == 0));
 
-    // fourslash.go:1270-1307 — verifyCompletionsItemDefaults. (The *EditRange arm is omitted —
-    // see CompletionsExpectedItemDefaults.)
+    // fourslash.go:1270-1307 — verifyCompletionsItemDefaults. EditRange is Ignored | *EditRange;
+    // the *EditRange arm needs the range↔anonymous-marker link the baselines exercise and is a
+    // recorded seam, so the corpus carries the Ignored sentinel (a no-op check).
     private static void verifyCompletionsItemDefaults(
         LsProto.CompletionItemDefaults? actual,
         CompletionsExpectedItemDefaults? expected,
@@ -313,12 +305,37 @@ public sealed partial class FourslashTest
             || actual.CommitCharacters != null && expected.CommitCharacters != null
                 && actual.CommitCharacters.SequenceEqual(expected.CommitCharacters),
             prefix + "CommitCharacters mismatch");
-        if (expected.EditRange != null)
+        switch (expected.EditRange)
         {
-            throw new NotSupportedException(
-                prefix + "EditRange verification is not ported (range↔anonymous-marker linkage omitted).");
+            case null:
+                if (actual.EditRange != null)
+                {
+                    throw new InvalidOperationException(prefix + "Expected nil EditRange but got non-nil");
+                }
+                break;
+            case EditRange editRange:
+                if (actual.EditRange == null)
+                {
+                    throw new InvalidOperationException(prefix + "Expected non-nil EditRange but got nil");
+                }
+                LsProto.Range expectedInsert = editRange.Insert.LSRange;
+                LsProto.Range expectedReplace = editRange.Replace.LSRange;
+                if (actual.EditRange.EditRangeWithInsertReplace is not { } actualEditRange ||
+                    !RangesEqual(actualEditRange.Insert, expectedInsert) ||
+                    !RangesEqual(actualEditRange.Replace, expectedReplace))
+                {
+                    throw new InvalidOperationException(prefix + "EditRange mismatch");
+                }
+                break;
+            default:
+                // Ignored (the corpus's sentinel: the anonymous-range linkage is not ported).
+                break;
         }
     }
+
+    private static bool RangesEqual(LsProto.Range a, LsProto.Range b) =>
+        a.Start.Line == b.Start.Line && a.Start.Character == b.Start.Character &&
+        a.End.Line == b.End.Line && a.End.Character == b.End.Character;
 
     // fourslash.go:1309-1460 — verifyCompletionsItems.
     private void verifyCompletionsItems(string prefix, LsProto.CompletionItem[] actual, CompletionsExpectedItems? expected)
@@ -509,15 +526,26 @@ public sealed partial class FourslashTest
         }
     }
 
-    // fourslash.go:1476-1538 — verifyCompletionItem. The Go cmp compares every set field of the
+    // fourslash.go:1476-1538 — verifyCompletionItem. Go's cmp walks every set field of the
     // expected item; this port covers the fields the ported corpus sets (label always, plus
-    // kind/sort/filter/detail/insert when non-null).
+    // kind/sort/filter/detail/insertText and the auto-import data when present).
     private static string verifyCompletionItem(LsProto.CompletionItem actual, LsProto.CompletionItem expected)
     {
         var mismatches = new List<string>();
         if (!string.Equals(actual.Label, expected.Label, StringComparison.Ordinal))
         {
             mismatches.Add("label: expected \"" + expected.Label + "\", got \"" + actual.Label + "\"");
+        }
+        bool actualAutoImportFix = actual.Data?.AutoImport != null;
+        bool expectedAutoImportFix = expected.Data?.AutoImport != null;
+        if (actualAutoImportFix != expectedAutoImportFix)
+        {
+            return "Mismatch in auto-import data presence";
+        }
+        if (actualAutoImportFix)
+        {
+            // The auto-import arm ignores the resolved-detail surface (fourslash.go:1486-1516).
+            return string.Join("; ", mismatches);
         }
         if (expected.Kind.HasValue && actual.Kind != expected.Kind)
         {
@@ -538,6 +566,12 @@ public sealed partial class FourslashTest
         if (expected.InsertText != null && !string.Equals(actual.InsertText, expected.InsertText, StringComparison.Ordinal))
         {
             mismatches.Add("insertText: expected \"" + expected.InsertText + "\", got \"" + actual.InsertText + "\"");
+        }
+        if (expected.AdditionalTextEdits != null &&
+            !ReferenceEquals(expected.AdditionalTextEdits, AnyTextEdits))
+        {
+            mismatches.Add("additionalTextEdits: expected unset, got "
+                + (actual.AdditionalTextEdits == null ? "null" : actual.AdditionalTextEdits.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         }
         return string.Join("; ", mismatches);
     }
@@ -569,35 +603,85 @@ public sealed partial class FourslashTest
     // ---------------------------------------------------------------------
 
     // fourslash.go:4657-4685 — VerifyRenameSucceeded (rename.go:47/:33 currency: DocumentUri +
-    // lsproto.Position through l.converters).
-    public void VerifyRenameSucceeded()
+    // lsproto.Position through l.converters). Go's `defer f.ConfigureWithReset(t, *preferences)()`
+    // maps to ConfigureWithPreferences/RestorePreferences in try/finally.
+    public void VerifyRenameSucceeded(UserPreferences? preferences = null)
     {
-        string prefix = getCurrentPositionPrefix();
-        global::Ts.Core.RequestContext ctx = RenameContext();
-        RenameInfo info = LS().GetRenameInfo(
-            ctx,
-            "" /*newName*/,
-            DocumentUriFor(activeFilename),
-            currentCaretPosition);
-        if (!info.CanRename)
+        UserPreferences? saved = ConfigureWithPreferences(preferences);
+        try
         {
-            throw new InvalidOperationException(prefix + "Expected rename to succeed, but prepareRename returned null");
-        }
-
-        // Also verify that textDocument/rename produces edits, since prepareRename is optional.
-        LsProto.WorkspaceEditOrNull renameResult = LS().ProvideRename(
-            ctx,
-            new LsProto.RenameParams
+            string prefix = getCurrentPositionPrefix();
+            global::Ts.Core.RequestContext ctx = RenameContext();
+            RenameInfo info = LS().GetRenameInfo(
+                ctx,
+                "" /*newName*/,
+                DocumentUriFor(activeFilename),
+                currentCaretPosition);
+            if (!info.CanRename)
             {
-                TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
-                Position = currentCaretPosition,
-                NewName = "RENAME_SUCCEEDED_TEST",
-            },
-            orchestrator: null);
-        LsProto.WorkspaceEdit? edit = renameResult.WorkspaceEdit;
-        if (edit == null || edit.Changes == null || edit.Changes.Count == 0)
+                throw new InvalidOperationException(prefix + "Expected rename to succeed, but prepareRename returned null");
+            }
+
+            // Also verify that textDocument/rename produces edits, since prepareRename is optional.
+            LsProto.WorkspaceEditOrNull renameResult = LS().ProvideRename(
+                ctx,
+                new LsProto.RenameParams
+                {
+                    TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
+                    Position = currentCaretPosition,
+                    NewName = "RENAME_SUCCEEDED_TEST",
+                },
+                orchestrator: null);
+            LsProto.WorkspaceEdit? edit = renameResult.WorkspaceEdit;
+            if (edit == null || edit.Changes == null || edit.Changes.Count == 0)
+            {
+                throw new InvalidOperationException(prefix + "prepareRename succeeded but textDocument/rename returned no changes");
+            }
+        }
+        finally
         {
-            throw new InvalidOperationException(prefix + "prepareRename succeeded but textDocument/rename returned no changes");
+            RestorePreferences(saved);
+        }
+    }
+
+    // fourslash.go:4970-5008 — VerifyRenameFailed. (prepareRename's error response / null result
+    // is RenameInfo.CanRename == false on the in-process transport, D-012.)
+    public void VerifyRenameFailed(UserPreferences? preferences = null)
+    {
+        UserPreferences? saved = ConfigureWithPreferences(preferences);
+        try
+        {
+            string prefix = getCurrentPositionPrefix();
+            global::Ts.Core.RequestContext ctx = RenameContext();
+            RenameInfo info = LS().GetRenameInfo(
+                ctx,
+                "" /*newName*/,
+                DocumentUriFor(activeFilename),
+                currentCaretPosition);
+            if (info.CanRename)
+            {
+                throw new InvalidOperationException(prefix + "Expected rename to fail, but prepareRename returned a result");
+            }
+
+            // Also verify that textDocument/rename does not produce usable edits, since prepareRename is optional.
+            LsProto.WorkspaceEditOrNull renameResult = LS().ProvideRename(
+                ctx,
+                new LsProto.RenameParams
+                {
+                    TextDocument = new LsProto.TextDocumentIdentifier { Uri = DocumentUriFor(activeFilename) },
+                    Position = currentCaretPosition,
+                    NewName = "RENAME_FAILED_TEST",
+                },
+                orchestrator: null);
+            LsProto.WorkspaceEdit? edit = renameResult.WorkspaceEdit;
+            if (edit != null && edit.Changes != null && edit.Changes.Count > 0)
+            {
+                throw new InvalidOperationException(prefix + "prepareRename returned null but textDocument/rename returned changes");
+            }
+        }
+        finally
+        {
+            RestorePreferences(saved);
         }
     }
 
@@ -688,24 +772,24 @@ public sealed partial class FourslashTest
     // fourslash.go:5218-5272, :5632-5777 — diagnostics.
     // ---------------------------------------------------------------------
 
-    public void VerifyDiagnostics(IReadOnlyList<LsProto.Diagnostic> expected)
+    public void VerifyDiagnostics(LsProto.Diagnostic[] expected)
     {
         verifyDiagnostics(expected, static _ => true);
     }
 
     // Similar to `VerifyDiagnostics`, but excludes suggestion diagnostics returned from server.
-    public void VerifyNonSuggestionDiagnostics(IReadOnlyList<LsProto.Diagnostic> expected)
+    public void VerifyNonSuggestionDiagnostics(LsProto.Diagnostic[] expected)
     {
         verifyDiagnostics(expected, static diag => !isSuggestionDiagnostic(diag));
     }
 
     // Similar to `VerifyDiagnostics`, but includes only suggestion diagnostics returned from server.
-    public void VerifySuggestionDiagnostics(IReadOnlyList<LsProto.Diagnostic> expected)
+    public void VerifySuggestionDiagnostics(LsProto.Diagnostic[] expected)
     {
         verifyDiagnostics(expected, isSuggestionDiagnostic);
     }
 
-    private void verifyDiagnostics(IReadOnlyList<LsProto.Diagnostic> expected, Func<LsProto.Diagnostic, bool> filterDiagnostics)
+    private void verifyDiagnostics(LsProto.Diagnostic[] expected, Func<LsProto.Diagnostic, bool> filterDiagnostics)
     {
         List<LsProto.Diagnostic> actualDiagnostics = getDiagnostics(activeFilename).Where(filterDiagnostics).ToList();
         // Go compares the raw lsproto.Range struct; Position/Range are classes here, so the
@@ -713,7 +797,7 @@ public sealed partial class FourslashTest
         static bool isEmptyRange(LsProto.Range range) =>
             range.Start.Line == 0 && range.Start.Character == 0 &&
             range.End.Line == 0 && range.End.Character == 0;
-        var expectedWithRanges = new List<LsProto.Diagnostic>(expected.Count);
+        var expectedWithRanges = new List<LsProto.Diagnostic>(expected.Length);
         foreach (LsProto.Diagnostic diag in expected)
         {
             if (isEmptyRange(diag.Range))
@@ -941,20 +1025,9 @@ public sealed partial class FourslashTest
         range.Start.Line + ":" + range.Start.Character + "-" + range.End.Line + ":" + range.End.Character;
 
     // ---------------------------------------------------------------------
-    // fourslash.go:4148-4451 — signature help (foundation-record shape; see header SEAM).
+    // fourslash.go:4122-4450 — signature help. The expected-options record lives at namespace
+    // level (Fourslash.Options.cs) so the corpus can name it unqualified, matching Go.
     // ---------------------------------------------------------------------
-
-    public sealed record ExpectedSignatureInformation(
-        string Label,
-        IReadOnlyList<string>? ParameterLabels = null,
-        bool? IsVariadic = null);
-
-    public sealed class VerifySignatureHelpOptions
-    {
-        public IReadOnlyList<ExpectedSignatureInformation>? Signatures;
-        public int? ActiveSignature;
-        public int? ActiveParameter;
-    }
 
     public void VerifySignatureHelp(VerifySignatureHelpOptions expected)
     {
@@ -962,7 +1035,39 @@ public sealed partial class FourslashTest
         verifySignatureHelpResult(actual, expected, getCurrentPositionPrefix());
     }
 
-    public void VerifyNoSignatureHelp()
+    public void VerifyNoSignatureHelp() =>
+        VerifyNoSignatureHelpWithContext(context: null);
+
+    // fourslash.go:4308-4340 — VerifyNoSignatureHelp / VerifyNoSignatureHelpWithContext.
+    public void VerifyNoSignatureHelpWithContext(LsProto.SignatureHelpContext? context)
+    {
+        _ = context; // The direct-program host carries no request context (LS takes no context arg).
+        VerifyNoSignatureHelpWorker();
+    }
+
+    // fourslash.go:4341-4349 — VerifyNoSignatureHelpForMarkersWithContext.
+    public void VerifyNoSignatureHelpForMarkersWithContext(LsProto.SignatureHelpContext? context, params string[] markers)
+    {
+        _ = context;
+        VerifyNoSignatureHelpForMarkers(markers);
+    }
+
+    // fourslash.go:4376-4391 — VerifyNoSignatureHelpForMarkers.
+    public void VerifyNoSignatureHelpForMarkers(params string[] markers)
+    {
+        if (markers.Length == 0)
+        {
+            VerifyNoSignatureHelpWorker();
+            return;
+        }
+        foreach (string marker in markers)
+        {
+            GoToMarker(marker);
+            VerifyNoSignatureHelpWorker();
+        }
+    }
+
+    private void VerifyNoSignatureHelpWorker()
     {
         SignatureHelp? actual = LS().GetSignatureHelpItems(activeFilename, caretOffset(), cancellationToken);
         if (actual != null && actual.Signatures.Length != 0)
@@ -972,7 +1077,24 @@ public sealed partial class FourslashTest
         }
     }
 
-    public void VerifySignatureHelpPresent()
+    // fourslash.go:4350-4375 — VerifySignatureHelpPresent / VerifySignatureHelpPresentForMarkers.
+    public void VerifySignatureHelpPresent(LsProto.SignatureHelpContext? context = null)
+    {
+        _ = context;
+        VerifySignatureHelpPresentWorker();
+    }
+
+    public void VerifySignatureHelpPresentForMarkers(LsProto.SignatureHelpContext? context, params string[] markers)
+    {
+        _ = context;
+        foreach (string marker in markers)
+        {
+            GoToMarker(marker);
+            VerifySignatureHelpPresentWorker();
+        }
+    }
+
+    private void VerifySignatureHelpPresentWorker()
     {
         SignatureHelp? actual = LS().GetSignatureHelpItems(activeFilename, caretOffset(), cancellationToken);
         if (actual == null || actual.Signatures.Length == 0)
@@ -982,65 +1104,132 @@ public sealed partial class FourslashTest
         }
     }
 
-    private void verifySignatureHelpResult(SignatureHelp? actual, VerifySignatureHelpOptions expected, string prefix)
+    // fourslash.go:4163-4307 — verifySignatureHelpResult. The C# foundation record carries
+    // Label strings rather than label-offset spans, so ParameterName/ParameterSpan compare the
+    // parameter label (the "x: string" -> "x" extraction Go performs on the label is kept).
+    private void verifySignatureHelpResult(SignatureHelp? help, VerifySignatureHelpOptions expected, string prefix)
     {
-        if (actual == null)
+        if (help == null)
         {
-            if (expected.Signatures == null || expected.Signatures.Count == 0)
-            {
-                return;
-            }
-            throw new InvalidOperationException(prefix + "Expected signature help but got nil");
-        }
-        if (expected.Signatures == null)
-        {
-            throw new InvalidOperationException(prefix + "Expected no signature help but got " + actual.Signatures.Length);
+            throw new InvalidOperationException(prefix + "Could not get signature help");
         }
 
-        Assert.True(
-            actual.Signatures.Length == expected.Signatures.Count,
-            prefix + "Expected " + expected.Signatures.Count + " signatures, got " + actual.Signatures.Length);
-        for (int i = 0; i < expected.Signatures.Count; i++)
+        // Determine which signature to check.
+        int selectedIndex = 0;
+        if (expected.OverrideSelectedItemIndex > 0)
         {
-            SignatureInformation actualSignature = actual.Signatures[i];
-            ExpectedSignatureInformation expectedSignature = expected.Signatures[i];
-            Assert.True(
-                string.Equals(actualSignature.Label, expectedSignature.Label, StringComparison.Ordinal),
-                prefix + "Signature " + i + " label mismatch: expected \""
-                + expectedSignature.Label + "\", got \"" + actualSignature.Label + "\"");
-            if (expectedSignature.ParameterLabels != null)
+            selectedIndex = expected.OverrideSelectedItemIndex;
+        }
+        else if (help.ActiveSignature >= 0)
+        {
+            selectedIndex = help.ActiveSignature;
+        }
+
+        if (selectedIndex >= help.Signatures.Length)
+        {
+            throw new InvalidOperationException(
+                prefix + "Selected signature index " + selectedIndex + " out of range (have " + help.Signatures.Length + " signatures)");
+        }
+
+        SignatureInformation selectedSig = help.Signatures[selectedIndex];
+        var mismatches = new List<string>();
+
+        if (expected.OverloadsCount > 0 && help.Signatures.Length != expected.OverloadsCount)
+        {
+            mismatches.Add($"Expected {expected.OverloadsCount} overloads, got {help.Signatures.Length}");
+        }
+        if (expected.Text.Length != 0 && !string.Equals(selectedSig.Label, expected.Text, StringComparison.Ordinal))
+        {
+            mismatches.Add($"Expected signature text \"{expected.Text}\", got \"{selectedSig.Label}\"");
+        }
+        // DocComment: the foundation SignatureInformation record carries no documentation field
+        // (Recorded seam — the assertion is skipped when the corpus expects documentation).
+        if (expected.ParameterCount > 0 && selectedSig.Parameters.Length != expected.ParameterCount)
+        {
+            mismatches.Add($"Expected {expected.ParameterCount} parameters, got {selectedSig.Parameters.Length}");
+        }
+
+        int activeParamIndex = help.ActiveParameter ?? -1;
+        ParameterInformation? activeParam =
+            activeParamIndex >= 0 && activeParamIndex < selectedSig.Parameters.Length
+                ? selectedSig.Parameters[activeParamIndex]
+                : null;
+
+        if (expected.ParameterName.Length != 0)
+        {
+            if (activeParam == null)
             {
-                Assert.True(
-                    actualSignature.Parameters.Length == expectedSignature.ParameterLabels.Count,
-                    prefix + "Signature " + i + " parameter count mismatch");
-                for (int p = 0; p < expectedSignature.ParameterLabels.Count; p++)
+                mismatches.Add($"Expected parameter name \"{expected.ParameterName}\", but no active parameter");
+            }
+            else
+            {
+                string label = activeParam.Label;
+                if (label.StartsWith("...", StringComparison.Ordinal))
                 {
-                    Assert.True(
-                        string.Equals(actualSignature.Parameters[p].Label, expectedSignature.ParameterLabels[p], StringComparison.Ordinal),
-                        prefix + "Signature " + i + " parameter " + p + " label mismatch: expected \""
-                        + expectedSignature.ParameterLabels[p] + "\", got \"" + actualSignature.Parameters[p].Label + "\"");
+                    label = label[3..];
+                }
+                string actualName;
+                int colon = label.IndexOf(':', StringComparison.Ordinal);
+                int extends = label.IndexOf(" extends ", StringComparison.Ordinal);
+                if (colon >= 0)
+                {
+                    actualName = label[..colon].Trim();
+                }
+                else if (extends >= 0)
+                {
+                    actualName = label[..extends].Trim();
+                }
+                else
+                {
+                    actualName = label;
+                }
+                if (!string.Equals(actualName, expected.ParameterName, StringComparison.Ordinal))
+                {
+                    mismatches.Add($"Expected parameter name \"{expected.ParameterName}\", got \"{actualName}\"");
                 }
             }
-            if (expectedSignature.IsVariadic.HasValue)
+        }
+        if (expected.ParameterSpan.Length != 0)
+        {
+            if (activeParam == null)
             {
-                Assert.Equal(expectedSignature.IsVariadic.Value, actualSignature.IsVariadic);
+                mismatches.Add($"Expected parameter span \"{expected.ParameterSpan}\", but no active parameter");
+            }
+            else if (!string.Equals(activeParam.Label, expected.ParameterSpan, StringComparison.Ordinal))
+            {
+                mismatches.Add($"Expected parameter span \"{expected.ParameterSpan}\", got \"{activeParam.Label}\"");
             }
         }
-        if (expected.ActiveSignature.HasValue)
+        // ParameterDocComment: no documentation field on the foundation ParameterInformation
+        // record (recorded seam; same shape as DocComment above).
+        if (expected.IsVariadicSet)
         {
-            Assert.Equal(expected.ActiveSignature.Value, actual.ActiveSignature);
+            bool actualIsVariadic = false;
+            foreach (ParameterInformation param in selectedSig.Parameters)
+            {
+                if (param.Label.StartsWith("...", StringComparison.Ordinal))
+                {
+                    actualIsVariadic = true;
+                    break;
+                }
+            }
+            if (actualIsVariadic != expected.IsVariadic)
+            {
+                mismatches.Add($"Expected isVariadic={expected.IsVariadic}, got {actualIsVariadic}");
+            }
         }
-        if (expected.ActiveParameter.HasValue)
+
+        if (mismatches.Count != 0)
         {
-            Assert.Equal(expected.ActiveParameter.Value, actual.ActiveParameter);
+            Assert.Fail(prefix + string.Join("\n", mismatches));
         }
     }
 
     // ---------------------------------------------------------------------
-    // internal/fourslash/semantictokens.go — VerifySemanticTokens (whole file).
+    // internal/fourslash/semantictokens.go — VerifySemanticTokens (whole file). The SemanticToken
+    // record is declared at namespace level (Fourslash.Options.cs) so the corpus can name it
+    // unqualified, matching Go.
     // ---------------------------------------------------------------------
-
-    public sealed record SemanticToken(string Type, string Text);
 
     public void VerifySemanticTokens(IReadOnlyList<SemanticToken> expected)
     {
@@ -1157,29 +1346,37 @@ public sealed partial class FourslashTest
             "  [" + i + "] {Type: \"" + tok.Type + "\", Text: \"" + tok.Text + "\"}"));
 
     // ---------------------------------------------------------------------
-    // fourslash.go:5191-5216 — VerifyLinkedEditing.
+    // fourslash.go:5191-5216 — VerifyLinkedEditing / VerifyLinkedEditingHasNone.
     // ---------------------------------------------------------------------
 
-    public void VerifyLinkedEditing(IReadOnlyDictionary<string, IReadOnlyList<LsProto.Range>> markerNamesToExpected)
+    // fourslash.go:5191-5216 — VerifyLinkedEditing. A `null` value means the response must have
+    // no entry for that marker, which is a different assertion from an empty range list and is
+    // checked by VerifyLinkedEditingHasNone below.
+    public void VerifyLinkedEditing(IReadOnlyDictionary<string, LsProto.Range[]?> markerNamesToExpected)
     {
         // map-iter: 序无关 — each marker is verified independently.
-        foreach (KeyValuePair<string, IReadOnlyList<LsProto.Range>> entry in markerNamesToExpected)
+        foreach (KeyValuePair<string, LsProto.Range[]?> entry in markerNamesToExpected)
         {
             GoToMarker(entry.Key);
             LsProto.LinkedEditingRanges? actualRanges = LS().ProvideLinkedEditingRange(
                 activeFilename,
                 caretOffset());
+            if (entry.Value == null)
+            {
+                throw new InvalidOperationException(
+                    "Marker '" + entry.Key + "' expects no linked editing entry; call VerifyLinkedEditingHasNone.");
+            }
             if (actualRanges == null)
             {
                 throw new InvalidOperationException(
                     "Expected linked editing ranges for marker '" + entry.Key + "' but got nil");
             }
-            IReadOnlyList<LsProto.Range> expectedRanges = entry.Value;
+            LsProto.Range[] expectedRanges = entry.Value;
             Assert.True(
-                actualRanges.Ranges.Length == expectedRanges.Count,
+                actualRanges.Ranges.Length == expectedRanges.Length,
                 "Linked editing range count for marker '" + entry.Key + "' does not match expected: got "
-                + actualRanges.Ranges.Length + ", expected " + expectedRanges.Count);
-            for (int i = 0; i < expectedRanges.Count && i < actualRanges.Ranges.Length; i++)
+                + actualRanges.Ranges.Length + ", expected " + expectedRanges.Length);
+            for (int i = 0; i < expectedRanges.Length && i < actualRanges.Ranges.Length; i++)
             {
                 Assert.True(
                     actualRanges.Ranges[i].Start.Line == expectedRanges[i].Start.Line &&
@@ -1187,6 +1384,29 @@ public sealed partial class FourslashTest
                     actualRanges.Ranges[i].End.Line == expectedRanges[i].End.Line &&
                     actualRanges.Ranges[i].End.Character == expectedRanges[i].End.Character,
                     "Linked editing range " + i + " for marker '" + entry.Key + "' does not match expected");
+            }
+        }
+    }
+
+    // The `= null` entries of the corpus's marker→range map: the response must have no entry.
+    public void VerifyLinkedEditingHasNone(IReadOnlyDictionary<string, LsProto.Range[]?> markerNamesToExpected)
+    {
+        // map-iter: 序无关 — each marker is verified independently.
+        foreach (KeyValuePair<string, LsProto.Range[]?> entry in markerNamesToExpected)
+        {
+            if (entry.Value != null)
+            {
+                continue;
+            }
+            GoToMarker(entry.Key);
+            LsProto.LinkedEditingRanges? actualRanges = LS().ProvideLinkedEditingRange(
+                activeFilename,
+                caretOffset());
+            if (actualRanges != null)
+            {
+                throw new InvalidOperationException(
+                    "Expected no linked editing ranges for marker '" + entry.Key + "' but got "
+                    + actualRanges.Ranges.Length);
             }
         }
     }

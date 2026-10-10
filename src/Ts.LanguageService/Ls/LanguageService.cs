@@ -15,8 +15,9 @@ public sealed partial class LanguageService
     // per request via lsproto.GetClientCapabilities(ctx); plan/01 §4.4 fixed the C#
     // RequestContext shape (no context values), so the session-scoped capabilities are
     // stored on the instance at construction (identical semantics: immutable for the
-    // service lifetime; registered deviation, see Project/LsProto.Missing.cs).
-    private readonly global::Ts.LsProto.ResolvedClientCapabilities clientCapabilities;
+    // service lifetime; registered deviation, see Project/LsProto.Missing.cs). Mutable only
+    // through ConfigureWithPreferences, which re-installs a re-negotiated set.
+    private global::Ts.LsProto.ResolvedClientCapabilities clientCapabilities;
 
     // languageservice.go — the negotiated position encoding ("utf-16" | "utf-8"); the
     // converters are built over it (ls session.go: NewConverters(positionEncoding, ...)).
@@ -101,6 +102,19 @@ public sealed partial class LanguageService
     {
         return converters ??= host.Converters() ?? new global::Ts.Ls.LsConv.Converters(positionEncoding, fileName =>
             global::Ts.Ls.LsConv.LineMap.ComputeLSPLineStarts(program.GetSourceFile(fileName)!.Text()));
+    }
+
+    // languageservice.go:24-38 — Go seeds activeConfig from host.GetPreferences(activeFile) at
+    // construction; the lsp wave re-seeds it on workspace/didChangeConfiguration. The
+    // direct-program host has no such channel, so a caller that owns the preferences (the
+    // fourslash harness) may re-install the value it just adopted. The capabilities travel with
+    // it because the raw LS entry points read them off the instance (lsproto.GetClientCapabilities).
+    public void ConfigureWithPreferences(
+        global::Ts.Ls.UserPreferences preferences,
+        global::Ts.LsProto.ResolvedClientCapabilities capabilities)
+    {
+        activeConfig = preferences ?? throw new ArgumentNullException(nameof(preferences));
+        clientCapabilities = capabilities ?? throw new ArgumentNullException(nameof(capabilities));
     }
 
     // languageservice.go:92-107 — getPreparedAutoImportView returns an auto-import view for the

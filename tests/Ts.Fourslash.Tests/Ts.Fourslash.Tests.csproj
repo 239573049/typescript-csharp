@@ -7,6 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The emitted corpus spells the Go package qualifiers `Core.X` / `Ls.X` (core.TSTrue,
+         ls.SortText*) in every generated file. Go resolves those through the util.go
+         dot-import plus the core/ls package names; C# has no ambient `Core`/`Ls` type, so the
+         two qualifiers are declared compilation-wide here, under the alias names the generator
+         emits (Core_/Ls_ — a plain `Core` alias cannot be declared at all: inside the util's
+         own namespace the alias RHS binds to the namespace and yields CS0234, and a per-file
+         alias for it collides with these global ones as CS1537).
+         The `using static` supplies the util.go members the corpus names unqualified
+         (AnyTextEdits, Ignored, DefaultCommitCharacters); it does not shadow the aliases.
+         NOTE: within the runner partials the util type must be named unqualified through this
+         static using — the bare `FourslashTestUtil` qualifier does not bind from inside
+         namespace Ts.TestUtil.Fourslash (CS0103), and the runner partials are compiled here. -->
+    <Using Include="Ts.Fourslash.Tests.FourslashTestUtil" Static="true" />
+    <Using Include="Ts.Fourslash.Tests.FourslashTestUtil" Alias="Core_" />
+    <Using Include="Ts.Fourslash.Tests.FourslashTestUtil" Alias="Ls_" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -33,12 +51,29 @@
     <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.cs" Link="Fourslash/Fourslash.cs" />
     <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Verify.cs" Link="Fourslash/Fourslash.Verify.cs" />
     <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Baseline.cs" Link="Fourslash/Fourslash.Baseline.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Options.cs" Link="Fourslash/Fourslash.Options.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/FourslashBaselineText.cs" Link="Fourslash/FourslashBaselineText.cs" />
     <Compile Include="../Ts.TestUtil/Fourslash/FourslashMarkers.cs" Link="Fourslash/FourslashMarkers.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.CodeFixes.cs" Link="Fourslash/Fourslash.CodeFixes.cs" />
+    <Compile Include="../Ts.TestUtil/Fourslash/Fourslash.Baselines.Verify.cs" Link="Fourslash/Fourslash.Baselines.Verify.cs" />
+    <!-- The parse-output model is NOT linked: FourslashTest.New reaches it through
+         FourslashParser.ParseTestData (compiled into Ts.TestUtil, unguarded), and linking the
+         file as well would give the session a second FourslashProject/FourslashFile/FourslashMarker
+         type set that the tests could not mix (CS1503/CS0436). The project constructor is public
+         so the partials compiled here can rebuild the normalized TestData, as Go does at
+         fourslash.go:145. -->
+    <!-- FourslashBaselineUtil.cs is deliberately NOT linked: it is unguarded and therefore
+         already compiled into the referenced Ts.TestUtil assembly, and linking it here would
+         surface CS0436 for every one of its types. -->
   </ItemGroup>
 
   <ItemGroup>
     <!-- Port of internal/fourslash/_scripts/failingTests.txt (skip_if_failing.go). -->
     <EmbeddedResource Include="Scripts/failingTests.txt" />
+    <!-- The C#-only failure list (plan/11 deviation D-021): not a tsgo file. Records the tests
+         whose failure is a known gap in the C# port rather than in the ported test, so the suite
+         can be green while the gap is tracked. -->
+    <EmbeddedResource Include="Scripts/csharpFailingTests.txt" />
   </ItemGroup>
 
 </Project>

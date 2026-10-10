@@ -182,6 +182,7 @@ public sealed class UserPreferences
     public Tristate EnableJSDocCompletions;
     // userpreferences.go:81 — GenerateReturnInDocTemplate.
     public Tristate GenerateReturnInDocTemplate;
+
     // userpreferences.go:866-872 — ModuleSpecifierPreferences.
     public global::Ts.ModuleSpecifiers.UserPreferences ModuleSpecifierPreferences()
     {
@@ -454,14 +455,13 @@ public sealed class UserPreferences
                     IncludeInlayParameterNameHints.Literals => "literals",
                     _ => null,
                 };
-            // PORT-NOTE: Go's SemicolonPreference zero value is "" (omitted); the C# enum's zero
-            // is Ignore, which every Go-constructed value also carries, so it always serializes.
             case FieldKind.SemicolonPreference:
                 return (global::Ts.Format.SemicolonPreference)value switch
                 {
                     global::Ts.Format.SemicolonPreference.Insert => "insert",
                     global::Ts.Format.SemicolonPreference.Remove => "remove",
-                    _ => "ignore",
+                    global::Ts.Format.SemicolonPreference.Ignore => "ignore",
+                    _ => "",
                 };
             case FieldKind.Bool:
                 return (bool)value;

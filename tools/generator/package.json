@@ -17,6 +17,7 @@
     "gen:stringers": "node --experimental-strip-types generate-stringers.ts",
     "gen:encoder": "node --experimental-strip-types generate-csharp-encoder.ts",
     "gen:unicode": "node --experimental-strip-types transcribe-unicode.ts",
+    "convert:fourslash": "node --experimental-strip-types --no-warnings convert-fourslash-csharp.mts",
     "gen:all": "npm run gen:ast && npm run gen:diagnostics && npm run gen:libs && npm run gen:lsp && npm run gen:stringers && npm run gen:encoder",
     "check": "tsc -p tsconfig.json"
   }

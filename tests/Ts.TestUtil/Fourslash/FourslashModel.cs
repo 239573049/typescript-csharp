@@ -50,7 +50,10 @@ public sealed record FourslashRange(
 // test_parser.go:90-97 — TestData.
 public sealed class FourslashProject
 {
-    internal FourslashProject(
+    // PUBLIC because the runner partials are compiled into Ts.Fourslash.Tests, which references
+    // this assembly and does not link this file (see the test csproj) — Go's TestData literal
+    // construction in NewFourslash (fourslash.go:145) needs the constructor visible there.
+    public FourslashProject(
         IReadOnlyList<FourslashFile> files,
         IReadOnlyDictionary<string, FourslashMarkerPosition> markerPositions,
         IReadOnlyList<FourslashMarker> markers,

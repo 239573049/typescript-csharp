@@ -49,9 +49,18 @@ public sealed partial class FourslashTest : IDisposable
 
     private readonly Ts.Project.ProjectService projectService;
 
+    // Go: f.vfs (fourslash.go:104) — the wrapped MapFS (with bundled:///). It is what the
+    // baseline producers walk (baselineutil.go:588-600) and what a file's text is read back
+    // from (textOfFile, :654). The C# ProjectService keeps its own copy and does not expose it,
+    // so the harness carries the same instance.
+    private readonly IFileSystem vfs;
+
     private readonly FourslashProject testData; // !!! consolidate test files from test data and script info
     private readonly FourslashBaselines baselines = new();
     private Dictionary<string, List<RangeMarker>>? rangesByText;
+
+    // fourslash.go:52-53 — openFiles (map[string]struct{}) doubles as ensureActiveFile's didOpen
+    // bookkeeping; insertion order is the open order, so both callers use Add/Remove/Contains.
     private readonly HashSet<string> openFiles = new(StringComparer.Ordinal);
 
     private readonly List<Marker> markers;
@@ -61,20 +70,42 @@ public sealed partial class FourslashTest : IDisposable
     private readonly Converters converters;
 
     private bool stateEnableFormatting = true;
-    private readonly UserPreferences userPreferences = UserPreferences.NewDefaultUserPreferences();
+    private UserPreferences userPreferences = UserPreferences.NewDefaultUserPreferences();
+
+    // fourslash.go:65 — capabilities. New() stamps the default capability document into it
+    // (GetDefaultCapabilities); the LS entries that read client capabilities consume it through
+    // LS() (ResolvedCapabilities).
+    private LsProto.ClientCapabilities? capabilities;
+    private LsProto.ResolvedClientCapabilities? resolvedCapabilities;
+
+    // fourslash.go:2562 — MarkTestAsStradaServer.
+    private bool isStradaServer;
+
+    // fourslash.go:58 — reportFormatOnTypeCrash. Go's typeText clears the *field* to disable the
+    // crash report while typing, but its only reader is the on-type-formatting request, which
+    // this port omits (no C# formatting host); typeText therefore keeps Go's shadowing local
+    // declaration only, and no instance field is needed.
+
+    // fourslash.go:294-315 — getBaseFileNameFromTest. Go recovers it from the test method name;
+    // the emitted corpus already passes exactly that name as `fileName` to New(), so it is
+    // carried from there.
+    private readonly string testBaseName;
+
     private LsProto.Position currentCaretPosition = new();
     private string? lastKnownMarkerName;
     private string activeFilename;
     private LsProto.Position? selectionEnd;
 
-    // Semantic token configuration (fourslash.go:374-375).
-    private readonly string[] semanticTokenTypes = DefaultSemanticTokenTypes();
-    private readonly string[] semanticTokenModifiers = DefaultSemanticTokenModifiers();
+    // Semantic token configuration (fourslash.go:374-375). Mutable: New() lifts the values out
+    // of FourslashOptions (Go's initialize() stamps the client capabilities into the server).
+    private string[] semanticTokenTypes = DefaultSemanticTokenTypes();
+    private string[] semanticTokenModifiers = DefaultSemanticTokenModifiers();
 
     private readonly CancellationToken cancellationToken;
 
     private FourslashTest(
         Ts.Project.ProjectService projectService,
+        IFileSystem vfs,
         FourslashProject testData,
         List<Marker> markers,
         List<RangeMarker> ranges,
@@ -82,9 +113,11 @@ public sealed partial class FourslashTest : IDisposable
         Dictionary<string, FourslashScriptInfo> scriptInfos,
         Converters converters,
         string activeFilename,
+        string testBaseName,
         CancellationToken cancellationToken)
     {
         this.projectService = projectService;
+        this.vfs = vfs;
         this.testData = testData;
         this.markers = markers;
         this.ranges = ranges;
@@ -92,13 +125,32 @@ public sealed partial class FourslashTest : IDisposable
         this.scriptInfos = scriptInfos;
         this.converters = converters;
         this.activeFilename = activeFilename;
+        this.testBaseName = testBaseName;
         this.cancellationToken = cancellationToken;
     }
 
-    // fourslash.go:133-237 — NewFourslash. `capabilities` has no counterpart: the C# foundation
-    // carries no capability negotiation (the Go defaults shape what the server sends; the raw
-    // LS entries here take explicit parameters instead).
-    public static FourslashTest New(string content, string? fileName = null, CancellationToken cancellationToken = default)
+    // fourslash.go:133-237 — NewFourslash. The Go `capabilities` parameter is threaded
+    // (fourslash.go:472-638): it reaches the server through initialize(), which stamps the
+    // client-provided semantic-token types/modifiers and the completion snippet/insert-replace
+    // flags into the server's capability state. The C# foundation negotiates nothing — the raw
+    // LS entry points take those parameters explicitly (ProvideSemanticTokens takes the
+    // resolved capability object; ProvideCompletions reads preferences, not capabilities) — so
+    // FourslashOptions is accepted and carried for shape parity, and the semantic-token
+    // configuration below is the part that actually feeds a request.
+    public sealed class FourslashOptions
+    {
+        public LsProto.ClientCapabilities? Capabilities;
+
+        // fourslash.go:566-638 — getCapabilitiesWithDefaults (the pieces the C# LS reads).
+        public string[]? SemanticTokenTypes;
+        public string[]? SemanticTokenModifiers;
+    }
+
+    public static FourslashTest New(
+        string content,
+        string? fileName = null,
+        FourslashOptions? options = null,
+        CancellationToken cancellationToken = default)
     {
         if (!global::Ts.Bundled.Bundled.Embedded)
         {
@@ -108,7 +160,8 @@ public sealed partial class FourslashTest : IDisposable
         }
 
         // Go: getBaseFileNameFromTest(t) + tspath.ExtensionTs — the test supplies the base name.
-        string baseFileName = (fileName ?? "test") + ".ts";
+        string testBaseName = fileName ?? "test";
+        string baseFileName = testBaseName + ".ts";
 
         var testfs = new Dictionary<string, object>(StringComparer.Ordinal);
         var scriptInfos = new Dictionary<string, FourslashScriptInfo>(StringComparer.Ordinal);
@@ -137,9 +190,25 @@ public sealed partial class FourslashTest : IDisposable
             Target = ScriptTarget.LatestStandard,
             Jsx = JsxEmit.Preserve,
         };
-        ApplyOptionsFromTestConfig(compilerOptions, testData.GlobalOptions);
+        var harnessOptions = new Ts.TestUtil.HarnessOptions
+        {
+            UseCaseSensitiveFileNames = true,
+            CurrentDirectory = RootDirectory,
+        };
+        Ts.TestUtil.HarnessUtil.SetOptionsFromTestConfig(
+            testData.GlobalOptions,
+            compilerOptions,
+            harnessOptions,
+            RootDirectory,
+            allowUnknownOptions: true);
 
-        IFileSystem fsFromMap = VfsTestUtil.FromMap(testfs, useCaseSensitiveFileNames: true);
+        // fourslash.go:173 — harnessutil.SkipUnsupportedCompilerOptions.
+        Ts.TestUtil.HarnessUtil.SkipUnsupportedCompilerOptions(compilerOptions);
+
+        // fourslash.go:175-176 — fsFromMap feeds vfstest.FromMap with the harness's
+        // UseCaseSensitiveFileNames; fs is the bundled:///-wrapped view (that is what Go hands
+        // the server, and what f.vfs is — the baseline producers read file text back through it).
+        IFileSystem fsFromMap = VfsTestUtil.FromMap(testfs, harnessOptions.UseCaseSensitiveFileNames);
         IFileSystem fs = global::Ts.Bundled.Bundled.WrapFS(fsFromMap);
 
         var projectService = new Ts.Project.ProjectService(
@@ -149,6 +218,25 @@ public sealed partial class FourslashTest : IDisposable
             watcher: null,
             compilerOptions);
 
+        // fourslash.go:145 — every path handed to the session is normalized against rootDir
+        // (markers/ranges carry the same normalized names; see the parser).
+        var normalizedFiles = new List<FourslashFile>(testData.Files.Count);
+        foreach (FourslashFile file in testData.Files)
+        {
+            normalizedFiles.Add(file with
+            {
+                VirtualFileName = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(file.VirtualFileName, RootDirectory),
+            });
+        }
+        testData = new FourslashProject(
+            normalizedFiles,
+            testData.MarkerPositions,
+            testData.Markers,
+            testData.Ranges,
+            testData.NamedRanges,
+            testData.GlobalOptions,
+            testData.Symlinks);
+
         var converters = new Converters("utf-16", fileNameIn =>
             scriptInfos.TryGetValue(fileNameIn, out FourslashScriptInfo? scriptInfo)
                 ? scriptInfo.LineMap
@@ -156,10 +244,10 @@ public sealed partial class FourslashTest : IDisposable
 
         var (markers, ranges, markerPositions) = FourslashMarkers.FromProject(
             testData,
-            fileNameIn => scriptInfos[fileNameIn].Content);
-
+            fileNameIn => getFileTextFromVfs(fs, fileNameIn));
         var f = new FourslashTest(
             projectService,
+            fs,
             testData,
             markers,
             ranges,
@@ -167,13 +255,30 @@ public sealed partial class FourslashTest : IDisposable
             scriptInfos,
             converters,
             activeFilename: testData.Files[0].VirtualFileName,
+            testBaseName,
             cancellationToken);
+
+        // fourslash.go:472-556 — GetDefaultCapabilities is what the corpus passes when it needs
+        // the default client capabilities; the pieces the C# LS actually reads (semantic-token
+        // types/modifiers) are lifted from the options here. The raw LS entry points take the
+        // completion/interaction flags explicitly, so Capabilities itself is carried, not
+        // negotiated.
+        f.capabilities = options?.Capabilities ?? GetDefaultCapabilities();
+        if (options?.SemanticTokenTypes is { Length: > 0 } tokenTypes)
+        {
+            f.semanticTokenTypes = tokenTypes;
+        }
+        if (options?.SemanticTokenModifiers is { Length: > 0 } tokenModifiers)
+        {
+            f.semanticTokenModifiers = tokenModifiers;
+        }
 
         if (testData.IsStateBaseliningEnabled)
         {
-            // Single baseline, so initialize project state baseline too. OMITTED: the C#
-            // foundation does not expose the project Snapshot/ProjectCollection surface the Go
-            // state baseline rides on (plan/11 known-deviation entry).
+            // fourslash.go:228-235 — the state baseline (statebaseline.go) rides the project
+            // snapshot/collection surface, which the C# foundation does not expose. The corpus
+            // shape that sets `// @statebaseline` is rejected loudly (recorded seam; the
+            // affected tests are listed in Scripts/csharpFailingTests.txt).
             throw new NotSupportedException(
                 "statebaseline is not supported by the C# fourslash port yet (project snapshot surface not ported).");
         }
@@ -187,9 +292,18 @@ public sealed partial class FourslashTest : IDisposable
         return f;
     }
 
+    // fourslash.go:236-239 — the deferred closeClient()+verifyBaselines() pair. The generated
+    // tests hold the harness in `using var f`, so Dispose is that deferred call.
     public void Dispose()
     {
         projectService.Dispose();
+        if (!testData.IsStateBaseliningEnabled)
+        {
+            // fourslash.go:5041-5049 — verifyBaselines(testPath). Go recovers the test path from
+            // runtime.Caller; here the basename corpus's baseline key comes from the emitted
+            // fileName (FourslashBaselineUtil.GetBaselineFileName).
+            verifyBaselines(testBaseName);
+        }
     }
 
     // fourslash.go:986-1009 — getLanguageKind. (Extensions spelled out; they are the Go
@@ -243,17 +357,37 @@ public sealed partial class FourslashTest : IDisposable
         FourslashScriptInfo? script = getScriptInfo(filename);
         if (script == null)
         {
-            throw new InvalidOperationException("File " + filename + " not found in test data");
+            // fourslash.go:895-901 — Go falls back to reading the file straight from the VFS
+            // (which is the bundled:///-wrapped view, so a request for a lib file resolves to
+            // its embedded text) and registers the script info it just created. Only when that
+            // read fails too does it Fatalf.
+            string? content = ReadTextFileOrNull(vfs, filename);
+            if (content != null)
+            {
+                script = FourslashScriptInfo.New(filename, content);
+                scriptInfos[filename] = script;
+            }
+            else
+            {
+                throw new InvalidOperationException("File " + filename + " not found in test data");
+            }
         }
         activeFilename = filename;
         projectService.OpenDocument(filename, script.Content, script.Version);
         openFiles.Add(filename);
     }
 
+    // fourslash.go:899 — f.vfs.ReadFile(filename) (contents string, ok bool). The C# IFileSystem
+    // spells the same shape TryReadFile(path, out contents); a missing file is the `ok == false`
+    // arm.
+    private static string? ReadTextFileOrNull(IFileSystem fs, string fileName) =>
+        fs.TryReadFile(fileName, out string contents) ? contents : null;
+
     // fourslash.go:818-830 — GoToFile / GoToFileNumber.
     public void GoToFile(string filename)
     {
-        ensureActiveFile(filename);
+        filename = global::Ts.TsPath.TsPath.GetNormalizedAbsolutePath(filename, RootDirectory);
+        openFile(filename);
     }
 
     public void GoToFileNumber(int index)
@@ -262,7 +396,7 @@ public sealed partial class FourslashTest : IDisposable
         {
             throw new ArgumentOutOfRangeException(nameof(index), "Invalid file index: " + index);
         }
-        GoToFile(testData.Files[index].VirtualFileName);
+        openFile(testData.Files[index].VirtualFileName);
     }
 
     // fourslash.go:831-861 — Markers / MarkerNames / MarkerByName / Ranges.
@@ -285,12 +419,20 @@ public sealed partial class FourslashTest : IDisposable
     public List<RangeMarker> getRangesInFile(string fileName) =>
         ranges.Where(range => range.FileName == fileName).ToList();
 
-    // fourslash.go:862-871 — ensureActiveFile.
+    // fourslash.go:862-870 — ensureActiveFile. Go only reopens when the file is not already in
+    // openFiles ({ didOpen } doubles as the open set).
     private void ensureActiveFile(string filename)
     {
         if (filename != activeFilename)
         {
-            openFile(filename);
+            if (!openFiles.Contains(filename))
+            {
+                openFile(filename);
+            }
+            else
+            {
+                activeFilename = filename;
+            }
         }
     }
 
@@ -388,7 +530,12 @@ public sealed partial class FourslashTest : IDisposable
         selectionEnd = rangeMarker.LSRange.End;
     }
 
-    // fourslash.go:1208-1219 — goToMarkerInput. (Go: string | *Marker.)
+    // fourslash.go:1208-1219 — goToMarkerInput. Go's switch has exactly two live arms
+    // (string, *Marker) and falls through to Fatalf on anything else — including a nil
+    // MarkerInput, which is what Go receives when a caller passes an untyped nil. The corpus
+    // reaches this helper only through VerifyJSDocCompletion/VerifyNoJSDocCompletion, whose
+    // argument is a string or a *Marker; the arms are spelled to match Go's (a null input
+    // therefore throws here too, unlike the earlier permissive C# version).
     private void goToMarkerInput(object? markerInput)
     {
         switch (markerInput)
@@ -399,15 +546,17 @@ public sealed partial class FourslashTest : IDisposable
             case Marker marker:
                 goToMarker(marker);
                 break;
-            case null:
-                break;
             default:
                 throw new InvalidOperationException(
-                    "Invalid marker input type: " + markerInput.GetType().Name + ". Expected string or Marker.");
+                    "Invalid marker input type: " + (markerInput?.GetType().Name ?? "<nil>")
+                    + ". Expected string or Marker.");
         }
     }
 
-    // fourslash.go:5023-5039 — GetRangesByText / getRangeText.
+    // fourslash.go:5023-5039 — GetRangesByText / getRangeText. Go returns a MultiMap indexed by
+    // the range's text; the C# corpus reads it as either an element list (`[.. f.GetRangesByText()[k]]`)
+    // or a single element (`f.GetRangesByText()[k][0]`), exactly Go's slicing of the MultiMap's
+    // []*RangeMarker value.
     public Dictionary<string, List<RangeMarker>> GetRangesByText()
     {
         if (rangesByText != null)
@@ -428,6 +577,9 @@ public sealed partial class FourslashTest : IDisposable
         rangesByText = newRangesByText;
         return newRangesByText;
     }
+
+    // The single-element view of GetRangesByText() the corpus also spells is plain indexing
+    // (Go: multiMap.Get(key)[0]) — no helper needed.
 
     private string getRangeText(RangeMarker r)
     {
@@ -709,8 +861,28 @@ public sealed partial class FourslashTest : IDisposable
 
     // The LanguageService for the active file, resolved per call: ProjectService rebuilds the
     // project (and its LanguageService) on every ChangeDocument, mirroring how Go's requests
-    // are always answered from the server's current program state.
-    private Ts.Ls.LanguageService LS() => projectService.GetLanguageService(activeFilename);
+    // are always answered from the server's current program state. The direct-program host has
+    // no configuration exchange, so the preference set the session adopted (Configure /
+    // ConfigureWithReset) and the client capabilities are installed on the service the request
+    // will run against — Go's server reads both per request (host.GetPreferences /
+    // lsproto.GetClientCapabilities).
+    private Ts.Ls.LanguageService LS()
+    {
+        Ts.Ls.LanguageService ls = projectService.GetLanguageService(activeFilename);
+        ls.ConfigureWithPreferences(userPreferences, ResolvedCapabilities());
+        return ls;
+    }
+
+    // fourslash.go:557-636 + :100-131 — Go's initialize() runs the client document through
+    // getCapabilitiesWithDefaults before the server resolves it. The C# harness must merge first:
+    // the corpus mutates the document returned by GetDefaultCapabilities() *before* New() (e.g.
+    // docCommentTemplate* clears CompletionItem.SnippetSupport), so the raw field is what the
+    // session stored, and the merge supplies the named capabilities the test left unset (the
+    // shipped reference hover baselines are markdown, which only Hover.ContentFormat unset +
+    // default yields).
+    private LsProto.ResolvedClientCapabilities ResolvedCapabilities() =>
+        resolvedCapabilities ??=
+            Ts.LsProto.ResolvedClientCapabilitiesExtensions.Resolve(WithDefaults(capabilities));
 
     private FourslashScriptInfo? getOrLoadScriptInfo(string fileName)
     {
@@ -733,169 +905,165 @@ public sealed partial class FourslashTest : IDisposable
         return null;
     }
 
-    // fourslash.go:699-701 — GetOptions (Configure/ConfigureWithReset omitted: the C#
-    // foundation's preferences channel is read-only).
+    // fourslash.go:699-701 — GetOptions.
     public UserPreferences GetOptions() => userPreferences;
 
-    // harnessutil.SetOptionsFromTestConfig (compiler-options half; fourslash passes
-    // allowUnknownOptions=true, so unrecognized directives are ignored).
-    private static void ApplyOptionsFromTestConfig(CompilerOptions compilerOptions, IReadOnlyDictionary<string, string> globalOptions)
+    // fourslash.go:703-713 — Configure. Go sends workspace/didChangeConfiguration; the
+    // direct-program host has no configuration exchange, so the copy is handed to the
+    // LanguageService (see LS()) — the LS installs it in ConfigureWithPreferences before each
+    // request, which is what "the server adopted the new config" means here.
+    public void Configure(UserPreferences config)
     {
-        var argv = new List<string>();
-        // map-iter: 已排序 — command-line flags are order-sensitive; a fixed order keeps the
-        // parse deterministic (Go iterates the map freely).
-        foreach (string optionKey in globalOptions.Keys.OrderBy(static key => key, StringComparer.Ordinal))
-        {
-            string rawValue = globalOptions[optionKey];
-            switch (DecodeOptionValue(rawValue))
-            {
-                case true:
-                    argv.Add("--" + optionKey);
-                    break;
-                case false:
-                    argv.Add("--" + optionKey);
-                    argv.Add("false");
-                    break;
-                case JsonElement { ValueKind: JsonValueKind.Number } number:
-                    argv.Add("--" + optionKey);
-                    argv.Add(number.GetRawText());
-                    break;
-                case JsonElement { ValueKind: JsonValueKind.String } text:
-                    argv.Add("--" + optionKey);
-                    argv.Add(text.GetString() ?? "");
-                    break;
-                case string text:
-                    argv.Add("--" + optionKey);
-                    argv.Add(text);
-                    break;
-                default:
-                    // Objects/arrays/null: config-shaped and list-valued options are not
-                    // applied by this path (recorded seam).
-                    break;
-            }
-        }
+        userPreferences = config;
+    }
 
-        if (argv.Count == 0)
-        {
-            return;
-        }
+    // fourslash.go:715-721 — ConfigureWithReset. Go returns the reset closure; the reset
+    // argument is the original config, so passing it back through Configure is the same call.
+    public void ConfigureWithReset(UserPreferences config, out UserPreferences saved)
+    {
+        saved = userPreferences;
+        Configure(config);
+    }
 
-        var configHost = new FourslashConfigHost();
-        global::Ts.TsOptions.ParsedCommandLine commandLine =
-            global::Ts.TsOptions.CommandLineParser.ParseCommandLine(argv.ToArray(), configHost);
-        CompilerOptions? parsed = commandLine.CompilerOptions();
-        if (parsed == null)
+    // The verify families' `if preferences != nil { reset := f.ConfigureWithReset(...); defer reset() }`
+    // shape (fourslash.go:1590-1593 and friends). null means "no override", which is Go's nil.
+    public UserPreferences? ConfigureWithPreferences(UserPreferences? preferences)
+    {
+        if (preferences == null)
         {
-            return;
+            return null;
         }
+        UserPreferences saved = userPreferences;
+        Configure(preferences);
+        return saved;
+    }
 
-        // Copy the parsed overrides onto the defaults. Tristate fields carry Unknown when
-        // unset; enum fields carry their None/zero; list fields stay null — each test below
-        // copies only values the user actually set.
-        if (parsed.Target != ScriptTarget.None)
+    public void RestorePreferences(UserPreferences? saved)
+    {
+        if (saved != null)
         {
-            compilerOptions.Target = parsed.Target;
-        }
-        if (parsed.Module != ModuleKind.None)
-        {
-            compilerOptions.Module = parsed.Module;
-        }
-        if (parsed.Jsx != JsxEmit.None)
-        {
-            compilerOptions.Jsx = parsed.Jsx;
-        }
-        if (parsed.ModuleResolution != ModuleResolutionKind.Unknown)
-        {
-            compilerOptions.ModuleResolution = parsed.ModuleResolution;
-        }
-        if (parsed.ModuleDetection != ModuleDetectionKind.None)
-        {
-            compilerOptions.ModuleDetection = parsed.ModuleDetection;
-        }
-        if (parsed.Strict != Tristate.Unknown)
-        {
-            compilerOptions.Strict = parsed.Strict;
-        }
-        if (parsed.StrictNullChecks != Tristate.Unknown)
-        {
-            compilerOptions.StrictNullChecks = parsed.StrictNullChecks;
-        }
-        if (parsed.NoImplicitAny != Tristate.Unknown)
-        {
-            compilerOptions.NoImplicitAny = parsed.NoImplicitAny;
-        }
-        if (parsed.NoImplicitThis != Tristate.Unknown)
-        {
-            compilerOptions.NoImplicitThis = parsed.NoImplicitThis;
-        }
-        if (parsed.AlwaysStrict != Tristate.Unknown)
-        {
-            compilerOptions.AlwaysStrict = parsed.AlwaysStrict;
-        }
-        if (parsed.AllowJs != Tristate.Unknown)
-        {
-            compilerOptions.AllowJs = parsed.AllowJs;
-        }
-        if (parsed.CheckJs != Tristate.Unknown)
-        {
-            compilerOptions.CheckJs = parsed.CheckJs;
-        }
-        if (parsed.ExactOptionalPropertyTypes != Tristate.Unknown)
-        {
-            compilerOptions.ExactOptionalPropertyTypes = parsed.ExactOptionalPropertyTypes;
-        }
-        if (parsed.ExperimentalDecorators != Tristate.Unknown)
-        {
-            compilerOptions.ExperimentalDecorators = parsed.ExperimentalDecorators;
-        }
-        if (parsed.IsolatedModules != Tristate.Unknown)
-        {
-            compilerOptions.IsolatedModules = parsed.IsolatedModules;
-        }
-        if (parsed.NoUnusedLocals != Tristate.Unknown)
-        {
-            compilerOptions.NoUnusedLocals = parsed.NoUnusedLocals;
-        }
-        if (parsed.NoUnusedParameters != Tristate.Unknown)
-        {
-            compilerOptions.NoUnusedParameters = parsed.NoUnusedParameters;
-        }
-        if (parsed.Lib != null)
-        {
-            compilerOptions.Lib = parsed.Lib;
-        }
-        if (parsed.Types != null)
-        {
-            compilerOptions.Types = parsed.Types;
+            Configure(saved);
         }
     }
 
-    // Go's ExtractCompilerSettings value decode: JSON when it parses, raw text otherwise.
-    private static object? DecodeOptionValue(string rawValue)
+    // The C# shape of the generator's format.setOption lowering (Go: GetOptions / field assign /
+    // Configure — see convertFourslash-csharp.mts parseFormatStatement). The lambda receives a
+    // clone of the session's FormatCodeSettings, so the single field assignment the corpus
+    // spells is applied to a copy exactly like Go's value-struct copy of the options.
+    public void ConfigureFormat(Action<global::Ts.Format.FormatCodeSettings> configure)
     {
-        if (rawValue.Length == 0)
+        UserPreferences options = userPreferences.Clone();
+        options.FormatCodeSettings = options.FormatCodeSettings.Clone();
+        configure(options.FormatCodeSettings);
+        Configure(options);
+    }
+
+    // fourslash.go:2015-2029 — applyEditsToContent (the non-mutating twin of applyTextEdits):
+    // sort by start position, then splice from the back. Positions are UTF-16 code units, and
+    // each edit's range is resolved against the original content (all edits share the file).
+    private string applyEditsToContent(string content, IReadOnlyList<LsProto.TextEdit> edits)
+    {
+        FourslashScriptInfo script = getScriptInfo(activeFilename)!;
+        var sorted = new List<LsProto.TextEdit>(edits);
+        sorted.Sort((a, b) => converters.LineAndCharacterToPosition(script, a.Range.Start)
+            - converters.LineAndCharacterToPosition(script, b.Range.Start));
+        for (int i = sorted.Count - 1; i >= 0; i--)
         {
-            return "";
+            LsProto.TextEdit edit = sorted[i];
+            int start = converters.LineAndCharacterToPosition(script, edit.Range.Start);
+            int end = converters.LineAndCharacterToPosition(script, edit.Range.End);
+            content = string.Concat(content.AsSpan(0, start), edit.NewText, content.AsSpan(end));
         }
-        try
+        return content;
+    }
+
+    // fourslash.go:2562-2564 — MarkTestAsStradaServer.
+    public void MarkTestAsStradaServer()
+    {
+        isStradaServer = true;
+    }
+
+    // fourslash.go:914-928 — FormatDocument.
+    public void FormatDocument(string filename)
+    {
+        if (filename.Length == 0)
         {
-            using JsonDocument document = JsonDocument.Parse(rawValue);
-            return document.RootElement.ValueKind == JsonValueKind.Object
-                ? null // Config-shaped options are not applied by the fourslash defaults path.
-                : document.RootElement.Clone();
+            filename = activeFilename;
         }
-        catch (JsonException)
+        LsProto.TextEditsOrNull? edits = LS().ProvideFormatDocument(
+            new global::Ts.Core.RequestContext { Cancellation = cancellationToken },
+            global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI(filename),
+            LsFormatOptions());
+        if (edits?.TextEdits is { } textEdits)
         {
-            return rawValue;
+            applyTextEdits(textEdits);
         }
     }
 
-    private sealed class FourslashConfigHost : global::Ts.TsOptions.ParseConfigHost
+    // fourslash.go:930-958 — FormatSelection.
+    public void FormatSelection(string startMarkerName, string endMarkerName)
     {
-        public IFileSystem FS() => VfsTestUtil.FromMap(new Dictionary<string, string>(), useCaseSensitiveFileNames: true);
-
-        public string GetCurrentDirectory() => RootDirectory;
+        Marker startMarker = MarkerByName(startMarkerName);
+        Marker endMarker = MarkerByName(endMarkerName);
+        if (startMarker.FileName != endMarker.FileName)
+        {
+            throw new InvalidOperationException(
+                "Markers '" + startMarkerName + "' and '" + endMarkerName + "' are in different files");
+        }
+        string filename = startMarker.FileName;
+        LsProto.TextEditsOrNull? edits = LS().ProvideFormatDocumentRange(
+            new global::Ts.Core.RequestContext { Cancellation = cancellationToken },
+            global::Ts.Ls.LsConv.Converters.FileNameToDocumentURI(filename),
+            LsFormatOptions(),
+            new LsProto.Range { Start = startMarker.LSPosition, End = endMarker.LSPosition });
+        if (edits?.TextEdits is { } textEdits)
+        {
+            applyTextEdits(textEdits);
+        }
     }
+
+    // userpreferences.go — f.userPreferences.FormatCodeSettings.ToLSFormatOptions()
+    // (lsutil/formatcodeoptions.go:105-112): TabSize, InsertSpaces and TrimTrailingWhitespace
+    // only. The remaining FormattingOptions members are Go zero values and are left unset.
+    private LsProto.FormattingOptions LsFormatOptions()
+    {
+        global::Ts.Format.FormatCodeSettings settings = userPreferences.FormatCodeSettings;
+        return new LsProto.FormattingOptions
+        {
+            TabSize = (uint)settings.TabSize,
+            InsertSpaces = settings.ConvertTabsToSpaces.IsTrue(),
+            TrimTrailingWhitespace = settings.TrimTrailingWhitespace.IsTrue(),
+        };
+    }
+
+    // fourslash.go:614-626 — textOfFile. Go walks f.vfs (the bundled-wrapped map fs the session
+    // was built over); ReadAll/ReadFile surface here as TryReadFile.
+    public bool textOfFile(string fileName, out string content)
+    {
+        if (vfs.TryReadFile(fileName, out string? text))
+        {
+            content = text;
+            return true;
+        }
+        content = "";
+        return false;
+    }
+
+    // fourslash.go:614-626 — textOfFile (throwing form; the Go name is reused by the baseline
+    // producers, which are the only C# callers that want the failure to surface as a test error).
+    private string textOfFileOrThrow(string fileName)
+    {
+        if (!textOfFile(fileName, out string content))
+        {
+            throw new InvalidOperationException("Could not find file " + fileName + " in the vfs");
+        }
+        return content;
+    }
+
+    // harnessutil.TestFile read-back for an arbitrary VFS path (Go's f.vfs.ReadFile) — used by
+    // New() while the session (and therefore textOfFile) does not exist yet.
+    private static string getFileTextFromVfs(IFileSystem fileSystem, string fileName) =>
+        fileSystem.TryReadFile(fileName, out string? text) ? text : "";
 }
 
 // fourslash.go:67-101 — scriptInfo.
