@@ -139,4 +139,58 @@ public class ParserTests
     {
         Assert.Throws<System.InvalidOperationException>(() => Parse("", ScriptKind.Unknown));
     }
+
+    // parser_test.go:165-210 — TestJSDocImportTypeParentChain
+    [Fact]
+    public void JSDocImportTypeParentChain()
+    {
+        const string sourceText = """
+test("", async function () {
+  ;(/** @type {typeof import("a")} */ ({}))
+})
+
+test("", async function () {
+  ;(/** @type {typeof import("a")} */ a)
+})
+
+""";
+        var opts = new SourceFileParseOptions { FileName = "/index.js", Path = new Path("/index.js") };
+
+        SourceFile file = global::Ts.Parser.Parser.ParseSourceFile(opts, sourceText, ScriptKind.JS);
+
+        Node[] clones = file.ReparsedClones ?? [];
+        for (int i = 1; i < clones.Length; i++)
+        {
+            Node a = clones[i - 1];
+            Node b = clones[i];
+            if (a.Pos == b.Pos && a.End == b.End && a.Kind == b.Kind)
+            {
+                Assert.Fail($"duplicate ReparsedClones at [{i - 1}] and [{i}]: {a.Kind} pos={a.Pos} end={a.End}");
+            }
+        }
+
+        foreach (Node imp in file.Imports() ?? [])
+        {
+            Node reparsed = AstUtilities.GetReparsedNodeForNode(imp);
+            if (AstUtilities.GetSourceFileOfNode(reparsed) is null)
+            {
+                Assert.Fail($"reparsed import at pos={imp.Pos} has broken parent chain");
+            }
+        }
+    }
+
+    // parser_test.go:212-233 — TestSourceFileContainsNonASCIIInStringLiteralFastPath
+    // PORT-NOTE: the two positionMap assertions are dropped — positionmap.go is intentionally not
+    // ported (plan/11 ast row: "positionmap.go 不移植"; UTF-16 world view, plan/01). The
+    // ContainsNonASCII fast-path flag it guards is asserted as the surviving assertion.
+    [Fact]
+    public void SourceFileContainsNonASCIIInStringLiteralFastPath()
+    {
+        const string sourceText = "const x = \"\u2500\";\n\nnamespace N {\n  export const y = x;\n}\n";
+        var opts = new SourceFileParseOptions { FileName = "/index.ts", Path = new Path("/index.ts") };
+
+        SourceFile file = global::Ts.Parser.Parser.ParseSourceFile(opts, sourceText, ScriptKind.TS);
+
+        Assert.True(file.ContainsNonASCII);
+    }
 }
