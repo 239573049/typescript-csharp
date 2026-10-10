@@ -75,6 +75,84 @@ public sealed partial class Checker
         return nodeBuilder.SignatureToSignatureDeclaration(signature, kind, enclosingDeclaration, flags, global::Ts.NodeBuilder.InternalFlags.None, null /*tracker*/);
     }
 
+    // services.go:510-536 — IsDeclarationUsed checks if an import declaration identifier is used
+    // in the source file. This is primarily used for organizing imports to determine which
+    // imports can be removed.
+    public bool IsDeclarationUsed(
+        global::Ts.Ast.SourceFile sourceFile,
+        global::Ts.Ast.Identifier identifier,
+        bool jsxElementsPresent,
+        bool jsxModeNeedsExplicitImport)
+    {
+        if (jsxElementsPresent && jsxModeNeedsExplicitImport)
+        {
+            string jsxNamespace = GetJsxNamespace(sourceFile.AsNode());
+            string jsxFragmentFactory = this.GetJsxFragmentFactory(sourceFile.AsNode());
+            string identifierText = identifier.Text;
+            if (identifierText == jsxNamespace)
+            {
+                return true;
+            }
+            if (jsxFragmentFactory != "" && identifierText == jsxFragmentFactory)
+            {
+                return true;
+            }
+        }
+
+        global::Ts.Ast.Symbol? symbol = GetSymbolAtLocation(identifier.AsNode());
+        if (symbol == null)
+        {
+            return true;
+        }
+
+        return IsSymbolReferencedInFile(sourceFile, identifier, symbol);
+    }
+
+    // services.go:538-574 — IsSymbolReferencedInFile checks if a symbol is referenced in the
+    // source file (besides its definition). This is used as a quick check for whether a symbol
+    // is used at all in a file.
+    public bool IsSymbolReferencedInFile(
+        global::Ts.Ast.SourceFile sourceFile,
+        global::Ts.Ast.Identifier definition,
+        global::Ts.Ast.Symbol symbol)
+    {
+        string identifierText = definition.Text;
+        foreach (global::Ts.Ast.Node token in GetPossibleSymbolReferenceNodes(sourceFile, identifierText, sourceFile.AsNode()))
+        {
+            if (!global::Ts.Ast.NodeTests.IsIdentifier(token))
+            {
+                continue;
+            }
+            global::Ts.Ast.Identifier id = token.AsIdentifier();
+            if (id == definition || id.Text != identifierText)
+            {
+                continue;
+            }
+            global::Ts.Ast.Symbol? refSymbol = GetSymbolAtLocation(token);
+            if (refSymbol == symbol)
+            {
+                return true;
+            }
+            if (token.Parent != null && token.Parent.Kind == global::Ts.Ast.SyntaxKind.ShorthandPropertyAssignment)
+            {
+                global::Ts.Ast.Symbol? shorthandSymbol = GetShorthandAssignmentValueSymbolCore(token.Parent);
+                if (shorthandSymbol == symbol)
+                {
+                    return true;
+                }
+            }
+            if (token.Parent != null && global::Ts.Ast.NodeTests.IsExportSpecifier(token.Parent))
+            {
+                global::Ts.Ast.Symbol? localSymbol = GetLocalSymbolForExportSpecifier(token.AsIdentifier(), refSymbol, token.Parent.AsExportSpecifier());
+                if (localSymbol == symbol)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // services.go:576-611 — GetReferencesToSymbolInFile: identifiers in the file that
     // reference the given symbol.
     public global::Ts.Ast.Node[] GetReferencesToSymbolInFile(global::Ts.Ast.SourceFile sourceFile, global::Ts.Ast.Symbol symbol)

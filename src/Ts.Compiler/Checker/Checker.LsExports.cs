@@ -89,6 +89,17 @@ public static class CheckerLsExports
     public static string GetJsxNamespace(this Checker c, global::Ts.Ast.Node? location) =>
         c.GetJsxNamespace(location);
 
+    // exports.go:269-275 — GetJsxFragmentFactory.
+    public static string GetJsxFragmentFactory(this Checker c, global::Ts.Ast.Node location)
+    {
+        var entity = c.GetJsxFragmentFactoryEntity(location);
+        if (entity != null)
+        {
+            return Checker.GetFirstIdentifier(entity).Text();
+        }
+        return "";
+    }
+
     // exports.go:277 — ResolveName (4-arg public shape; forwards with
     // nameNotFoundMessage=nil, isUse=true per the Go wrapper).
     public static global::Ts.Ast.Symbol? ResolveName(this Checker c, string name, global::Ts.Ast.Node? location, global::Ts.Ast.SymbolFlags meaning, bool excludeGlobals) =>
