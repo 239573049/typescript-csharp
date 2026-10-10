@@ -24,6 +24,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Ts.Core;
 using Ts.Ls;
@@ -454,7 +456,7 @@ public sealed partial class FourslashTest
 
     // The Includes/Unsorted *lsproto.CompletionItem arm (fourslash.go:1347-1379 / :1399-1429):
     // find the first actual item with the same label that matches the expected fields.
-    private static void verifyExpectedItemAgainstBuckets(
+    private void verifyExpectedItemAgainstBuckets(
         string prefix,
         Dictionary<string, List<LsProto.CompletionItem>> nameToActualItems,
         LsProto.CompletionItem expectedItem,
@@ -469,27 +471,28 @@ public sealed partial class FourslashTest
             ? prefix + "No completion item match for label " + expectedItem.Label + " (multiple candidates found): "
             : prefix + "Includes completion item mismatch for label " + expectedItem.Label + ": ";
 
-        int itemIndex = actualItems.FindIndex(actualItem => verifyCompletionItem(actualItem, expectedItem) == "");
+        int itemIndex = actualItems.FindIndex(actualItem =>
+        {
+            string err = verifyCompletionItem(prefix, actualItem, expectedItem);
+            if (err != "")
+            {
+                mismatchPrefix += "\n    " + err;
+                return false;
+            }
+            return true;
+        });
         // fail test if no match found
         if (itemIndex == -1)
         {
             throw new InvalidOperationException(mismatchPrefix);
         }
 
-        // delete previous entries since we verify entries in order
         if (removeOnSingle)
         {
+            // Unsorted arm (fourslash.go:1366-1374): drop the matched candidate.
             if (actualItems.Count == 1)
             {
                 nameToActualItems.Remove(expectedItem.Label);
-            }
-            else if (itemIndex == 0)
-            {
-                actualItems.RemoveAt(0);
-            }
-            else if (itemIndex == actualItems.Count - 1)
-            {
-                actualItems.RemoveAt(itemIndex);
             }
             else
             {
@@ -498,83 +501,153 @@ public sealed partial class FourslashTest
         }
         else
         {
+            // Includes arm (fourslash.go:1418-1423): delete previous entries since we verify
+            // entries in order (actualItems[itemIndex:]).
             if (actualItems.Count == 1 || itemIndex == actualItems.Count - 1)
             {
                 nameToActualItems.Remove(expectedItem.Label);
             }
             else
             {
-                actualItems.RemoveAt(0);
+                actualItems.RemoveRange(0, itemIndex);
             }
         }
     }
 
     // fourslash.go:1442-1460 — verifyCompletionsAreExactly.
-    private static void verifyCompletionsAreExactly(
+    private void verifyCompletionsAreExactly(
         string prefix,
         LsProto.CompletionItem[] actual,
         List<object> expected)
     {
-        for (int i = 0; i < expected.Count; i++)
+        // Verify labels first
+        string[] actualLabels = actual.Select(static item => item.Label).ToArray();
+        string[] expectedLabels = expected.Select(static item => getExpectedLabel(item).Label).ToArray();
+        if (!actualLabels.SequenceEqual(expectedLabels, StringComparer.Ordinal))
         {
-            LsProto.CompletionItem expectedItem = getExpectedLabel(expected[i]);
-            string err = verifyCompletionItem(actual[i], expectedItem);
-            if (err != "")
+            throw new InvalidOperationException(
+                prefix + "Labels mismatch: expected [" + string.Join(", ", expectedLabels) + "], got [" + string.Join(", ", actualLabels) + "]");
+        }
+        for (int i = 0; i < actual.Length; i++)
+        {
+            if (expected[i] is LsProto.CompletionItem expectedItem)
             {
-                throw new InvalidOperationException(prefix + "Completion item " + i + " mismatch: " + err);
+                string itemPrefix = prefix + "Completion item mismatch for label " + actual[i].Label;
+                string err = verifyCompletionItem(itemPrefix, actual[i], expectedItem);
+                if (err != "")
+                {
+                    throw new InvalidOperationException(itemPrefix + ":\n" + err);
+                }
             }
         }
     }
 
-    // fourslash.go:1476-1538 — verifyCompletionItem. Go's cmp walks every set field of the
-    // expected item; this port covers the fields the ported corpus sets (label always, plus
-    // kind/sort/filter/detail/insertText and the auto-import data when present).
-    private static string verifyCompletionItem(LsProto.CompletionItem actual, LsProto.CompletionItem expected)
+    // fourslash.go:1471-1472 — completionIgnoreOpts / autoImportIgnoreOpts (JSON property names
+    // of the ignored lsproto.CompletionItem fields).
+    private static readonly string[] completionIgnoreOpts = ["kind", "sortText", "filterText", "data", "additionalTextEdits"];
+    private static readonly string[] autoImportIgnoreOpts = ["kind", "sortText", "filterText", "data", "labelDetails", "detail", "additionalTextEdits"];
+
+    // fourslash.go:1476-1538 — verifyCompletionItem; returns an error message if not matched.
+    // Go's cmp.Diff walks every field of the two structs minus the ignored paths; the port
+    // compares the lsproto JSON forms (the wire shape of exactly those fields) the same way.
+    private string verifyCompletionItem(string prefix, LsProto.CompletionItem actual, LsProto.CompletionItem expected)
     {
-        var mismatches = new List<string>();
-        if (!string.Equals(actual.Label, expected.Label, StringComparison.Ordinal))
-        {
-            mismatches.Add("label: expected \"" + expected.Label + "\", got \"" + actual.Label + "\"");
-        }
-        bool actualAutoImportFix = actual.Data?.AutoImport != null;
-        bool expectedAutoImportFix = expected.Data?.AutoImport != null;
-        if (actualAutoImportFix != expectedAutoImportFix)
+        LsProto.AutoImportFix? actualAutoImportFix = actual.Data?.AutoImport;
+        LsProto.AutoImportFix? expectedAutoImportFix = expected.Data?.AutoImport;
+        if ((actualAutoImportFix == null) != (expectedAutoImportFix == null))
         {
             return "Mismatch in auto-import data presence";
         }
-        if (actualAutoImportFix)
+
+        if (expected.Detail != null || expected.Documentation != null || actualAutoImportFix != null)
         {
-            // The auto-import arm ignores the resolved-detail surface (fourslash.go:1486-1516).
-            return string.Join("; ", mismatches);
+            actual = resolveCompletionItem(actual);
+        }
+
+        // Go's AnyTextEdits is a nil *[]*lsproto.TextEdit, so "== AnyTextEdits" also holds for an
+        // unset expected field.
+        bool expectedAnyTextEdits = expected.AdditionalTextEdits == null || ReferenceEquals(expected.AdditionalTextEdits, AnyTextEdits);
+        if (actualAutoImportFix != null)
+        {
+            string err = diffCompletionItems(actual, expected, autoImportIgnoreOpts);
+            if (err != "")
+            {
+                return err;
+            }
+            if (expectedAnyTextEdits)
+            {
+                if (!(actual.AdditionalTextEdits != null && actual.AdditionalTextEdits.Length > 0))
+                {
+                    return "Expected non-nil AdditionalTextEdits for auto-import completion item";
+                }
+            }
+            if (expected.LabelDetails != null)
+            {
+                string labelErr = diffJson(
+                    JsonSerializer.SerializeToNode(actual.LabelDetails, LsProto.LspJsonContext.Default.CompletionItemLabelDetails),
+                    JsonSerializer.SerializeToNode(expected.LabelDetails, LsProto.LspJsonContext.Default.CompletionItemLabelDetails));
+                if (labelErr != "")
+                {
+                    return "LabelDetailsMismatch:\n" + labelErr;
+                }
+            }
+            if (actualAutoImportFix.ModuleSpecifier != expectedAutoImportFix!.ModuleSpecifier)
+            {
+                return "ModuleSpecifier mismatch";
+            }
+        }
+        else
+        {
+            string err = diffCompletionItems(actual, expected, completionIgnoreOpts);
+            if (err != "")
+            {
+                return err;
+            }
+            if (!expectedAnyTextEdits)
+            {
+                string editsErr = diffJson(
+                    actual.AdditionalTextEdits == null ? null : JsonSerializer.SerializeToNode(actual.AdditionalTextEdits, LsProto.LspJsonContext.Default.TextEditArray),
+                    JsonSerializer.SerializeToNode(expected.AdditionalTextEdits, LsProto.LspJsonContext.Default.TextEditArray));
+                if (editsErr != "")
+                {
+                    return "AdditionalTextEdits mismatch:\n" + editsErr;
+                }
+            }
+        }
+
+        if (expected.FilterText != null && !string.Equals(actual.FilterText, expected.FilterText, StringComparison.Ordinal))
+        {
+            return "FilterText mismatch:\n  expected \"" + expected.FilterText + "\", got \"" + actual.FilterText + "\"";
         }
         if (expected.Kind.HasValue && actual.Kind != expected.Kind)
         {
-            mismatches.Add("kind: expected " + expected.Kind.Value + ", got " + (actual.Kind?.ToString() ?? "null"));
+            return "Kind mismatch:\n  expected " + expected.Kind.Value + ", got " + (actual.Kind?.ToString() ?? "null");
         }
-        if (expected.SortText != null && !string.Equals(actual.SortText, expected.SortText, StringComparison.Ordinal))
+        string expectedSortText = expected.SortText ?? global::Ts.Ls.LanguageService.SortTextLocationPriorityValue;
+        if (!string.Equals(actual.SortText, expectedSortText, StringComparison.Ordinal))
         {
-            mismatches.Add("sortText: expected \"" + expected.SortText + "\", got \"" + actual.SortText + "\"");
+            return "SortText mismatch:\n  expected \"" + expectedSortText + "\", got \"" + actual.SortText + "\"";
         }
-        if (expected.FilterText != null && !string.Equals(actual.FilterText, expected.FilterText, StringComparison.Ordinal))
-        {
-            mismatches.Add("filterText: expected \"" + expected.FilterText + "\", got \"" + actual.FilterText + "\"");
-        }
-        if (expected.Detail != null && !string.Equals(actual.Detail, expected.Detail, StringComparison.Ordinal))
-        {
-            mismatches.Add("detail: expected \"" + expected.Detail + "\", got \"" + actual.Detail + "\"");
-        }
-        if (expected.InsertText != null && !string.Equals(actual.InsertText, expected.InsertText, StringComparison.Ordinal))
-        {
-            mismatches.Add("insertText: expected \"" + expected.InsertText + "\", got \"" + actual.InsertText + "\"");
-        }
-        if (expected.AdditionalTextEdits != null &&
-            !ReferenceEquals(expected.AdditionalTextEdits, AnyTextEdits))
-        {
-            mismatches.Add("additionalTextEdits: expected unset, got "
-                + (actual.AdditionalTextEdits == null ? "null" : actual.AdditionalTextEdits.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-        }
-        return string.Join("; ", mismatches);
+
+        return "";
     }
+
+    private static string diffCompletionItems(LsProto.CompletionItem actual, LsProto.CompletionItem expected, string[] ignore)
+    {
+        JsonObject actualJson = JsonSerializer.SerializeToNode(actual, LsProto.LspJsonContext.Default.CompletionItem)!.AsObject();
+        JsonObject expectedJson = JsonSerializer.SerializeToNode(expected, LsProto.LspJsonContext.Default.CompletionItem)!.AsObject();
+        foreach (string name in ignore)
+        {
+            actualJson.Remove(name);
+            expectedJson.Remove(name);
+        }
+        return diffJson(actualJson, expectedJson);
+    }
+
+    private static string diffJson(JsonNode? actual, JsonNode? expected) =>
+        JsonNode.DeepEquals(actual, expected)
+            ? ""
+            : "  actual:   " + (actual?.ToJsonString() ?? "null") + "\n  expected: " + (expected?.ToJsonString() ?? "null");
 
     // fourslash.go:1549-1560 — getExpectedLabel.
     private static LsProto.CompletionItem getExpectedLabel(object item)
@@ -594,6 +667,11 @@ public sealed partial class FourslashTest
     // fourslash.go:1539-1548 — ResolveCompletionItem. (Data rides the item; the C# LS entry
     // takes it explicitly.)
     public LsProto.CompletionItem ResolveCompletionItem(LsProto.CompletionItem item)
+    {
+        return resolveCompletionItem(item);
+    }
+
+    private LsProto.CompletionItem resolveCompletionItem(LsProto.CompletionItem item)
     {
         return LS().ResolveCompletionItem(item, item.Data, cancellationToken);
     }
